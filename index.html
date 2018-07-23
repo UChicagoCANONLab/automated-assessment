@@ -1,0 +1,65 @@
+<html>
+<head>
+	<meta charset="utf-8"/>
+</head>
+<body>
+<p> break 1 </p>
+<div id="div1"></div>
+<p> break 2 </p>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="analyze.js" type="text/javascript"> </script>
+<script type="text/javascript">
+
+var requestURL = 'http://projects.scratch.mit.edu/internalapi/project/192728047/get/';
+for(var i=0; i<10; i++) {
+	getLink(requestURL);
+}
+
+appendText("Project Report:");
+appendNewLine();
+
+function getLink(requestURL){
+	var request = new XMLHttpRequest();
+	request.open('GET', requestURL);
+	request.responseType = 'json';
+	request.send();
+	request.onload = function() {
+		var project = request.response;
+		console.log(project);
+		console.log(typeof(project));
+		analyze(project);
+	}
+}
+
+function appendText(string) { 
+  // create a new div element 
+  var newDiv = document.createElement("div"); 
+  // and give it some content 
+  var newContent = document.createTextNode(string); 
+  // add the text node to the newly created div
+  newDiv.appendChild(newContent);  
+
+  // add the newly created element and its content into the DOM 
+  var currentDiv = document.getElementById("div1"); 
+  document.body.insertBefore(newDiv, currentDiv); 
+}
+
+function appendNewLine() {
+  // create a new div element 
+  var newDiv = document.createElement("div"); 
+  // and give it some content 
+  var newContent = document.createTextNode(""); 
+  // add the text node to the newly created div
+  newDiv.appendChild(newContent);  
+  newDiv.style.padding = "15px";
+
+  // add the newly created element and its content into the DOM 
+  var currentDiv = document.getElementById("div1"); 
+  document.body.insertBefore(newDiv, currentDiv); 
+}
+
+</script>
+
+</body>
+</html>
