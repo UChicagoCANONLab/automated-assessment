@@ -1,7 +1,6 @@
+/* Contains project analysis functions. */
 
-///////////////////////////////////////////////////////////////////////////////
-/// student requirements for Events module
-
+/* Requirements for events module. */
 var req_containsTwoSprites  = false;
 var req_greenFlagHandled    = false;
 var req_spriteClickHandled  = false;
@@ -10,14 +9,14 @@ var req_spriteSaysSomething = false;
 var req_spriteChangesSize   = false;
 var req_spriteResetsSize    = false;
 
-///////////////////////////////////////////////////////////////////////////////
-/// analyze JSON
 
+/* Checks for correct event listener. */
 function isValidEvent(event) {
     var validEvents = ['whenGreenFlag', 'whenClicked', 'whenKeyPressed'];
     return validEvents.includes(event);
 }
 
+/* Low-level analysis function, looks for expected scripts. */
 function checkScripts(sprite) {
     for (var i = 0; i < sprite.scripts.length; i++) {
 
@@ -44,6 +43,8 @@ function checkScripts(sprite) {
     }
 }
 
+/* Top-level analysis function, checks for appropraite number of sprites
+   and initializes script analysis. */
 function analyze(fileObj) {
     var pID = fileObj.info.projectID;
     var sprites = fileObj.children;
@@ -59,14 +60,14 @@ function analyze(fileObj) {
     report(pID);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-/// report results
 
+/* Returns pass/fail symbol. */
 function checkbox(bool) {
     if (bool) return '✔️';
     else return '❌';
 }
 
+/* Reports results. */
 function report(pID) {
 
     appendText('Scratch Project ID: ' + pID);
