@@ -1,4 +1,4 @@
-/* Contains project analysis functions. */
+/* --- Contains project analysis functions. --- */
 
 /* Requirements dictionary. */
 var grade_reqs = {};
@@ -13,7 +13,6 @@ function isValidEvent(event) {
 function checkScripts(sprite) {
     /* Checks for no scripts */
     if(!sprite.scripts) {
-        console.log(sprite);
         return;
     }
     for (var i = 0; i < sprite.scripts.length; i++) {
@@ -43,7 +42,7 @@ function checkScripts(sprite) {
 
 /* Top-level analysis function, checks for appropraite number of sprites
    and initializes script analysis. */
-function analyze(fileObj) {
+function analyze(fileObj, user) {
     grade_reqs.containsTwoSprites = false;
     grade_reqs.greenFlagHandled    = false;
     grade_reqs.spriteClickHandled  = false;
@@ -53,6 +52,13 @@ function analyze(fileObj) {
     grade_reqs.spriteResetsSize    = false;
 
     var pID = fileObj.info.projectID;
+
+    checkSprites(fileObj,user,pID);
+
+   
+}
+
+function checkSprites(fileObj, user,pID) {
     var sprites = fileObj.children;
 
     for (var i = 0; i < sprites.length; i++) {
@@ -63,7 +69,7 @@ function analyze(fileObj) {
     }
 
     grade_reqs.containsTwoSprites = fileObj.info.spriteCount > 1;
-    report(pID);
+    report(user,pID);
 }
 
 
@@ -74,32 +80,34 @@ function checkbox(bool) {
 }
 
 /* Reports results. */
-function report(pID) {
+function report(user,pID) {
 
-    appendText('Scratch Project ID: ' + pID);
+    var ret_list = [];
 
-    appendText(checkbox(grade_reqs.containsTwoSprites) + 
+    ret_list.push('Name: ' + user + '; Project ID: ' + pID);
+
+    ret_list.push(checkbox(grade_reqs.containsTwoSprites) + 
         ' - Project contains at least two sprites');
 
-    appendText(checkbox(grade_reqs.greenFlagHandled) + 
+    ret_list.push(checkbox(grade_reqs.greenFlagHandled) + 
         ' - Project handles [when green flag clicked] event');
 
-    appendText(checkbox(grade_reqs.spriteClickHandled) + 
+    ret_list.push(checkbox(grade_reqs.spriteClickHandled) + 
         ' - Project handles [when this sprite clicked] event');
 
-    appendText(checkbox(grade_reqs.keyPressHandled) + 
+    ret_list.push(checkbox(grade_reqs.keyPressHandled) + 
         ' - Project handles [when _ key pressed] event');
 
-    appendText(checkbox(grade_reqs.spriteSaysSomething) +
+    ret_list.push(checkbox(grade_reqs.spriteSaysSomething) +
         ' - Sprite says something in response to an event')
 
-    appendText(checkbox(grade_reqs.spriteChangesSize) +
+    ret_list.push(checkbox(grade_reqs.spriteChangesSize) +
         ' - Sprite changes size in response to an event')
 
-    appendText(checkbox(grade_reqs.spriteResetsSize) +
+    ret_list.push(checkbox(grade_reqs.spriteResetsSize) +
         ' - Sprite resets its size when green flag clicked')
+    reports_list.push(ret_list);
 
-    appendNewLine();
-
+    printReport();    
 }
 

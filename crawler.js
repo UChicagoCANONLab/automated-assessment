@@ -1,4 +1,4 @@
-/* Contains web-crawling functions. */
+/* --- Contains web-crawling functions. --- */
 
 /* Parses out link to studio and initiates crawl. */
 function crawlFromStudio(string) {
@@ -37,8 +37,7 @@ function crawl(id, page)
   /* Handle response. */
   request.onload = function() {
     if(request.status != 200) {
-      transferFailed();
-      console.log("Page: " + page);
+      transferFailed(page);
       return;
     }
 
@@ -60,8 +59,8 @@ function crawl(id, page)
 }
 
 /* Logs unsuccessful transfer (generally intentional). */
-function transferFailed() {
-  console.log("XML transfer terminated.");
+function transferFailed(page) {
+  console.log("XML transfer terminated on page " + page + ".");
 }
 
 /* Collects links to project pages from studio html and initiates JSON recovery. */
@@ -77,7 +76,13 @@ function collectLinks(source)
   var thumb_items = doc.getElementsByClassName('project thumb item');
   [...thumb_items].forEach(function(item){
     var ret_val = pre + item.getAttribute('data-id') + post;
-    console.log(ret_val);
-    getJSON(ret_val);
+    var name;
+    try {
+      name = item.getElementsByClassName("owner")[0].children[0].innerHTML;
+    }
+    catch(err) {
+      name = '[undefined]';
+    }
+    getJSON(ret_val,analyze,[name]);
   });
 }
