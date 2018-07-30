@@ -26,6 +26,11 @@
     padding: .5rem;
     font-size: 14px;
     font-style: italic;
+    color:gray;
+}
+
+.link {
+    font: 1rem 'Courier', serif;
 }
 
 h1 {

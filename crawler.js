@@ -46,7 +46,6 @@ function crawl(id, page)
       appendText("Project Report:");
       appendNewLine();
     }
-
     var project = request.response;
     collectLinks(project);
     crawl(id, page + 1);
