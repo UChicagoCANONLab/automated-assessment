@@ -1,14 +1,7 @@
 /* Contains project analysis functions. */
 
-/* Requirements for events module. */
-var req_containsTwoSprites  = false;
-var req_greenFlagHandled    = false;
-var req_spriteClickHandled  = false;
-var req_keyPressHandled     = false;
-var req_spriteSaysSomething = false;
-var req_spriteChangesSize   = false;
-var req_spriteResetsSize    = false;
-
+/* Requirements dictionary. */
+var grade_reqs = {};
 
 /* Checks for correct event listener. */
 function isValidEvent(event) {
@@ -18,6 +11,11 @@ function isValidEvent(event) {
 
 /* Low-level analysis function, looks for expected scripts. */
 function checkScripts(sprite) {
+    /* Checks for no scripts */
+    if(!sprite.scripts) {
+        console.log(sprite);
+        return;
+    }
     for (var i = 0; i < sprite.scripts.length; i++) {
 
         var script = sprite.scripts[i][2];
@@ -25,18 +23,18 @@ function checkScripts(sprite) {
         
         if (script.length > 1 && isValidEvent(event)) {
 
-            if (event === 'whenGreenFlag')  req_greenFlagHandled   = true;
-            if (event === 'whenClicked')    req_spriteClickHandled = true;
-            if (event === 'whenKeyPressed') req_keyPressHandled    = true;
+            if (event === 'whenGreenFlag')  grade_reqs.greenFlagHandled   = true;
+            if (event === 'whenClicked')    grade_reqs.spriteClickHandled = true;
+            if (event === 'whenKeyPressed') grade_reqs.keyPressHandled    = true;
 
             for (var j = 1; j < script.length; j++) {
                 block = script[j][0];
                 if (['say:', 'say:duration:elapsed:from:'].includes(block))
-                    req_spriteSaysSomething = true;
+                    grade_reqs.spriteSaysSomething = true;
                 if (block === 'changeSizeBy:')
-                    req_spriteChangesSize = true;
+                    grade_reqs.spriteChangesSize = true;
                 if (block === 'setSizeTo:' && event === 'whenGreenFlag')
-                    req_spriteResetsSize = true;
+                    grade_reqs.spriteResetsSize = true;
 
             }
         }
@@ -46,6 +44,14 @@ function checkScripts(sprite) {
 /* Top-level analysis function, checks for appropraite number of sprites
    and initializes script analysis. */
 function analyze(fileObj) {
+    grade_reqs.containsTwoSprites = false;
+    grade_reqs.greenFlagHandled    = false;
+    grade_reqs.spriteClickHandled  = false;
+    grade_reqs.keyPressHandled     = false;
+    grade_reqs.spriteSaysSomething = false;
+    grade_reqs.spriteChangesSize   = false;
+    grade_reqs.spriteResetsSize    = false;
+
     var pID = fileObj.info.projectID;
     var sprites = fileObj.children;
 
@@ -56,7 +62,7 @@ function analyze(fileObj) {
         }
     }
 
-    req_containsTwoSprites = fileObj.info.spriteCount > 1;
+    grade_reqs.containsTwoSprites = fileObj.info.spriteCount > 1;
     report(pID);
 }
 
@@ -72,25 +78,25 @@ function report(pID) {
 
     appendText('Scratch Project ID: ' + pID);
 
-    appendText(checkbox(req_containsTwoSprites) + 
+    appendText(checkbox(grade_reqs.containsTwoSprites) + 
         ' - Project contains at least two sprites');
 
-    appendText(checkbox(req_greenFlagHandled) + 
+    appendText(checkbox(grade_reqs.greenFlagHandled) + 
         ' - Project handles [when green flag clicked] event');
 
-    appendText(checkbox(req_spriteClickHandled) + 
+    appendText(checkbox(grade_reqs.spriteClickHandled) + 
         ' - Project handles [when this sprite clicked] event');
 
-    appendText(checkbox(req_keyPressHandled) + 
+    appendText(checkbox(grade_reqs.keyPressHandled) + 
         ' - Project handles [when _ key pressed] event');
 
-    appendText(checkbox(req_spriteSaysSomething) +
+    appendText(checkbox(grade_reqs.spriteSaysSomething) +
         ' - Sprite says something in response to an event')
 
-    appendText(checkbox(req_spriteChangesSize) +
+    appendText(checkbox(grade_reqs.spriteChangesSize) +
         ' - Sprite changes size in response to an event')
 
-    appendText(checkbox(req_spriteResetsSize) +
+    appendText(checkbox(grade_reqs.spriteResetsSize) +
         ' - Sprite resets its size when green flag clicked')
 
     appendNewLine();

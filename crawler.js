@@ -18,7 +18,8 @@ function crawlFromStudio(string) {
   /* Check for invalid URL. */
   if (id == 0)
   {
-      throw new Error("Invalid URL");
+    linkError();
+    return;
   }
 
   crawl (id, page);
@@ -37,17 +38,31 @@ function crawl(id, page)
   request.onload = function() {
     if(request.status != 200) {
       transferFailed();
+      console.log("Page: " + page);
       return;
     }
+
+    if(page == 1) {
+      appendText("Project Report:");
+      appendNewLine();
+    }
+
     var project = request.response;
     collectLinks(project);
     crawl(id, page + 1);
+    
+  }
+
+  /* Handle error. */
+  request.onerror = function() {
+    clearReport();
+    linkError();
   }
 }
 
 /* Logs unsuccessful transfer (generally intentional). */
 function transferFailed() {
-  console.log("XML transfer unsuccessful.");
+  console.log("XML transfer terminated.");
 }
 
 /* Collects links to project pages from studio html and initiates JSON recovery. */

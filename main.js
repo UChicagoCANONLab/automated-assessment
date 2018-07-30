@@ -1,19 +1,16 @@
 
-/* initialize html, initiate crawler */
+/* Initializes html and initiates crawler. */
 function buttonHandler() {
   document.getElementById('process_button').blur();
-  var removeables = document.getElementsByClassName('dynamic');
-  while(removeables[0]) {
-    removeables[0].remove();
-  }
+  clearReport();
+  noError();
   
-	appendText("Project Report:");
-	appendNewLine();
+	
 	var requestURL = document.getElementById('inches_input').value;
 	crawlFromStudio(requestURL);
 }
 
-/* request project json, initiate analysis */
+/* Request project jsons and initiate analysis. */
 function getJSON(requestURL){
 	var request = new XMLHttpRequest();
 	request.open('GET', requestURL);
@@ -27,7 +24,7 @@ function getJSON(requestURL){
 	}
 }
 
-/* print a line of grading text */
+/* Prints a line of grading text. */
 function appendText(string) {
   var tbi = document.createElement("div");
   tbi.className = "dynamic";
@@ -43,7 +40,7 @@ function appendText(string) {
   document.body.insertBefore(tbi, ai);
 }
 
-/* print a blank line */
+/* Prints a blank line. */
 function appendNewLine() {
   var tbi = document.createElement("div"); 
   tbi.className = "dynamic";
@@ -51,4 +48,21 @@ function appendNewLine() {
 
   var ai = document.getElementById("report"); 
   document.body.insertBefore(tbi, ai); 
+}
+
+function clearReport() {
+  var removeables = document.getElementsByClassName('dynamic');
+  while(removeables[0]) {
+    removeables[0].remove();
+  }
+}
+
+/* ERROR REPORTS */
+function linkError() {
+  document.getElementById("process_status").style.color = "red";
+  document.getElementById('process_status').innerHTML = "Error: invalid link.";
+}
+
+function noError() {
+  document.getElementById('process_status').innerHTML = "";
 }
