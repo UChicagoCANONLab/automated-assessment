@@ -4,6 +4,7 @@ var reports_list = [];
 /* Initializes html and initiates crawler. */
 function buttonHandler() {
   document.getElementById('process_button').blur();
+  reports_list = [];
   clearReport();
   noError();
   

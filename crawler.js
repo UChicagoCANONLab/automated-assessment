@@ -29,7 +29,7 @@ function crawlFromStudio(string) {
 function crawl(id, page)
 {
   /* Prepare link and send request. */
-  var newurl = "https://scratch.mit.edu/site-api/projects/in/" + id + "/" + page + "/";
+  var newurl = "https://cors-anywhere.herokuapp.com/https://scratch.mit.edu/site-api/projects/in/" + id + "/" + page + "/";
   var request = new XMLHttpRequest();
   request.open('GET', newurl);
   request.send();

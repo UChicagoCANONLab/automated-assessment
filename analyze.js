@@ -52,13 +52,6 @@ function analyze(fileObj, user) {
     grade_reqs.spriteResetsSize    = false;
 
     var pID = fileObj.info.projectID;
-
-    checkSprites(fileObj,user,pID);
-
-   
-}
-
-function checkSprites(fileObj, user,pID) {
     var sprites = fileObj.children;
 
     for (var i = 0; i < sprites.length; i++) {
