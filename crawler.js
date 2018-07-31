@@ -67,7 +67,7 @@ function transferFailed(page) {
 function collectLinks(source)
 {
   /* Constants. */
-  var pre = "http://projects.scratch.mit.edu/internalapi/project/";
+  var pre = "https://cors-anywhere.herokuapp.com/http://projects.scratch.mit.edu/internalapi/project/";
   var post = "/get/"
 
   /* Fetches project links and initiates JSON recovery for each. */
