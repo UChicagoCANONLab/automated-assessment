@@ -49,7 +49,7 @@ function testCrossOrg(id) {
 function crawl(id, page)
 {
   /* Prepare link and send request. */
-  var newurl = "https://cors-anywhere.herokuapp.com/https://scratch.mit.edu/site-api/projects/in/" + id + "/" + page + "/";
+  var newurl = "https://scratch.mit.edu/site-api/projects/in/" + id + "/" + page + "/";
   var request = new XMLHttpRequest();
   request.open('GET', newurl);
   request.send();
@@ -60,8 +60,8 @@ function crawl(id, page)
       transferFailed(page);
       return;
     }
-
     var project = request.response;
+
     collectLinks(project);
     crawl(id, page + 1);
     
@@ -77,13 +77,13 @@ function crawl(id, page)
 /* Logs unsuccessful transfer (generally intentional). */
 function transferFailed(page) {
   console.log("XML transfer terminated on page " + page + ".");
-  document.getElementById('wait_time').innerHTML = "";
 
   if(page == 1) {
     linkError();
   }
   else{
-    document.getElementById('wait_time').innerHTML = "Done.";
+    crawl_finished = true;
+    checkComplete();
   }
 }
 
@@ -98,6 +98,8 @@ function collectLinks(source)
   var doc = document.createElement( 'html' );
   doc.innerHTML = source;
   var thumb_items = doc.getElementsByClassName('project thumb item');
+  project_count += [...thumb_items].length;
+  console.log(project_count);
   [...thumb_items].forEach(function(item){
     var ret_val = pre + item.getAttribute('data-id') + post;
     var name;

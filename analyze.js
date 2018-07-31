@@ -100,5 +100,6 @@ function report(user,pID) {
     reports_list.push(ret_list);
 
     printReport();    
+    
 }
 

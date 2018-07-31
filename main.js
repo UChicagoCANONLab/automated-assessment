@@ -2,8 +2,12 @@
 var reports_list = [];
 /* Requirements dictionary. */
 var grade_reqs = {};
-/* Cross-origin request permissibility */
+/**/
+var project_count = 0;
+/* Cross-origin request permissibility UNUSED*/
 var cross_org = true;
+
+var crawl_finished = false;
 
 /* Initializes html and initiates crawler. */
 function buttonHandler() {
@@ -13,6 +17,10 @@ function buttonHandler() {
   document.getElementById('process_button').blur();
   clearReport();
   reports_list = [];
+  project_count = 0;
+  crawl_finished = false;
+  cross_org = true;
+  grade_reqs = {};
 
   noError();
   document.getElementById('wait_time').innerHTML = "Loading...";
@@ -72,7 +80,16 @@ function printReport() {
     });
     appendNewLine();
   });
+  checkComplete();
+}
 
+/* Checks if process is done.  */
+function checkComplete() {
+  if(project_count == reports_list.length && crawl_finished) {
+    console.log("Done.");
+    document.getElementById('wait_time').innerHTML = 'Done.';
+
+  }
 }
 
 /* Clears all project reports from the page. */
