@@ -3,10 +3,15 @@ var reports_list = [];
 
 /* Initializes html and initiates crawler. */
 function buttonHandler() {
+  if(document.getElementById('wait_time').innerHTML == "Loading...") {
+    return;
+  }
   document.getElementById('process_button').blur();
-  reports_list = [];
   clearReport();
+  reports_list = [];
+
   noError();
+  document.getElementById('wait_time').innerHTML = "Loading...";
   
 	
 	var requestURL = document.getElementById('inches_input').value;
@@ -86,6 +91,7 @@ function sortReport() {
 function linkError() {
   document.getElementById("process_status").style.color = "red";
   document.getElementById('process_status').innerHTML = "Error: invalid link.";
+  document.getElementById('wait_time').innerHTML = "Studio links are generally of the form: <br /> <span class = 'link'> https://scratch.mit.edu/studios/[id number]/</span>";
 }
 
 function noError() {

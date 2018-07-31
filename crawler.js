@@ -61,6 +61,14 @@ function crawl(id, page)
 /* Logs unsuccessful transfer (generally intentional). */
 function transferFailed(page) {
   console.log("XML transfer terminated on page " + page + ".");
+  document.getElementById('wait_time').innerHTML = "";
+
+  if(page == 1) {
+    linkError();
+  }
+  else{
+    document.getElementById('wait_time').innerHTML = "Done.";
+  }
 }
 
 /* Collects links to project pages from studio html and initiates JSON recovery. */
