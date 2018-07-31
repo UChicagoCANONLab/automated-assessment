@@ -1,5 +1,9 @@
 /* Stores the grade reports. */
 var reports_list = [];
+/* Requirements dictionary. */
+var grade_reqs = {};
+/* Cross-origin request permissibility */
+var cross_org = true;
 
 /* Initializes html and initiates crawler. */
 function buttonHandler() {

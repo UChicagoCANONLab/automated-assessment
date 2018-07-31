@@ -25,11 +25,31 @@ function crawlFromStudio(string) {
   crawl (id, page);
 }
 
+/* || Work In Progress || */
+function testCrossOrg(id) {
+  var newurl = "https://scratch.mit.edu/site-api/projects/in/" + id + "/1/";
+  var request = new XMLHttpRequest();
+  request.open('GET', newurl);
+  request.send();
+
+  /* Handle response. */
+  request.onload = function() {
+    if(request.status != 200) {
+      cross_org = false;      
+      console.log(cross_org);
+      return;
+    }
+    console.log(cross_org);
+    console.log(request.response);
+    
+  }
+}
+
 /* Requests html from a studio page and recursively checks other studio pages. */
 function crawl(id, page)
 {
   /* Prepare link and send request. */
-  var newurl = "https://cors-anywhere.herokuapp.com/https://scratch.mit.edu/site-api/projects/in/" + id + "/" + page + "/";
+  var newurl = "https://scratch.mit.edu/site-api/projects/in/" + id + "/" + page + "/";
   var request = new XMLHttpRequest();
   request.open('GET', newurl);
   request.send();
@@ -41,10 +61,6 @@ function crawl(id, page)
       return;
     }
 
-    if(page == 1) {
-      appendText("Project Report:");
-      appendNewLine();
-    }
     var project = request.response;
     collectLinks(project);
     crawl(id, page + 1);

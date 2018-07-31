@@ -1,7 +1,5 @@
 /* --- Contains project analysis functions. --- */
 
-/* Requirements dictionary. */
-var grade_reqs = {};
 
 /* Checks for correct event listener. */
 function isValidEvent(event) {
