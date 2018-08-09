@@ -7,6 +7,7 @@
   <script src="analyze.js" type="text/javascript"> </script>
   <script src="crawler.js" type="text/javascript"> </script>
   <script src="main.js" type="text/javascript"> </script>
+  <script src="events.js" type="text/javascript"> </script>
   <script type="text/javascript">
     $(function() {
 
@@ -36,11 +37,27 @@
       </div>
     </form>
 
+
+    <div class="dropdown">
+      <input type="button" class="btn dropdown_btn" value="Unit" id = "module_button" onclick="dropdownHandler()"/>
+      <div id="unit_dropdown"  class="dropdown_menu"> 
+        <a onclick="drop_eventHandler()" href = "#"> Events </a>
+        <a onclick="drop_functionHandler()" href = "#"> Functions </a>
+      </div>
+      
+    </div>
+    <div style="padding:10px;"> </div>
     <input type="button" class="btn" value="Grade" id = "process_button" onclick="buttonHandler()"/>
     <p class="wait_time" id="wait_time">Studio links are generally of the form:<br /> <span class="link"> https://scratch.mit.edu/studios/[id number]/</span></p>
 
     <p class="status" id="process_status"></p>
   </div>
+
+<div id="myProgress" style= "visibility: hidden;">
+  <div id="greenbar" class = 'progress_bar'></div>
+  <div id="yellowbar" class = 'progress_bar'></div>
+  <div id="redbar" class = 'progress_bar'></div>
+</div>
 <div id="report" style="text-align:center;"></div>
 
 <script type="text/javascript">

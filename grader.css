@@ -1,14 +1,43 @@
 .btn {
     font: 1rem 'Verdana', sans-serif;
-    padding: .5rem;
-    background: #7B241C;
+    background: #C0392B;
+    padding: 16px;
+    color:white;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     border: none;
-    border-radius: 4px;
-    margin: 4px;
-    color: white;
-    text-align: center;
+    cursor: pointer;
 }
 
+.btn:hover, .btn:focus {
+    background-color: #922B21;
+}
+
+.dropdown_menu a:hover {background-color: #ddd}
+
+.dropdown_menu {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    min-width: 160px;
+    overflow: auto;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown_menu a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+    font: 14px 'Verdana', sans-serif;
+}
+
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
 
 .text_box {
     font: 1rem 'Verdana', sans-serif;
@@ -31,6 +60,33 @@
 
 .link {
     font: 1rem 'Courier', serif;
+}
+
+.show {display: block;}
+
+#myProgress {
+    width: 100%;
+}
+
+.progress_bar {
+    width: 33%;
+
+    height: 45px;
+    float:left;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    text-align: center; /* To center it horizontally (if you want) */
+    font: 1rem 'Verdana', sans-serif;
+    line-height: 45px; /* To center it vertically */
+    color: white; 
+}
+#greenbar {
+    background-color: #239B56;  
+}
+#yellowbar {
+    background-color: #F1C40F;
+}
+#redbar {
+    background-color: #C0392B;
 }
 
 h1 {

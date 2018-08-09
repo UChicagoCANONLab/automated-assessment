@@ -1,13 +1,15 @@
 /* Stores the grade reports. */
 var reports_list = [];
-/* Requirements dictionary. */
-var grade_reqs = {};
-/**/
+/* Number of projects scanned so far. */
 var project_count = 0;
 /* Cross-origin request permissibility UNUSED*/
 var cross_org = true;
-
+/* Sets to true when next page returns 404. */
 var crawl_finished = false;
+/* Number of projects that meet requirements. */
+var passing_projects = 0;
+/* Number of projects that meet requirements and extensions */
+var exceptional_projects = 0;
 
 /* Initializes html and initiates crawler. */
 function buttonHandler() {
@@ -21,6 +23,8 @@ function buttonHandler() {
   crawl_finished = false;
   cross_org = true;
   grade_reqs = {};
+  passing_projects = 0;
+  exceptional_projects = 0;
 
   noError();
   document.getElementById('wait_time').innerHTML = "Loading...";
@@ -28,6 +32,31 @@ function buttonHandler() {
 	
 	var requestURL = document.getElementById('inches_input').value;
 	crawlFromStudio(requestURL);
+}
+
+function dropdownHandler() {
+  document.getElementById("unit_dropdown").classList.toggle("show");
+}
+
+function drop_eventHandler() {
+  document.getElementById("module_button").value = 'Events';
+}
+
+function drop_functionHandler() {
+  document.getElementById("module_button").value = 'Functions';
+}
+
+window.onclick = function(event) {
+  if(event.target.matches('.dropdown_btn')) {
+    return;
+  }
+
+  var droplinks = document.getElementsByClassName("dropdown_menu");
+  [...droplinks].forEach(function(element) {
+    if(element.classList.contains('show')) {
+      element.classList.remove('show');
+    }
+  });
 }
 
 /* Request project jsons and initiate analysis. */
@@ -74,6 +103,15 @@ function appendNewLine() {
 function printReport() {
   clearReport();
   sortReport();
+  appendNewLine();
+  appendNewLine();
+
+  document.getElementById('myProgress').style.visibility = "visible";
+
+  setProgress(document.getElementById('greenbar'),exceptional_projects, project_count);
+  setProgress(document.getElementById('yellowbar'),passing_projects, project_count);
+  setProgress(document.getElementById('redbar'),project_count-exceptional_projects-passing_projects, project_count);
+
   reports_list.forEach(function(element) {
     element.forEach(function(sub_element) {
       appendText(sub_element);
@@ -81,6 +119,11 @@ function printReport() {
     appendNewLine();
   });
   checkComplete();
+}
+
+function setProgress(bar,projects,total_projects) {
+  bar.style.width = ((projects/total_projects)*100) + '%';
+  bar.innerHTML = projects + '';
 }
 
 /* Checks if process is done.  */
@@ -112,7 +155,9 @@ function sortReport() {
 function linkError() {
   document.getElementById("process_status").style.color = "red";
   document.getElementById('process_status').innerHTML = "Error: invalid link.";
-  document.getElementById('wait_time').innerHTML = "Studio links are generally of the form: <br /> <span class = 'link'> https://scratch.mit.edu/studios/[id number]/</span>";
+  document.getElementById('wait_time').innerHTML = "Studio links are generally\
+  of the form: <br /> <span class = 'link'> https://scratch.mit.edu/studios/\
+  [id number]/</span>";
 }
 
 function noError() {

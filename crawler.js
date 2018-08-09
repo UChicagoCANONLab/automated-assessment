@@ -9,19 +9,17 @@ function crawlFromStudio(string) {
   var res = string.split("/");
 
   /* Retrieve studio ID. */
-  res.forEach(function(element){
-    if(/^\d+$/.test(element)){
+  res.forEach(function(element) {
+    if(/^\d+$/.test(element)) {
       id = element;
     }
   });
 
   /* Check for invalid URL. */
-  if (id == 0)
-  {
+  if (id == 0) {
     linkError();
     return;
   }
-
   crawl (id, page);
 }
 
@@ -41,13 +39,12 @@ function testCrossOrg(id) {
     }
     console.log(cross_org);
     console.log(request.response);
-    
   }
 }
 
 /* Requests html from a studio page and recursively checks other studio pages. */
-function crawl(id, page)
-{
+function crawl(id, page) {
+  
   /* Prepare link and send request. */
   var newurl = "https://scratch.mit.edu/site-api/projects/in/" + id + "/" + page + "/";
   var request = new XMLHttpRequest();
@@ -88,8 +85,7 @@ function transferFailed(page) {
 }
 
 /* Collects links to project pages from studio html and initiates JSON recovery. */
-function collectLinks(source)
-{
+function collectLinks(source) {
   /* Constants. */
   var pre = "https://cors-anywhere.herokuapp.com/http://projects.scratch.mit.edu/internalapi/project/";
   var post = "/get/"
