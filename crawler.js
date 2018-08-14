@@ -20,7 +20,7 @@ function crawlFromStudio(string) {
     linkError();
     return;
   }
-  crawl (id, page);
+  return id;
 }
 
 /* || Work In Progress || */
@@ -61,7 +61,6 @@ function crawl(id, page) {
 
     collectLinks(project);
     crawl(id, page + 1);
-    
   }
 
   /* Handle error. */
@@ -87,17 +86,16 @@ function transferFailed(page) {
 /* Collects links to project pages from studio html and initiates JSON recovery. */
 function collectLinks(source) {
   /* Constants. */
-  var pre = "https://cors-anywhere.herokuapp.com/http://projects.scratch.mit.edu/internalapi/project/";
-  var post = "/get/"
+  var pre = "https://thawing-escarpment-43547.herokuapp.com/";
 
   /* Fetches project links and initiates JSON recovery for each. */
   var doc = document.createElement( 'html' );
   doc.innerHTML = source;
   var thumb_items = doc.getElementsByClassName('project thumb item');
   project_count += [...thumb_items].length;
-  console.log(project_count);
+  
   [...thumb_items].forEach(function(item){
-    var ret_val = pre + item.getAttribute('data-id') + post;
+    var ret_val = pre + item.getAttribute('data-id');
     var name;
     try {
       name = item.getElementsByClassName("owner")[0].children[0].innerHTML;

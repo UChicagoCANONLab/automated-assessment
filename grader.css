@@ -88,6 +88,10 @@
 #redbar {
     background-color: #C0392B;
 }
+#myProgress {
+    visibility: hidden;
+    padding-bottom: 25px;
+}
 
 h1 {
     font-family: "Lucida Console", monaco, monospace;

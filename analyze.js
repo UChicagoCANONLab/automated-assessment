@@ -4,9 +4,8 @@
    and initializes script analysis. */
 function analyze(fileObj) {
     var pID = fileObj.info.projectID
-    var gradeObj = new GradeEvents();
     gradeObj.grade(fileObj,pID);
-    report(pID,gradeObj.requirements, gradeObj.extensions);
+    report(pID, gradeObj.requirements, gradeObj.extensions);
 }
 
 /* Returns pass/fail symbol. */
@@ -29,19 +28,22 @@ function report(pID, reqs, exts) {
         ret_list.push(checkbox(reqs[x]) + 
             ' - ' + String(x));
     }
-    ret_list.push('Extensions:');
-    for(var x in exts) {
-        if(!exts[x]) {
-            exts_pass = false;
+    if(exts) {
+        ret_list.push('Extensions:');
+        console.log(exts);
+        for(var x in exts) {
+            console.log("bruh");
+
+            if(!exts[x]) {
+                exts_pass = false;
+            }
+            ret_list.push(checkbox(exts[x]) + 
+                ' - ' + String(x));
         }
-        ret_list.push(checkbox(exts[x]) + 
-            ' - ' + String(x));
     }
 
     if(exts_pass && reqs_pass) exceptional_projects++;
     else if (reqs_pass) passing_projects++;
-    console.log(exceptional_projects);
-    console.log(passing_projects);
 
     reports_list.push(ret_list);
     printReport();        

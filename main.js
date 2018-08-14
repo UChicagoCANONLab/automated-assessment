@@ -1,8 +1,10 @@
+/* MAKE SURE OBJ'S AUTO INITIALIZE AT GRADE */
+
 /* Stores the grade reports. */
 var reports_list = [];
 /* Number of projects scanned so far. */
 var project_count = 0;
-/* Cross-origin request permissibility UNUSED*/
+/* Cross-origin request permissibility [UNUSED]*/
 var cross_org = true;
 /* Sets to true when next page returns 404. */
 var crawl_finished = false;
@@ -10,14 +12,31 @@ var crawl_finished = false;
 var passing_projects = 0;
 /* Number of projects that meet requirements and extensions */
 var exceptional_projects = 0;
+/* Grading object. */
+var gradeObj = null;
 
 /* Initializes html and initiates crawler. */
 function buttonHandler() {
   if(document.getElementById('wait_time').innerHTML == "Loading...") {
     return;
   }
-  document.getElementById('process_button').blur();
-  clearReport();
+
+  if(!gradeObj) {
+    unitError();
+    return;
+  }
+  
+  htmlInit();
+  globalInit();
+  document.getElementById('wait_time').innerHTML = "Loading...";
+	
+	var requestURL = document.getElementById('inches_input').value;
+	var id = crawlFromStudio(requestURL);
+  crawl(id,1);
+}
+
+/* Initializes global variables. */
+function globalInit() {
   reports_list = [];
   project_count = 0;
   crawl_finished = false;
@@ -25,13 +44,13 @@ function buttonHandler() {
   grade_reqs = {};
   passing_projects = 0;
   exceptional_projects = 0;
+}
 
+/* Initializes HTML elements. */
+function htmlInit() {
+  document.getElementById('process_button').blur();
+  clearReport();
   noError();
-  document.getElementById('wait_time').innerHTML = "Loading...";
-  
-	
-	var requestURL = document.getElementById('inches_input').value;
-	crawlFromStudio(requestURL);
 }
 
 function dropdownHandler() {
@@ -40,10 +59,26 @@ function dropdownHandler() {
 
 function drop_eventHandler() {
   document.getElementById("module_button").value = 'Events';
+  gradeObj = new GradeEvents();
+  console.log("Grading Events");
 }
 
-function drop_functionHandler() {
-  document.getElementById("module_button").value = 'Functions';
+function drop_condloopsHandler() {
+  document.getElementById("module_button").value = 'Conditional Loops';
+  gradeObj = new GradeCondLoops();
+  console.log("Grading Conditional Loops");
+}
+
+function drop_decompbyseqp1Handler() {
+   document.getElementById("module_button").value = 'Decomposition by Sequence';
+   gradeObj = new GradeDecompBySeqP1();
+   console.log("Grading Decomposition By Sequence Pt. 1");
+}
+
+function drop_onewaysyncp1Handler() {
+  document.getElementById("module_button").value = 'One-Way Sync [Part 1]';
+   gradeObj = new GradeOneWaySyncP1();
+   console.log("Grading One Way Sync Pt. 1");
 }
 
 window.onclick = function(event) {
@@ -80,7 +115,7 @@ function appendText(string) {
   var newContent = document.createTextNode(string);
 
   tbi.appendChild(newContent);
-  tbi.style.paddingLeft = "" + (window.innerWidth/2 - 190) + "px";
+  tbi.style.paddingLeft = "" + (window.innerWidth/2 - 90) + "px";
   tbi.style.font = "1rem 'Verdana', sans-serif";
   tbi.style.fontSize = "14px";
 
@@ -106,6 +141,7 @@ function printReport() {
   appendNewLine();
   appendNewLine();
 
+  classPerformance();
   document.getElementById('myProgress').style.visibility = "visible";
 
   setProgress(document.getElementById('greenbar'),exceptional_projects, project_count);
@@ -153,13 +189,30 @@ function sortReport() {
 
 /* ERROR REPORTS */
 function linkError() {
-  document.getElementById("process_status").style.color = "red";
-  document.getElementById('process_status').innerHTML = "Error: invalid link.";
+  document.getElementById('myProgress').style.visibility = "hidden";
+  var processObj = document.getElementById('process_status');
+  processObj.style.visibility = 'visible';
+  processObj.style.color = "red";
+  processObj.innerHTML = "Error: invalid link.";
   document.getElementById('wait_time').innerHTML = "Studio links are generally\
-  of the form: <br /> <span class = 'link'> https://scratch.mit.edu/studios/\
-  [id number]/</span>";
+  of the form: <br /> <span class = 'link'> https://scratch.mit.edu/studios/[id number]/</span>";
+}
+
+function classPerformance() {
+  var processObj = document.getElementById('process_status');
+  processObj.style.visibility = 'visible';
+  processObj.style.color = "black";
+  processObj.innerHTML = "Class Performance:";
+}
+
+function unitError() {
+  var processObj = document.getElementById('process_status');
+  processObj.style.visibility = 'visible';
+  processObj.style.color = "red";
+  processObj.innerHTML = "Error: No unit selected.";
 }
 
 function noError() {
   document.getElementById('process_status').innerHTML = "";
+  document.getElementById('process_status').style.visibility = 'hidden';
 }
