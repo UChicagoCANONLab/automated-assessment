@@ -141,29 +141,43 @@ function printReport() {
   appendNewLine();
   appendNewLine();
 
-  classPerformance();
-  document.getElementById('myProgress').style.visibility = "visible";
-
-  setProgress(document.getElementById('greenbar'),complete_projects, project_count);
-  setProgress(document.getElementById('yellowbar'),passing_projects, project_count);
-  setProgress(document.getElementById('redbar'),project_count-complete_projects-passing_projects, project_count);
-
+  printColorKey();
+  showProgressBar();
+  
   reports_list.forEach(function(element) {
     element.forEach(function(sub_element) {
       appendText(sub_element);
     });
     appendNewLine();
   });
-  checkComplete();
+  checkIfComplete();
 }
 
+/* Prints prorgess bar. */
+function showProgressBar() {
+  document.getElementById('myProgress').style.visibility = "visible";
+  setProgress(document.getElementById('greenbar'),complete_projects, project_count);
+  setProgress(document.getElementById('yellowbar'),passing_projects, project_count);
+  setProgress(document.getElementById('redbar'),project_count-complete_projects-passing_projects, project_count);
+}
+
+/* Prints color key. */
+function printColorKey() {
+  var processObj = document.getElementById('process_status');
+  processObj.style.visibility = 'visible';
+  processObj.style.color = "black";
+  processObj.innerHTML = "Green - Complete; Yellow - Passing; Red - Failing";
+}
+
+
+/* Update progress bar segment to new proportion. */
 function setProgress(bar,projects,total_projects) {
   bar.style.width = ((projects/total_projects)*100) + '%';
   bar.innerHTML = projects + '';
 }
 
 /* Checks if process is done.  */
-function checkComplete() {
+function checkIfComplete() {
   if(project_count == reports_list.length && crawl_finished) {
     console.log("Done.");
     document.getElementById('wait_time').innerHTML = 'Done.';
@@ -196,13 +210,6 @@ function linkError() {
   processObj.innerHTML = "Error: invalid link.";
   document.getElementById('wait_time').innerHTML = "Studio links are generally\
   of the form: <br /> <span class = 'link'> https://scratch.mit.edu/studios/[id number]/</span>";
-}
-
-function classPerformance() {
-  var processObj = document.getElementById('process_status');
-  processObj.style.visibility = 'visible';
-  processObj.style.color = "black";
-  processObj.innerHTML = "Class Performance:";
 }
 
 function unitError() {

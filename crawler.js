@@ -79,7 +79,7 @@ function transferFailed(page) {
   }
   else{
     crawl_finished = true;
-    checkComplete();
+    checkIfComplete();
   }
 }
 

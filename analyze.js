@@ -14,7 +14,7 @@ function checkbox(bool) {
     else return '❌';
 }
 
-/* Reports results. */
+/* Adds results to reports_list and prints. */
 function report(pID, reqs, exts) {
     var ret_list = [];
     var project_complete = true;
