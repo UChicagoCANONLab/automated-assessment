@@ -11,7 +11,7 @@ var crawl_finished = false;
 /* Number of projects that meet requirements. */
 var passing_projects = 0;
 /* Number of projects that meet requirements and extensions */
-var exceptional_projects = 0;
+var complete_projects = 0;
 /* Grading object. */
 var gradeObj = null;
 
@@ -43,7 +43,7 @@ function globalInit() {
   cross_org = true;
   grade_reqs = {};
   passing_projects = 0;
-  exceptional_projects = 0;
+  complete_projects = 0;
 }
 
 /* Initializes HTML elements. */
@@ -125,12 +125,12 @@ function appendText(string) {
 
 /* Prints a blank line. */
 function appendNewLine() {
-  var tbi = document.createElement("div"); 
+  var tbi = document.createElement("div");
   tbi.className = "dynamic";
   tbi.style.padding = "15px";
 
-  var ai = document.getElementById("report"); 
-  document.body.insertBefore(tbi, ai); 
+  var ai = document.getElementById("report");
+  document.body.insertBefore(tbi, ai);
 }
 
 /* Prints out the contents of report_list as a 
@@ -144,9 +144,9 @@ function printReport() {
   classPerformance();
   document.getElementById('myProgress').style.visibility = "visible";
 
-  setProgress(document.getElementById('greenbar'),exceptional_projects, project_count);
+  setProgress(document.getElementById('greenbar'),complete_projects, project_count);
   setProgress(document.getElementById('yellowbar'),passing_projects, project_count);
-  setProgress(document.getElementById('redbar'),project_count-exceptional_projects-passing_projects, project_count);
+  setProgress(document.getElementById('redbar'),project_count-complete_projects-passing_projects, project_count);
 
   reports_list.forEach(function(element) {
     element.forEach(function(sub_element) {

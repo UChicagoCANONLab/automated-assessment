@@ -17,33 +17,22 @@ function checkbox(bool) {
 /* Reports results. */
 function report(pID, reqs, exts) {
     var ret_list = [];
-    var reqs_pass = true;
+    var project_complete = true;
     var exts_pass = true;
+    var passed_reqs_count = 0;
 
     ret_list.push('Project ID: ' + pID);
     for(var x in reqs) {
-        if(!reqs[x]) {
-            reqs_pass = false;
-        }
+        if(!reqs[x]) project_complete = false;
+        else passed_reqs_count++;
+
         ret_list.push(checkbox(reqs[x]) + 
             ' - ' + String(x));
     }
-    if(exts) {
-        ret_list.push('Extensions:');
-        console.log(exts);
-        for(var x in exts) {
-            console.log("bruh");
 
-            if(!exts[x]) {
-                exts_pass = false;
-            }
-            ret_list.push(checkbox(exts[x]) + 
-                ' - ' + String(x));
-        }
-    }
-
-    if(exts_pass && reqs_pass) exceptional_projects++;
-    else if (reqs_pass) passing_projects++;
+    if(project_complete) complete_projects++;
+    else if (passed_reqs_count >= (Object.keys(reqs).length / 2))
+        passing_projects++;
 
     reports_list.push(ret_list);
     printReport();        
