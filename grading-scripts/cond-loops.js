@@ -36,7 +36,7 @@ class GradeCondLoops {
         this.checkCostume(car)
         var event_script = this.checkStop(car)
         var do_until_body = this.checkSay(event_script)
-        this.checkSpeed(do_until_body,10)
+        this.checkSpeed(do_until_body,.1)
 
     }
 
@@ -69,7 +69,7 @@ class GradeCondLoops {
         catch(err) {return null}
  
         this.requirements.changeSpeed.bool = do_body[2].find((g) => {
-            if(g[0].startsWith("forward")) {
+            if(g[0].startsWith("wait")) {
                 return (g[1] != def_speed)
             }
         })
