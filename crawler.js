@@ -106,3 +106,16 @@ function collectLinks(source) {
     getJSON(ret_val,analyze,[name]);
   });
 }
+
+/* Request project jsons and initiate analysis. */
+function getJSON(requestURL,process_function, args){
+    var request = new XMLHttpRequest();
+    request.open('GET', requestURL);
+    request.responseType = 'json';
+    request.send();
+    request.onload = function() {
+      var project = request.response;
+      args.unshift(project)
+      process_function.apply(null,args);
+    }
+}

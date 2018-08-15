@@ -1,6 +1,6 @@
 /* MAKE SURE OBJ'S AUTO INITIALIZE AT GRADE */
 
-/* Stores the grade reports. */
+/* Stores strings to be printed. */
 var reports_list = [];
 /* Number of projects scanned so far. */
 var project_count = 0;
@@ -15,24 +15,28 @@ var complete_projects = 0;
 /* Grading object. */
 var gradeObj = null;
 
+/*
+	GRADE BUTTON
+*/
+
 /* Initializes html and initiates crawler. */
 function buttonHandler() {
-  if(document.getElementById('wait_time').innerHTML == "Loading...") {
-    return;
-  }
+	if(!gradeObj) {
+		unitError();
+		return;
+	}
 
-  if(!gradeObj) {
-    unitError();
-    return;
-  }
-  
-  htmlInit();
-  globalInit();
-  document.getElementById('wait_time').innerHTML = "Loading...";
-	
+	if(document.getElementById('wait_time').innerHTML == "Loading...") {
+		return;
+	}
+	document.getElementById('wait_time').innerHTML = "Loading...";
+
+	htmlInit();
+	globalInit();
+		
 	var requestURL = document.getElementById('inches_input').value;
 	var id = crawlFromStudio(requestURL);
-  crawl(id,1);
+	crawl(id,1);
 }
 
 /* Initializes global variables. */
@@ -53,10 +57,16 @@ function htmlInit() {
   noError();
 }
 
+/*
+	DROP DOWN MENU
+*/
+
+/* Shows drop down menu. */
 function dropdownHandler() {
   document.getElementById("unit_dropdown").classList.toggle("show");
 }
 
+/* Module select handlers (from dropdown): */
 function drop_eventHandler() {
   document.getElementById("module_button").value = 'Events';
   gradeObj = new GradeEvents();
@@ -72,7 +82,7 @@ function drop_condloopsHandler() {
 function drop_decompbyseqp1Handler() {
    document.getElementById("module_button").value = 'Decomposition by Sequence';
    gradeObj = new GradeDecompBySeqP1();
-   console.log("Grading Decomposition By Sequence Pt. 1");
+   console.log("Grading Decomposition By Sequence");
 }
 
 function drop_onewaysyncp1Handler() {
@@ -94,18 +104,9 @@ window.onclick = function(event) {
   });
 }
 
-/* Request project jsons and initiate analysis. */
-function getJSON(requestURL,process_function, args){
-	var request = new XMLHttpRequest();
-	request.open('GET', requestURL);
-	request.responseType = 'json';
-	request.send();
-	request.onload = function() {
-		var project = request.response;
-    args.unshift(project)
-		process_function.apply(null,args);
-	}
-}
+/*
+	DISPLAY RESULTS
+*/
 
 /* Prints a line of grading text. */
 function appendText(string) {
@@ -153,6 +154,14 @@ function printReport() {
   checkIfComplete();
 }
 
+/* Clears all project reports from the page. */
+function clearReport() {
+  var removeables = document.getElementsByClassName('dynamic');
+  while(removeables[0]) {
+    removeables[0].remove();
+  }
+}
+
 /* Prints prorgess bar. */
 function showProgressBar() {
   document.getElementById('myProgress').style.visibility = "visible";
@@ -169,39 +178,16 @@ function printColorKey() {
   processObj.innerHTML = "Green - Complete; Yellow - Passing; Red - Failing";
 }
 
-
 /* Update progress bar segment to new proportion. */
 function setProgress(bar,projects,total_projects) {
   bar.style.width = ((projects/total_projects)*100) + '%';
   bar.innerHTML = projects + '';
 }
 
-/* Checks if process is done.  */
-function checkIfComplete() {
-  if(project_count == reports_list.length && crawl_finished) {
-    console.log("Done.");
-    document.getElementById('wait_time').innerHTML = 'Done.';
+/* 
+	ERROR REPORTS 
+*/
 
-  }
-}
-
-/* Clears all project reports from the page. */
-function clearReport() {
-  var removeables = document.getElementsByClassName('dynamic');
-  while(removeables[0]) {
-    removeables[0].remove();
-  }
-}
-
-/* Sorts the reports in reports_list alphabetically 
-   username. */
-function sortReport() {
-  reports_list.sort(function(a,b) {
-    return a[0].localeCompare(b[0]);
-  })
-}
-
-/* ERROR REPORTS */
 function linkError() {
   document.getElementById('myProgress').style.visibility = "hidden";
   var processObj = document.getElementById('process_status');
