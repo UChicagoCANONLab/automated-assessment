@@ -11,21 +11,34 @@ class GradeEvents {
     initReqs() {
 
         this.requirements.containsThreeSprites =    /// contains >= 3 sprites
+            {bool:false, str:'Project has at least three sprites.'};
         /// Sprite 1
         this.requirements.sprite1WhenClicked   =    /// sprite handles click
+            {bool:false, str:'Sprite 1 handles click.'};
         this.requirements.sprite1GetsBigger    =    /// sprite grows...
+            {bool:false, str:'Sprite 1 gets bigger.'};
         this.requirements.sprite1TalksTwice    =    /// then >= 2 say blocks...
+            {bool:false, str:'Then Sprite 1 has at least two say blocks.'};
         this.requirements.sprite1ResetsSize    =    /// then resets size
+            {bool:false, str:'The Sprite 1 resets size.'};
         /// Sprite 2
         this.requirements.sprite2WhenClicked   =    /// ditto
+            {bool:false, str:'Sprite 2 handles click.'};
         this.requirements.sprite2GetsBigger    =
+            {bool:false, str:'Sprite 2 gets bigger.'};
         this.requirements.sprite2TalksTwice    =
+            {bool:false, str:'Then Sprite 2 has at least two say blocks.'};
         this.requirements.sprite2ResetsSize    =
+            {bool:false, str:'The Sprite 2 resets size.'};
         /// Sprite 3
-        this.requirements.sprite2WhenClicked   =
+        this.requirements.sprite3WhenClicked   =
+            {bool:false, str:'Sprite 3 handles click.'};
         this.requirements.sprite3GetsBigger    =
+            {bool:false, str:'Sprite 3 gets bigger.'};
         this.requirements.sprite3TalksTwice    =
-        this.requirements.sprite3ResetsSize    = false;
+        {bool:false, str:'Then Sprite 3 has at least two say blocks.'};
+        this.requirements.sprite3ResetsSize    = 
+            {bool:false, str:'The Sprite 3 resets size.'};
 
     }
 
@@ -100,7 +113,7 @@ class GradeEvents {
     grade(fileObj, user) {
 
         this.initReqs();
-        this.requirements.containsThreeSprites = fileObj.info.spriteCount > 2;
+        this.requirements.containsThreeSprites.bool = fileObj.info.spriteCount > 2;
 
         /// Build array of results objects
         var resultsArr = [];
@@ -120,24 +133,24 @@ class GradeEvents {
 
         /// Sprite 1
         if(resultsArr[0]) {
-            this.requirements.sprite1WhenClicked = resultsArr[0].whenClicked;
-            this.requirements.sprite1GetsBigger  = resultsArr[0].getsBigger;
-            this.requirements.sprite1TalksTwice  = resultsArr[0].talksTwice;
-            this.requirements.sprite1ResetsSize  = resultsArr[0].resetsSize;
+            this.requirements.sprite1WhenClicked.bool = resultsArr[0].whenClicked;
+            this.requirements.sprite1GetsBigger.bool  = resultsArr[0].getsBigger;
+            this.requirements.sprite1TalksTwice.bool  = resultsArr[0].talksTwice;
+            this.requirements.sprite1ResetsSize.bool  = resultsArr[0].resetsSize;
         }
         /// Sprite 2
         if(resultsArr[1]) {
-            this.requirements.sprite2WhenClicked = resultsArr[1].whenClicked;
-            this.requirements.sprite2GetsBigger  = resultsArr[1].getsBigger;
-            this.requirements.sprite2TalksTwice  = resultsArr[1].talksTwice;
-            this.requirements.sprite2ResetsSize  = resultsArr[1].resetsSize;
+            this.requirements.sprite2WhenClicked.bool = resultsArr[1].whenClicked;
+            this.requirements.sprite2GetsBigger.bool  = resultsArr[1].getsBigger;
+            this.requirements.sprite2TalksTwice.bool  = resultsArr[1].talksTwice;
+            this.requirements.sprite2ResetsSize.bool  = resultsArr[1].resetsSize;
         }
         /// Sprite 3
         if(resultsArr[2]) {
-            this.requirements.sprite3WhenClicked = resultsArr[2].whenClicked;
-            this.requirements.sprite3GetsBigger  = resultsArr[2].getsBigger;
-            this.requirements.sprite3TalksTwice  = resultsArr[2].talksTwice;
-            this.requirements.sprite3ResetsSize  = resultsArr[2].resetsSize;
+            this.requirements.sprite3WhenClicked.bool = resultsArr[2].whenClicked;
+            this.requirements.sprite3GetsBigger.bool  = resultsArr[2].getsBigger;
+            this.requirements.sprite3TalksTwice.bool  = resultsArr[2].talksTwice;
+            this.requirements.sprite3ResetsSize.bool  = resultsArr[2].resetsSize;
         }
 
     }

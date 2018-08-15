@@ -9,12 +9,18 @@ class GradeCondLoops {
 
     initReqs() {
         this.requirements.newCostume    = 
+            {bool:false, str:'Changed car sprite.'};
         this.requirements.carStop       =
+            {bool:false, str:'Car stops upon collision.'};
         this.requirements.saySomething  = 
-        this.requirements.changeSpeed   = false
+            {bool:false, str:'Car says something.'};
+        this.requirements.changeSpeed   = 
+            {bool:false, str:'Changed car speed.'};
 
-        this.extensions.otherSprites    =
-        this.extensions.carSound        = false
+        this.extensions.otherSprites    =   
+            {bool:false, str:'Other sprites perform actions.'};
+        this.extensions.carSound        = 
+            {bool:false, str:'Car makes a sound.'};
     }
 
     grade(fileObj, user) {
@@ -37,7 +43,7 @@ class GradeCondLoops {
     /* Check for car sound */
     checkSound(car) {
 
-        this.extensions.carSound = car.scripts.find((e) => {
+        this.extensions.carSound.bool = car.scripts.find((e) => {
             return (undefined != e[2].find((f) => {
                 return f[0] == 'playSound:' 
             }))
@@ -46,7 +52,7 @@ class GradeCondLoops {
 
     checkSprites(sprites) {
         
-        this.extensions.otherSprites = sprites.find((e) => {
+        this.extensions.otherSprites.bool = sprites.find((e) => {
             if(e.objName != 'Car' && e.scripts) {
                 return e.scripts.find((f) => {
                     return f[2].find((g) => {
@@ -62,7 +68,7 @@ class GradeCondLoops {
         try {do_body[2][0]}
         catch(err) {return null}
  
-        this.requirements.changeSpeed = do_body[2].find((g) => {
+        this.requirements.changeSpeed.bool = do_body[2].find((g) => {
             if(g[0].startsWith("forward")) {
                 return (g[1] != def_speed)
             }
@@ -77,7 +83,7 @@ class GradeCondLoops {
             event_script.shift()
         var do_body = event_script.shift()
 
-        this.requirements.saySomething = event_script.find((e) => {
+        this.requirements.saySomething.bool = event_script.find((e) => {
             return (e[0].startsWith('say') || e[0].startsWith('think'))
         })
 
@@ -86,14 +92,14 @@ class GradeCondLoops {
 
     /* Check for new costume. */
     checkCostume(car) {
-        this.requirements.newCostume = (car.currentCostumeIndex != 2)
+        this.requirements.newCostume.bool = (car.currentCostumeIndex != 2)
     }
 
     /* Check for stop condition. */
     checkStop(car) {
         var events_list = ['whenGreenFlag', 'whenKeyPressed','whenIReceive'];
         var event_script = null;
-        this.requirements.carStop = car.scripts.find((e) => {
+        this.requirements.carStop.bool = car.scripts.find((e) => {
             if(events_list.includes(e[2][0][0])) {
                 return e[2].find((f) => {
                     if(f[0] == 'doUntil') {

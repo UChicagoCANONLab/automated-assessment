@@ -27,21 +27,20 @@ class GradeDecompBySeqP1 {
   */
 
     constructor() {
-      this.strings =
-      ['Jaime uses the "repeat until" block to do an action until it touches the Soccer Ball',
-      'Jaime is animated correctly to move towards the Soccer Ball',
-      'Soccer Ball uses the "wait until" to wait until Jaime touches it',
-      'Soccer Ball uses the "repeat until" block to do an action until it touches the Goal',
-      'Soccer Ball is animated correctly to move towards the Goal'];
       this.requirements = {};
     }
 
     initReqs() {
-      this.requirements.JaimeToBall =
+      this.requirements.JaimeToBall = 
+        {bool:false, str:'Jaime uses the "repeat until" block to do an action until it touches the Soccer Ball.'};
       this.requirements.JaimeAnimated =
+        {bool:false, str:'Jaime is animated correctly to move towards the Soccer Ball.'};
       this.requirements.ballStayStill =
+        {bool:false, str:'Soccer Ball uses the "wait until" to wait until Jaime touches it.'};
       this.requirements.ballToGoal =
-      this.requirements.ballAnimated = false;
+        {bool:false, str:'Soccer Ball uses the "repeat until" block to do an action until it touches the Goal.'};
+      this.requirements.ballAnimated = 
+        {bool:false, str:'Soccer Ball is animated correctly to move towards the Goal.'};
     }
 
 
@@ -88,7 +87,7 @@ class GradeDecompBySeqP1 {
           //check for correct 'repeat until' loop block
           else if(block[0] == 'doUntil'){ //found repeat until loop block
             if((block[1][0] == 'touching:') && (block[1][1] == 'Soccer Ball')){
-              this.requirements.JaimeToBall = true;
+              this.requirements.JaimeToBall.bool = true;
 
               //check Jaime moves towards the soccer ball w/o direct move
               var inLoop = block[2];
@@ -116,7 +115,7 @@ class GradeDecompBySeqP1 {
                 //checks for correct animation of Jaime
                 if((move == true) && (noDirectMovement == true) &&
                   (direction == true))
-                  this.requirements.JaimeAnimated = true;
+                  this.requirements.JaimeAnimated.bool = true;
       }}}}}
     }
 
@@ -156,14 +155,14 @@ class GradeDecompBySeqP1 {
           else if(block[0] == 'doWaitUntil'){
             if((block[1][0] == 'touching:') && (block[1][1] == 'Jaime ')){
               if (prevBlockNoMove == true)
-                this.requirements.ballStayStill = true;
+                this.requirements.ballStayStill.bool = true;
             }
           }
 
           //check for repeat until block
           else if(block[0] == 'doUntil'){ //found repeat until loop block
             if((block[1][0] == 'touching:') && (block[1][1] == 'Goal')){
-              this.requirements.ballToGoal = true;
+              this.requirements.ballToGoal.bool = true;
 
               //check that ball moves until it gets to Goal
               var inLoop = block[2]
@@ -181,7 +180,7 @@ class GradeDecompBySeqP1 {
                 else if(innerBlock == 'forward:'){
                   if(pointingTo == 'Goal'){
                     if(noDirectMovement == true)
-                      this.requirements.ballAnimated = true;
+                      this.requirements.ballAnimated.bool = true;
                     prevBlockNoMove = false; //ball moves towards Goal
                 }
       }}}}}}

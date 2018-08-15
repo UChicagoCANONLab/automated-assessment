@@ -117,7 +117,7 @@ function appendText(string) {
   var newContent = document.createTextNode(string);
 
   tbi.appendChild(newContent);
-  tbi.style.paddingLeft = "" + (window.innerWidth/2 - 90) + "px";
+  tbi.style.paddingLeft = "" + (window.innerWidth/2 - 130) + "px";
   tbi.style.font = "1rem 'Verdana', sans-serif";
   tbi.style.fontSize = "14px";
 

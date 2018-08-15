@@ -11,9 +11,12 @@ class GradeOneWaySyncP1 {
 
     initReqs() {
       this.requirements = {};
-      this.requirements.messagePassing      = false;
-      this.requirements.playSound           = false;
-      this.requirements.maliDance           = false;
+      this.requirements.messagePassing      = 
+        {bool:false, str:'Mali Djembe passes unique message to Mali boy'};
+      this.requirements.playSound           = 
+        {bool:false, str:'Music plays when Djembe sprite is clicked'};
+      this.requirements.maliDance           = 
+        {bool:false, str:'Mali boy dances when Djembe sprite is clicked'};
     }
 
     grade(fileObj, user) {
@@ -58,7 +61,7 @@ class GradeOneWaySyncP1 {
                       var block = script[j];
 
                       if (block[0] == "playSound:" && block[1] == "djembe") {
-                          this.requirements.playSound = true;
+                          this.requirements.playSound.bool = true;
                       }
 
                       if (block[0] == "broadcast:") {
@@ -87,7 +90,7 @@ class GradeOneWaySyncP1 {
                             var block = script[j];
 
                             if (block[0] == "playSound:" && block[1] == "djembe") {
-                                this.requirements.playSound = true;
+                                this.requirements.playSound.bool = true;
                             }
                         }
                     }
@@ -108,7 +111,7 @@ class GradeOneWaySyncP1 {
 
             if (event === 'whenIReceive' && script[0][1] == message_name) {
               if (message_name != "Navajo") {
-                this.requirements.messagePassing = true;
+                this.requirements.messagePassing.bool = true;
               }
 
               for (var j = 1; j < script.length; j++) {
@@ -127,7 +130,7 @@ class GradeOneWaySyncP1 {
                       wait_block = true;
         }}}}}}
 
-        if(change_costume && wait_block) this.requirements.maliDance = true;
+        if(change_costume && wait_block) this.requirements.maliDance.bool = true;
 
     }
 

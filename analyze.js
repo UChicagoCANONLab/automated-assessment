@@ -25,11 +25,11 @@ function report(pID, reqs, user) {
     ret_list.push('User: ' + user);
     ret_list.push('Project ID: ' + pID);
     for(var x in reqs) {
-        if(!reqs[x]) project_complete = false;
+        if(!reqs[x].bool) project_complete = false;
         else passed_reqs_count++;
 
-        ret_list.push(checkbox(reqs[x]) + 
-            ' - ' + String(x));
+        ret_list.push(checkbox(reqs[x].bool) + 
+            ' - ' + reqs[x].str);
     }
     reports_list.push(ret_list);
 
