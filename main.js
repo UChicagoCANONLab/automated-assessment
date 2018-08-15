@@ -33,6 +33,7 @@ function buttonHandler() {
 
 	htmlInit();
 	globalInit();
+  hideProgressBar();
 		
 	var requestURL = document.getElementById('inches_input').value;
 	var id = crawlFromStudio(requestURL);
@@ -170,6 +171,10 @@ function showProgressBar() {
   setProgress(document.getElementById('redbar'),project_count-complete_projects-passing_projects, project_count);
 }
 
+function hideProgressBar() {
+  document.getElementById('myProgress').style.visibility = "hidden";
+}
+
 /* Prints color key. */
 function printColorKey() {
   var processObj = document.getElementById('process_status');
@@ -189,7 +194,7 @@ function setProgress(bar,projects,total_projects) {
 */
 
 function linkError() {
-  document.getElementById('myProgress').style.visibility = "hidden";
+  hideProgressBar();
   var processObj = document.getElementById('process_status');
   processObj.style.visibility = 'visible';
   processObj.style.color = "red";
