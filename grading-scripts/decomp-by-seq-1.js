@@ -1,4 +1,4 @@
-class GradeDecompBySeqP1 {
+class GradeDecompBySeq {
   /*
   this.strings includes short one sentence descriptions of each of the requirements in order.
   Here are longer descriptions for each requirement and what the specifically do:

@@ -76,7 +76,7 @@ h1 {
 
 .unitlabel img:hover {
   opacity: 1.0;
-  cursor: help;
+  cursor: pointer;
 }
 
 .hidden{
@@ -131,6 +131,10 @@ form p {
     background-color: #AB3B61;
 }
 
+.btn:hover {
+  cursor: pointer;  
+}
+
 .error {
     display:block;
     text-align:left;
@@ -178,6 +182,7 @@ form p {
     line-height: 45px; /* To center it vertically */
     color: white;
 }
+
 #greenbar {
     background-color: #239B56;
 }

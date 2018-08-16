@@ -87,9 +87,14 @@ function drop_onewaysyncp1Handler() {
    console.log("Grading One Way Sync Pt. 1");
 }
 
-function drop_decompbyseqp1Handler() {
-   gradeObj = new GradeDecompBySeqP1();
-   console.log("Grading Decomposition By Sequence Pt. 1");
+function drop_onewaysyncp2Handler() {
+   gradeObj = new GradeOneWaySyncP2();
+   console.log("Grading One Way Sync Pt. 2");
+}
+
+function drop_decompbyseqHandler() {
+   gradeObj = new GradeDecompBySeq();
+   console.log("Grading Decomposition By Sequence");
 }
 
 window.onclick = function(event) {
@@ -123,11 +128,11 @@ function getJSON(requestURL,process_function, args){
 */
 
 /* Prints a line of grading text. */
-function appendText(string) {
+function appendText(string_list) {
   var tbi = document.createElement("div");
   tbi.className = "dynamic";
 
-  string.forEach(function(sub_element) {
+  string_list.forEach(function(sub_element) {
     var newContent = document.createTextNode(sub_element);
     tbi.appendChild(newContent);
     var br = document.createElement("br");
