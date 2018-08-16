@@ -46,11 +46,16 @@ function report(pID, reqs, user) {
 function checkIfComplete() {
   if(project_count == reports_list.length && crawl_finished) {
     console.log("Done.");
-    document.getElementById('wait_time').innerHTML = 'Done.';
+    document.getElementById('wait_time').innerHTML = 'done.';
+    IS_LOADING = false;
+    $('html, body').animate({
+      scrollTop: $("#process_status").offset().top -20
+    }, 800);
   }
 }
 
-/* Sorts the reports in reports_list alphabetically 
+
+/* Sorts the reports in reports_list alphabetically
    username. */
 function sortReport() {
   reports_list.sort(function(a,b) {

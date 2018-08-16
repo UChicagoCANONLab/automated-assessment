@@ -1,6 +1,6 @@
 /* MAKE SURE OBJ'S AUTO INITIALIZE AT GRADE */
 
-/* Stores strings to be printed. */
+/* Stores the grade reports. */
 var reports_list = [];
 /* Number of projects scanned so far. */
 var project_count = 0;
@@ -15,29 +15,33 @@ var complete_projects = 0;
 /* Grading object. */
 var gradeObj = null;
 
+var table = 0;
+
+var IS_LOADING = false;
+
 /*
-	GRADE BUTTON
+  SELECTION HTML
 */
 
 /* Initializes html and initiates crawler. */
 function buttonHandler() {
-	if(!gradeObj) {
-		unitError();
-		return;
-	}
+  if(IS_LOADING) {
+    return;
+  }
 
-	if(document.getElementById('wait_time').innerHTML == "Loading...") {
-		return;
-	}
-	document.getElementById('wait_time').innerHTML = "Loading...";
+  if(!gradeObj) {
+    unitError();
+    return;
+  }
 
-	htmlInit();
-	globalInit();
-  hideProgressBar();
-		
+  htmlInit();
+  globalInit();
+  document.getElementById('wait_time').innerHTML = "loading...";
+  IS_LOADING = true;
+
 	var requestURL = document.getElementById('inches_input').value;
 	var id = crawlFromStudio(requestURL);
-	crawl(id,1);
+  crawl(id,1);
 }
 
 /* Initializes global variables. */
@@ -58,38 +62,34 @@ function htmlInit() {
   noError();
 }
 
-/*
-	DROP DOWN MENU
-*/
-
-/* Shows drop down menu. */
 function dropdownHandler() {
   document.getElementById("unit_dropdown").classList.toggle("show");
 }
 
-/* Module select handlers (from dropdown): */
+$(document).ready(function(){
+  $('.units label').click(function() {
+    $(this).addClass('selected').siblings().removeClass('selected');
+  });
+});
+
 function drop_eventHandler() {
-  document.getElementById("module_button").value = 'Events';
   gradeObj = new GradeEvents();
   console.log("Grading Events");
 }
 
 function drop_condloopsHandler() {
-  document.getElementById("module_button").value = 'Conditional Loops';
   gradeObj = new GradeCondLoops();
   console.log("Grading Conditional Loops");
 }
 
-function drop_decompbyseqp1Handler() {
-   document.getElementById("module_button").value = 'Decomposition by Sequence';
-   gradeObj = new GradeDecompBySeqP1();
-   console.log("Grading Decomposition By Sequence");
-}
-
 function drop_onewaysyncp1Handler() {
-  document.getElementById("module_button").value = 'One-Way Sync [Part 1]';
    gradeObj = new GradeOneWaySyncP1();
    console.log("Grading One Way Sync Pt. 1");
+}
+
+function drop_decompbyseqp1Handler() {
+   gradeObj = new GradeDecompBySeqP1();
+   console.log("Grading Decomposition By Sequence Pt. 1");
 }
 
 window.onclick = function(event) {
@@ -105,8 +105,21 @@ window.onclick = function(event) {
   });
 }
 
+/* Request project jsons and initiate analysis. */
+function getJSON(requestURL,process_function, args){
+	var request = new XMLHttpRequest();
+	request.open('GET', requestURL);
+	request.responseType = 'json';
+	request.send();
+	request.onload = function() {
+		var project = request.response;
+    args.unshift(project)
+		process_function.apply(null,args);
+	}
+}
+
 /*
-	DISPLAY RESULTS
+  DISPLAY RESULTS
 */
 
 /* Prints a line of grading text. */
@@ -114,28 +127,37 @@ function appendText(string) {
   var tbi = document.createElement("div");
   tbi.className = "dynamic";
 
-  var newContent = document.createTextNode(string);
+  string.forEach(function(sub_element) {
+    var newContent = document.createTextNode(sub_element);
+    tbi.appendChild(newContent);
+    var br = document.createElement("br");
+    tbi.appendChild(br);
+  });
 
-  tbi.appendChild(newContent);
-  tbi.style.paddingLeft = "" + (window.innerWidth/2 - 130) + "px";
-  tbi.style.font = "1rem 'Verdana', sans-serif";
-  tbi.style.fontSize = "14px";
+  tbi.style.width = 33 + "%";
+  tbi.style.fontSize = "15px";
+  tbi.style.display= 'inline-block';
 
   var ai = document.getElementById("report");
   document.body.insertBefore(tbi, ai);
+
+  table++;
+  if (table > 2) {
+    table = 0;
+  }
 }
 
 /* Prints a blank line. */
 function appendNewLine() {
   var tbi = document.createElement("div");
-  tbi.className = "dynamic";
+  tbi.className = "lines";
   tbi.style.padding = "15px";
 
   var ai = document.getElementById("report");
   document.body.insertBefore(tbi, ai);
 }
 
-/* Prints out the contents of report_list as a 
+/* Prints out the contents of report_list as a
    series of consecutive project reports. */
 function printReport() {
   clearReport();
@@ -145,13 +167,16 @@ function printReport() {
 
   printColorKey();
   showProgressBar();
-  
+
+  table = 0;
   reports_list.forEach(function(element) {
-    element.forEach(function(sub_element) {
-      appendText(sub_element);
-    });
-    appendNewLine();
+    appendText(element);
+    if (table == 0){
+      appendNewLine();
+    }
   });
+  appendNewLine();
+  appendNewLine();
   checkIfComplete();
 }
 
@@ -161,56 +186,73 @@ function clearReport() {
   while(removeables[0]) {
     removeables[0].remove();
   }
+  var removeables = document.getElementsByClassName('lines');
+  while(removeables[0]) {
+    removeables[0].remove();
+  }
 }
 
-/* Prints prorgess bar. */
+/* Prints progress bar. */
 function showProgressBar() {
   document.getElementById('myProgress').style.visibility = "visible";
-  setProgress(document.getElementById('greenbar'),complete_projects, project_count);
-  setProgress(document.getElementById('yellowbar'),passing_projects, project_count);
-  setProgress(document.getElementById('redbar'),project_count-complete_projects-passing_projects, project_count);
+  setProgress(document.getElementById('greenbar'),complete_projects, project_count,0);
+  setProgress(document.getElementById('yellowbar'),passing_projects, project_count,1);
+  setProgress(document.getElementById('redbar'),project_count-complete_projects-passing_projects, project_count,2);
 }
 
+/* Hides progress bar. */
 function hideProgressBar() {
   document.getElementById('myProgress').style.visibility = "hidden";
 }
 
-/* Prints color key. */
+/* Prints color key.*/
 function printColorKey() {
   var processObj = document.getElementById('process_status');
   processObj.style.visibility = 'visible';
-  processObj.style.color = "black";
-  processObj.innerHTML = "Green - Complete; Yellow - Passing; Red - Failing";
+  processObj.innerHTML = "results:";
 }
 
 /* Update progress bar segment to new proportion. */
-function setProgress(bar,projects,total_projects) {
-  bar.style.width = ((projects/total_projects)*100) + '%';
-  bar.innerHTML = projects + '';
+function setProgress(bar,projects,total_projects,color) {
+  var width_percent = ((projects/total_projects)*100);
+  bar.style.width = width_percent + '%';
+  if (projects != 0 && color == 0) {
+    bar.innerHTML = projects 
+    if (width_percent >= 15) bar.innerHTML += ' complete';
+  }
+  else if (projects != 0 && color == 1) {
+    bar.innerHTML = projects 
+    if (width_percent >= 15) bar.innerHTML += ' passing';
+  }
+  else if (projects != 0 && color == 2) {
+    bar.innerHTML = projects 
+    if (width_percent >= 15) bar.innerHTML += ' failing';
+  }
 }
 
 /* 
-	ERROR REPORTS 
+  ERROR REPORTS 
 */
 
 function linkError() {
-  hideProgressBar();
-  var processObj = document.getElementById('process_status');
+  document.getElementById('myProgress').style.visibility = "hidden";
+  var processObj = document.getElementById('process_error');
   processObj.style.visibility = 'visible';
   processObj.style.color = "red";
-  processObj.innerHTML = "Error: invalid link.";
-  document.getElementById('wait_time').innerHTML = "Studio links are generally\
-  of the form: <br /> <span class = 'link'> https://scratch.mit.edu/studios/[id number]/</span>";
+  processObj.innerHTML = "error: invalid link.";
+  document.getElementById('wait_time').innerHTML = "";
+  IS_LOADING = false;
 }
 
 function unitError() {
-  var processObj = document.getElementById('process_status');
+  var processObj = document.getElementById('process_error');
   processObj.style.visibility = 'visible';
   processObj.style.color = "red";
-  processObj.innerHTML = "Error: No unit selected.";
+  processObj.innerHTML = "error: no unit selected.";
+  IS_LOADING = false;
 }
 
 function noError() {
-  document.getElementById('process_status').innerHTML = "";
-  document.getElementById('process_status').style.visibility = 'hidden';
+  document.getElementById('process_error').innerHTML = "";
+  document.getElementById('process_error').style.visibility = 'hidden';
 }
