@@ -4,7 +4,7 @@
    and initializes script analysis. */
 function analyze(fileObj, user,id) {
     gradeObj.grade(fileObj,id);
-    report(id, gradeObj.requirements, user);
+    report(id, gradeObj.requirements, gradeObj.extensions, user);
 }
 
 /* Returns pass/fail symbol. */
@@ -14,7 +14,7 @@ function checkbox(bool) {
 }
 
 /* Adds results to reports_list and prints. */
-function report(pID, reqs, user) {
+function report(pID, reqs, exts, user) {
     var ret_list = [];
     var project_complete = true;
     var exts_pass = true;
@@ -30,6 +30,14 @@ function report(pID, reqs, user) {
         ret_list.push(checkbox(reqs[x].bool) + 
             ' - ' + reqs[x].str);
     }
+    if(exts) {
+        ret_list.push('Extensions:')
+        for(var x in exts) {
+            ret_list.push(checkbox(exts[x].bool) + 
+                ' - ' + exts[x].str);
+        }
+    }
+    
     reports_list.push(ret_list);
 
 
@@ -39,6 +47,10 @@ function report(pID, reqs, user) {
         passing_projects++;
 
     printReport();        
+}
+
+function requirementsToStrings(reqs, ret_list) {
+    
 }
 
 /* Checks if process is done.  */

@@ -4,6 +4,7 @@ class GradeAnimation {
 
     constructor() {
         this.requirements = {};
+        this.extensions = {}
     }
 
     initReqs() {
@@ -21,8 +22,8 @@ class GradeAnimation {
         this.requirements.hasWinner = {bool:false, str:'Race has a winner.'};;
         // checks for extra components
         // victory dance, turn block
-        this.requirements.extraPostFinishAnimation = {bool:false, str:'Changes costume during victory dance.'};;
-        this.requirements.extraTurnBlock = {bool:false, str:'Turn block during victory dance.'};;
+        this.extensions.extraPostFinishAnimation = {bool:false, str:'Changes costume during victory dance.'};;
+        this.extensions.extraTurnBlock = {bool:false, str:'Turn block during victory dance.'};;
     }
 
     grade(fileObj, user) {
@@ -62,7 +63,7 @@ class GradeAnimation {
                             if (sprite.objName === 'Bee') {
                                 that.requirements.handlesSpaceBar.bool = true;
                                 checkSpaceBar(script);
-                                that.extraTurnBlock = that.extraTurnBlock && (sprite.rotationStyle === 'normal');
+                                that.extensions.extraTurnBlock.bool = that.extensions.extraTurnBlock.bool && (sprite.rotationStyle === 'normal');
                             } else if (sprite.objName === 'Snake') {
                                 checkSpaceBar(script, false);
                             }
@@ -140,7 +141,7 @@ class GradeAnimation {
                                 that.requirements.spaceBarCostumeChange.bool = true;
                             // extra: wiggly path for Bee
                             if (nested[j][0] === 'turnLeft:' || nested[j][0] === 'turnRight:')
-                                that.requirements.extraTurnBlock.bool = true;
+                                that.extensions.extraTurnBlock.bool = true;
                         } else {
                             if (nested[j][0] === 'wait:elapsed:from:')
                                 extraSnakeWaitTime = nested[j][1];
@@ -207,7 +208,7 @@ class GradeAnimation {
             }
         }
         if (winner && victoryDance.hasOwnProperty(winner)) {
-            this.requirements.extraPostFinishAnimation.bool = true;
+            this.extensions.extraPostFinishAnimation.bool = true;
         }
     }
 }
