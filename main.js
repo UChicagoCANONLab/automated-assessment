@@ -77,6 +77,12 @@ function drop_eventHandler() {
   console.log("Grading Events");
 }
 
+
+function drop_animationHandler() {
+  gradeObj = new GradeAnimation();
+  console.log("Grading Animation");
+}
+
 function drop_condloopsHandler() {
   gradeObj = new GradeCondLoops();
   console.log("Grading Conditional Loops");

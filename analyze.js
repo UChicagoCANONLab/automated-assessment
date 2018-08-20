@@ -2,10 +2,9 @@
 
 /* Top-level analysis function, checks for appropraite number of sprites
    and initializes script analysis. */
-function analyze(fileObj, user) {
-    var pID = fileObj.info.projectID
-    gradeObj.grade(fileObj,pID);
-    report(pID, gradeObj.requirements, user);
+function analyze(fileObj, user,id) {
+    gradeObj.grade(fileObj,id);
+    report(id, gradeObj.requirements, user);
 }
 
 /* Returns pass/fail symbol. */

@@ -95,7 +95,8 @@ function collectLinks(source) {
   project_count += [...thumb_items].length;
   
   [...thumb_items].forEach(function(item){
-    var ret_val = pre + item.getAttribute('data-id');
+    var id = item.getAttribute('data-id');
+    var ret_val = pre + id;
     var name;
     try {
       name = item.getElementsByClassName("owner")[0].children[0].innerHTML;
@@ -103,7 +104,7 @@ function collectLinks(source) {
     catch(err) {
       name = '[undefined]';
     }
-    getJSON(ret_val,analyze,[name]);
+    getJSON(ret_val,analyze,[name,id]);
   });
 }
 
