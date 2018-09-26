@@ -228,15 +228,15 @@ function setProgress(bar,projects,total_projects,color) {
   bar.style.width = width_percent + '%';
   if (projects != 0 && color == 0) {
     bar.innerHTML = projects 
-    if (width_percent >= 15) bar.innerHTML += ' complete';
+    if (width_percent >= 15) bar.innerHTML += ' done';
   }
   else if (projects != 0 && color == 1) {
     bar.innerHTML = projects 
-    if (width_percent >= 15) bar.innerHTML += ' passing';
+    if (width_percent >= 15) bar.innerHTML += ' almost done';
   }
   else if (projects != 0 && color == 2) {
     bar.innerHTML = projects 
-    if (width_percent >= 15) bar.innerHTML += ' failing';
+    if (width_percent >= 15) bar.innerHTML += ' need time / help';
   }
 }
 
