@@ -87,14 +87,9 @@ function drop_condloopsHandler() {
   console.log("Grading Conditional Loops");
 }
 
-function drop_onewaysyncp1Handler() {
-   gradeObj = new GradeOneWaySyncP1();
-   console.log("Grading One Way Sync Pt. 1");
-}
-
-function drop_onewaysyncp2Handler() {
-   gradeObj = new GradeOneWaySyncP2();
-   console.log("Grading One Way Sync Pt. 2");
+function drop_onewaysyncHandler() {
+   gradeObj = new GradeOneWaySync();
+   console.log("Grading One Way Sync");
 }
 
 function drop_decompbyseqHandler() {
