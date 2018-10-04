@@ -9,21 +9,21 @@ class GradeAnimation {
 
     initReqs() {
         // checks for non-moving animation
-        this.requirements.handlesDownArrow = {bool:false, str:'Handles down arrow.'};
-        this.requirements.downArrowCostumeChange = {bool:false, str:'Change costume on down arrow.'};
-        this.requirements.downArrowWaitBlock = {bool:false, str:'Wait block on down arrow.'};
+        this.requirements.handlesDownArrow = {bool:false, str:'Bee handles down arrow.'};
+        this.requirements.downArrowCostumeChange = {bool:false, str:'Bee changes costume on down arrow.'};
+        this.requirements.downArrowWaitBlock = {bool:false, str:'Bee wait block on down arrow.'};
         // checks for moving animation
-        this.requirements.handlesSpaceBar = {bool:false, str:'Handles space bar.'};;
-        this.requirements.spaceBarLoop = {bool:false, str:'Loop on space bar.'};;
-        this.requirements.spaceBarMovement = {bool:false, str:'Moves on space bar.'};;
-        this.requirements.spaceBarCostumeChange = {bool:false, str:'Costume change on space bar.'};;
-        this.requirements.spaceBarWaitBlock = {bool:false, str:'Wait block on space bar.'};;
+        this.requirements.handlesSpaceBar = {bool:false, str:'Bee handles space bar.'};;
+        this.requirements.spaceBarLoop = {bool:false, str:'Bee loop on space bar.'};;
+        this.requirements.spaceBarMovement = {bool:false, str:'Bee moves on space bar.'};;
+        this.requirements.spaceBarCostumeChange = {bool:false, str:'Bee uses costume change on space bar.'};;
+        this.requirements.spaceBarWaitBlock = {bool:false, str:'Bee has wait block on space bar.'};;
         // checks for race winner
         this.requirements.hasWinner = {bool:false, str:'Race has a winner.'};;
         // checks for extra components
         // victory dance, turn block
-        this.extensions.extraPostFinishAnimation = {bool:false, str:'Changes costume during victory dance.'};;
-        this.extensions.extraTurnBlock = {bool:false, str:'Turn block during victory dance.'};;
+        this.extensions.extraPostFinishAnimation = {bool:false, str:'Bee changes costume during victory dance.'};;
+        this.extensions.extraTurnBlock = {bool:false, str:'Bee uses turn block during victory dance.'};;
     }
 
     grade(fileObj, user) {

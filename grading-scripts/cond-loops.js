@@ -64,13 +64,13 @@ class GradeCondLoops {
     }
 
     /* Check that speed was changed. */
-    checkSpeed(do_body, def_speed) {
+    checkSpeed(do_body, orig_wait, orig_move) {
         try {do_body[2][0]}
         catch(err) {return null}
  
         this.requirements.changeSpeed.bool = do_body[2].find((g) => {
             if(g[0].startsWith("wait")) {
-                return (g[1] != def_speed)
+                return (g[1] != orig_wait)
             }
         })
     }

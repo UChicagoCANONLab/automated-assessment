@@ -236,7 +236,7 @@ function setProgress(bar,projects,total_projects,color) {
   }
   else if (projects != 0 && color == 2) {
     bar.innerHTML = projects 
-    if (width_percent >= 15) bar.innerHTML += ' need time / help';
+    if (width_percent >= 15) bar.innerHTML += ' need time or help';
   }
 }
 
