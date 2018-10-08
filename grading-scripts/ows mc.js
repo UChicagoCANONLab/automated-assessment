@@ -15,8 +15,7 @@ class GradeOneWaySync{
       {bool:false, str:'When start button is clicked, Djembe and Flute play music and Mali child and Navajo child dance.'};
   }
 
-  grade(fileObj, user) {
-      this.initReqs();
+  grade(fileObj, user) {      this.initReqs();
 
       var sprites = fileObj.children;
 
@@ -73,11 +72,11 @@ class GradeOneWaySync{
                   for (var j = 1; j < script.length; j++) {
                     var block = script[j];
 
-                    if (block[0] == "playSound:" && block[1] == "djembe") {
+                    if ((block[0] == "playSound:" || block[0] == "doPlaySoundAndWait") && block[1] == "djembe") {
                         p1_play_sound = true;
                     }
 
-                    if (block[0] == "broadcast:") {
+                    if (block[0] == "broadcast:" || block[0] == "doBroadcastAndWait") {
                         message_sent = true;
                         message_name = block[1];
                     }
@@ -86,7 +85,7 @@ class GradeOneWaySync{
                       for (var k = 0; k < block[2].length; k++) {
                         var loop = block[2][k];
 
-                        if (loop[0] == 'broadcast:') {
+                        if (loop[0] == 'broadcast:' || loop[0] == "doBroadcastAndWait") {
                           message_sent = true;
                           message_name = loop[1];
                         }
@@ -102,7 +101,7 @@ class GradeOneWaySync{
                       for (var j = 1; j < script.length; j++) {
                           var block = script[j];
 
-                          if (block[0] == "playSound:" && block[1] == "djembe") {
+                          if ((block[0] == "playSound:" || block[0] == "doPlaySoundAndWait") && block[1] == "djembe") {
                               p1_play_sound = true;
                           }
                       }
@@ -123,9 +122,7 @@ class GradeOneWaySync{
             event  = script[0][0];
 
             if (event === 'whenIReceive' && script[0][1] == message_name) {
-              if (message_name != "Navajo") {
-                p1_message_passing = true;
-              }
+              p1_message_passing = true;
 
               for (var j = 1; j < script.length; j++) {
                 var block = script[j];
@@ -357,5 +354,4 @@ class GradeOneWaySync{
 
       if (message[message_index[0]] == message_name)
         this.requirements.djembe.bool = false;
-  }
 }
