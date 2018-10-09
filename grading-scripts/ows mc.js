@@ -1,4 +1,4 @@
-class GradeOneWaySync{
+class GradeOneWaySync {
 
   constructor() {
       this.requirements = {};
