@@ -1,4 +1,6 @@
-class GradeOneWaySync{
+
+
+class GradeOneWaySync {
 
   constructor() {
       this.requirements = {};
@@ -15,7 +17,9 @@ class GradeOneWaySync{
       {bool:false, str:'When start button is clicked, Djembe and Flute play music and Mali child and Navajo child dance.'};
   }
 
-  grade(fileObj, user) {      this.initReqs();
+  grade(fileObj, user) {
+      
+      this.initReqs();
 
       var sprites = fileObj.children;
 
@@ -352,6 +356,8 @@ class GradeOneWaySync{
       if (p2_message_passing && p2_drum && p2_flute && p2_boy_dance
         && p2_girl_dance) this.requirements.start.bool = true;
 
-      if (message[message_index[0]] == message_name)
+      if (message[message_index[0]] == message_name){
         this.requirements.djembe.bool = false;
+      }
+  }
 }
