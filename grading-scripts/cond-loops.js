@@ -83,16 +83,23 @@ class GradeCondLoops {
     checkSpeed(defaultSteps, defaultTime, car) {
         for (var script of eventScripts(car, 'whenGreenFlag')) {
             for (var block of opcodeBlocks(script, 'doUntil')) {
-                for (var subBlock of block[2]) {
-                    if (opcode(subBlock) === 'forward:') {
-                        if (subBlock[1] !== defaultSteps)
-                            this.requirements.changeSpeed.bool = true;
-                    }
-                    if (opcode(subBlock) === 'wait:elapsed:from:') {
-                        if (subBlock[1] !== defaultTime)
-                            this.requirements.changeSpeed.bool = true;
+                var containsWait = false;
+                var containsMove = false;
+                if (block[2]) {
+                    for (var subBlock of block[2]) {
+                        if (subBlock && opcode(subBlock) === 'forward:') {
+                            containsMove = true;
+                            if (subBlock[1] !== defaultSteps)
+                                this.requirements.changeSpeed.bool = true;
+                        }
+                        if (subBlock && opcode(subBlock) === 'wait:elapsed:from:') {
+                            containsWait = true;
+                            if (subBlock[1] !== defaultTime)
+                                this.requirements.changeSpeed.bool = true;
+                        }            
                     }
                 }
+                if (!containsWait && containsMove) this.requirements.changeSpeed.bool = true;
             }
         }
     }
@@ -102,15 +109,23 @@ class GradeCondLoops {
         for (var script of car.scripts) {
             if (scriptContains(script, 'playSound:'))
                 this.extensions.carSound.bool = true;
+            else if (scriptContains(script, 'doPlaySoundAndWait'))
+                this.extensions.carSound.bool = true;
+            else for (var block of opcodeBlocks(script, 'doUntil')) {
+                for (var subBlock of block[2]) {
+                    if (subBlock && ['playSound:', 'doPlaySoundAndWait'].includes(opcode(subBlock))) {
+                        this.extensions.carSound.bool = true;
+                    }
+                }
+            }
         }
     }
 
     /// Checks that other sprites perform actions (extension).
-    checkSprites(sprites) {
-        
-        this.extensions.otherSprites.bool = sprites.find((e) => {
-            if(e.objName != 'Car' && e.scripts) {
-                return e.scripts.find((script) => {
+    checkSprites(sprites) {      
+        this.extensions.otherSprites.bool = sprites.find((sprite) => {
+            if(sprite.objName != 'Car' && sprite.scripts) {
+                return sprite.scripts.find((script) => {
                     return blocks(script).find((block) => {
                         return opcode(block).startsWith('say') ||
                                opcode(block).startsWith('move')
@@ -130,7 +145,7 @@ class GradeCondLoops {
                     if(f[0] == 'doUntil') {
                         event_script = e[2];
                         try {return f[1][0].startsWith('touching');}
-                        catch(err) {return null}
+                        catch(err) {return false}
                     }
                 });
             }
