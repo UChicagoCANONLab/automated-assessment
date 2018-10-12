@@ -1,21 +1,33 @@
+
+
 class GradeOneWaySync {
 
   constructor() {
       this.requirements = {};
-      this.strings = [
-        'When Djembe is clicked, Djembe plays music and Mali child dances.',
-        'When start button is clicked, Djembe and Flute play music and Mali child and Navajo child dance.',
-      ];
   }
 
   initReqs() {
-    this.requirements.djembe              =
-      {bool:false, str:'When Djembe is clicked, Djembe plays music and Mali child dances.'};
-    this.requirements.start               = 
-      {bool:false, str:'When start button is clicked, Djembe and Flute play music and Mali child and Navajo child dance.'};
+    this.requirements.onetoone            =
+      {bool:false, str:'Djembe passes unique message to Mali child.'};
+    this.requirements.djembe1             =
+      {bool:false, str:'When Djembe is clicked, Djembe plays music.'};
+    this.requirements.boy1                =
+      {bool:false, str:'When Djembe is clicked, Mali child dances.'};
+    this.requirements.onetomany           =
+      {bool:false, str:'Start button passes the same message to all other sprites.'};
+    this.requirements.djembe2             =
+      {bool:false, str:'When start button is clicked, Djembe plays music.'};
+    this.requirements.flute2              =
+      {bool:false, str:'When start button is clicked, Flute plays music.'};  
+    this.requirements.boy2                =
+      {bool:false, str:'When start button is clicked, Mali child dances.'};  
+    this.requirements.girl2               =
+      {bool:false, str:'When start button is clicked, Navajo child dances.'}; 
   }
 
-  grade(fileObj, user) {      this.initReqs();
+  grade(fileObj, user) {
+      
+      this.initReqs();
 
       var sprites = fileObj.children;
 
@@ -53,10 +65,6 @@ class GradeOneWaySync {
       if (!(drum.hasOwnProperty('scripts')) || !(boy.hasOwnProperty('scripts')))
         return;
 
-      var p1_message_passing = false;
-      var p1_play_sound = false;
-      var p1_mali_dance = false;
-
       var message_sent = false;
       var message_name = "";
 
@@ -73,7 +81,7 @@ class GradeOneWaySync {
                     var block = script[j];
 
                     if ((block[0] == "playSound:" || block[0] == "doPlaySoundAndWait") && block[1] == "djembe") {
-                        p1_play_sound = true;
+                        this.requirements.djembe1.bool = true;
                     }
 
                     if (block[0] == "broadcast:" || block[0] == "doBroadcastAndWait") {
@@ -102,7 +110,7 @@ class GradeOneWaySync {
                           var block = script[j];
 
                           if ((block[0] == "playSound:" || block[0] == "doPlaySoundAndWait") && block[1] == "djembe") {
-                              p1_play_sound = true;
+                              this.requirements.djembe1.bool = true;
                           }
                       }
                   }
@@ -122,7 +130,9 @@ class GradeOneWaySync {
             event  = script[0][0];
 
             if (event === 'whenIReceive' && script[0][1] == message_name) {
-              p1_message_passing = true;
+              if(message_name != 'Navajo') {
+                  this.requirements.onetoone.bool = true;
+              }
 
               for (var j = 1; j < script.length; j++) {
                 var block = script[j];
@@ -140,12 +150,8 @@ class GradeOneWaySync {
                       wait_block = true;
       }}}}}}}
 
-      if(change_costume && wait_block) p1_mali_dance = true;
-
-      if(p1_mali_dance && p1_play_sound && p1_message_passing) {
-          this.requirements.djembe.bool = true;
-      }
-
+      if(change_costume && wait_block) this.requirements.boy1.bool = true;
+      
       //// part 2
 
       //check for sprites
@@ -173,12 +179,6 @@ class GradeOneWaySync {
       });
 
       if (!(all_scripts)) return;
-
-      var p2_message_passing = false;
-      var p2_drum = false;
-      var p2_boy_dance = false;
-      var p2_flute = false;
-      var p2_girl_dance = false;
 
       var message = [];
       var num_broadcasts = 0;
@@ -226,7 +226,7 @@ class GradeOneWaySync {
 
                 if ((block[0] == "playSound:" || block[0] == "doPlaySoundAndWait")
                  && block[1] == "Navajo Flute") {
-                  p2_flute = true;
+                  this.requirements.flute2.bool = true;
                 }
               }
             }
@@ -251,7 +251,7 @@ class GradeOneWaySync {
 
                 if ((block[0] == "playSound:" || block[0] == "doPlaySoundAndWait")
                  && block[1] == "djembe") {
-                  p2_drum = true;
+                  this.requirements.djembe2.bool = true;
                 }
               }
             }
@@ -296,7 +296,7 @@ class GradeOneWaySync {
           }
       }
 
-      if(change_costume && wait_block) p2_girl_dance = true;
+      if(change_costume && wait_block) this.requirements.girl2.bool = true;
 
       change_costume = false;
       wait_block = false;
@@ -336,7 +336,7 @@ class GradeOneWaySync {
           }
       }
 
-      if(change_costume && wait_block) p2_boy_dance = true;
+      if(change_costume && wait_block) this.requirements.boy2.bool = true;
 
       var receive = true;
 
@@ -346,12 +346,11 @@ class GradeOneWaySync {
       }
 
       if (receive) {
-        p2_message_passing = true;
+        this.requirements.onetomany.bool = true;
+        if (message[message_index[0]] == message_name){
+            this.requirements.onetoone.bool = false;
+        }
       }
-
-      if (p2_message_passing && p2_drum && p2_flute && p2_boy_dance
-        && p2_girl_dance) this.requirements.start.bool = true;
-
-      if (message[message_index[0]] == message_name)
-        this.requirements.djembe.bool = false;
+      
+  }
 }
