@@ -92,6 +92,11 @@ function drop_onewaysyncHandler() {
    console.log("Grading One Way Sync");
 }
 
+function drop_variablesL1Handler() {
+  gradeObj = new GradeVariablesL1();
+  console.log("Grading Variables L1");
+}
+
 function drop_decompbyseqHandler() {
    gradeObj = new GradeDecompBySeq();
    console.log("Grading Decomposition By Sequence");
