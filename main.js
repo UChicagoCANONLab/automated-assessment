@@ -72,6 +72,11 @@ $(document).ready(function(){
   });
 });
 
+function drop_scratchBasicsL1Handler() {
+  gradeObj = new GradeScratchBasicsL1();
+  console.log("Grading Scratch Basics L1");
+}
+
 function drop_eventHandler() {
   gradeObj = new GradeEvents();
   console.log("Grading Events");
