@@ -17,6 +17,7 @@
   <script src="grading-scripts/events.js" type="text/javascript"> </script>
   <script src="grading-scripts/cond-loops.js" type="text/javascript"> </script>
   <script src="grading-scripts/animation.js" type="text/javascript"> </script>
+  <script src="./people.cs.uchicago.edu_files/two-way-sync.js" type="text/javascript"> </script>
 
   <script type="text/javascript">
     $(function() {
@@ -86,6 +87,12 @@
 				<label class = "unitlabel">
 					<a onclick="drop_decompbyseqHandler()"> <img src="pictures/decompbysequence.png"> </a>
 					Decomposition by Sequence
+				</label>
+				
+				<input type="radio" value="twowaysync" class="hidden">
+				<label class="unitlabel">
+					<a onclick="drop_twowaysyncHandler()"> <img src="./people.cs.uchicago.edu_files/twowaysync.png"> </a>
+					Two-Way Sync
 				</label>
 
 				<input type="radio" value="variablesL1" class = "hidden"/>
