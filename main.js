@@ -102,6 +102,11 @@ function drop_variablesL1Handler() {
   console.log("Grading Variables L1");
 }
 
+function drop_twowaysyncHandler() {
+   gradeObj = new GradeTwoWaySync();
+   console.log("Grading Two Way Sync");
+}
+
 function drop_decompbyseqHandler() {
    gradeObj = new GradeDecompBySeq();
    console.log("Grading Decomposition By Sequence");
