@@ -72,6 +72,11 @@ $(document).ready(function(){
   });
 });
 
+function drop_scratchBasicsL1Handler() {
+  gradeObj = new GradeScratchBasicsL1();
+  console.log("Grading Scratch Basics L1");
+}
+
 function drop_eventHandler() {
   gradeObj = new GradeEvents();
   console.log("Grading Events");
@@ -90,6 +95,16 @@ function drop_condloopsHandler() {
 function drop_onewaysyncHandler() {
    gradeObj = new GradeOneWaySync();
    console.log("Grading One Way Sync");
+}
+
+function drop_variablesL1Handler() {
+  gradeObj = new GradeVariablesL1();
+  console.log("Grading Variables L1");
+}
+
+function drop_twowaysyncHandler() {
+   gradeObj = new GradeTwoWaySync();
+   console.log("Grading Two Way Sync");
 }
 
 function drop_decompbyseqHandler() {

@@ -9,15 +9,13 @@
   <script src="crawler.js" type="text/javascript"> </script>
   <script src="main.js" type="text/javascript"> </script>
 
-	<script src="grading-scripts/scratch-basics-L1.js" type="text/javascript"></script>
-	<script src="grading-scripts/one-way-sync.js" type="text/javascript"></script>
-  <!-- <script src="grading-scripts/owsmc2.js" type="text/javascript"></script> -->
-	<script src="grading-scripts/decomp-by-seq-1.js" type="text/javascript"></script>
-	<script src="grading-scripts/variables-L1.js" type="text/javascript"></script>
-  <script src="grading-scripts/events.js" type="text/javascript"> </script>
-  <script src="grading-scripts/cond-loops.js" type="text/javascript"> </script>
-  <script src="grading-scripts/animation.js" type="text/javascript"> </script>
-  <script src="./people.cs.uchicago.edu_files/two-way-sync.js" type="text/javascript"> </script>
+  <!-- <script src="act1-grading-scripts/one-way-sync.js" type="text/javascript"></script>
+  <script src="act1-grading-scripts/owsmc2.js" type="text/javascript"></script> 
+  <script src="act1-grading-scripts/decomp-by-seq-1.js" type="text/javascript"></script>
+  <script src="act1-grading-scripts/events.js" type="text/javascript"> </script>
+  <script src="act1-grading-scripts/cond-loops.js" type="text/javascript"> </script>
+  <script src="act1-grading-scripts/animation.js" type="text/javascript"> </script>
+  -->
 
   <script type="text/javascript">
     $(function() {
@@ -43,24 +41,18 @@
     <h1> project grader </h1>
 
 		<div class= "unit_container">
-			<p>Select unit: </p>
+			<p>Select project: </p>
 			<div class= "units">
-					<input type="radio" value="scratchBasicsL1" class = "hidden"/>
-					<label class = "unitlabel">
-						<a onclick="drop_scratchBasicsL1Handler()"> <img src="pictures/scratchBasicsL1.png"> </a>
-						Scratch Basics L1
-					</label>
-
 				<input type="radio" value="events" class = "hidden"/>
 				<label class = "unitlabel">
-					<a onclick="drop_eventHandler()"> <img src="pictures/events.png"> </a>
-					Events
+					<a onclick="drop_scavengerhuntHandler()"> <img src="pictures/scavengerhuntstage.png">
+					Scavenger Hunt	
 				</label>
 
 				<input type="radio" value="animation" class = "hidden"/>
 				<label class = "unitlabel">
-					<a onclick="drop_animationHandler()"> <img src="pictures/animation.png"> </a>
-					Animation
+					<a onclick="drop_namepoemHandler()"> <img src="pictures/namepoemstage.png"> </a>
+					Name Poem
 				</label>
 
 				<input type="radio" value="condloops" class = "hidden"/>
@@ -87,18 +79,6 @@
 				<label class = "unitlabel">
 					<a onclick="drop_decompbyseqHandler()"> <img src="pictures/decompbysequence.png"> </a>
 					Decomposition by Sequence
-				</label>
-				
-				<input type="radio" value="twowaysync" class="hidden">
-				<label class="unitlabel">
-					<a onclick="drop_twowaysyncHandler()"> <img src="./people.cs.uchicago.edu_files/twowaysync.png"> </a>
-					Two-Way Sync
-				</label>
-
-				<input type="radio" value="variablesL1" class = "hidden"/>
-				<label class = "unitlabel">
-					<a onclick="drop_variablesL1Handler()"> <img src="pictures/variablesL1.png"> </a>
-					Variables L1
 				</label>
 			</div>
 		</div>
