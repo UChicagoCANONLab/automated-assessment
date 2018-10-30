@@ -69,7 +69,7 @@ var rx = {
     wildcard: '\.*'
 };
 
-/// Grader —————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+/// Grader
 class GradeVariablesL1 {
 
     constructor() {
@@ -80,12 +80,12 @@ class GradeVariablesL1 {
 
     initReqs() {
         this.requirements.calcPerimeter  = 
-            {bool: false, str: 'Computer calculates perimeter.'};
+            {bool: false, str: 'Computer correctly calculates perimeter.'};
         this.requirements.printPerimeter =
             {bool: false, str: 'Computer outputs calculated perimeter.'};
 
         this.extensions.calcVolume      =
-            {bool: false, str: 'Uses height variable to calculate volume.'};
+            {bool: false, str: 'Uses length, width, and height variables to calculate volume and then outputs it.'};
 
         this.help.noBen       =
             {bool: false, str: 'Make sure the project has a sprite named "Ben."'};
@@ -111,52 +111,40 @@ class GradeVariablesL1 {
 
     checkPerimeter(fileObj, ben) {
         var validCalc = [
-            /// Paired adds
-            rx.create(rx.compact('["setVar:to:", "perimeter", ["+", ["+", ["readVariable", "height"], ["readVariable", "height"]], ["+", ["readVariable", "width"], ["readVariable", "width"]]]]')),            
-            rx.create(rx.compact('["setVar:to:", "perimeter", ["+", ["+", ["readVariable", "height"], ["readVariable", "width"]], ["+", ["readVariable", "height"], ["readVariable", "width"]]]]')),
-            rx.create(rx.compact('["setVar:to:", "perimeter", ["+", ["+", ["readVariable", "height"], ["readVariable", "width"]], ["+", ["readVariable", "width"], ["readVariable", "height"]]]]')),
-            rx.create(rx.compact('["setVar:to:", "perimeter", ["+", ["+", ["readVariable", "width"], ["readVariable", "height"]], ["+", ["readVariable", "height"], ["readVariable", "width"]]]]')),
-            rx.create(rx.compact('["setVar:to:", "perimeter", ["+", ["+", ["readVariable", "width"], ["readVariable", "height"]], ["+", ["readVariable", "width"], ["readVariable", "height"]]]]')),
-            rx.create(rx.compact('["setVar:to:", "perimeter", ["+", ["+", ["readVariable", "width"], ["readVariable", "width"]], ["+", ["readVariable", "height"], ["readVariable", "height"]]]]')),
-            /// Adds & mults
-            rx.create(rx.compact('["setVar:to:", "perimeter", ["*", 2, ["+", ["readVariable", "height"], ["readVariable", "width"]]]]')),
-            rx.create(rx.compact('["setVar:to:", "perimeter", ["*", 2, ["+", ["readVariable", "width"], ["readVariable", "height"]]]]')),
-            rx.create(rx.compact('["setVar:to:", "perimeter", ["+", ["*", 2, ["readVariable", "height"]], ["*", 2, ["readVariable", "width"]]]]')),
-            rx.create(rx.compact('["setVar:to:", "perimeter", ["+", ["*", 2, ["readVariable", "width"]], ["*", 2, ["readVariable", "height"]]]]')),
-            /// Sequential adds
-            rx.create(rx.compact('["setVar:to:", "perimeter", ["+", ["readVariable", "height"], ["+", ["readVariable", "height"], ["+", ["readVariable", "width"], ["readVariable", "width"]]]]]')),
-            rx.create(rx.compact('["setVar:to:", "perimeter", ["+", ["readVariable", "height"], ["+", ["readVariable", "width"], ["+", ["readVariable", "height"], ["readVariable", "width"]]]]]')),
-            rx.create(rx.compact('["setVar:to:", "perimeter", ["+", ["readVariable", "height"], ["+", ["readVariable", "width"], ["+", ["readVariable", "width"], ["readVariable", "height"]]]]]')),
-            rx.create(rx.compact('["setVar:to:", "perimeter", ["+", ["readVariable", "width"], ["+", ["readVariable", "height"], ["+", ["readVariable", "height"], ["readVariable", "width"]]]]]')),
-            rx.create(rx.compact('["setVar:to:", "perimeter", ["+", ["readVariable", "width"], ["+", ["readVariable", "height"], ["+", ["readVariable", "width"], ["readVariable", "height"]]]]]')),
-            rx.create(rx.compact('["setVar:to:", "perimeter", ["+", ["readVariable", "width"], ["+", ["readVariable", "width"], ["+", ["readVariable", "height"], ["readVariable", "height"]]]]]'))
+            'perimeter = height + height + width + width',
+            'perimeter = height + width + height + width',
+            'perimeter = height + width + width + height',
+            'perimeter = width + height + height + width',
+            'perimeter = width + height + width + height',
+            'perimeter = width + width + height + height'
         ];
 
-        var validPrint = [
-            rx.create(
-                rx.compact('["say:duration:elapsed:from:",') +
-                rx.wildcard +
-                rx.compact('["readVariable", "perimeter"]') +
-                rx.wildcard +
-                rx.compact(']')
-            )
-        ];
+        var validPrint = rx.create(
+            rx.compact('["say:duration:elapsed:from:",') +
+            rx.wildcard +
+            rx.compact('["readVariable", "perimeter"]') +
+            rx.wildcard +
+            rx.compact(']')
+        );
 
         if (!fileObj.variables.some(vari => vari.name === "perimeter")) {
             this.help.noPerimeter.bool = true;
             return 1;
         }
         for (var script of ben.scripts) {
-            for (var block of sb2.opcodeBlocks(script, 'setVar:to:')) {
-                var blockString = JSON.stringify(block);
-                for (var x of validCalc) {
-                    if (rx.unspace(blockString).match(x)) this.requirements.calcPerimeter.bool = true;
+            var isPerimeterCalculated = false;
+            for (var block of sb2.blocks(script)) {
+                if (sb2.opcode(block) === 'setVar:to:') {
+                    if (validCalc.includes(this.parseExp(block)))
+                        this.requirements.calcPerimeter.bool = true;
+                    if (block[1] === 'perimeter')
+                        isPerimeterCalculated = true;
                 }
-            }
-            for (var block of sb2.opcodeBlocks(script, 'say:duration:elapsed:from:')) {
-                var blockString = JSON.stringify(block);
-                for (var x of validPrint) {
-                    if (rx.unspace(blockString).match(x)) this.requirements.printPerimeter.bool = true;
+
+                if (sb2.opcode(block) === 'say:duration:elapsed:from:' && isPerimeterCalculated) {
+                    var blockString = JSON.stringify(block);
+                    if (blockString.match(validPrint))
+                        this.requirements.printPerimeter.bool = true;
                 }
             }
         }
@@ -165,41 +153,92 @@ class GradeVariablesL1 {
 
     checkVolume(fileObj, ben) {
         var validCalc = [
-            rx.create(rx.compact('["setVar:to:", "volume", ["*", ["*", ["readVariable", "height"], ["readVariable", "width"]], ["readVariable", "length"]]]')),
-            rx.create(rx.compact('["setVar:to:", "volume", ["*", ["*", ["readVariable", "height"], ["readVariable", "length"]], ["readVariable", "width"]]]')),
-            rx.create(rx.compact('["setVar:to:", "volume", ["*", ["*", ["readVariable", "width"], ["readVariable", "height"]], ["readVariable", "length"]]]')),
-            rx.create(rx.compact('["setVar:to:", "volume", ["*", ["*", ["readVariable", "width"], ["readVariable", "length"]], ["readVariable", "height"]]]')),
-            rx.create(rx.compact('["setVar:to:", "volume", ["*", ["*", ["readVariable", "length"], ["readVariable", "width"]], ["readVariable", "height"]]]')),
-            rx.create(rx.compact('["setVar:to:", "volume", ["*", ["*", ["readVariable", "length"], ["readVariable", "height"]], ["readVariable", "width"]]]'))
+            'volume = height * width * length', 'volume = height * length * width',
+            'volume = width * height * length', 'volume = width * length * height',
+            'volume = length * height * width', 'volume = length * width * height'
         ];
 
-        var validPrint = [
-            rx.create(
-                rx.compact('["say:duration:elapsed:from:",') +
-                rx.wildcard +
-                rx.compact('["readVariable", "volume"]') +
-                rx.wildcard +
-                rx.compact(']')
-            )
-        ];
+        var validPrint = rx.create(
+            rx.compact('["say:duration:elapsed:from:",') +
+            rx.wildcard +
+            rx.compact('["readVariable", "volume"]') +
+            rx.wildcard +
+            rx.compact(']')
+        );
 
-        var calc = false;
-        var say  = false;
         for (var script of ben.scripts) {
-            for (var block of sb2.opcodeBlocks(script, 'setVar:to:')) {
-                var blockString = JSON.stringify(block);
-                for (var x of validCalc) {
-                    if (rx.unspace(blockString).match(x)) calc = true;
+            var isVolumeCalculated = false;
+            for (var block of sb2.blocks(script)) {
+                if (sb2.opcode(block) === 'setVar:to:') {
+                    console.log(this.parseVol(block));
+                    if (validCalc.includes(this.parseVol(block)))
+                        isVolumeCalculated = true;
                 }
-            }
-            for (var block of sb2.opcodeBlocks(script, 'say:duration:elapsed:from:')) {
-                var blockString = JSON.stringify(block);
-                for (var x of validPrint) {
-                    if (rx.unspace(blockString).match(x)) say = true;
+                
+                if (sb2.opcode(block) === 'say:duration:elapsed:from:' && isVolumeCalculated) {
+                    var blockString = JSON.stringify(block);
+                    if (blockString.match(validPrint))
+                        this.extensions.calcVolume.bool = true;
                 }
             }
         }
-        this.extensions.calcVolume.bool = (calc && say);
-        return;
+        return 0;
+    }
+
+    parseExp(block) {
+
+        if (sb2.no(block)) return '';
+
+        else if (typeof(block) === 'number') {
+            return block.toString();
+        }
+
+        else if (block[0] === 'setVar:to:') {
+            return block[1] + ' = ' + this.parseExp(block[2]);
+        }
+
+        else if (block[0] === 'readVariable') {
+            return block[1];
+        }
+
+        else if (block[0] === '+') {
+            return this.parseExp(block[1]) + ' + ' + this.parseExp(block[2]);
+        }
+
+        else if (block[0] === '*') {
+            var acc = '';
+            for (var i = 0; i < this.parseExp(block[1]); i++) {
+                acc += this.parseExp(block[2]);
+                if (i < this.parseExp(block[1]) - 1) acc += ' + ';
+            }
+            return acc;
+        }
+        
+        else return 'invalid symbol';
+
+    }
+
+    parseVol(block) {
+
+        if (sb2.no(block)) return '';
+
+        else if (typeof(block) === 'number') {
+            return block.toString();
+        }
+
+        else if (block[0] === 'setVar:to:') {
+            return block[1] + ' = ' + this.parseVol(block[2]);
+        }
+
+        else if (block[0] === 'readVariable') {
+            return block[1];
+        }
+
+        else if (block[0] === '*') {
+            return this.parseVol(block[1]) + ' * ' + this.parseVol(block[2]);
+        }
+        
+        else return 'invalid symbol';
+
     }
 }
