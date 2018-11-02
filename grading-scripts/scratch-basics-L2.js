@@ -92,7 +92,6 @@ class GradeScratchBasicsL2 {
     }
 
     /// Helpers
-
     no(x) {
         return (x == null || x.length === 0);
     }
@@ -121,5 +120,4 @@ class GradeScratchBasicsL2 {
         if (!script || script === undefined || !blocks(script)) return false;
         return this.blocks(script).some(block => this.opcode(block) === myOpcode);
     }
-
 }
