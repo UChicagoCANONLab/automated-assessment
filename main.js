@@ -77,6 +77,11 @@ function drop_scratchBasicsL1Handler() {
   console.log("Grading Scratch Basics L1");
 }
 
+function drop_scratchBasicsL2Handler() {
+  gradeObj = new GradeScratchBasicsL2();
+  console.log("Grading Scratch Basics L2");
+}
+
 function drop_eventHandler() {
   gradeObj = new GradeEvents();
   console.log("Grading Events");
