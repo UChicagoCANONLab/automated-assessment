@@ -122,6 +122,12 @@ function drop_decompbyseqHandler() {
    console.log("Grading Decomposition By Sequence");
 }
 
+function drop_handler(graderName) {
+
+    gradeObj = new GradeDecompBySeq();
+    
+}
+
 window.onclick = function(event) {
   if(event.target.matches('.dropdown_btn')) {
     return;

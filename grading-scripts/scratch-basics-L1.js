@@ -122,3 +122,4 @@ class GradeScratchBasicsL1 {
         }
     }
 }
+module.exports = GradeScratchBasicsL1;
