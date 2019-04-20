@@ -234,5 +234,8 @@ class GradeScratchBasicsL1 {
         }
     }
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 0633196a4b3d2fa9ea2e80c1eac5f26a7c4d43ca
 module.exports = GradeScratchBasicsL1;
