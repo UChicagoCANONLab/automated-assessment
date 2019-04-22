@@ -1,3 +1,164 @@
+var sb3 = {
+    no: function(x) { //null checker
+        return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
+    },
+
+    jsonToSpriteBlocks: function(json, spriteName) { //retrieve a given sprite's blocks from JSON
+        if (this.no(json)) return []; //make sure script exists
+
+        var projInfo = json['targets'] //extract targets from JSON data
+        var allBlocks={};
+        var blocks={};
+        
+        //find sprite
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['name'] == spriteName){
+                return projInfo[i]['blocks'];
+            }
+        }
+        return [];
+    }, //done
+    
+    jsonToSprite: function(json, spriteName) { //retrieve a given sprite's blocks from JSON
+        if (this.no(json)) return []; //make sure script exists
+
+        var projInfo = json['targets'] //extract targets from JSON data
+        
+        //find sprite
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['name'] == spriteName){
+                return projInfo[i];
+            }
+        }
+        return [];
+    }, //done
+    
+    countSprites: function(json){
+        if (this.no(json)) return false; //make sure script exists
+        
+        var numSprites = 0;
+        var projInfo = json['targets'] //extract targets from JSON data
+        
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['isStage'] == false){
+                numSprites ++;
+            }
+        }
+        return numSprites
+    },
+    
+    findSprite: function(json, spriteName){ //returns true if sprite with given name found
+        if (this.no(json)) return false; //make sure script exists
+
+        var projInfo = json['targets'] //extract targets from JSON data
+        
+        //find sprite
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['name'] == spriteName){
+                return true;
+            }
+        }
+        return false;
+    }, //done
+    
+    findBlockID: function(blocks, opcode){
+        if(this.no(blocks) || blocks == {}) return null;
+        
+        for(block in blocks){ 
+            if(blocks[block]['opcode'] == opcode){
+                return block;
+            }
+        }
+        return null;
+    },
+    
+    findKeyPressID: function(blocks, key){
+        if(this.no(blocks) || blocks == {}) return null;
+        
+        for(block in blocks){ 
+            if(blocks[block]['opcode'] == 'event_whenkeypressed'){
+                if(blocks[block]['fields']['KEY_OPTION'][0] == key){
+                    return block;
+                }
+            }
+        }
+        return null;
+    },
+    
+    opcodeBlocks: function(script, myOpcode) { //retrieve blocks with a certain opcode from a script list of blocks
+        if (this.no(script)) return [];
+        
+        var miniscript = [];
+
+        for(block in script){
+            if(script[block]['opcode'] == myOpcode){
+                miniscript.push(script[block]);
+            }
+        }
+        return miniscript;
+    }, 
+    
+    opcode: function(block) { //retrives opcode from a block object 
+        if (this.no(block)) return "";
+        return block['opcode'];
+    }, 
+    
+    countBlocks: function(blocks,opcode){ //counts number of blocks with a given opcode
+        var total = 0;
+		for(id in blocks){ 
+            if([blocks][id]['opcode'] == opcode){
+                total = total + 1;
+            }
+        }
+        return total;
+    }, //done
+    
+    //given list of blocks, return a script
+    makeScript: function(blocks, blockID){
+        if (this.no(blocks) || this.no(blockID)) return [];
+        event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
+        
+        var curBlockID = blockID;
+        var script = {};
+    
+        while(curBlockID != null){
+            var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+            script[curBlockID]=curBlockInfo; //Add the block itself to the script dictionary DEBUG PUSH SITUATION
+            //Get parent info out
+            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
+            //parentInfo = blocks[parentID]
+    		var opcode = curBlockInfo['opcode'];
+
+            //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
+            if ((parentID == null) && !(event_opcodes.includes(opcode))){
+                return [];
+            }
+
+            //Iterate: set parent to curBlock
+            curBlockID = parentID
+        }
+        //Find all blocks that come after
+        curBlockID = blockID //Initialize with blockID of interest
+        while(curBlockID != null){
+            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+            script[curBlockID]=curBlockInfo; //Add the block itself to the script dictionary                
+            
+
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+            //nextInfo = blocks[nextID]
+            opcode = curBlockInfo['opcode'];
+		
+            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
+            if((nextID == null) && (event_opcodes.includes(opcode))){
+                return {};
+            }
+            //Iterate: Set next to curBlock
+            curBlockID = nextID;
+        }     
+        return script;
+    }
+};
 class GradeDecompBySeq {
   /*
   this.strings includes short one sentence descriptions of each of the requirements in order.
@@ -44,166 +205,63 @@ class GradeDecompBySeq {
     }
 
 
-    //helper function to find the green flag script, returns null otherwise
-    findGreenFlag(scripts){
-      for(var i = 0; i < scripts.length; i++){
-        var script = scripts[i][2];
-        if(script[0] == 'whenGreenFlag')
-          return script;
-      }
-      return null;
-    }
-
-    //function to return Jaime sprite, returns NULL if no Jaime
-    findJaime(children){
-      for(var i = 0; i < children.length; i++){
-        var sprite = children[i];
-        if(sprite.objName == 'Jaime ')
-          return sprite;
-      }
-      return null;
-    }
-
-    //Checks Jaime's scripts
-    testJaime(jaime){
-      var scripts = jaime.scripts;
-      //check that sprite has scripts
-      if(scripts == null)
-        return;
-
-      var pointingTo = null; //direction Jaime is traveling
-
-      //iterate through all scripts to find green flag script
-      var greenFlag = this.findGreenFlag(scripts);
-
-      if(greenFlag != null){ //green flag script exists
-        for(var i = 1; i < greenFlag.length; i++){ //iterate through script
-          var block = greenFlag[i];
-
-          //update where Jaime is pointing towards
-          if(block[0] == 'pointTowards:')
-            pointingTo = block[1];
-
-          //check for correct 'repeat until' loop block
-          else if(block[0] == 'doUntil'){ //found repeat until loop block
-            if((block[1][0] == 'touching:') && (block[1][1] == 'Soccer Ball')){
-              this.requirements.JaimeToBall.bool = true;
-
-              //check Jaime moves towards the soccer ball w/o direct move
-              var inLoop = block[2];
-              var move = false;
-              var noDirectMovement = true;
-              var direction = false;
-
-              for(var j = 0; j < inLoop.length; j++){ //iterate in loop
-                var innerBlock = inLoop[j][0]; //blocks in loop
-                //update where Jaime is pointing towards
-                if(innerBlock == 'pointTowards:')
-                  pointingTo = inLoop[j][1];
-                //check that loop doesn't have any direct movement
-                else if((innerBlock == 'gotoX:y:') ||
-                        (innerBlock == 'gotoSpriteOrMouse:') ||
-                        (innerBlock == 'glideSecs:toX:y:elapsed:from:'))
-                  noDirectMovement = false;
-                //check that Jaime is moving using th move block
-                else if(innerBlock == 'forward:'){
-                  //Check if Jaime is moving the correct direction
-                  if(pointingTo == 'Soccer Ball')
-                    direction = true;
-                  move = true;
-                }
-                //checks for correct animation of Jaime
-                if((move == true) && (noDirectMovement == true) &&
-                  (direction == true))
-                  this.requirements.JaimeAnimated.bool = true;
-      }}}}}
-    }
-
-    //function to return Soccer Ball sprite, returns NULL if no soccer ball
-    findSoccerBall(children){
-      for(var i = 0; i < children.length; i++){
-        var sprite = children[i];
-        if(sprite.objName == 'Soccer Ball')
-          return sprite;
-      }
-      return null;
-    }
-
-    //check Soccer Ball's scripts
-    testSoccerBall(ball){
-      var scripts = ball.scripts;
-      //check that sprite has scripts
-      if(scripts == null)
-        return;
-
-      var pointingTo = null; //direction ball is traveling
-
-      //iterate through all scripts to find green flag script
-      var greenFlag = this.findGreenFlag(scripts);
-      //ball shouldn't move to goal without Jaime
-      var prevBlockNoMove = true;
-
-      if(greenFlag != null){ //green flag script exists
-        for(var i = 1; i < greenFlag.length; i++){ //iterate through script
-          var block = greenFlag[i];
-
-          //update where ball is pointing towards
-          if(block[0] == 'pointTowards:')
-            pointingTo = block[1];
-
-          //check for wait until block
-          else if(block[0] == 'doWaitUntil'){
-            if((block[1][0] == 'touching:') && (block[1][1] == 'Jaime ')){
-              if (prevBlockNoMove == true)
-                this.requirements.ballStayStill.bool = true;
-            }
-          }
-
-          //check for repeat until block
-          else if(block[0] == 'doUntil'){ //found repeat until loop block
-            if((block[1][0] == 'touching:') && (block[1][1] == 'Goal')){
-              this.requirements.ballToGoal.bool = true;
-
-              //check that ball moves until it gets to Goal
-              var inLoop = block[2]
-              var direction = false;
-              var noDirectMovement = true;
-
-              for(var j = 0; j < inLoop.length; j++){
-                var innerBlock = inLoop[j][0];
-                if(innerBlock == 'pointTowards:')
-                  pointingTo = inLoop[j][1];
-                else if((innerBlock == 'gotoX:y:') ||
-                        (innerBlock == 'gotoSpriteOrMouse:') ||
-                        (innerBlock == 'glideSecs:toX:y:elapsed:from:'))
-                  noDirectMovement = false;
-                else if(innerBlock == 'forward:'){
-                  if(pointingTo == 'Goal'){
-                    if(noDirectMovement == true)
-                      this.requirements.ballAnimated.bool = true;
-                    prevBlockNoMove = false; //ball moves towards Goal
-                }
-      }}}}}}
-    }
-
     grade(fileObj, user){
       this.initReqs();
 
-      //Check that project has at least one sprite/variable to check
-      var sprites = fileObj.children;
-      if(sprites == null)
-        return;
-
-      //Check Jaime sprite for requirements
-      var jaime = this.findJaime(sprites);
-      if(jaime != null){
-        this.testJaime(jaime);
-      }
-
-      //Check Soccer Ball sprite for requirements
-      var ball = this.findSoccerBall(sprites);
-      if(ball != null){
-        this.testSoccerBall(ball);
-      }
-  }
+        //Check that project has at least one sprite/variable to check
+        for(var i in fileObj['targets']){ //find sprite
+            var sprite = fileObj['targets'][i]
+            if(sprite['name'] == 'Jaime '){
+                var jaime = sprite;
+            }
+            if(sprite['name'] == 'Soccer Ball'){
+                var ball = sprite;
+            }
+            if(sprite['name'] == 'Goal'){
+                var goal = sprite;
+            }
+        }
+        
+        //check jaime
+        var jaimeid = sb3.findBlockID(jaime['blocks'], 'event_whenflagclicked');
+        if(jaimeid != null){
+            var jaimeScript = sb3.makeScript(jaime['blocks'], jaimeid);
+            for(var i in jaimeScript){
+                if(jaimeScript[i]['opcode'] == 'control_repeat_until'){
+                    this.requirements.JaimeToBall.bool = true;
+                }
+            }
+        }
+            
+        //check ball
+        var ballid = sb3.findBlockID(ball['blocks'], 'event_whenflagclicked');
+        if(ballid != null){
+            var ballScript = sb3.makeScript(ball['blocks'], ballid);
+            for(var i in ballScript){
+                if(ballScript[i]['opcode'] == 'control_wait_until'){
+                    var condition = ballScript[i]['inputs']['CONDITION'][1]
+                    if(ball['blocks'][condition]['opcode'] == 'sensing_touchingobject'){
+                        var object = ball['blocks'][condition]['inputs']['TOUCHINGOBJECTMENU'][1]
+                        var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0]
+                        if(objname == 'Jaime '){
+                            this.requirements.ballStayStill.bool = true;
+                        }
+                    }
+                }
+                if(ballScript[i]['opcode'] == 'control_repeat_until' ){
+                    var condition = ballScript[i]['inputs']['CONDITION'][1]
+                    if(ball['blocks'][condition]['opcode'] == 'sensing_touchingobject'){
+                        var object = ball['blocks'][condition]['inputs']['TOUCHINGOBJECTMENU'][1]
+                        var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0]
+                        if(objname == 'Goal'){
+                            this.requirements.ballToGoal.bool = true;
+                        }
+                    }
+                }
+            }
+        }
+        console.log(this.requirements)
+    }
+    
 }
+module.exports = GradeDecompBySeq;
