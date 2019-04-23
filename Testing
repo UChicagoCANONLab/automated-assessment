@@ -1,0 +1,8 @@
+class Testing{
+    constructor() {
+        this.requirements = {};
+        this.extensions = {};
+    }
+    
+    
+}
