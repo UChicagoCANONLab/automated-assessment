@@ -38,9 +38,9 @@ function gradeProjectWithGrader(projectPath, graderPath) {
     try {
         grader.grade(projectJSON, '');
         console.log('Requirements:');
-        for (var item of grader.requirements) console.log(item.str + ': ' + ((item.bool) ? ('✔️') : ('❌')));
+        if (thereExists(grader.requirements)) for (var item of Object.values(grader.requirements)) console.log(item.str + ': ' + ((item.bool) ? ('✔️') : ('❌')));
         console.log('Extensions:');
-        for (var item of grader.extensions)   console.log(item.str + ': ' + ((item.bool) ? ('✔️') : ('❌')));
+        if (thereExists(grader.extensions)) for (var item of Object.values(grader.extensions))   console.log(item.str + ': ' + ((item.bool) ? ('✔️') : ('❌')));
     }
     
     catch(err) {
@@ -50,4 +50,8 @@ function gradeProjectWithGrader(projectPath, graderPath) {
 
     console.log('');
 
+}
+
+function thereExists(it) {
+    return (it !== undefined && it !== null && it !== {});
 }
