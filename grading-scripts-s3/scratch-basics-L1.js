@@ -257,7 +257,7 @@ class GradeScratchBasicsL1 {
         var fred  = sb3.jsonToSpriteBlocks(fileObj, 'Fred'); 
         var helen = sb3.jsonToSpriteBlocks(fileObj, 'Helen');
         this.checkFred(fred);
-        this.checkHelen(helen);       
+        this.checkHelen(helen);  
     }
 
     initMetrics() { //initialize all metrics to false
@@ -266,7 +266,7 @@ class GradeScratchBasicsL1 {
                 bool: false, str: 'Fred takes 100 steps each time he talks instead of 50.'
             },
             fredTalks: {
-                bool: false, str: 'Fred says "Have fun!" to the user.'
+                bool: false, str: 'Fred uses a new block to say "Have fun!" to the user.'
             },
             timeChanged: {
                 bool: false, str: 'Changed time between Helen\'s costume changes.'
@@ -278,7 +278,9 @@ class GradeScratchBasicsL1 {
     checkFred(fred) {
         if (!fred) return;
         
-        var stepcount = 0; 
+        var stepcount = 0;
+        var speakcount = 0;
+        var havefun = false;
         
         for(var block of sb3.findBlockIDs(fred, 'event_whenflagclicked')){
             var script = sb3.makeScript(fred, block)
@@ -289,8 +291,14 @@ class GradeScratchBasicsL1 {
                         this.requirements.changedSteps.bool = true;
                     }
                 }
-                if (sblock['opcode'] == 'looks_sayforsecs' && sblock['inputs']['MESSAGE'][1][1]  == 'Have fun!'){ 
-                    this.requirements.fredTalks.bool = true;
+                if (sblock['opcode'] == 'looks_sayforsecs'){ 
+                    speakcount++;
+                    if(sblock['inputs']['MESSAGE'][1][1]  == 'Have fun!'){ //check for have fun message
+                        havefun = true;
+                    }
+                    if(havefun && speakcount >= 4){ //check that new block was added
+                        this.requirements.fredTalks.bool = true;
+                    }
                 }  
             }
         }  
