@@ -282,39 +282,48 @@ class GradeScratchBasicsL1 {
         var speakcount = 0;
         var havefun = false;
         
-        for(var block of sb3.findBlockIDs(fred, 'event_whenflagclicked')){
-            var script = sb3.makeScript(fred, block)
-            for(var sblock of script){
-                if(sblock['opcode'] == 'motion_movesteps' && sblock['inputs']['STEPS'][1][1] == 100){
-                    stepcount++;
-                    if(stepcount >= 3){
-                        this.requirements.changedSteps.bool = true;
+        var blockids = sb3.findBlockIDs(fred, 'event_whenflagclicked');
+        
+        if(blockids != null){
+            for(var block of blockids){
+                var script = sb3.makeScript(fred, block)
+                for(var sblock of script){
+                    if(sblock['opcode'] == 'motion_movesteps' && sblock['inputs']['STEPS'][1][1] == 100){
+                        stepcount++;
+                        if(stepcount >= 3){
+                            this.requirements.changedSteps.bool = true;
+                        }
                     }
+                    if (sblock['opcode'] == 'looks_sayforsecs'){ 
+                        speakcount++;
+                        if(sblock['inputs']['MESSAGE'][1][1]  == 'Have fun!'){ //check for have fun message
+                            havefun = true;
+                        }
+                        if(havefun && speakcount >= 4){ //check that new block was added
+                            this.requirements.fredTalks.bool = true;
+                        }
+                    }  
                 }
-                if (sblock['opcode'] == 'looks_sayforsecs'){ 
-                    speakcount++;
-                    if(sblock['inputs']['MESSAGE'][1][1]  == 'Have fun!'){ //check for have fun message
-                        havefun = true;
-                    }
-                    if(havefun && speakcount >= 4){ //check that new block was added
-                        this.requirements.fredTalks.bool = true;
-                    }
-                }  
-            }
-        }  
+            }  
+        }
     }
 
     checkHelen(helen) {
-       if (!helen) return;
-        for(var block of sb3.findBlockIDs(helen, 'event_whenkeypressed')){
-            var script = sb3.makeScript(helen, block)
-            for(var sblock of script){
-                if(sblock['opcode'] == 'control_wait' && sblock['inputs']['DURATION'][1][1] > 1){
-                    this.requirements.timeChanged.bool = true
-                    return
+        if (!helen) return;
+        
+        var blockids = sb3.findBlockIDs(helen, 'event_whenflagclicked');
+        
+        if(blockids != null){
+            for(var block of blockids){
+                var script = sb3.makeScript(helen, block)
+                for(var sblock of script){
+                    if(sblock['opcode'] == 'control_wait' && sblock['inputs']['DURATION'][1][1] > 1){
+                        this.requirements.timeChanged.bool = true
+                        return
+                    }
                 }
-            }
-        }   
+            }  
+        }
     }
 
 }
