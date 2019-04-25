@@ -13,6 +13,7 @@ var projectPathIsDirectory = fs.lstatSync(projectPath).isDirectory();
 
 if (projectPathIsDirectory) {
     var fileNames = fs.readdirSync(projectPath);
+    if (isVerbose) console.log(fileNames);
     for (var fileName of fileNames.filter(function(fileName) { return /_*\.sb3/g.test(fileName) } )) {
         fullProjectPath = projectPath + '/' + fileName;
         gradeProjectWithGrader(fullProjectPath, graderPath);
@@ -28,16 +29,13 @@ else /* if (!projectPathIsDirectory) */ {
 
 function gradeProjectWithGrader(projectPath, graderPath) {
 
-    console.log('');
-
     var GraderClass = require(graderPath);
     var grader = new GraderClass();
 
     var archive = new AdmZip(projectPath);
     var projectJSON = JSON.parse(archive.readAsText('project.json'));
+    if (isVerbose) console.log(projectJSON);
     try {
-        console.log(projectPath);
-        if (isVerbose) console.log(projectJSON);
         grader.grade(projectJSON, '');
         console.log('Requirements:');
         for (var item of grader.requirements) console.log(item.str + ': ' + ((item.bool) ? ('✔️') : ('❌')));
