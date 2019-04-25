@@ -311,20 +311,20 @@ class GradeScratchBasicsL1 {
     checkHelen(helen) {
         if (!helen) return;
         
-        var blockids = sb3.findBlockIDs(helen, 'event_whenflagclicked');
+        var blockids = sb3.findBlockIDs(helen, 'event_whenkeypressed');
         
-        if(blockids != null){
-            for(var block of blockids){
-                var script = sb3.makeScript(helen, block)
-                for(var sblock of script){
-                    if(sblock['opcode'] == 'control_wait' && sblock['inputs']['DURATION'][1][1] > 1){
-                        this.requirements.timeChanged.bool = true
-                        return
-                    }
-                }
-            }  
-        }
-    }
+        for(var block of blockids){
+            var script = sb3.makeScript(helen, block)
 
+            for(var sblock of script){
+                if(sblock['opcode'] == 'control_wait' && sblock['inputs']['DURATION'][1][1] > 1){
+                    this.requirements.timeChanged.bool = true
+                    return
+                }
+            }
+        }  
+    }
 }
+
+
 module.exports = GradeScratchBasicsL1;
