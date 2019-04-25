@@ -75,7 +75,7 @@ var sb3 = {
     
     //returns list of block ids given a set of blocks
     findBlockIDs: function(blocks, opcode){
-        if(this.no(blocks) || blocks == {}) return null;
+        if(this.no(blocks) || blocks == {}) return [];
         
         var blockids = [];
         
