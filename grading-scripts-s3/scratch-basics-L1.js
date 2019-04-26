@@ -75,7 +75,7 @@ var sb3 = {
     
     //returns list of block ids given a set of blocks
     findBlockIDs: function(blocks, opcode){
-        if(this.no(blocks) || blocks == {}) return null;
+        if(this.no(blocks) || blocks == {}) return [];
         
         var blockids = [];
         
@@ -296,7 +296,7 @@ class GradeScratchBasicsL1 {
                     }
                     if (sblock['opcode'] == 'looks_sayforsecs'){ 
                         speakcount++;
-                        if(sblock['inputs']['MESSAGE'][1][1]  == 'Have fun!'){ //check for have fun message
+                        if(sblock['inputs']['MESSAGE'][1][1]  == 'Have fun!' || sblock['inputs']['MESSAGE'][1][1]  == 'have fun!' || sblock['inputs']['MESSAGE'][1][1]  == 'have fun' || sblock['inputs']['MESSAGE'][1][1]  == 'Have fun'){ //check for have fun message
                             havefun = true;
                         }
                         if(havefun && speakcount >= 4){ //check that new block was added
@@ -311,20 +311,20 @@ class GradeScratchBasicsL1 {
     checkHelen(helen) {
         if (!helen) return;
         
-        var blockids = sb3.findBlockIDs(helen, 'event_whenflagclicked');
+        var blockids = sb3.findBlockIDs(helen, 'event_whenkeypressed');
         
-        if(blockids != null){
-            for(var block of blockids){
-                var script = sb3.makeScript(helen, block)
-                for(var sblock of script){
-                    if(sblock['opcode'] == 'control_wait' && sblock['inputs']['DURATION'][1][1] > 1){
-                        this.requirements.timeChanged.bool = true
-                        return
-                    }
-                }
-            }  
-        }
-    }
+        for(var block of blockids){
+            var script = sb3.makeScript(helen, block)
 
+            for(var sblock of script){
+                if(sblock['opcode'] == 'control_wait' && sblock['inputs']['DURATION'][1][1] > 1){
+                    this.requirements.timeChanged.bool = true
+                    return
+                }
+            }
+        }  
+    }
 }
+
+
 module.exports = GradeScratchBasicsL1;
