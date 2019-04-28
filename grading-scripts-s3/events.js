@@ -158,6 +158,16 @@ var sb3 = {
             curBlockID = nextID;
         }     
         return script;
+    },
+    
+    between: function(x, a, b) {
+        if (x == undefined) {
+            return false;
+        }
+        if (x >= a && x <= b) {
+            return true;
+        }
+        return false;
     }
 };
 
@@ -165,6 +175,7 @@ class GradeEvents {
 
     constructor() {
         this.requirements = {};
+        this.extenstions = {};
     }
 
     initReqs() {
@@ -173,43 +184,79 @@ class GradeEvents {
             {bool:false, str:'Project has at least three sprites.'};
         /// Sprite 1 aka Left
         this.requirements.leftWhenClicked   =    /// sprite handles click
-            {bool:false, str:'Sprite 1 handles click.'};
+            {bool:false, str:'Left Sprite handles click.'};
         this.requirements.leftGetsBigger    =    /// sprite grows...
-            {bool:false, str:'Sprite 1 gets bigger.'};
+            {bool:false, str:'Left Sprite gets bigger.'};
         this.requirements.leftTalksTwice    =    /// then >= 2 say blocks...
-            {bool:false, str:'Then Sprite 1 has at least two say blocks.'};
+            {bool:false, str:'Then Left Sprite has at least two say blocks.'};
         this.requirements.leftResetsSize    =    /// then resets size
-            {bool:false, str:'The Sprite 1 resets size.'};
+            {bool:false, str:'The Left Sprite resets size.'};
         /// Sprite 2 aka middle
         this.requirements.middleWhenClicked   =    /// ditto
-            {bool:false, str:'Sprite 2 handles click.'};
+            {bool:false, str:'Middle Sprite handles click.'};
         this.requirements.middleGetsBigger    =
-            {bool:false, str:'Sprite 2 gets bigger.'};
+            {bool:false, str:'Middle Sprite gets bigger.'};
         this.requirements.middleTalksTwice    =
-            {bool:false, str:'Then Sprite 2 has at least two say blocks.'};
+            {bool:false, str:'Then Middle Sprite has at least two say blocks.'};
         this.requirements.middleResetsSize    =
-            {bool:false, str:'The Sprite 2 resets size.'};
+            {bool:false, str:'The Middle Sprite resets size.'};
         /// Sprite 3 aka right
         this.requirements.rightWhenClicked   =
-            {bool:false, str:'Sprite 3 handles click.'};
+            {bool:false, str:'Right Sprite handles click.'};
         this.requirements.rightGetsBigger    =
-            {bool:false, str:'Sprite 3 gets bigger.'};
+            {bool:false, str:'Right Sprite gets bigger.'};
         this.requirements.rightTalksTwice    =
-        {bool:false, str:'Then Sprite 3 has at least two say blocks.'};
+        {bool:false, str:'Then Right Sprite has at least two say blocks.'};
         this.requirements.rightResetsSize    = 
-            {bool:false, str:'The Sprite 3 resets size.'};
+            {bool:false, str:'The Right Sprite resets size.'};
 
     }
-
+    
+    initExts() {
+        
+        this.extenstions.LeftNameDiff = {bool: false, str:'Left sprite has new name.'};
+        this.extenstions.MiddleNameDiff = {bool: false, str:'Middle sprite has new name.'};
+        this.extenstions.RightNameDiff = {bool: false, str:'Right sprite has new name.'};
+    }
+    
     grade(fileObj, user) {
 
         this.initReqs();
+      
+        
+        var left = null;
+        var middle = null;
+        var right = null;
+    
         
         //check number of sprites
         if(sb3.countSprites(fileObj) > 2){
             this.requirements.containsThreeSprites.bool = true; 
         }
+    
+        //left in for debugging (and the log statements in the next loop)
+       for(var i in fileObj['targets']){
+            var sprite = fileObj['targets'][i];
+           console.log(sprite['name'] + "  " + sprite['x'])
+       } 
         
+        for(var i in fileObj['targets']){
+            var sprite = fileObj['targets'][i];
+            if (sb3.between(sprite['x'],60,80)){
+                right = sprite;
+                //console.log("Found right " + right['name'] + " x: " + sprite['x'])
+            }
+            else if (sb3.between(sprite['x'],-80,-60)){
+                left = sprite;
+                //console.log("Found left " + left['name'] + " x: " + sprite['x'])
+            }
+            else if (sb3.between(sprite['x'],-5,25)){
+                middle = sprite;
+                //console.log("Found middle " + middle['name'] + " x: " + sprite['x'])
+            }
+        }
+        
+        /* find sprite by name
         for(var i in fileObj['targets']){ //find sprite
             var sprite = fileObj['targets'][i]
             if(sprite['name'] == 'Right'){
@@ -222,6 +269,7 @@ class GradeEvents {
                 var left = sprite;
             }
         }
+        */
         
         //check Left sprite
         var leftid = sb3.findBlockID(left['blocks'], 'event_whenthisspriteclicked');
