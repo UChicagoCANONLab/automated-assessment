@@ -235,10 +235,10 @@ class GradeEvents {
         }
     
         //left in for debugging (and the log statements in the next loop)
-       for(var i in fileObj['targets']){
+       /*for(var i in fileObj['targets']){
             var sprite = fileObj['targets'][i];
            console.log(sprite['name'] + "  " + sprite['x'])
-       } 
+       } */
         
         for(var i in fileObj['targets']){
             var sprite = fileObj['targets'][i];
