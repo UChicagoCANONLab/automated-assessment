@@ -114,6 +114,17 @@ var sb3 = {
         return total;
     }, //done
     
+    countScripts: function(blocks,type){ //counts valid scripts of a certain type
+        var count = 0;
+        for (i in blocks){
+            if(blocks[i]['opcode'].includes(type) && !this.no(blocks[i]['next'])){
+                    count = count + 1;
+            }
+        }
+        return count;
+        
+    },
+    
     //given list of blocks, return a script
     makeScript: function(blocks, blockID){
         if (this.no(blocks) || this.no(blockID)) return [];
@@ -175,7 +186,7 @@ class GradeEvents {
 
     constructor() {
         this.requirements = {};
-        this.extenstions = {};
+        this.extensions = {};
     }
 
     initReqs() {
@@ -214,19 +225,27 @@ class GradeEvents {
     
     initExts() {
         
-        this.extenstions.LeftNameDiff = {bool: false, str:'Left sprite has new name.'};
-        this.extenstions.MiddleNameDiff = {bool: false, str:'Middle sprite has new name.'};
-        this.extenstions.RightNameDiff = {bool: false, str:'Right sprite has new name.'};
+        this.extensions.LeftNameDiff = {bool: false, str:'Left sprite has new name.'};
+        this.extensions.MiddleNameDiff = {bool: false, str:'Middle sprite has new name.'};
+        this.extensions.RightNameDiff = {bool: false, str:'Right sprite has new name.'};
+        
+        this.extensions.TurnAndWait = {bool: false, str:'Left Sprite spins using turn and wait blocks.'}
+        this.extensions.AddEvent = {bool: false, str: 'A Sprite reacts to another event.'}
     }
     
     grade(fileObj, user) {
 
         this.initReqs();
+        
+        this.initExts();
       
         
         var left = null;
         var middle = null;
         var right = null;
+        
+        var turn = false;
+        var wait = false;
     
         
         //check number of sprites
@@ -240,6 +259,7 @@ class GradeEvents {
            console.log(sprite['name'] + "  " + sprite['x'])
        } */
         
+        //find sprite by position
         for(var i in fileObj['targets']){
             var sprite = fileObj['targets'][i];
             if (sb3.between(sprite['x'],60,80)){
@@ -303,8 +323,36 @@ class GradeEvents {
                     this.requirements.leftResetsSize.bool = true;
                 
                 }
+                //check for turn block
+                if(leftScript[i]['opcode'].includes('motion_turn')){
+                    turn = true;
+                }
+                //check for wait block
+                if(leftScript[i]['opcode'] == 'control_wait'){
+                    wait = true;
+                }   
             }
+            
+            //check extensions –––––––––
+            
+            //check for turn and wait blocks
+            if (turn && wait) {
+                this.extensions.TurnAndWait.bool = true;
+            }
+            
+            
+            //check name different
+            if (left['name'] != "Left") {
+                this.extensions.LeftNameDiff.bool = true;
+            }
+         
+            //check if add event
+            if (sb3.countScripts(left['blocks'],'event') > 2) {
+                this.extensions.AddEvent.bool = true;
+            }
+            
         }
+        
         
         //check Middle sprite
         var middleid = sb3.findBlockID(middle['blocks'], 'event_whenthisspriteclicked');
@@ -339,7 +387,19 @@ class GradeEvents {
                 
                 }
             }
+            //check extensions -------
+            
+            //check name different
+            if (middle['name'] != "Middle") {
+                this.extensions.MiddleNameDiff.bool = true;
+            }
+            
+            //check if add event
+            if (sb3.countScripts(middle['blocks'],'event') > 2) {
+                this.extensions.AddEvent.bool = true;
+            }
         }
+        
         
         //check Right sprite
         var rightid = sb3.findBlockID(right['blocks'], 'event_whenthisspriteclicked');
@@ -374,9 +434,20 @@ class GradeEvents {
                 
                 }
             }
-        }
+            //check extensions –––––
+            
         
-       
+            //check name different
+            if (right['name'] != "Right") {
+                this.extensions.RightNameDiff.bool = true;
+            }
+            
+            //check if add event    
+            if (sb3.countScripts(right['blocks'],'event') > 2) {
+                this.extensions.AddEvent.bool = true;
+            }
+        }
+  
     }
 }
 
