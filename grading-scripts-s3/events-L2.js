@@ -98,6 +98,30 @@ var sb3 = {
         return miniscript;
     }, 
     
+    typeBlocks: function(script, type) { //retrieve blocks of certain type from a script list of blocks
+        if (this.no(script)) return [];
+        
+        var miniscript = [];
+
+        for(block in script){
+            if(script[block]['opcode'].includes(type)){
+                miniscript.push(script[block]);
+            }
+        }
+        return miniscript;
+    },
+    
+    startBlock: function(blocks){
+        if(this.no(blocks) || blocks == {}) return null;
+        
+        for(block in blocks){ 
+            if(blocks[block]['opcode'].includes("event_")){
+                return block;
+            }
+        }
+        return null;
+    },
+    
     opcode: function(block) { //retrives opcode from a block object 
         if (this.no(block)) return "";
         return block['opcode'];
@@ -125,13 +149,14 @@ var sb3 = {
     },
     
     //given list of blocks, return a script
-    makeScript: function(blocks, blockID){
+    makeScript: function(blocks, blockID,getsub){
         if (this.no(blocks) || this.no(blockID)) return [];
         event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
         
         var curBlockID = blockID;
         var script = {};
     
+        //find blocks before
         while(curBlockID != null){
             var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
             script[curBlockID]=curBlockInfo; //Add the block itself to the script dictionary DEBUG PUSH SITUATION
@@ -144,21 +169,44 @@ var sb3 = {
             if ((parentID == null) && !(event_opcodes.includes(opcode))){
                 return [];
             }
+            
+            if (getsub) {
+                //if there is script nested inside, add them
+                if (curBlockInfo['inputs']['SUBSTACK'] != undefined){
+                    var firstChildID = curBlockInfo['inputs']['SUBSTACK'][1]
+                    var sub = sb3.addSubScript(blocks,firstChildID,script)
+                    if (failedSub){
+                        return{};
+                    }
+
+                }
+            }
 
             //Iterate: set parent to curBlock
             curBlockID = parentID
         }
+        
         //Find all blocks that come after
         curBlockID = blockID //Initialize with blockID of interest
         while(curBlockID != null){
             curBlockInfo = blocks[curBlockID]; //Pull out info about the block
             script[curBlockID]=curBlockInfo; //Add the block itself to the script dictionary                
-            
-
             //Get next info out
             nextID = curBlockInfo['next']; //Block that comes after has key 'next'
             //nextInfo = blocks[nextID]
             opcode = curBlockInfo['opcode'];
+            
+            if (getsub) {
+                //if there is script nested inside, add them
+                if (curBlockInfo['inputs']['SUBSTACK'] != undefined){
+                    var firstChildID = curBlockInfo['inputs']['SUBSTACK'][1]
+                    var failedSub = sb3.addSubScript(blocks,firstChildID,script)
+                    if (failedSub){ //on failure to get subScript
+                        return {};
+                    }
+
+                }
+            }
 		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
             if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -166,9 +214,51 @@ var sb3 = {
             }
             //Iterate: Set next to curBlock
             curBlockID = nextID;
-        }     
+        } 
+        
         return script;
     },
+    
+    //adding nested script to the main script
+    addSubScript: function(blocks_sub,blockID_sub, script) {
+        if (this.no(blocks_sub) || this.no(blockID_sub)) {
+            return true;
+        }
+        
+        
+        var curBlockID_sub = blockID_sub;
+    
+        //Find all blocks that come after
+        curBlockID_sub = blockID_sub //Initialize with blockID of interest
+        while(curBlockID_sub != null){
+            var curBlockInfo_sub = blocks_sub[curBlockID_sub]; //Pull out info about the block
+            script[curBlockID_sub]=curBlockInfo_sub; //Add the block itself to the script dictionary                
+            //Get next info out
+            nextID_sub = curBlockInfo_sub['next']; //Block that comes after has key 'next'
+            //nextInfo = blocks[nextID]
+            opcode_sub = curBlockInfo_sub['opcode'];
+            
+            //if there is script nested inside, add them
+                if (curBlockInfo_sub['inputs']['SUBSTACK'] != undefined){
+                    var firstChildID_sub = curBlockInfo_sub['inputs']['SUBSTACK'][1]
+                    var failedSub_sub = sb3.addSubScript(blocks_sub,firstChildID_sub,script)
+                    if (failedSub_sub){ //on failure to get subScript
+                        return {};
+                    }
+
+                }
+            
+            
+		
+            //If the block is not a script (i.e. it's an event but doesn't have anything after), return failure
+            if((nextID_sub == null) && (event_opcodes.includes(opcode_sub))){
+                return true;
+            }
+            //Iterate: Set next to curBlock
+            curBlockID_sub = nextID_sub;
+        }   
+        return false;
+    }, 
     
     between: function(x, a, b) {
         if (x == undefined) {
@@ -182,8 +272,22 @@ var sb3 = {
 };
 
 class Sprite {
-    constructor(script) {
-        this.script = script;
+    
+    constructor(name) {
+        this.name = name; 
+        this.scripts = [];
+    }
+    
+    getScripts() {
+        return this.scripts;
+    }
+    
+    getScript(i) {
+        return this.scripts[i];
+    }
+    
+    addScript(script) {
+        this.scripts.push(script);
     }
     
     
@@ -194,6 +298,12 @@ class GradeEvents {
     constructor() {
         this.requirements = {};
         this.extensions = {};
+        
+        this.event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
+        
+        this.validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy'];
+        this.validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
+        this.validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
     }
     
     initReqs() {
@@ -230,14 +340,18 @@ class GradeEvents {
         for(var i=0; i <projInfo.length; i++){
             if(projInfo[i]['isStage'] == false){
                 numSprites ++;
-                var ID = sb3.findBlockID(projInfo[i]['blocks'], 'event_whenthisspriteclicked');
-                if (ID != null) {
-                    var newScript = sb3.makeScript(projInfo[i]['blocks'], ID);
-                    if (newScript != null) {
-                        Sprites[numSprites-1] = new Sprite(newScript);
+                Sprites[numSprites-1] = new Sprite(projInfo[i]['name']);
+                for (var e = 0; e < this.event_opcodes.length; e++) {
+                    var event = this.event_opcodes[e]
+                    console.log(event)
+                    var ID = sb3.findBlockID(projInfo[i]['blocks'],event);
+                    if (ID != null) {
+                        var newScript = sb3.makeScript(projInfo[i]['blocks'], ID,true);
+                        if (newScript != null) {
+                            Sprites[numSprites-1].addScript(newScript);
+                        }
                     }
                 }
-                
             } else {
                 if (projInfo[i]['costumes'].length > 1) {
                     this.requirements.HaveBackdrop.bool = true;
@@ -247,6 +361,13 @@ class GradeEvents {
         
         if (numSprites > 2) {
             this.requirements.HaveThreeSprites.bool = true;
+        }
+        
+        console.log(Sprites)
+        
+        for(var s=0; s <Sprites.length; s++) {
+            console.log("SPRITE")
+            console.log(Sprites[s].getScripts())
         }
         
         
