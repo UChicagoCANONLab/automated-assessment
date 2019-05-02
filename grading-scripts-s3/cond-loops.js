@@ -272,7 +272,7 @@ class GradeCondLoops {
         this.requirements.newCostume    = 
             {bool:false, str:'Chose a different car costume.'};
         this.requirements.carStop       =
-            {bool:false, str:'Car stops at Libby, yellow line, or purple line.'};
+            {bool:false, str:'Car stops at Libby, yellow line, white line, or purple line.'};
         this.requirements.saySomething  = 
             {bool:false, str:'Car says something.'};
         this.requirements.changeSpeed   = 
@@ -366,7 +366,7 @@ class GradeCondLoops {
             }
             else if(condop == 'sensing_touchingcolor'){
                 var color = car[condition]['inputs']['COLOR'][1][1] //extract key of object
-                if(color == '#ffd208' || color == '#a52cff'){ //if shade of yellow or purple of lines
+                if(color == '#ffd208' || color == '#a52cff' || color == '#ffffff'){ //purple, yellow, white line color
                     this.requirements.carStop.bool = true;
                 }          
             }
