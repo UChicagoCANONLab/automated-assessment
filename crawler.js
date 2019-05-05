@@ -86,7 +86,7 @@ function transferFailed(page) {
 /* Collects links to project pages from studio html and initiates JSON recovery. */
 function collectLinks(source) {
   /* Constants. */
-  var pre = "http://chord.cs.uchicago.edu/";
+  var pre = "https://chord.cs.uchicago.edu/";
 
   /* Fetches project links and initiates JSON recovery for each. */
   var doc = document.createElement( 'html' );

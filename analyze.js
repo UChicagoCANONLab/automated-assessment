@@ -3,8 +3,14 @@
 /* Top-level analysis function, checks for appropraite number of sprites
    and initializes script analysis. */
 function analyze(fileObj, user,id) {
-    gradeObj.grade(fileObj,id);
+    try {
+        gradeObj.grade(fileObj,id);     
+    }
+    catch (err) {
+        console.log('Error grading project ' + id);
+    }
     report(id, gradeObj.requirements, gradeObj.extensions, user);
+    
 }
 
 /* Returns pass/fail symbol. */
