@@ -209,57 +209,66 @@ class GradeDecompBySeq {
       this.initReqs();
 
         //Check that project has at least one sprite/variable to check
+        var jaime = null;
+        var ball = null;
+        var goal = null;
         for(var i in fileObj['targets']){ //find sprite
             var sprite = fileObj['targets'][i]
-            if(sprite['name'] == 'Jaime '){
-                var jaime = sprite;
+            if(sprite['name'] === 'Jaime '){
+                jaime = sprite;
             }
-            if(sprite['name'] == 'Soccer Ball'){
-                var ball = sprite;
+            if(sprite['name'] === 'Soccer Ball'){
+                ball = sprite;
             }
-            if(sprite['name'] == 'Goal'){
-                var goal = sprite;
+            if(sprite['name'] === 'Goal'){
+                goal = sprite;
             }
         }
         
         //check jaime
-        var jaimeid = sb3.findBlockID(jaime['blocks'], 'event_whenflagclicked');
-        if(jaimeid != null){
-            var jaimeScript = sb3.makeScript(jaime['blocks'], jaimeid);
-            for(var i in jaimeScript){
-                if(jaimeScript[i]['opcode'] == 'control_repeat_until'){
-                    this.requirements.JaimeToBall.bool = true;
+        if (jaime) {
+            var jaimeid = sb3.findBlockID(jaime['blocks'], 'event_whenflagclicked');
+            if(jaimeid != null){
+                var jaimeScript = sb3.makeScript(jaime['blocks'], jaimeid);
+                for(var i in jaimeScript){
+                    if(jaimeScript[i]['opcode'] == 'control_repeat_until'){
+                        this.requirements.JaimeToBall.bool = true;
+                    }
                 }
             }
         }
+
             
         //check ball
-        var ballid = sb3.findBlockID(ball['blocks'], 'event_whenflagclicked');
-        if(ballid != null){
-            var ballScript = sb3.makeScript(ball['blocks'], ballid);
-            for(var i in ballScript){
-                if(ballScript[i]['opcode'] == 'control_wait_until'){
-                    var condition = ballScript[i]['inputs']['CONDITION'][1]
-                    if(ball['blocks'][condition]['opcode'] == 'sensing_touchingobject'){
-                        var object = ball['blocks'][condition]['inputs']['TOUCHINGOBJECTMENU'][1]
-                        var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0]
-                        if(objname == 'Jaime '){
-                            this.requirements.ballStayStill.bool = true;
+        if (ball) {
+            var ballid = sb3.findBlockID(ball['blocks'], 'event_whenflagclicked');
+            if(ballid != null){
+                var ballScript = sb3.makeScript(ball['blocks'], ballid);
+                for(var i in ballScript){
+                    if(ballScript[i]['opcode'] == 'control_wait_until'){
+                        var condition = ballScript[i]['inputs']['CONDITION'][1]
+                        if(ball['blocks'][condition]['opcode'] == 'sensing_touchingobject'){
+                            var object = ball['blocks'][condition]['inputs']['TOUCHINGOBJECTMENU'][1]
+                            var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0]
+                            if(objname == 'Jaime '){
+                                this.requirements.ballStayStill.bool = true;
+                            }
                         }
                     }
-                }
-                if(ballScript[i]['opcode'] == 'control_repeat_until' ){
-                    var condition = ballScript[i]['inputs']['CONDITION'][1]
-                    if(ball['blocks'][condition]['opcode'] == 'sensing_touchingobject'){
-                        var object = ball['blocks'][condition]['inputs']['TOUCHINGOBJECTMENU'][1]
-                        var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0]
-                        if(objname == 'Goal'){
-                            this.requirements.ballToGoal.bool = true;
+                    if(ballScript[i]['opcode'] == 'control_repeat_until' ){
+                        var condition = ballScript[i]['inputs']['CONDITION'][1]
+                        if(ball['blocks'][condition]['opcode'] == 'sensing_touchingobject'){
+                            var object = ball['blocks'][condition]['inputs']['TOUCHINGOBJECTMENU'][1]
+                            var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0]
+                            if(objname == 'Goal'){
+                                this.requirements.ballToGoal.bool = true;
+                            }
                         }
                     }
                 }
             }
         }
+
         console.log(this.requirements)
     }
     
