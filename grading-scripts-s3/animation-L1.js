@@ -98,6 +98,19 @@ var sb3 = {
         return miniscript;
     }, 
     
+    typeBlocks: function(script, type) { //retrieve blocks of a   certain type from a script list of blocks
+        if (this.no(script)) return {};
+        
+        var miniscript = {};
+
+        for(block in script){
+            if(script[block]['opcode'].includes(type)){
+                miniscript[block] = block
+            }
+        }
+        return miniscript;
+    }, 
+    
     opcode: function(block) { //retrives opcode from a block object 
         if (this.no(block)) return "";
         return block['opcode'];
@@ -133,6 +146,7 @@ var sb3 = {
     
         //find blocks before
         while(curBlockID != null){
+            
             var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
             script[curBlockID]=curBlockInfo; //Add the block itself to the script dictionary DEBUG PUSH SITUATION
             //Get parent info out
@@ -233,7 +247,45 @@ var sb3 = {
             curBlockID_sub = nextID_sub;
         }   
         return false;
-    } 
+    },
+    
+    checkAnimation: function(script) {
+        var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy'];
+        var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
+        var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
+        
+        var loop = false;
+        var wait = false;
+        var costume = false;
+        var move = false;
+        
+        for(var i in script) {
+            
+            //check loop
+            if (validLoops.includes(script[i]['opcode'])) {
+                loop = true;
+            }
+            
+            //check wait
+            if ((script[i]['opcode']) == 'control_wait') {
+                wait = true;
+            }
+            
+            //check costume
+            if (validCostumes.includes(script[i]['opcode'])) {
+                costume = true;
+            }
+            
+            //check move
+            if (validMoves.includes(script[i]['opcode'])) {
+                move = true;
+            }
+        }
+        
+        
+        return (loop && wait && (costume || move));
+        
+    }
 };
 
 class GradeAnimation {
@@ -276,6 +328,9 @@ class GradeAnimation {
         this.extensions.KangarooHop ={bool:false, str:'Made the Kangaroo hop.'}
         this.extensions.KangarooWiggle = {bool:false, str:'Made the Kangaroo take a wiggly path.'}
         
+        this.extensions.AddedFourthSprite = {bool: false, str: 'Added a sprite'};
+        this.extensions.AnimatedFourthSprite = {bool: false, str: 'Animated the addded sprite'};
+        
         
     }
     
@@ -294,6 +349,7 @@ class GradeAnimation {
         var bee = null;
         var snake = null;
         var kangaroo = null;
+        var fourth = null;
         
         // general metrics
         var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy'];
@@ -313,26 +369,39 @@ class GradeAnimation {
         var kangarooWait = 0.001;
         var kangarooSteps = 0;
         
+        var fourthRepeats = 0;
+        var fourthWait = 0.001;
+        var fourthSteps = 0;
+        
+        //winner
         var winner = null;
         var winnerSpaceScript = null;
         
+        //space scripts
         var beeSpaceScript = null;
         var snakeSpaceScript = null;
         var kangarooSpaceScript = null;
+        var fourthSpaceScript = null;
         
         
-        for(var i in fileObj['targets']){ //find bee
+        for(var i in fileObj['targets']){ //find sprites
             var obj = fileObj['targets'][i];
-            switch(fileObj['targets'][i]['name']) {
+            switch(obj['name']) {
                 case('Bee') : bee = obj;
                                 break;
                 case('Snake') : snake = obj;
                                 break;
                 case('Kangaroo') : kangaroo = obj;
                                     break;
-                default: break;
+                default: if (!obj['isStage'] && obj['name'] != 'Monkey ') {
+                    fourth = obj; 
+                    }
                     
                 }
+        }
+            
+        if (fourth != null) {
+            this.extensions.AddedFourthSprite.bool = true;
         }
         
 //GRADING BEE: ---------------------------
@@ -515,6 +584,48 @@ class GradeAnimation {
                 }
             }
         }
+        
+//GRADING FOURTH: -------------------------
+        
+    if (fourth != null){
+           var fourthkeyid = sb3.findKeyPressID(fourth['blocks'], 'space');
+
+            if(fourthkeyid != null){
+                numLoops = 0;
+                fourthSpaceScript = sb3.makeScript(fourth['blocks'], fourthkeyid,true);
+                for(var i in fourthSpaceScript){  
+                    if(validLoops.includes(fourthSpaceScript[i]['opcode'])){
+                        numLoops++;
+                    }  
+                    if (numLoops == 1){
+                            //get stats reaching finish and winner
+                        if (fourthSpaceScript[i]['opcode'] == 'control_repeat') {
+                            fourthRepeats += Number(fourthSpaceScript[i]['inputs']['TIMES'][1][1]);
+                            
+                        }
+                        if (fourthSpaceScript[i]['opcode'] == 'motion_movesteps') {
+                            fourthSteps += Number(fourthSpaceScript[i]['inputs']['STEPS'][1][1]);
+                          
+                        }
+                        if (fourthSpaceScript[i]['opcode'] == 'control_wait'){
+                            fourthWait += Number(fourthSpaceScript[i]['inputs']['DURATION'][1][1]);
+                            
+                        }
+                        
+                    }
+                }
+            }
+        
+            var events = sb3.typeBlocks(fourth['blocks'], "event_");
+            for (var b in events) {
+                var script = sb3.makeScript(fourth['blocks'],b,true);
+                if (sb3.checkAnimation(script)) {
+                    this.extensions.AnimatedFourthSprite.bool = true;
+                }
+            }
+            
+                                               
+    }
     
     
 //FINAL GRADING: ------------------------------   
@@ -527,6 +638,8 @@ class GradeAnimation {
         var kangarooSpeed = (kangarooSteps / kangarooWait)*snakeRepeats;
         
         
+        
+        /*
         //find a winner
         if (beeSpeed > snakeSpeed) {
             if (snakeSpeed > kangarooSpeed || beeSpeed > kangarooSpeed) {
@@ -544,6 +657,31 @@ class GradeAnimation {
                 winner = kangaroo;
                 winnerSpaceScript = kangarooSpaceScript;
             }   
+        }
+        */
+        
+        //find a winner
+        
+        var speeds = [beeSpeed,snakeSpeed,kangarooSpeed];
+        speeds.sort();
+        speeds.reverse();
+        
+        
+        
+        if (speeds[0] != speeds[1]) {
+            switch (speeds[0]) {
+                case beeSpeed: winner = bee;
+                                winnerSpaceScript = beeSpaceScript;
+                    break;
+                case kangarooSpeed: winner = kangaroo;
+                                winnerSpaceScript = kangarooSpaceScript;
+                    break;
+                case snakeSpeed: winner = snake;
+                                winnerSpaceScript = snakeSpaceScript;
+                    break;
+                default : winner = fourth;
+                                winnerSpaceScript = fourthSpaceScript;
+                }
         }
                 
         //check for winner victory dance
