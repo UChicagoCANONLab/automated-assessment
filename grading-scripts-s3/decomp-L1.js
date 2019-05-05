@@ -347,33 +347,30 @@ class GradeDecompBySeq{
             var ballScript = sb3.makeScript(ball['blocks'], ballids[i]);
             for(var i in ballScript){
                 if(ballScript[i]['opcode'] == 'control_wait_until'){
-                    var condition = ballScript[i]['inputs']['CONDITION'][1]
-                    if(ball['blocks'][condition]['opcode'] == 'sensing_touchingobject'){
-                        var object = ball['blocks'][condition]['inputs']['TOUCHINGOBJECTMENU'][1]
-                        var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0]
-                        if(objname == 'Jaime '){
-                            this.requirements.ballStayStill.bool = true;
-                            var curID = ballScript[i]['inputs']['SUBSTACK'][1]
-                            while(curID != null){ 
-                                if(ball['blocks'][curID]['opcode'] == 'motion_movesteps'){
-                                    this.requirements.BallAnimated.bool = true;
-                                }
-                                curID = ball['blocks'][curID]['next']
-                            }
-                        }
+                    var condid = ballScript[i]['inputs']['CONDITION'][1] //find key of condition block
+                    if(condid == null){break};
+                    var cond = ball['blocks'][condid]
+                    var nameid = cond['inputs']['TOUCHINGOBJECTMENU'][1] //find key of block with nested object of the condition
+                    if(nameid == null){break};
+                    var name = ball['blocks'][nameid]['fields']['TOUCHINGOBJECTMENU'][0]
+                    if(name == 'Jaime '){
+                        this.requirements.ballStayStill.bool = true;
                     }
                 }
                 if(ballScript[i]['opcode'] == 'control_repeat_until' ){
-                    var condition = ballScript[i]['inputs']['CONDITION'][1]
-                    if(ball['blocks'][condition]['opcode'] == 'sensing_touchingobject'){
-                        var object = ball['blocks'][condition]['inputs']['TOUCHINGOBJECTMENU'][1]
-                        var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0]
+                    var condid = ballScript[i]['inputs']['CONDITION'][1]
+                    var condition = ball['blocks'][condid]['opcode']
+                    if(condition == 'sensing_touchingobject'){
+                        var object = ball['blocks'][condid]['inputs']['TOUCHINGOBJECTMENU'][1] //find key of condition block
+                        if(object == null){break};
+                        var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0] //find key of block with nested object
                         if(objname == 'Goal'){
                             this.requirements.ballToGoal.bool = true;
+                            
                             var curID = ballScript[i]['inputs']['SUBSTACK'][1]
-                                while(curID != null){ 
+                            while(curID != null){ 
                                 if(ball['blocks'][curID]['opcode'] == 'motion_movesteps'){
-                                    this.requirements.BallAnimated.bool = true;
+                                    this.requirements.ballAnimated.bool = true;
                                 }
                                 curID = ball['blocks'][curID]['next']
                             }
@@ -385,32 +382,8 @@ class GradeDecompBySeq{
     }
     
     checkGoal(goal){
-        var flags = sb3.findBlockIDs(ball['blocks'], 'event_whenflagclicked');
-        for(i in flags){
-            var goalScript = sb3.makeScript(goal['blocks'], flags[i]);
-            for(var j in goalScript){
-                    if(goalScript[j]['opcode'] == 'control_wait_until'){
-                    var condition = goalScript[j]['inputs']['CONDITION'][1]
-                    if(goal['blocks'][condition]['opcode'] == 'sensing_touchingobject'){
-                        var object = goal['blocks'][condition]['inputs']['TOUCHINGOBJECTMENU'][1]
-                        var objname = goal['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0]
-                        if(objname == 'Jaime '){
-                            this.requirements.ballStayStill.bool = true;
-                        }
-                    }
-                }
-                if(ballScript[i]['opcode'] == 'control_repeat_until' ){
-                    var condition = ballScript[i]['inputs']['CONDITION'][1]
-                    if(ball['blocks'][condition]['opcode'] == 'sensing_touchingobject'){
-                        var object = ball['blocks'][condition]['inputs']['TOUCHINGOBJECTMENU'][1]
-                        var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0]
-                        if(objname == 'Goal'){
-                            this.requirements.ballToGoal.bool = true;
-                        }
-                    }
-                }
-            }
-        }
+        var flags = sb3.findBlockIDs(goal['blocks'], 'event_whenflagclicked');
+
     }
     
     
