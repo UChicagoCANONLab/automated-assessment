@@ -317,7 +317,7 @@ class GradeEvents {
         this.requirements.SpriteThreeTwoScripts = {bool: false, str: "Sprite 3 events have actions."};
         
     }
-    
+     
     initExts() {
         this.extensions.SpriteSpins = {bool: false, str: "A sprite spins (uses turn block)"};
         this.extensions.MoreScripts = {bool: false, str: "A sprite reacts to more events."};
@@ -334,21 +334,19 @@ class GradeEvents {
         
         var Sprites = [];
         
-        var numSprites = 0;
         var projInfo = fileObj['targets'] //extract targets from JSON data
         
         for(var i=0; i <projInfo.length; i++){
             if(projInfo[i]['isStage'] == false){
-                numSprites ++;
-                Sprites[numSprites-1] = new Sprite(projInfo[i]['name']);
+                var addMe = new Sprite(projInfo[i]['name']);
+                Sprites.push(addMe);
                 for (var e = 0; e < this.event_opcodes.length; e++) {
                     var event = this.event_opcodes[e]
-                    console.log(event)
                     var ID = sb3.findBlockID(projInfo[i]['blocks'],event);
                     if (ID != null) {
                         var newScript = sb3.makeScript(projInfo[i]['blocks'], ID,true);
                         if (newScript != null) {
-                            Sprites[numSprites-1].addScript(newScript);
+                            addMe.addScript(newScript);
                         }
                     }
                 }
@@ -359,21 +357,135 @@ class GradeEvents {
             }
         }
         
-        if (numSprites > 2) {
+        //check for enough sprites
+        if (Sprites.length > 2) {
             this.requirements.HaveThreeSprites.bool = true;
         }
         
-        console.log(Sprites)
         
-        for(var s=0; s <Sprites.length; s++) {
-            console.log("SPRITE")
-            console.log(Sprites[s].getScripts())
+        for(var s=0; s < Sprites.length; s++) { //iterate sprites
+            var sprite = Sprites[s];
+            var events = [];
+            var valids = [];
+            
+           
+            var scripts = sprite.getScripts();
+            
+            var keyPressEvents = [];
+            for (var p=0; p <scripts.length; p++){ //iterate scripts
+                
+                var hide = false;
+                var show = false;
+                var wait = false;
+                var turn = false;
+                
+            
+                for(var b in scripts[p]) {//iterate blocks
+                    
+                    var opcode = scripts[p][b]['opcode'];
+                    console.log(opcode)
+                    
+                    //check for turning
+                    if (opcode.includes("motion_turn")) {
+                        turn = true;
+                    }
+                    
+                    //check for hide
+                    if (opcode == 'looks_hide') {
+                        hide = true;
+                    }
+                    
+                    //check for show
+                    if (opcode == 'looks_show') {
+                        show = true;
+                    }
+                    
+                    //check for wait
+                    if (opcode == 'control_wait') {
+                        wait = true;
+                    }
+                    
+                    //count unique events
+                    if (opcode.includes("event_")) {
+                        
+                        //count unique key press events
+                        if (opcode == "event_whenkeypressed") {
+                           if (!events.includes(opcode+scripts[p][b]['fields']['KEY_OPTION'][0])) {
+                               events.push(opcode+scripts[p][b]['fields']['KEY_OPTION'][0]);
+                               if (Object.keys(scripts[p]).length > 1) {
+                                   valids.push(scripts[p][b]);
+                               }
+                           }
+                        } else if (opcode == 'event_whenthisspriteclicked' || opcode == 'event_whenflagclicked') { //count other events
+                            if (!events.includes(opcode)) {
+                                events.push(opcode);
+                                if (Object.keys(scripts[p]).length > 1) {
+                                   valids.push(scripts[p][b]);
+                                }
+                            } 
+                
+                        }
+                        
+                    }
+                    
+                    
+                    
+                } //end of blocks loop
+                
+                 //check spins
+                if (turn && wait) {
+                    this.extensions.SpriteSpins.bool = true;
+                }
+
+                //check blinks
+                if (hide && show && wait) {
+                    this.extensions.SpriteBlinks.bool = true;
+                }
+            
+            
+        
+            }  //end of scripts loop
+            
+            console.log(events)
+            console.log(valids)
+            //check for enough unique events
+            if (events.length > 1){
+                switch(s) {
+                    case 0: this.requirements.SpriteOneTwoEvents.bool = true; 
+                            break;
+                    case 1: this.requirements.SpriteTwoTwoEvents.bool = true; 
+                            break;
+                    case 2: this.requirements.SpriteThreeTwoEvents.bool = true; 
+                            break;
+                    default: break;
+                }  
+            }
+            
+            
+            //check for enough valid scripts
+            if(valids.length > 1) {
+                switch(s) {
+                    case 0: this.requirements.SpriteOneTwoScripts.bool = true; 
+                            break;
+                    case 1: this.requirements.SpriteTwoTwoScripts.bool = true; 
+                            break;
+                    case 2: this.requirements.SpriteThreeTwoScripts.bool = true; 
+                            break;
+                    default: break;
+                }
+            }
+            
+            if (valids.length > 2) {
+                this.extensions.MoreScripts.bool = true;
+            }
+            
+            
+            
+    
         }
-        
-        
-        
     }
 
 }
+    
 module.exports = GradeEvents;
     
