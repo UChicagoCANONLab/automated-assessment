@@ -249,6 +249,16 @@ var sb3 = {
         return false;
     },
     
+    between: function(x, a, b) {
+        if (x == undefined) {
+            return false;
+        }
+        if (x >= a && x <= b) {
+            return true;
+        }
+        return false;
+    },
+    
     checkAnimation: function(script) {
         var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy'];
         var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
@@ -296,10 +306,20 @@ var sb3 = {
         var wait = false;
         var costume = false;
         var move = false;
+
         
         var exts = false;
         
-        //NEED TO ADD EXTS and MAKE ELIF
+        //NEED TO ADD EXTS and MAKE ELIF –––––– !!!!!
+        /*
+        thoughts:
+            loop: in valid loops
+            costume: in valid costumes
+            move: req: use motion
+                    ext: track motion opcodes
+            wait: check opcode
+        
+        */
         
         for(var i in script) {
             
@@ -324,7 +344,7 @@ var sb3 = {
             }
         }
         
-        var reqs = [loop,moveRight,moveLeft,costume,wait];
+        var reqs = [loop,move,costume,wait];
         
         var isAnimated = (loop && wait && (costume || move))
         
@@ -345,22 +365,34 @@ class Sprite {
         
         this.animated = false;
         
+        this.front = false;
+        this.center = false
+        
         //requirements:
         //members of array in this order:
-        //costume change, move left, move right, repeat loop, wait blocks
-        this.reqs = [false,false,false,false,false]
+        //costume change, move, repeat loop, wait blocks
+        this.reqs = [false,false,false,false]
         
         //extensions:
         //checks for any extension
         this.exts = false;
         
-        
-        //NOTE: need to add ability for extensions
     }
     
-    getScore() {
+    getScore() { //calculate the score (of requirements)
         var score = 0;
-        for (var i = 0; i< 4; i++) {
+        for (var i = 0; i<this.reqs.length; i++) {
+            if(this.reqs[i]) {
+                score++;
+            }
+        }
+        
+        return score;
+    }
+    
+    getScore(reqs) { //calculate the score (of an array)
+        var score = 0;
+        for (var i = 0; i<reqs.length; i++) {
             if(reqs[i]) {
                 score++;
             }
@@ -369,18 +401,33 @@ class Sprite {
         return score;
     }
     
-    getScripts() {
+    getScripts() { //get all the scripts
         return this.scripts;
     }
     
-    getScript(i) {
+    getScript(i) { //get a particular script
         return this.scripts[i];
     }
     
-    addScript(script) {
+    addScript(script) { //add a script to the sprite
         this.scripts.push(script);
     }
     
+    getReport() { //gets a report on what this sprite has been programmed to do
+        var report = [this.getScore(),front,center,animated,reqs,exts];
+    
+        return report;
+    }
+    
+    //make grader for each sprite
+    /*
+        must have:
+            for each script
+                check for front and center (only on green flag)
+                check animated/reqs/exts
+                if score > current score, make new req
+                
+    */
     
     
 }
@@ -399,10 +446,22 @@ class GradeAnimation{
     
     initReqs() {
         this.requirements.HaveBackdrop = {bool: false, str: "Background has an image."};
+        this.requirements.EnoughSprites = {bool: false, str: "There are at least 3 sprites."};
+        this.requirements.FrontAndCenter = {bool: false, str: "Chosen sprite is front and center."};
+        this.requirements.Loop = {bool: false, str: "Chosen sprite has a loop."};
+        this.requirements.Move = {bool: false, str: "Chosen sprite moves."};
+        this.requirements.costumeChange = {bool: false, str: "Chosen sprite changes costume."};
+        this.requirements.Wait = {bool: false, str: "Chosen sprite has a wait block."};
+        this.requirements.Dance = {bool: false, str: "Chosen sprite does a complex dance."};
+        this.requirements.SecondAnimated = {bool: false, str: "Another sprite does a complex dance."};
+        this.requirements.ThirdAnimated = {bool: false, str: "A third sprite does a complex dance."};
         
     }
     
     initExts() {
+        this.extensions.MultipleFrontAndCenter = {bool: false, str: "At least another character is front and center"};
+        this.extensions.MultipleDanceOnClick = {bool: false, str: "At least another character dances on the click event."};
+        this.extensions.OtherAnimation = {bool: false, str: "A sprite uses other blocks to animate."};
         
     }
     
@@ -418,6 +477,8 @@ class GradeAnimation{
         
         var projInfo = fileObj['targets'] //extract targets from JSON data
         
+        
+        //generate scripts for each sprite
         for(var i=0; i <projInfo.length; i++){
             if(!projInfo[i]['isStage']){
                 var addMe = new Sprite(projInfo[i]['name']);
@@ -438,6 +499,12 @@ class GradeAnimation{
                 }
             }
         }
+        
+        if (Sprites.length > 2) {
+            this.requirements.EnoughSprites.bool = true;
+        }
+        
+        
         
     
     }
