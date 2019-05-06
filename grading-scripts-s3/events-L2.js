@@ -383,7 +383,7 @@ class GradeEvents {
                 for(var b in scripts[p]) {//iterate blocks
                     
                     var opcode = scripts[p][b]['opcode'];
-                    console.log(opcode)
+        
                     
                     //check for turning
                     if (opcode.includes("motion_turn")) {
@@ -446,8 +446,7 @@ class GradeEvents {
         
             }  //end of scripts loop
             
-            console.log(events)
-            console.log(valids)
+
             //check for enough unique events
             if (events.length > 1){
                 switch(s) {
