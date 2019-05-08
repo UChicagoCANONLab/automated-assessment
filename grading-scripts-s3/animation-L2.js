@@ -259,6 +259,17 @@ var sb3 = {
         return false;
     },
     
+    computeBoolArrayScore: function(arr) {
+        var score = 0;
+        for (var i = 0; i<arr.length; i++) {
+            if(arr[i]) {
+                score++;
+            }
+        }
+        
+        return score;
+    },
+    
     checkAnimation: function(script) {
         var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy'];
         var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
@@ -308,7 +319,7 @@ var sb3 = {
         var move = false;
 
         
-        var exts = false;
+        var types = [];
         
         //NEED TO ADD EXTS and MAKE ELIF –––––– !!!!!
         /*
@@ -348,7 +359,7 @@ var sb3 = {
         
         var isAnimated = (loop && wait && (costume || move))
         
-        var report = [isAnimated,reqs,exts];
+        var report = [isAnimated,reqs,types];
         
         return report;
         
@@ -364,18 +375,17 @@ class Sprite {
         this.scripts = [];
         
         this.animated = false;
-        
         this.front = false;
-        this.center = false
+        this.center = false;
+        this.danceOnClick = false;
         
         //requirements:
         //members of array in this order:
-        //costume change, move, repeat loop, wait blocks
+        //loop,move,costume change,wait
         this.reqs = [false,false,false,false]
         
-        //extensions:
-        //checks for any extension
-        this.exts = false;
+        //types of animation
+        this.types = [];
         
     }
     
@@ -390,16 +400,6 @@ class Sprite {
         return score;
     }
     
-    getScore(reqs) { //calculate the score (of an array)
-        var score = 0;
-        for (var i = 0; i<reqs.length; i++) {
-            if(reqs[i]) {
-                score++;
-            }
-        }
-        
-        return score;
-    }
     
     getScripts() { //get all the scripts
         return this.scripts;
@@ -414,9 +414,60 @@ class Sprite {
     }
     
     getReport() { //gets a report on what this sprite has been programmed to do
-        var report = [this.getScore(),front,center,animated,reqs,exts];
+        //score,front,center,animated,reqs[4],exts
+        var report = [this.getScore(),this.front,this.center,this.animated,this.reqs,this.types,this.danceOnClick];
     
         return report;
+    }
+    
+    grade() {
+        for (var s in this.scripts) {
+            
+            var scriptGrade = sb3.gradeAnimation(this.scripts[s]);
+            
+            //check animation
+            if (scriptGrade[0]) {
+                this.animated = true;
+            }
+            
+            //check dance reqs
+            if (sb3.computeBoolArrayScore(scriptGrade[1]) == 4) {
+                this.reqs = scriptGrade[1];
+                
+                //check for dance on click
+                for (var b in this.scripts[s]) { //should only get to the first block
+                    if (this.scripts[s][b]['opcode'] == 'event_whenspriteisclicked') {
+                        this.danceOnClick = true;
+                        break;
+                    }
+                    
+                }
+            }
+            
+            //check for front and center
+            for (var b in this.scripts[s]) { //should only get to the first block
+                    if (this.scripts[s][b]['opcode'] == 'motion_gotoxy') {
+                        if (this.scripts[s][b]['inputs']['Y'][1][1] < 0) {
+                            this.front = true;
+                        }
+                        if (sb3.between(this.scripts[s][b]['inputs']['X'][1][1],-70,70)) {
+                            this.center = true;
+                        }
+                        break;
+                    }
+            }
+            
+            //checks for new types of animation blocks
+            for (var t = 0; t<scriptGrade[2].length; t++) {
+                if (!this.types.includes(scriptGrade[2][t])) {
+                    this.types.push(scriptGrade[2][t]);
+                }
+            }
+            
+            
+        }
+        
+        return this.getReport();
     }
     
     //make grader for each sprite
@@ -450,18 +501,31 @@ class GradeAnimation{
         this.requirements.FrontAndCenter = {bool: false, str: "Chosen sprite is front and center."};
         this.requirements.Loop = {bool: false, str: "Chosen sprite has a loop."};
         this.requirements.Move = {bool: false, str: "Chosen sprite moves."};
-        this.requirements.costumeChange = {bool: false, str: "Chosen sprite changes costume."};
+        this.requirements.Costume = {bool: false, str: "Chosen sprite changes costume."};
         this.requirements.Wait = {bool: false, str: "Chosen sprite has a wait block."};
         this.requirements.Dance = {bool: false, str: "Chosen sprite does a complex dance."};
-        this.requirements.SecondAnimated = {bool: false, str: "Another sprite does a complex dance."};
-        this.requirements.ThirdAnimated = {bool: false, str: "A third sprite does a complex dance."};
+        this.requirements.SecondAnimated = {bool: false, str: "Another sprite is animated."};
+        this.requirements.ThirdAnimated = {bool: false, str: "A third sprite is animated."};
         
     }
     
     initExts() {
-        this.extensions.MultipleFrontAndCenter = {bool: false, str: "At least another character is front and center"};
-        this.extensions.MultipleDanceOnClick = {bool: false, str: "At least another character dances on the click event."};
-        this.extensions.OtherAnimation = {bool: false, str: "A sprite uses other blocks to animate."};
+        this.extensions.MultipleFront = {bool: false, str: "At least another character is in the front"};
+        this.extensions.MultipleDanceOnClick = {bool: false, str: "At least another character dances when clicked."};
+        this.extensions.OtherAnimation = {bool: false, str: "Student uses other block types to animate."};
+        
+    }
+    
+    scoreReport(report) { //for determining the best sprite
+        var score = 0;
+        score+= report[0];
+        if (report[1]) { //determine front
+            score += 3;
+        }
+        if (report[2]) {//determine center
+            score += 5;
+        }
+        return score;
         
     }
     
@@ -474,6 +538,13 @@ class GradeAnimation{
         if (sb3.no(fileObj)) return; //make sure script exists
         
         var Sprites = [];
+        var Reports = [];
+        
+        var danceOnClick = 0;
+        var animated = 0;
+        var front = 0;
+        var center = 0;
+        var animationTypes = [];
         
         var projInfo = fileObj['targets'] //extract targets from JSON data
         
@@ -504,6 +575,91 @@ class GradeAnimation{
             this.requirements.EnoughSprites.bool = true;
         }
         
+        var highestscoring = 0;
+        var highscore = 0;
+        for (var s = 0; s<Sprites.length; s++) {
+            var report = Sprites[s].grade();
+            Reports.push(report);
+            console.log(Sprites[s].getReport()); //for debugging!!
+            
+            //to determine which sprite was the target sprite
+            var totalScore = this.scoreReport(report);
+            if (totalScore > highscore) {
+                highscore = totalScore;
+                highestscoring = s;
+            }
+            
+            if (report[1]){
+                front++;
+            }
+            
+            if (report[2]) {
+                center++;
+            }
+            
+            if (report[3]) {
+                animated++;
+            }
+            
+            if (report[6]) {
+                danceOnClick++;
+            }
+            
+            for (var t = 0; t<report[5].length;t++){
+                if (!animationTypes.includes(report[5][t])){
+                    animationTypes.push(report[5][t]);
+                }
+            }
+            
+            
+        }
+        
+        //sprite most likely to be the chosen sprite
+        var chosen = Reports[highestscoring];
+        
+        if (chosen[1]&&chosen[2]) {
+            this.requirements.FrontAndCenter.bool = true;
+        }
+        
+        if (chosen[3][0]) {
+            this.requirements.Loop.bool = true;
+        }
+        
+        if (chosen[3][1]) {
+            this.requirements.Move.bool = true;
+        }
+        
+        if (chosen[3][2]) {
+            this.requirements.Costume.bool = true;
+        }
+        
+        if (chosen[3][3]) {
+            this.requirements.Wait.bool = true;
+        }
+        
+        if(chosen[0] == 4) {
+            this.requirements.Dance.bool = true;
+        }
+        
+        switch(animated) {
+            case 3: this.requirements.ThirdAnimated.bool = true;
+            case 2: this.requirements.SecondAnimated.bool = true; 
+            default: break;
+            
+                
+        }
+        
+        if (front > 1) {
+            this.extensions.MultipleFront.bool = true;
+        }
+        
+        if (danceOnClick > 1) {
+            this.extensions.MultipleDanceOnClick.bool = true;
+        }
+        
+        if (animationTypes.length > 1) {
+            this.extensions.OtherAnimation.bool = true;
+        }
         
         
     
