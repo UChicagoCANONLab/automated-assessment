@@ -309,7 +309,8 @@ var sb3 = {
     },
     
     gradeAnimation: function(script) {
-        var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy'];
+        //TODO: edit valid moves!
+        var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy','motion_pointindirection','motion_turnright','motion_turnleft'];
         var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
         var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
         
@@ -333,24 +334,28 @@ var sb3 = {
         */
         
         for(var i in script) {
+            var opcode = script[i]['opcode'];
             
             //check loop
-            if (validLoops.includes(script[i]['opcode'])) {
+            if (validLoops.includes(opcode)) {
                 loop = true;
             }
             
             //check wait
-            if ((script[i]['opcode']) == 'control_wait') {
+            if (opcode == 'control_wait') {
                 wait = true;
             }
             
             //check costume
-            if (validCostumes.includes(script[i]['opcode'])) {
+            if (validCostumes.includes(opcode)) {
                 costume = true;
             }
             
             //check move
-            if (validMoves.includes(script[i]['opcode'])) {
+            if (validMoves.includes(opcode)) {
+                if (!types.includes(opcode)){
+                   types.push(opcode);
+                }
                 move = true;
             }
         }
@@ -375,8 +380,6 @@ class Sprite {
         this.scripts = [];
         
         this.animated = false;
-        this.front = false;
-        this.center = false;
         this.danceOnClick = false;
         
         //requirements:
@@ -414,8 +417,8 @@ class Sprite {
     }
     
     getReport() { //gets a report on what this sprite has been programmed to do
-        //score,front,center,animated,reqs[4],exts
-        var report = [this.getScore(),this.front,this.center,this.animated,this.reqs,this.types,this.danceOnClick];
+        //score,animated,reqs[4],exts
+        var report = [this.getScore(),this.animated,this.reqs,this.types,this.danceOnClick];
     
         return report;
     }
@@ -431,31 +434,23 @@ class Sprite {
             }
             
             //check dance reqs
-            if (sb3.computeBoolArrayScore(scriptGrade[1]) == 4) {
+            var scriptScore = sb3.computeBoolArrayScore(scriptGrade[1])
+            if (scriptScore >= this.getScore()) {
                 this.reqs = scriptGrade[1];
                 
+                
                 //check for dance on click
-                for (var b in this.scripts[s]) { //should only get to the first block
-                    if (this.scripts[s][b]['opcode'] == 'event_whenspriteisclicked') {
-                        this.danceOnClick = true;
-                        break;
+                if (scriptScore == 4) {
+                    for (var b in this.scripts[s]) { //should only get to the first block
+                        if (this.scripts[s][b]['opcode'] == 'event_whenthisspriteclicked') {
+                            this.danceOnClick = true;
+                            break;
+                        }
+
                     }
-                    
                 }
             }
             
-            //check for front and center
-            for (var b in this.scripts[s]) { //should only get to the first block
-                    if (this.scripts[s][b]['opcode'] == 'motion_gotoxy') {
-                        if (this.scripts[s][b]['inputs']['Y'][1][1] < 0) {
-                            this.front = true;
-                        }
-                        if (sb3.between(this.scripts[s][b]['inputs']['X'][1][1],-70,70)) {
-                            this.center = true;
-                        }
-                        break;
-                    }
-            }
             
             //checks for new types of animation blocks
             for (var t = 0; t<scriptGrade[2].length; t++) {
@@ -469,16 +464,6 @@ class Sprite {
         
         return this.getReport();
     }
-    
-    //make grader for each sprite
-    /*
-        must have:
-            for each script
-                check for front and center (only on green flag)
-                check animated/reqs/exts
-                if score > current score, make new req
-                
-    */
     
     
 }
@@ -498,7 +483,6 @@ class GradeAnimation{
     initReqs() {
         this.requirements.HaveBackdrop = {bool: false, str: "Background has an image."};
         this.requirements.EnoughSprites = {bool: false, str: "There are at least 3 sprites."};
-        this.requirements.FrontAndCenter = {bool: false, str: "Chosen sprite is front and center."};
         this.requirements.Loop = {bool: false, str: "Chosen sprite has a loop."};
         this.requirements.Move = {bool: false, str: "Chosen sprite moves."};
         this.requirements.Costume = {bool: false, str: "Chosen sprite changes costume."};
@@ -510,22 +494,13 @@ class GradeAnimation{
     }
     
     initExts() {
-        this.extensions.MultipleFront = {bool: false, str: "At least another character is in the front"};
         this.extensions.MultipleDanceOnClick = {bool: false, str: "At least another character dances when clicked."};
         this.extensions.OtherAnimation = {bool: false, str: "Student uses other block types to animate."};
         
     }
     
     scoreReport(report) { //for determining the best sprite
-        var score = 0;
-        score+= report[0];
-        if (report[1]) { //determine front
-            score += 3;
-        }
-        if (report[2]) {//determine center
-            score += 5;
-        }
-        return score;
+        return report[0];
         
     }
     
@@ -542,8 +517,6 @@ class GradeAnimation{
         
         var danceOnClick = 0;
         var animated = 0;
-        var front = 0;
-        var center = 0;
         var animationTypes = [];
         
         var projInfo = fileObj['targets'] //extract targets from JSON data
@@ -578,9 +551,14 @@ class GradeAnimation{
         var highestscoring = 0;
         var highscore = 0;
         for (var s = 0; s<Sprites.length; s++) {
+            //          0   1       2          3    4
+            //REPORT: score,animated,reqs[4],types,dance
             var report = Sprites[s].grade();
             Reports.push(report);
-            console.log(Sprites[s].getReport()); //for debugging!!
+            
+            console.log(Sprites[s].name)
+            console.log("s,anim,loop,move,cost,wait,types,danceOnClick");
+            console.log(Sprites[s].getReport()+'\n'); //for debugging!!
             
             //to determine which sprite was the target sprite
             var totalScore = this.scoreReport(report);
@@ -589,25 +567,18 @@ class GradeAnimation{
                 highestscoring = s;
             }
             
-            if (report[1]){
-                front++;
-            }
             
-            if (report[2]) {
-                center++;
-            }
-            
-            if (report[3]) {
+            if (report[1]) {
                 animated++;
             }
             
-            if (report[6]) {
+            if (report[4]) {
                 danceOnClick++;
             }
             
-            for (var t = 0; t<report[5].length;t++){
-                if (!animationTypes.includes(report[5][t])){
-                    animationTypes.push(report[5][t]);
+            for (var t = 0; t<report[3].length;t++){
+                if (!animationTypes.includes(report[3][t])){
+                    animationTypes.push(report[3][t]);
                 }
             }
             
@@ -617,23 +588,20 @@ class GradeAnimation{
         //sprite most likely to be the chosen sprite
         var chosen = Reports[highestscoring];
         
-        if (chosen[1]&&chosen[2]) {
-            this.requirements.FrontAndCenter.bool = true;
-        }
         
-        if (chosen[3][0]) {
+        if (chosen[2][0]) {
             this.requirements.Loop.bool = true;
         }
         
-        if (chosen[3][1]) {
+        if (chosen[2][1]) {
             this.requirements.Move.bool = true;
         }
         
-        if (chosen[3][2]) {
+        if (chosen[2][2]) {
             this.requirements.Costume.bool = true;
         }
         
-        if (chosen[3][3]) {
+        if (chosen[2][3]) {
             this.requirements.Wait.bool = true;
         }
         
@@ -649,9 +617,6 @@ class GradeAnimation{
                 
         }
         
-        if (front > 1) {
-            this.extensions.MultipleFront.bool = true;
-        }
         
         if (danceOnClick > 1) {
             this.extensions.MultipleDanceOnClick.bool = true;
