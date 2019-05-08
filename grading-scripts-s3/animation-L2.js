@@ -271,7 +271,7 @@ var sb3 = {
     },
     
     checkAnimation: function(script) {
-        var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy'];
+        var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy','motion_pointindirection','motion_turnright','motion_turnleft'];
         var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
         var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
         
@@ -555,10 +555,6 @@ class GradeAnimation{
             //REPORT: score,animated,reqs[4],types,dance
             var report = Sprites[s].grade();
             Reports.push(report);
-            
-            console.log(Sprites[s].name)
-            console.log("s,anim,loop,move,cost,wait,types,danceOnClick");
-            console.log(Sprites[s].getReport()+'\n'); //for debugging!!
             
             //to determine which sprite was the target sprite
             var totalScore = this.scoreReport(report);
