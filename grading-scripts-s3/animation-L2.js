@@ -98,29 +98,18 @@ var sb3 = {
         return miniscript;
     }, 
     
-    typeBlocks: function(script, type) { //retrieve blocks of certain type from a script list of blocks
-        if (this.no(script)) return [];
+    typeBlocks: function(script, type) { //retrieve blocks of a   certain type from a script list of blocks
+        if (this.no(script)) return {};
         
-        var miniscript = [];
+        var miniscript = {};
 
         for(block in script){
             if(script[block]['opcode'].includes(type)){
-                miniscript.push(script[block]);
+                miniscript[block] = block
             }
         }
         return miniscript;
-    },
-    
-    startBlock: function(blocks){
-        if(this.no(blocks) || blocks == {}) return null;
-        
-        for(block in blocks){ 
-            if(blocks[block]['opcode'].includes("event_")){
-                return block;
-            }
-        }
-        return null;
-    },
+    }, 
     
     opcode: function(block) { //retrives opcode from a block object 
         if (this.no(block)) return "";
@@ -130,22 +119,21 @@ var sb3 = {
     countBlocks: function(blocks,opcode){ //counts number of blocks with a given opcode
         var total = 0;
 		for(id in blocks){ 
-            if([blocks][id]['opcode'] == opcode){
+            if(blocks[id]['opcode'] == opcode){
                 total = total + 1;
             }
         }
         return total;
     }, //done
-    
-    countScripts: function(blocks,type){ //counts valid scripts of a certain type
-        var count = 0;
-        for (i in blocks){
-            if(blocks[i]['opcode'].includes(type) && !this.no(blocks[i]['next'])){
-                    count = count + 1;
+     
+    countBlocksOfType: function(blocks,type){ //counts number of blocks with a given opcode
+        var total = 0;
+		for(id in blocks){ 
+            if(blocks[id] != undefined && blocks[id]['opcode'].includes(type)){
+                total = total + 1;
             }
         }
-        return count;
-        
+        return total;
     },
     
     //given list of blocks, return a script
@@ -158,6 +146,7 @@ var sb3 = {
     
         //find blocks before
         while(curBlockID != null){
+            
             var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
             script[curBlockID]=curBlockInfo; //Add the block itself to the script dictionary DEBUG PUSH SITUATION
             //Get parent info out
@@ -258,7 +247,7 @@ var sb3 = {
             curBlockID_sub = nextID_sub;
         }   
         return false;
-    }, 
+    },
     
     between: function(x, a, b) {
         if (x == undefined) {
@@ -268,60 +257,251 @@ var sb3 = {
             return true;
         }
         return false;
+    },
+    
+    computeBoolArrayScore: function(arr) {
+        var score = 0;
+        for (var i = 0; i<arr.length; i++) {
+            if(arr[i]) {
+                score++;
+            }
+        }
+        
+        return score;
+    },
+    
+    checkAnimation: function(script) {
+        var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy','motion_pointindirection','motion_turnright','motion_turnleft'];
+        var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
+        var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
+        
+        var loop = false;
+        var wait = false;
+        var costume = false;
+        var move = false;
+        
+        for(var i in script) {
+            
+            //check loop
+            if (validLoops.includes(script[i]['opcode'])) {
+                loop = true;
+            }
+            
+            //check wait
+            if ((script[i]['opcode']) == 'control_wait') {
+                wait = true;
+            }
+            
+            //check costume
+            if (validCostumes.includes(script[i]['opcode'])) {
+                costume = true;
+            }
+            
+            //check move
+            if (validMoves.includes(script[i]['opcode'])) {
+                move = true;
+            }
+        }
+        
+        
+        return (loop && wait && (costume || move));
+        
+    },
+    
+    gradeAnimation: function(script) {
+        //TODO: edit valid moves!
+        var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy','motion_pointindirection','motion_turnright','motion_turnleft'];
+        var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
+        var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
+        
+        var loop = false;
+        var wait = false;
+        var costume = false;
+        var move = false;
+
+        
+        var types = [];
+        
+        //NEED TO ADD EXTS and MAKE ELIF –––––– !!!!!
+        /*
+        thoughts:
+            loop: in valid loops
+            costume: in valid costumes
+            move: req: use motion
+                    ext: track motion opcodes
+            wait: check opcode
+        
+        */
+        
+        for(var i in script) {
+            var opcode = script[i]['opcode'];
+            
+            //check loop
+            if (validLoops.includes(opcode)) {
+                loop = true;
+            }
+            
+            //check wait
+            if (opcode == 'control_wait') {
+                wait = true;
+            }
+            
+            //check costume
+            if (validCostumes.includes(opcode)) {
+                costume = true;
+            }
+            
+            //check move
+            if (validMoves.includes(opcode)) {
+                if (!types.includes(opcode)){
+                   types.push(opcode);
+                }
+                move = true;
+            }
+        }
+        
+        var reqs = [loop,move,costume,wait];
+        
+        var isAnimated = (loop && wait && (costume || move))
+        
+        var report = [isAnimated,reqs,types];
+        
+        return report;
+        
     }
 };
+
+//SPRITE CLASS –––––––––––
 
 class Sprite {
     
     constructor(name) {
         this.name = name; 
         this.scripts = [];
+        
+        this.animated = false;
+        this.danceOnClick = false;
+        
+        //requirements:
+        //members of array in this order:
+        //loop,move,costume change,wait
+        this.reqs = [false,false,false,false]
+        
+        //types of animation
+        this.types = [];
+        
     }
     
-    getScripts() {
+    getScore() { //calculate the score (of requirements)
+        var score = 0;
+        for (var i = 0; i<this.reqs.length; i++) {
+            if(this.reqs[i]) {
+                score++;
+            }
+        }
+        
+        return score;
+    }
+    
+    
+    getScripts() { //get all the scripts
         return this.scripts;
     }
     
-    getScript(i) {
+    getScript(i) { //get a particular script
         return this.scripts[i];
     }
     
-    addScript(script) {
+    addScript(script) { //add a script to the sprite
         this.scripts.push(script);
+    }
+    
+    getReport() { //gets a report on what this sprite has been programmed to do
+        //score,animated,reqs[4],exts
+        var report = [this.getScore(),this.animated,this.reqs,this.types,this.danceOnClick];
+    
+        return report;
+    }
+    
+    grade() {
+        for (var s in this.scripts) {
+            
+            var scriptGrade = sb3.gradeAnimation(this.scripts[s]);
+            
+            //check animation
+            if (scriptGrade[0]) {
+                this.animated = true;
+            }
+            
+            //check dance reqs
+            var scriptScore = sb3.computeBoolArrayScore(scriptGrade[1])
+            if (scriptScore >= this.getScore()) {
+                this.reqs = scriptGrade[1];
+                
+                
+                //check for dance on click
+                if (scriptScore == 4) {
+                    for (var b in this.scripts[s]) { //should only get to the first block
+                        if (this.scripts[s][b]['opcode'] == 'event_whenthisspriteclicked') {
+                            this.danceOnClick = true;
+                            break;
+                        }
+
+                    }
+                }
+            }
+            
+            
+            //checks for new types of animation blocks
+            for (var t = 0; t<scriptGrade[2].length; t++) {
+                if (!this.types.includes(scriptGrade[2][t])) {
+                    this.types.push(scriptGrade[2][t]);
+                }
+            }
+            
+            
+        }
+        
+        return this.getReport();
     }
     
     
 }
 
-class GradeEvents {
+// MAIN GRADER CLASS –––––––––––––––
 
+
+class GradeAnimation{
+    
     constructor() {
         this.requirements = {};
         this.extensions = {};
         
         this.event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
-        
-        this.validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy'];
-        this.validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
-        this.validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
     }
     
     initReqs() {
         this.requirements.HaveBackdrop = {bool: false, str: "Background has an image."};
-        this.requirements.HaveThreeSprites ={bool: false, str: "There are three sprites."};
-        this.requirements.SpriteOneTwoEvents = {bool: false, str: "Sprite 1 has at least two events."};
-        this.requirements.SpriteTwoTwoEvents = {bool: false, str: "Sprite 2 has at least two events."};
-        this.requirements.SpriteThreeTwoEvents = {bool: false, str: "Sprite 3 has at least two events."};
-        this.requirements.SpriteOneTwoScripts = {bool: false, str: "Sprite 1 events have actions."};
-        this.requirements.SpriteTwoTwoScripts = {bool: false, str: "Sprite 2 events have actions."};
-        this.requirements.SpriteThreeTwoScripts = {bool: false, str: "Sprite 3 events have actions."};
+        this.requirements.EnoughSprites = {bool: false, str: "There are at least 3 sprites."};
+        this.requirements.Loop = {bool: false, str: "Chosen sprite has a loop."};
+        this.requirements.Move = {bool: false, str: "Chosen sprite moves."};
+        this.requirements.Costume = {bool: false, str: "Chosen sprite changes costume."};
+        this.requirements.Wait = {bool: false, str: "Chosen sprite has a wait block."};
+        this.requirements.Dance = {bool: false, str: "Chosen sprite does a complex dance."};
+        this.requirements.SecondAnimated = {bool: false, str: "Another sprite is animated."};
+        this.requirements.ThirdAnimated = {bool: false, str: "A third sprite is animated."};
         
     }
-     
+    
     initExts() {
-        this.extensions.SpriteSpins = {bool: false, str: "A sprite spins (uses turn block)"};
-        this.extensions.MoreScripts = {bool: false, str: "A sprite reacts to more events."};
-        this.extensions.SpriteBlinks = {bool: false, str: "A sprite blinks (use hide, show, and wait blocks)."}
+        this.extensions.MultipleDanceOnClick = {bool: false, str: "At least another character dances when clicked."};
+        this.extensions.OtherAnimation = {bool: false, str: "Student uses other block types to animate."};
+        
+    }
+    
+    scoreReport(report) { //for determining the best sprite
+        return report[0];
+        
     }
     
     grade(fileObj,user) {
@@ -333,11 +513,18 @@ class GradeEvents {
         if (sb3.no(fileObj)) return; //make sure script exists
         
         var Sprites = [];
+        var Reports = [];
+        
+        var danceOnClick = 0;
+        var animated = 0;
+        var animationTypes = [];
         
         var projInfo = fileObj['targets'] //extract targets from JSON data
         
+        
+        //generate scripts for each sprite
         for(var i=0; i <projInfo.length; i++){
-            if(projInfo[i]['isStage'] == false){
+            if(!projInfo[i]['isStage']){
                 var addMe = new Sprite(projInfo[i]['name']);
                 Sprites.push(addMe);
                 for (var e = 0; e < this.event_opcodes.length; e++) {
@@ -350,141 +537,97 @@ class GradeEvents {
                         }
                     }
                 }
-            } else {
+            } else { //if it is the stage
                 if (projInfo[i]['costumes'].length > 1) {
                     this.requirements.HaveBackdrop.bool = true;
                 }
             }
         }
         
-        //check for enough sprites
         if (Sprites.length > 2) {
-            this.requirements.HaveThreeSprites.bool = true;
+            this.requirements.EnoughSprites.bool = true;
+        }
+        
+        var highestscoring = 0;
+        var highscore = 0;
+        for (var s = 0; s<Sprites.length; s++) {
+            //          0   1       2          3    4
+            //REPORT: score,animated,reqs[4],types,dance
+            var report = Sprites[s].grade();
+            Reports.push(report);
+            
+            //to determine which sprite was the target sprite
+            var totalScore = this.scoreReport(report);
+            if (totalScore > highscore) {
+                highscore = totalScore;
+                highestscoring = s;
+            }
+            
+            
+            if (report[1]) {
+                animated++;
+            }
+            
+            if (report[4]) {
+                danceOnClick++;
+            }
+            
+            for (var t = 0; t<report[3].length;t++){
+                if (!animationTypes.includes(report[3][t])){
+                    animationTypes.push(report[3][t]);
+                }
+            }
+            
+            
+        }
+        
+        //sprite most likely to be the chosen sprite
+        var chosen = Reports[highestscoring];
+        
+        
+        if (chosen[2][0]) {
+            this.requirements.Loop.bool = true;
+        }
+        
+        if (chosen[2][1]) {
+            this.requirements.Move.bool = true;
+        }
+        
+        if (chosen[2][2]) {
+            this.requirements.Costume.bool = true;
+        }
+        
+        if (chosen[2][3]) {
+            this.requirements.Wait.bool = true;
+        }
+        
+        if(chosen[0] == 4) {
+            this.requirements.Dance.bool = true;
+        }
+        
+        switch(animated) {
+            case 3: this.requirements.ThirdAnimated.bool = true;
+            case 2: this.requirements.SecondAnimated.bool = true; 
+            default: break;
+            
+                
         }
         
         
-        for(var s=0; s < Sprites.length; s++) { //iterate sprites
-            var sprite = Sprites[s];
-            var events = [];
-            var valids = [];
-            
-           
-            var scripts = sprite.getScripts();
-            
-            var keyPressEvents = [];
-            for (var p=0; p <scripts.length; p++){ //iterate scripts
-                
-                var hide = false;
-                var show = false;
-                var wait = false;
-                var turn = false;
-                
-            
-                for(var b in scripts[p]) {//iterate blocks
-                    
-                    var opcode = scripts[p][b]['opcode'];
+        if (danceOnClick > 1) {
+            this.extensions.MultipleDanceOnClick.bool = true;
+        }
         
-                    
-                    //check for turning
-                    if (opcode.includes("motion_turn")) {
-                        turn = true;
-                    }
-                    
-                    //check for hide
-                    if (opcode == 'looks_hide') {
-                        hide = true;
-                    }
-                    
-                    //check for show
-                    if (opcode == 'looks_show') {
-                        show = true;
-                    }
-                    
-                    //check for wait
-                    if (opcode == 'control_wait') {
-                        wait = true;
-                    }
-                    
-                    //count unique events
-                    if (opcode.includes("event_")) {
-                        
-                        //count unique key press events
-                        if (opcode == "event_whenkeypressed") {
-                           if (!events.includes(opcode+scripts[p][b]['fields']['KEY_OPTION'][0])) {
-                               events.push(opcode+scripts[p][b]['fields']['KEY_OPTION'][0]);
-                               if (Object.keys(scripts[p]).length > 1) {
-                                   valids.push(scripts[p][b]);
-                               }
-                           }
-                        } else if (opcode == 'event_whenthisspriteclicked' || opcode == 'event_whenflagclicked') { //count other events
-                            if (!events.includes(opcode)) {
-                                events.push(opcode);
-                                if (Object.keys(scripts[p]).length > 1) {
-                                   valids.push(scripts[p][b]);
-                                }
-                            } 
-                
-                        }
-                        
-                    }
-                    
-                    
-                    
-                } //end of blocks loop
-                
-                 //check spins
-                if (turn && wait) {
-                    this.extensions.SpriteSpins.bool = true;
-                }
-
-                //check blinks
-                if (hide && show && wait) {
-                    this.extensions.SpriteBlinks.bool = true;
-                }
-            
-            
+        if (animationTypes.length > 1) {
+            this.extensions.OtherAnimation.bool = true;
+        }
         
-            }  //end of scripts loop
-            
-
-            //check for enough unique events
-            if (events.length > 1){
-                switch(s) {
-                    case 0: this.requirements.SpriteOneTwoEvents.bool = true; 
-                            break;
-                    case 1: this.requirements.SpriteTwoTwoEvents.bool = true; 
-                            break;
-                    case 2: this.requirements.SpriteThreeTwoEvents.bool = true; 
-                            break;
-                    default: break;
-                }  
-            }
-            
-            
-            //check for enough valid scripts
-            if(valids.length > 1) {
-                switch(s) {
-                    case 0: this.requirements.SpriteOneTwoScripts.bool = true; 
-                            break;
-                    case 1: this.requirements.SpriteTwoTwoScripts.bool = true; 
-                            break;
-                    case 2: this.requirements.SpriteThreeTwoScripts.bool = true; 
-                            break;
-                    default: break;
-                }
-            }
-            
-            if (valids.length > 2) {
-                this.extensions.MoreScripts.bool = true;
-            }
-            
-            
-            
+        
     
-        }
     }
+    
+    
 
+    
 }
-    
-module.exports = GradeEvents;
-    
+module.exports = GradeAnimation;
