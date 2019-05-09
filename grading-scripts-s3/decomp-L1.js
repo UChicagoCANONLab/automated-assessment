@@ -104,7 +104,7 @@ var sb3 = {
     },
     
     //given particular key, returns list of block ids of a certain kind of key press given a set of blocks 
-    findKeyPressID: function(blocks, key){
+    findKeyPressIDs: function(blocks, key){
         if(this.no(blocks) || blocks == {}) return [];
         
         var blockids = [];
@@ -288,7 +288,12 @@ class GradeDecompBySeq{
             jump:
                 {bool: false, str: 'Jaime jumps up and down to celebrate goal'},
             goalie: 
-                {bool: false, str: 'Added a goalie sprite. Ball bounces off the goalie. Goalie can move left and right with the arrow keys.'}
+                {bool: false, str: 'Added a goalie sprite.'},
+            goaliebounce:
+                {bool: false, str: 'Ball bounces off the goalie.'},
+            goaliemoves:
+                {bool: false, str: 'Goalie can move left and right with the arrow keys.'}
+            
         }
     }
     
@@ -303,13 +308,18 @@ class GradeDecompBySeq{
                 var jaime = sprite;
                 this.checkJaime(jaime);
             }
-            if(sprite['name'] == 'Soccer Ball'){
+            else if(sprite['name'] == 'Soccer Ball'){
                 var ball = sprite;
                 this.checkBall(ball);
             }
-            if(sprite['name'] == 'Goal'){
+            else if(sprite['name'] == 'Goal'){
                 var goal = sprite;
                 this.checkGoal(goal);
+            }
+            else if(goal != undefined && ball != undefined && goal != undefined){ //
+                var goalie = sprite;
+                this.extensions.goalie.bool = true;
+                this.checkGoalie(goalie);
             }
         }
     }
@@ -348,13 +358,36 @@ class GradeDecompBySeq{
             for(var i in ballScript){
                 if(ballScript[i]['opcode'] == 'control_wait_until'){
                     var condid = ballScript[i]['inputs']['CONDITION'][1] //find key of condition block
-                    if(condid == null){break};
-                    var cond = ball['blocks'][condid]
-                    var nameid = cond['inputs']['TOUCHINGOBJECTMENU'][1] //find key of block with nested object of the condition
-                    if(nameid == null){break};
-                    var name = ball['blocks'][nameid]['fields']['TOUCHINGOBJECTMENU'][0]
-                    if(name == 'Jaime '){
-                        this.requirements.ballStayStill.bool = true;
+                    if(condid != null){ //handles case where no condition is nested in the block
+                        var cond = ball['blocks'][condid]
+                        var nameid = cond['inputs']['TOUCHINGOBJECTMENU'][1] //find key of block with nested object of the condition
+                        if(nameid != null){
+                            var name = ball['blocks'][nameid]['fields']['TOUCHINGOBJECTMENU'][0]
+                            if(name == 'Jaime '){
+                                this.requirements.ballStayStill.bool = true;
+                            }
+                            if(name == 'Goal'){
+                            
+                                var curID = ballScript[i]
+                                while(curID != null){ 
+                                    if(ball['blocks'][curID]['opcode'] == 'control_repeat_until'){
+                                        var condid = ballScript[i]['inputs']['CONDITION'][1]
+                                        var condition = ball['blocks'][condid]['opcode']
+                                        if(condition == 'sensing_touchingobject'){
+                                            var object = ball['blocks'][condid]['inputs']['TOUCHINGOBJECTMENU'][1] //find key of condition block
+                                            if(object != null){
+                                                var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0] //find key of block with nested object
+                                                if(objname == 'Jaime '){
+                                                    this.extensions.bounce.bool = true;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    curID = ball['blocks'][curID]['next'] //iterate
+                                }
+                                
+                            }
+                        }
                     }
                 }
                 if(ballScript[i]['opcode'] == 'control_repeat_until' ){
@@ -362,17 +395,27 @@ class GradeDecompBySeq{
                     var condition = ball['blocks'][condid]['opcode']
                     if(condition == 'sensing_touchingobject'){
                         var object = ball['blocks'][condid]['inputs']['TOUCHINGOBJECTMENU'][1] //find key of condition block
-                        if(object == null){break};
-                        var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0] //find key of block with nested object
-                        if(objname == 'Goal'){
-                            this.requirements.ballToGoal.bool = true;
+                        if(object != null){
+                            var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0] //find key of block with nested object
+                            if(objname == 'Goal'){
+                                this.requirements.ballToGoal.bool = true;
                             
-                            var curID = ballScript[i]['inputs']['SUBSTACK'][1]
-                            while(curID != null){ 
-                                if(ball['blocks'][curID]['opcode'] == 'motion_movesteps'){
-                                    this.requirements.ballAnimated.bool = true;
+                                var curID = ballScript[i]['inputs']['SUBSTACK'][1]
+                                while(curID != null){ 
+                                    if(ball['blocks'][curID]['opcode'] == 'motion_movesteps'){
+                                        this.requirements.ballAnimated.bool = true;
+                                    }
+                                    curID = ball['blocks'][curID]['next']
                                 }
-                                curID = ball['blocks'][curID]['next']
+                            }
+                            if(objname == 'Jaime '){
+                                var curID = ballScript[i]['inputs']['SUBSTACK'][1]
+                                while(curID != null){ 
+                                    if(ball['blocks'][curID]['opcode'] == 'motion_movesteps'){
+                                        this.extensions.bounce.bool = true;
+                                    }
+                                    curID = ball['blocks'][curID]['next']
+                                }
                             }
                         }
                     }
@@ -383,7 +426,62 @@ class GradeDecompBySeq{
     
     checkGoal(goal){
         var flags = sb3.findBlockIDs(goal['blocks'], 'event_whenflagclicked');
-
+        for(i in flags){
+            var goalScript = sb3.makeScript(goal['blocks'], flags[i]);
+            for(var i in goalScript){
+                if(goalScript[i]['opcode'] == 'control_wait_until'){
+                    var condid = goalScript[i]['inputs']['CONDITION'][1] //find key of condition block
+                    if(condid != null){ //handles case where no condition is nested in the block
+                        var cond = goal['blocks'][condid]
+                        var nameid = cond['inputs']['TOUCHINGOBJECTMENU'][1] //find key of block with nested object of the condition
+                        if(nameid != null){
+                            var name = goal['blocks'][nameid]['fields']['TOUCHINGOBJECTMENU'][0]
+                            if(name == 'Soccer Ball'){
+                                var curid = goalScript[i]['next']
+                                while(curid != null){
+                                    if(goal['blocks'][curid]['opcode'] == 'sound_playuntildone' || goal['blocks'][curid]['opcode'] == 'sound_play'){
+                                        this.extensions.cheer.bool = true;
+                                    }
+                                    curid = goal['blocks'][curid]['next'] //iterate
+                                }
+                            }
+                            
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    checkGoalie(goalie){
+        var movement = ['motion_changexby', 'motion_glidesecstoxy', 'motion_glideto', 'motion_goto', 'motion_gotoxy']
+        
+        var arrows = sb3.findBlockIDs(goalie['blocks'], 'event_whenkeypressed');
+        var left = false;
+        var right = false;
+        for(var i in arrows){ 
+            var blockid = arrows[i]
+            if(goalie['blocks'][arrows[i]]['fields']['KEY_OPTION'][0] == 'left arrow'){
+                var leftscript = sb3.makeScript(goalie['blocks'], blockid)
+                for(var j in leftscript){
+                    if(movement.includes(leftscript[j]['opcode'])){
+                        left = true
+                    }
+                }
+                
+            }
+            if(goalie['blocks'][arrows[i]]['fields']['KEY_OPTION'][0] == 'right arrow'){
+                var rightscript = sb3.makeScript(goalie['blocks'], blockid)
+                for(var j in rightscript){
+                    if(movement.includes(rightscript[j]['opcode'])){
+                        right = true
+                    }
+                }
+            }
+            if(left == true && right == true){
+                this.extensions.goaliemoves.bool = true
+            }
+        }
     }
     
     
