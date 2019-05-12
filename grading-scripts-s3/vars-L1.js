@@ -383,7 +383,7 @@ class GradeVariablesL1 {
 
     }
     
-    checkAdd(ben, opblock){
+    checkAddv(ben, opblock){
         var aID = opblock['inputs']['NUM1'][1]
         var a = ben['blocks'][aID]
         var bID = opblock['inputs']['NUM2'][1]
