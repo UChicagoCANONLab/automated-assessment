@@ -325,9 +325,9 @@ class GradeDecompBySeq{
     }
     
     checkJaime(jaime){
-        var jaimeid = sb3.findBlockIDs(jaime['blocks'], 'event_whenflagclicked');
-        if(jaimeid != null){
-            var jaimeScript = sb3.makeScript(jaime['blocks'], jaimeid);
+        var jaimeids = sb3.findBlockIDs(jaime['blocks'], 'event_whenflagclicked');
+        for(var j in jaimeids){
+            var jaimeScript = sb3.makeScript(jaime['blocks'], jaimeids[j]);
             for(var i in jaimeScript){
                 if(jaimeScript[i]['opcode'] == 'control_repeat_until'){
                     var condblock = jaimeScript[i]['inputs']['CONDITION'][1];
@@ -353,8 +353,8 @@ class GradeDecompBySeq{
     
     checkBall(ball){
         var ballids = sb3.findBlockIDs(ball['blocks'], 'event_whenflagclicked');
-        for(i in ballids){
-            var ballScript = sb3.makeScript(ball['blocks'], ballids[i]);
+        for(var j in ballids){
+            var ballScript = sb3.makeScript(ball['blocks'], ballids[j]);
             for(var i in ballScript){
                 if(ballScript[i]['opcode'] == 'control_wait_until'){
                     var condid = ballScript[i]['inputs']['CONDITION'][1] //find key of condition block
@@ -426,8 +426,8 @@ class GradeDecompBySeq{
     
     checkGoal(goal){
         var flags = sb3.findBlockIDs(goal['blocks'], 'event_whenflagclicked');
-        for(i in flags){
-            var goalScript = sb3.makeScript(goal['blocks'], flags[i]);
+        for(var j in flags){
+            var goalScript = sb3.makeScript(goal['blocks'], flags[j]);
             for(var i in goalScript){
                 if(goalScript[i]['opcode'] == 'control_wait_until'){
                     var condid = goalScript[i]['inputs']['CONDITION'][1] //find key of condition block
