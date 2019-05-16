@@ -146,8 +146,6 @@ var sb3 = {
             curBlockInfo = blocks[curBlockID]; //Pull out info about the block
             script.push(curBlockInfo); //Add the block itself to the script dictionary                
 
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
             //nextInfo = blocks[nextID]
             opcode = curBlockInfo['opcode'];
             
@@ -161,6 +159,9 @@ var sb3 = {
                     }
                 }
             }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
             if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -186,8 +187,6 @@ var sb3 = {
             var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
             script.push(curBlockInfo); //Add the block itself to the script dictionary 
             
-            //Get parent info out
-            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
             //parentInfo = blocks[parentID]
     		var opcode = curBlockInfo['opcode'];
 
@@ -203,6 +202,9 @@ var sb3 = {
                 }
             }
             
+            //Get parent info out
+            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
+            
             //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
             if ((parentID == null) && !(event_opcodes.includes(opcode))){
                 return [];
@@ -217,8 +219,6 @@ var sb3 = {
         while(curBlockID != null){
             curBlockInfo = blocks[curBlockID]; //Pull out info about the block
 
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
             //nextInfo = blocks[nextID]
             opcode = curBlockInfo['opcode'];
             
@@ -232,6 +232,9 @@ var sb3 = {
                     }
                 }
             }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
             if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -281,6 +284,7 @@ class GradeScratchBasicsL1 {
         var stepcount = 0;
         var speakcount = 0;
         var havefun = false;
+        var funs = ['Have fun!', 'have fun!', 'have Fun!', 'HAVE FUN', 'HAVE FUN!', 'have fun', 'Have fun', 'have Fun', 'Have Fun', 'Have Fun!']
         
         var blockids = sb3.findBlockIDs(fred, 'event_whenflagclicked');
         
@@ -296,7 +300,7 @@ class GradeScratchBasicsL1 {
                     }
                     if (sblock['opcode'] == 'looks_sayforsecs'){ 
                         speakcount++;
-                        if(sblock['inputs']['MESSAGE'][1][1]  == 'Have fun!' || sblock['inputs']['MESSAGE'][1][1]  == 'have fun!' || sblock['inputs']['MESSAGE'][1][1]  == 'have fun' || sblock['inputs']['MESSAGE'][1][1]  == 'Have fun'){ //check for have fun message
+                        if(funs.includes(sblock['inputs']['MESSAGE'][1][1])){ //check for have fun message
                             havefun = true;
                         }
                         if(havefun && speakcount >= 4){ //check that new block was added
