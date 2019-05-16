@@ -544,14 +544,14 @@ class GradeAnimation{
             }
         }
         
-        if (Sprites.length > 2) {
+        if (Sprites.length > 2) { //checks for enough sprites
             this.requirements.EnoughSprites.bool = true;
         }
         
         var highestscoring = 0;
         var highscore = 0;
         for (var s = 0; s<Sprites.length; s++) {
-            //          0   1       2          3    4
+            //          0   1          2        3    4
             //REPORT: score,animated,reqs[4],types,dance
             var report = Sprites[s].grade();
             Reports.push(report);
@@ -564,15 +564,15 @@ class GradeAnimation{
             }
             
             
-            if (report[1]) {
+            if (report[1]) { //increment the number animated 
                 animated++;
             }
             
-            if (report[4]) {
+            if (report[4]) {//increment the number that dance
                 danceOnClick++;
             }
             
-            for (var t = 0; t<report[3].length;t++){
+            for (var t = 0; t<report[3].length;t++){ //count types of animation
                 if (!animationTypes.includes(report[3][t])){
                     animationTypes.push(report[3][t]);
                 }
@@ -585,27 +585,27 @@ class GradeAnimation{
         var chosen = Reports[highestscoring];
         
         
-        if (chosen[2][0]) {
+        if (chosen[2][0]) { //check loop
             this.requirements.Loop.bool = true;
         }
         
-        if (chosen[2][1]) {
+        if (chosen[2][1]) { //check movement
             this.requirements.Move.bool = true;
         }
         
-        if (chosen[2][2]) {
+        if (chosen[2][2]) { //check costume
             this.requirements.Costume.bool = true;
         }
         
-        if (chosen[2][3]) {
+        if (chosen[2][3]) { //check wait
             this.requirements.Wait.bool = true;
         }
         
-        if(chosen[0] == 4) {
+        if(chosen[0] == 4) { //if it has all four, then it's a dance
             this.requirements.Dance.bool = true;
         }
         
-        switch(animated) {
+        switch(animated) { //counts the number of animated sprites
             case 3: this.requirements.ThirdAnimated.bool = true;
             case 2: this.requirements.SecondAnimated.bool = true; 
             default: break;
@@ -614,11 +614,11 @@ class GradeAnimation{
         }
         
         
-        if (danceOnClick > 1) {
+        if (danceOnClick > 1) { //counts the sprites that dance on click
             this.extensions.MultipleDanceOnClick.bool = true;
         }
         
-        if (animationTypes.length > 1) {
+        if (animationTypes.length > 1) { //counts the number of animation blocks used
             this.extensions.OtherAnimation.bool = true;
         }
         

@@ -183,11 +183,14 @@ var sb3 = {
 };
 
 class GradeEvents {
+    
 
     constructor() {
         this.requirements = {};
         this.extensions = {};
+        
     }
+    
 
     initReqs() {
 
@@ -246,6 +249,12 @@ class GradeEvents {
         
         var turn = false;
         var wait = false;
+        
+        var event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
+        
+        var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy'];
+        var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
+        var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
     
         
         //check number of sprites
