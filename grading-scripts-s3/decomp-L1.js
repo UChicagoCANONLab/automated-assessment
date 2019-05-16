@@ -206,7 +206,6 @@ var sb3 = {
             var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
             //parentInfo = blocks[parentID]
     		var opcode = curBlockInfo['opcode'];
-
             
             //extract nested children if loop block
             if(loop_opcodes.includes(opcode)){
@@ -233,21 +232,22 @@ var sb3 = {
         while(curBlockID != null){
             curBlockInfo = blocks[curBlockID]; //Pull out info about the block
 
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
             //nextInfo = blocks[nextID]
             opcode = curBlockInfo['opcode'];
-            
+
             //extract nested children if loop block
             if(loop_opcodes.includes(opcode)){
                 var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
                 if(innerloop != undefined){
                     var nested_blocks = this.loopExtract(blocks, innerloop)
-                    for(b in nested_blocks){                            
+                    for(b in nested_blocks){   
                         script.push(nested_blocks[b])
                     }
                 }
             }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
             if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -308,7 +308,7 @@ class GradeDecompBySeq{
                 var jaime = sprite;
                 this.checkJaime(jaime);
             }
-            else if(sprite['name'] == 'Soccer Ball'){
+            if(sprite['name'] == 'Soccer Ball'){
                 var ball = sprite;
                 this.checkBall(ball);
             }
