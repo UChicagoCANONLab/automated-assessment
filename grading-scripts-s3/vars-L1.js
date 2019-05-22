@@ -162,8 +162,6 @@ var sb3 = {
             curBlockInfo = blocks[curBlockID]; //Pull out info about the block
             script.push(curBlockInfo); //Add the block itself to the script dictionary                
 
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
             //nextInfo = blocks[nextID]
             opcode = curBlockInfo['opcode'];
             
@@ -177,6 +175,9 @@ var sb3 = {
                     }
                 }
             }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
             if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -233,8 +234,6 @@ var sb3 = {
         while(curBlockID != null){
             curBlockInfo = blocks[curBlockID]; //Pull out info about the block
 
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
             //nextInfo = blocks[nextID]
             opcode = curBlockInfo['opcode'];
             
@@ -248,6 +247,9 @@ var sb3 = {
                     }
                 }
             }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
             if((nextID == null) && (event_opcodes.includes(opcode))){
