@@ -1,7 +1,6 @@
 /* --- Contains project analysis functions. --- */
 
-/* Top-level analysis function, checks for appropraite number of sprites
-   and initializes script analysis. */
+/* Top-level analysis function; initializes script analysis. */
 function analyze(fileObj, user,id) {
     try {
         gradeObj.grade(fileObj,id);     
@@ -46,17 +45,12 @@ function report(pID, reqs, exts, user) {
     
     reports_list.push(ret_list);
 
-
     /* Adjusts class progress globals. */
     if(project_complete) complete_projects++;
     else if (passed_reqs_count >= (Object.keys(reqs).length / 2))
         passing_projects++;
 
     printReport();        
-}
-
-function requirementsToStrings(reqs, ret_list) {
-    
 }
 
 /* Checks if process is done.  */

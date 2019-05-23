@@ -1,5 +1,6 @@
 /* --- Contains web-crawling functions. --- */
-
+var web = require('./web');
+var my = module.exports;
 /* Parses out link to studio and initiates crawl. */
 function crawlFromStudio(string) {
 

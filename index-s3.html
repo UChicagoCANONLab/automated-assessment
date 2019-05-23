@@ -1,130 +1,44 @@
-<html>
-<head>
-	<meta charset="utf-8"/>
-	<link href="grader.css" rel="stylesheet">
-	<link rel = "shortcut icon" href="favicon.png" type="image/png">
+<html> <head>
+	<meta charset = "utf-8"/>
+	<link href = "grader.css"  rel = "stylesheet">
+	<link href = "favicon.png" rel = "shortcut icon" type = "image/png">
+	<script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"> </script>
+	<script src = "bundle.js"> </script>
+	</head>
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <script src="analyze.js" type="text/javascript"> </script>
-  <script src="crawler.js" type="text/javascript"> </script>
-  <script src="main.js" type="text/javascript"> </script>
-
-	<script src="grading-scripts-s3/animation-L1.js" type="text/javascript"></script>
-	<script src="grading-scripts-s3/animation-L2.js" type="text/javascript"></script>
-	<script src="grading-scripts-s3/cond-loops.js" type="text/javascript"></script>
-	<script src="grading-scripts-s3/decomp-L1.js" type="text/javascript"></script>
-	<script src="grading-scripts-s3/events-L1.js" type="text/javascript"></script>
-	<script src="grading-scripts-s3/events-L2.js" type="text/javascript"></script>
-	<script src="grading-scripts-s3/one-way-sync-L1.js" type="text/javascript"></script>
-	<script src="grading-scripts-s3/scratch-basics-L1.js" type="text/javascript"></script>
-
-
-  <script type="text/javascript">
-    $(function() {
-
-      /* Blocks premature form submission. */
-      $("form").submit(function(){ return false; });
-
-      /* Maps enter key to grade button */
-      $(document).keypress(function(e){
-        if (e.which == 13){
-          $("#process_button").click();
-        }
-      });
-
-    });
-
-  </script>
-
-
-</head>
 <body>
-<div style="text-align:center;">
-    <h1> project grader </h1>
+	<div style="text-align:center;">
+		<!-- Title -->
+		<h1> project grader </h1>
 
-		<div class= "unit_container">
+		<!-- Unit selection menu (images) -->
+		<div class = "unit_container">
 			<p>Select unit: </p>
-			<div class= "units">
-
-				<input type="radio" value="scratch-basics-L1" class = "hidden"/>
-				<label class = "unitlabel">
-					<a onclick="drop_scratchBasicsL1Handler()"> <img src="pictures/scratchBasicsL1.png"> </a>
-					Scratch Basics L1
-				</label>
-
-				<input type="radio" value="events-L1" class = "hidden"/>
-				<label class = "unitlabel">
-					<a onclick="drop_eventsL1Handler()"> <img src="pictures/scratchBasicsL1.png"> </a>
-					Events L1
-				</label>
-
-				<input type="radio" value="events-L2" class = "hidden"/>
-				<label class = "unitlabel">
-					<a onclick="drop_eventsL2Handler()"> <img src="pictures/scratchBasicsL1.png"> </a>
-					Events L2
-				</label>
-
-				<input type="radio" value="animaton-L1" class = "hidden"/>
-				<label class = "unitlabel">
-					<a onclick="drop_animationL1Handler()"> <img src="pictures/scratchBasicsL1.png"> </a>
-					Animation L1
-				</label>
-
-				<input type="radio" value="animaton-L2" class = "hidden"/>
-				<label class = "unitlabel">
-					<a onclick="drop_animationL2Handler()"> <img src="pictures/scratchBasicsL1.png"> </a>
-					Animation L2
-				</label>
-
-				<input type="radio" value="cond-loops" class = "hidden"/>
-				<label class = "unitlabel">
-					<a onclick="drop_condLoopsHandler()"> <img src="pictures/scratchBasicsL1.png"> </a>
-					Conditional Loops
-				</label>
-
-				<input type="radio" value="decomp-L1" class = "hidden"/>
-				<label class = "unitlabel">
-					<a onclick="drop_decompL1Handler()"> <img src="pictures/scratchBasicsL1.png"> </a>
-					Decomposition L1
-				</label>
-
-				<input type="radio" value="one-way-sync-L1" class = "hidden"/>
-				<label class = "unitlabel">
-					<a onclick="drop_oneWaySyncL1Handler()"> <img src="pictures/scratchBasicsL1.png"> </a>
-					One-Way Sync L1
-				</label>
-
-
-
-				
-
-				
+			<div class = "units"> <p id = "unitsHTML"> </p> </div>
 			</div>
+		<script> window.fill_unitsHTML() </script>
+
+		<!-- Form for entering the studio URL -->
+		<form class = "url">
+			<p> Enter studio URL: </p>
+			<input type = "text" id = "inches_input" name = "name" placeholder = "https://scratch.mit.edu/studios/...">
+			<input type = "button" class = "btn" value = "grade studio" id = "process_button" onclick = "window.buttonHandler()"/>
+			</form>
+		<script> window.formHelper() </script>
+
+		<!-- Processing status -->
+		<p class = "error"     id = "process_error">  </p>
+		<p class = "wait_time" id = "wait_time">      </p>
+		<p class = "status"    id = "process_status"> </p>
 		</div>
 
+	<!-- Progress bar -->
+	<div id = "myProgress">
+		<div id = "greenbar"  class = 'progress_bar'> </div>
+		<div id = "yellowbar" class = 'progress_bar'> </div>
+		<div id = "redbar"    class = 'progress_bar'> </div>
+		</div>
 
-    <form class = "url">
-			<p>Enter studio URL:</p>
-			<input type="text" id="inches_input" name="name" placeholder="https://scratch.mit.edu/studios/[ID NUMBER]/">
-			<input type="button" class="btn" value="grade studio" id = "process_button" onclick="buttonHandler()"/>
-    </form>
-		<p class="error" id="process_error"></p>
-    <p class="wait_time" id="wait_time"></p>
-		<p class="status" id="process_status"></p>
-  </div>
-
-<div id="myProgress">
-  <div id="greenbar" class = 'progress_bar'></div>
-  <div id="yellowbar" class = 'progress_bar'></div>
-  <div id="redbar" class = 'progress_bar'></div>
-</div>
-
-	<div id="report" style="text-align:center;"></div>
-
-
-<script type="text/javascript">
-
-</script>
-
-</body>
-</html>
+	<!-- Results report-->
+	<div id = "report" style = "text-align:center;"> </div>
+	</body> </html>

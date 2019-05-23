@@ -1,13 +1,22 @@
+/// Requirements (scripts)
+var graders = {
+  scratchBasicsL1: { name: 'Scratch Basics L1',      file: require('./grading-scripts-s3/scratch-basics-L1') },
+  animationL1:     { name: 'Animation L1',           file: require('./grading-scripts-s3/animation-L1')      },
+  animationL2:     { name: 'Animation L2',           file: require('./grading-scripts-s3/animation-L2')      },
+  eventsL1:        { name: 'Events L1',              file: require('./grading-scripts-s3/events-L1')         },
+  eventsL2:        { name: 'Events L2',              file: require('./grading-scripts-s3/events-L2')         },
+  condLoops:       { name: 'Conditional Loops L1',   file: require('./grading-scripts-s3/cond-loops')        },
+  decompL1:        { name: 'Decomp. by Sequence L1', file: require('./grading-scripts-s3/decomp-L1')         },
+  oneWaySyncL1:    { name: 'One-Way Sync L1',        file: require('./grading-scripts-s3/one-way-sync-L1')   },
+  oneWaySyncL2:    { name: 'Two-Way Sync L2',        file: require('./grading-scripts-s3/two-way-sync-L2')   },
+};
+
 /* MAKE SURE OBJ'S AUTO INITIALIZE AT GRADE */
 
 /* Stores the grade reports. */
 var reports_list = [];
 /* Number of projects scanned so far. */
 var project_count = 0;
-/* Cross-origin request permissibility [UNUSED]*/
-var cross_org = true;
-/* Sets to true when next page returns 404. */
-var crawl_finished = false;
 /* Number of projects that meet requirements. */
 var passing_projects = 0;
 /* Number of projects that meet requirements and extensions */
@@ -18,13 +27,35 @@ var gradeObj = null;
 var table = 0;
 
 var IS_LOADING = false;
+var numLoadingProjects = 0;
 
 /*
   SELECTION HTML
 */
 
+/// Helps with form submission.
+window.formHelper = function() {
+  /// Blocks premature form submissions.
+  $("form").submit(function() { return false; });
+  /// Maps enter key to grade button.
+  $(document).keypress(function(e) { if (e.which == 13) $("#process_button").click(); });
+};
+
+/// Populates the unit selector from a built-in list.
+window.fill_unitsHTML = function() {
+  var HTMLString = '';
+  for (var graderKey in graders) {
+    HTMLString += '<input type="radio" value="' + graderKey + '" class = "hidden"/>';
+    HTMLString += '<label class = "unitlabel">';
+    HTMLString += '<a onclick="drop_handler(\'' + graderKey + '\')"> <img src="pictures/' + graderKey + '.png"> </a>';
+    HTMLString += graders[graderKey].name;
+    HTMLString += '</label>';
+  }
+  document.getElementById("unitsHTML").innerHTML = HTMLString;
+}
+
 /* Initializes html and initiates crawler. */
-function buttonHandler() {
+window.buttonHandler = async function() {
   if(IS_LOADING) {
     return;
   }
@@ -39,9 +70,10 @@ function buttonHandler() {
   document.getElementById('wait_time').innerHTML = "loading...";
   IS_LOADING = true;
 
-	var requestURL = document.getElementById('inches_input').value;
-	var id = crawlFromStudio(requestURL);
-  crawl(id,1);
+  var requestURL = document.getElementById('inches_input').value;
+  var studioID = parseInt(requestURL.match(/\d+/));
+  crawlS3(studioID, 0);
+  //crawl(id,1);
 }
 
 /* Initializes global variables. */
@@ -62,70 +94,15 @@ function htmlInit() {
   noError();
 }
 
-function dropdownHandler() {
-  document.getElementById("unit_dropdown").classList.toggle("show");
-}
-
 $(document).ready(function(){
   $('.units label').click(function() {
     $(this).addClass('selected').siblings().removeClass('selected');
   });
 });
 
-function drop_scratchBasicsL1Handler() {
-  gradeObj = new GradeScratchBasicsL1();
-  console.log("Grading Scratch Basics L1");
-}
-
-function drop_scratchBasicsL2Handler() {
-  gradeObj = new GradeScratchBasicsL2();
-  console.log("Grading Scratch Basics L2");
-}
-
-function drop_eventHandler() {
-  gradeObj = new GradeEvents();
-  console.log("Grading Events");
-}
-
-function drop_eventsL2Handler() {
-  gradeObj = new GradeEventsL2();
-  console.log("Grading Events L2");
-}
-
-function drop_animationHandler() {
-  gradeObj = new GradeAnimation();
-  console.log("Grading Animation");
-}
-
-function drop_condloopsHandler() {
-  gradeObj = new GradeCondLoops();
-  console.log("Grading Conditional Loops");
-}
-
-function drop_onewaysyncHandler() {
-   gradeObj = new GradeOneWaySync();
-   console.log("Grading One Way Sync");
-}
-
-function drop_variablesL1Handler() {
-  gradeObj = new GradeVariablesL1();
-  console.log("Grading Variables L1");
-}
-
-function drop_twowaysyncHandler() {
-   gradeObj = new GradeTwoWaySync();
-   console.log("Grading Two Way Sync");
-}
-
-function drop_decompbyseqHandler() {
-   gradeObj = new GradeDecompBySeq();
-   console.log("Grading Decomposition By Sequence");
-}
-
-function drop_handler(graderName) {
-
-    gradeObj = new GradeDecompBySeq();
-    
+window.drop_handler = function(graderKey) {
+  gradeObj = new graders[graderKey].file;
+  console.log("Selected " + graders[graderKey].name);
 }
 
 window.onclick = function(event) {
@@ -141,18 +118,49 @@ window.onclick = function(event) {
   });
 }
 
-/* Request project jsons and initiate analysis. */
-function getJSON(requestURL,process_function, args){
-	var request = new XMLHttpRequest();
-	request.open('GET', requestURL);
-	request.responseType = 'json';
-	request.send();
-	request.onload = function() {
-		var project = request.response;
-    args.unshift(project)
-		process_function.apply(null,args);
-	}
+/// Web crawling
+///////////////////////////////////////////////////////////////////////////////////////////////////
+function crawlS3(studioID, offset) {
+
+  var studioRequestURL = 'https://chord.cs.uchicago.edu/studios3/' + studioID + '/' + offset + '/';
+  var studioRequest = new XMLHttpRequest();
+  studioRequest.open('GET', studioRequestURL);
+  studioRequest.send();
+  studioRequest.onload = 
+      function() {
+          var studioResponse = JSON.parse(studioRequest.response);
+          if (studioResponse.length === 0) {
+              return;
+          }
+          else {
+              for (var projectOverview of studioResponse) {
+                  var projectID = projectOverview.id;
+                  var projectRequestURL = 'https://chord.cs.uchicago.edu/projects3/' + projectID;
+                  var projectRequest = new XMLHttpRequest();
+                  numLoadingProjects++;
+                  projectRequest.open('GET', projectRequestURL);
+                  projectRequest.onload = 
+                      function() {
+                          var projectResponse = JSON.parse(projectRequest.response);
+                          try {
+                              gradeObj.grade(projectResponse, projectID);
+                          }
+                          catch (err) {
+                              console.log('Error grading project ' + projectID);
+                          }
+                          numLoadingProjects--;
+                          report(projectID, gradeObj.requirements, gradeObj.extensions, user);
+                      }
+                  }
+                  projectRequest.onerror =
+                      function() {
+                          numLoadingProjects--;
+                      }
+              return crawlS3(studioID, offset + 20);
+          }
+      }
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
   DISPLAY RESULTS
