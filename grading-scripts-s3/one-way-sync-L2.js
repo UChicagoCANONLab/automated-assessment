@@ -144,8 +144,7 @@ var sb3 = {
 			curBlockInfo = blocks[curBlockID]; //Pull out info about the block
 			script.push(curBlockInfo); //Add the block itself to the script dictionary                
 
-			//Get next info out
-			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+
 			//nextInfo = blocks[nextID]
 			opcode = curBlockInfo['opcode'];
 			
@@ -159,6 +158,9 @@ var sb3 = {
 					}
 				}
 			}
+
+			//Get next info out
+			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 	
 			//If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
 			if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -215,8 +217,7 @@ var sb3 = {
 		while(curBlockID != null){
 			curBlockInfo = blocks[curBlockID]; //Pull out info about the block
 
-			//Get next info out
-			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+
 			//nextInfo = blocks[nextID]
 			opcode = curBlockInfo['opcode'];
 			
@@ -231,6 +232,9 @@ var sb3 = {
 				}
 			}
 	
+			//Get next info out
+			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+
 			//If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
 			if((nextID == null) && (event_opcodes.includes(opcode))){
 				return [];
@@ -273,7 +277,6 @@ class GradeOneWaySyncL2 {
 		for(var sprite of sprites) {
 			const sayBlocks = sb3.findBlockIDs(sprite.blocks, 'looks_say');
 			sayBlocks.concat(sb3.findBlockIDs(sprite.blocks, 'look_sayforsecs'));
-			console.log(sayBlocks);
 			if(sayBlocks.length > 0) {
 				this.extensions.sayBlock.bool = true;;
 				return;
@@ -311,13 +314,15 @@ class GradeOneWaySyncL2 {
 	}
 
 	checkOneToFive(sprites) {
+		// makes sure there are sprites to check for
 		if (sb3.no(sprites)) {
 			return;
 		}
-
+		// object to record what messages have been sent and received
 		var messages = {};
 
 		for(var sprite of sprites) {
+			// iterate through "when sprite clicked" events in search of message
 			const whenClickedBlocks = sb3.findBlockIDs(sprite.blocks, 'event_whenthisspriteclicked');
 			if(whenClickedBlocks) {
 				for(var whenClickedBlock of whenClickedBlocks) {
@@ -334,6 +339,7 @@ class GradeOneWaySyncL2 {
 					}
 				}
 			}
+			// iterate through "when received" blocks in search of a message
 			const whenReceivedBlocks = sb3.findBlockIDs(sprite.blocks, 'event_whenbroadcastreceived');
 			if(whenReceivedBlocks) {
 				for(var whenReceivedBlock of whenReceivedBlocks) {
@@ -346,7 +352,9 @@ class GradeOneWaySyncL2 {
 				}
 			}
 		}
-		// complicated way of finding the most received message. 
+		// complicated way of finding the most received message.
+		// this could be simplifed if it is extraneous who received the message
+		//   and what it was
 		return Object.keys(messages).reduce((prev, msg) => {
 			if(messages[msg][0] && (messages[msg][1].length > prev.receivedBy.length))
 				return {message: msg, receivedBy: messages[msg][1]};
@@ -355,27 +363,32 @@ class GradeOneWaySyncL2 {
 		}, {message: '', receivedBy: []});
 	}
 
-	grade(fileObj, user) { //call to grade project //fileobj is 
+	grade(fileObj, user) { 
 		this.initReqs();
 		this.initExts();
 		var sprites = [];
 		const targets = fileObj.targets;
 		
-		// creates array of sprites, first non-default one is marked as the start button
+		// creates array of sprites, checks whether the backdrop has been set
 		for (var target of targets) {
 			if (target.isStage) {
-				this.requirements.hasBackdrop.bool = (target.costumes.length > 1)
+				this.requirements.hasBackdrop.bool = (target.costumes.length > 0)
 			} else {
 				sprites.push(target);
 			}
 		}
 		// if more 5 or more sprites
 		this.requirements.fiveSprites.bool = (sprites.length >= 5);
+		// find the message with the most successful receives
+		var {message, receivedBy} = this.checkOneToFive(sprites);
 		
-		const {message, receivedBy} = this.checkOneToFive(sprites);
+		// for every successful message received, set requriement to true
+		receivedBy = receivedBy > 4 ? 4 : receivedBy;
 		for(var i in receivedBy) {
 			this.requirements['startToSprite' + i].bool = true;
 		}
+		// check for animation and say block. Does not check if these blocks
+		//  are a result of the broadcast
 		this.checkAnimation(sprites);
 		this.checkSayBlock(sprites);
 	}

@@ -145,8 +145,7 @@ var sb3 = {
 			curBlockInfo = blocks[curBlockID]; //Pull out info about the block
 			script.push(curBlockInfo); //Add the block itself to the script dictionary                
 
-			//Get next info out
-			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+			
 			//nextInfo = blocks[nextID]
 			opcode = curBlockInfo['opcode'];
 			
@@ -160,6 +159,9 @@ var sb3 = {
 					}
 				}
 			}
+
+			//Get next info out
+			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 	
 			//If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
 			if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -216,8 +218,6 @@ var sb3 = {
 		while(curBlockID != null){
 			curBlockInfo = blocks[curBlockID]; //Pull out info about the block
 
-			//Get next info out
-			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 			//nextInfo = blocks[nextID]
 			opcode = curBlockInfo['opcode'];
 			
@@ -231,6 +231,9 @@ var sb3 = {
 					}
 				}
 			}
+
+			//Get next info out
+			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 	
 			//If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
 			if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -304,6 +307,7 @@ class GradeOneWaySyncL1 {
 		}
 		this.checkDjembeBroadcast(sprites)
 		this.checkStartBroadcast(sprites);
+		sprites = Object.values(sprites).filter(sprite => sprite != null);
 		this.checkSayOnEvent(sprites);
 	}
 
@@ -313,7 +317,9 @@ class GradeOneWaySyncL1 {
 	 *   whether it is playing a sound
 	 */
 	broadcastToPlay(sprite, message) {
-
+		if (sb3.no(sprite)) {
+			return;
+		}
 		var receivesMessage = false;
 		const whenReceiveBlocks = sb3.findBlockIDs(sprite.blocks, 'event_whenbroadcastreceived');
 
@@ -340,6 +346,9 @@ class GradeOneWaySyncL1 {
 	 *   whether it is dancing
 	 */
 	broadcastToDance(sprite, message) {
+		if (sb3.no(sprite)) {
+			return;
+		}
 		// if costume change and waitblock within a repeat loop, the sprite is dancing
 		var animation = {constume: false, wait: false};
 		var receivesMessage = false;
@@ -382,7 +391,7 @@ class GradeOneWaySyncL1 {
 	}
 
 	/* Checks first part of lesson, whether djembe broadcasts to child */
-	checkDjembeBroadcast({ 'Mali Djembe': djembe, 'Mali child': child}) {
+	checkDjembeBroadcast({ 'Mali Djembe': djembe = null, 'Mali child': child = null}) {
 		if (!djembe) return;
 		
 		var messageSent = false;
@@ -431,7 +440,7 @@ class GradeOneWaySyncL1 {
 											  'Mali child': maliChild, 
 											  'Navajo Flute': flute, 
 											  'Navajo child': navajoChild, 
-											  'Start Button': start }) {
+											  'Start Button': start = null }) {
 		if (!start) {
 			return;
 		}
@@ -480,12 +489,8 @@ class GradeOneWaySyncL1 {
 			'event_whenbackdropswitchesto','event_whengreaterthan'
 		];
 
-
-		sprites = Object.values(sprites);
 		for (const sprite of sprites) {
-
 			var eventBlocks = [];
-	
 			for(block in sprite.blocks){ 
 				if(sprite.blocks[block].opcode == opcode){
 					eventBlocks.push(block);
