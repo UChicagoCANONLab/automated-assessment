@@ -309,6 +309,7 @@ class GradeOneWaySyncL1 {
 		this.checkStartBroadcast(sprites);
 		sprites = Object.values(sprites).filter(sprite => sprite != null);
 		this.checkSayOnEvent(sprites);
+		this.checkChangeWait(sprites);
 	}
 
 	/*
@@ -375,8 +376,7 @@ class GradeOneWaySyncL1 {
 										break;
 									}
 									case 'control_wait': {
-										if (sblockInfo.inputs.DURATION[1][1] != .5)
-											this.extensions.changeWait.bool = true;
+
 										animation.wait = true;
 									}
 								}
@@ -484,15 +484,18 @@ class GradeOneWaySyncL1 {
 		if (sb3.no(sprites)) {
 			return;
 		}
+
 		const eventOpcodes = [
 			'event_whenflagclicked', 'event_whenthisspriteclicked','event_whenkeypressed', 
 			'event_whenbackdropswitchesto','event_whengreaterthan'
 		];
-
+			
 		for (const sprite of sprites) {
 			var eventBlocks = [];
-			for(block in sprite.blocks){ 
-				if(sprite.blocks[block].opcode == opcode){
+			for(const block in sprite.blocks){ 
+				const blockInfo = sprite.blocks[block];
+				if(eventOpcodes.includes(blockInfo.opcode)){
+
 					eventBlocks.push(block);
 				}
 			}
@@ -503,6 +506,28 @@ class GradeOneWaySyncL1 {
 					if (['looks_say', 'looks_sayforsecs'].includes(block.opcode)) {
 						this.extensions.sayBlock.bool = true;
 						return;
+					}
+				}
+			}
+		}
+	}
+
+	checkChangeWait(sprites) {
+		if (sb3.no(sprites)) {
+			return;
+		}
+
+		for (const sprite of sprites) {
+			const whenReceivedBlocks = sb3.findBlockIDs(sprite.blocks, 'event_whenbroadcastreceived');
+			for (const whenReceivedBlock of whenReceivedBlocks) {
+				const script = sb3.makeScript(sprite.blocks, whenReceivedBlock);
+				for (const block of script) {
+
+					if (block.opcode == 'control_wait') {
+
+						if (block.inputs.DURATION[1][1] != .5) {
+							this.extensions.changeWait.bool = true;
+						}
 					}
 				}
 			}
