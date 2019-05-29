@@ -1,0 +1,23 @@
+ID,Error grading project,Project has at least three sprites.,Left Sprite handles click.,Left Sprite gets bigger.,Then Left Sprite has at least two say blocks.,The Left Sprite resets size.,Middle Sprite handles click.,Middle Sprite gets bigger.,Then Middle Sprite has at least two say blocks.,The Middle Sprite resets size.,Right Sprite handles click.,Right Sprite gets bigger.,Then Right Sprite has at least two say blocks.,The Right Sprite resets size.,Left sprite has new name.,Middle sprite has new name.,Right sprite has new name.,Left Sprite spins using turn and wait blocks.,A Sprite reacts to another event.
+1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,0,0,0,0
+12JCL219,0,1,1,1,1,1,1,0,0,0,1,1,1,1,0,0,0,0,0
+13JCL219,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0
+14JCL219,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0
+15JCL219,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+17JCL219,0,1,1,1,1,1,1,1,0,1,1,1,0,1,0,0,0,0,0
+18JCL219,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0
+19JCL219,0,1,1,1,1,1,1,0,0,0,1,1,1,1,0,0,0,0,1
+1JCL219,0,1,1,1,1,1,1,1,0,1,1,1,1,1,0,0,0,0,0
+22JCL219,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0
+23JCL219,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0
+24JCL219,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+25JCL219,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0
+26JCL219,0,1,1,1,0,1,1,0,0,0,1,1,0,0,0,0,1,0,0
+2JCL219,0,1,1,1,1,1,1,0,0,0,1,1,1,1,0,0,0,0,1
+3JCL219,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+4JCL219,0,1,1,1,1,0,1,0,0,0,1,1,0,0,0,0,0,0,1
+6JCL219,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0
+7JCL219,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0
+8JCL219,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+9JCL219,0,1,1,1,1,1,1,1,0,1,1,1,1,1,0,0,0,0,0
+
