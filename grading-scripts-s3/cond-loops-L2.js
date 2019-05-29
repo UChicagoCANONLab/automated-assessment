@@ -1,4 +1,4 @@
-/* Variables L1 Autograder
+/* Conditional Loops L2 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
 */
@@ -263,191 +263,105 @@ var sb3 = {
     }
 };
 
-class GradeVariablesL1 {
-
+class GradeCondLoops2{
+    
     constructor() {
-        this.requirements   = {};
-        this.extensions     = {};
-        this.help           = {};
+        this.requirements = {}
     }
-
-    initReqs() {
-        this.requirements.calcPerimeter  = 
-            {bool: false, str: 'Computer correctly calculates perimeter.'};
-        this.requirements.printPerimeter =
-            {bool: false, str: 'Computer outputs calculated perimeter.'};
-
-        /*this.extensions.calcVolume      =
-            {bool: false, str: 'Uses length, width, and height variables to calculate volume and then outputs it.'};*/
-    }
-
-    grade(fileObj, user) {
-        this.initReqs(); 
-        
-        for(var i in fileObj['targets']){
-            var sprite = fileObj['targets'][i]
-            if(sprite['name'] == 'Ben'){
-                var ben = sprite;
-                this.checkBen(ben);
-                return;
-            }
+    
+    init() {
+        this.requirements = {
+            arrange:
+                {bool: false, str: 'Arranged Vehicle and Stop sprites on stage; they are not in their original locations.'},
+            move:
+                {bool: false, str: 'Vehicle sprite moves across stage when green flag is clicked'},
+            stop:
+                {bool: false, str: 'Vehicle sprite stops when touching another sprite or another color'},
+            speak:
+                {bool: false, str: 'Vehicle sprite says something or makes a sound when it stops'},
+        }
+        this.extensions = {/* TODO */ 
+            addSprite:
+                {bool: false, str: 'Added a sprite'},
         }
     }
+    
+    grade(fileObj, user){
+        this.init();
+        
+        var num_sprites = 0;
+        var arrange = 0
 
-    checkBen(ben){
-        var benid = sb3.findBlockIDs(ben['blocks'], 'event_whenkeypressed');
-        if(benid != null){
-            var benScript = sb3.makeScript(ben['blocks'], benid);
-            for(var i in benScript){
-                if(benScript[i]['opcode'] == 'data_setvariableto'){
-                    if(benScript[i]['fields']['VARIABLE'][0] == 'perimeter'){
-                        var opId = benScript[i]['inputs']['VALUE'][1]
-                        var opblock = ben['blocks'][opId]
-                        //(2*h) + (2*w); (h + h) + (w +w) cases
-                        if(opblock['opcode'] == 'operator_add'){
-                            this.checkAdd(ben, opblock)
-                        }
-                        //(h + w) * 2 case
-                        else if(opblock['opcode'] == 'operator_multiply'){
-                            this.checkMult(ben, opblock)
-                        }    
+        var moveOptions = ['motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy', 'motion_glideto', 'motion_goto', 'motion_gotoxy']
+        var soundOptions = ['sound_playuntildone', 'sound_play', 'looks_say', 'looks_sayforsecs']
+        
+        for(var i in fileObj['targets']){
+            var sprite = fileObj['targets'][i];
+            if(sprite['isStage'] == false){ //only check sprites if they aren't a backdrop
+                num_sprites++
+                if(sprite['name'] == 'Vehicle'){
+                    //check if rearranged
+                    if (sprite['x'] != -43 && sprite['y'] != 98){
+                        arrange ++
                     }
-                }
-                if(benScript[i]['opcode'] == 'looks_say' || benScript[i]['opcode'] == 'looks_sayforsecs'){
-                    var id = benScript[i]['inputs']['MESSAGE']
-                    var say = ben['blocks'][id[1]]
-                    if(say != undefined){ 
-                        if(say['opcode'] == 'operator_join'){
-                            var msgs = [say['inputs']['STRING1'][1][1], say['inputs']['STRING2'][1][1]]
-                            if(msgs.includes('perimeter')){
-                                this.requirements.printPerimeter.bool = true
+                    var ids = sb3.findBlockIDs(sprite['blocks'], 'event_whenflagclicked')
+                    for(var j in ids){
+                        var script = sb3.makeScript(sprite['blocks'], ids[j])
+                        for(var k in script){
+                            if(moveOptions.includes(script[k]['opcode'])){
+                                this.requirements.move.bool = true
+                            }
+                            if(script[k]['opcode'] == 'control_repeat_until'){ //1st stop case
+                                var condId = script[k]['inputs']['CONDITION'][1]
+                                var condition = sprite['blocks'][condId]
+                                console.log(condition)
+                                //extract condition
+                                //if condition is another sprite
+                                if(condition['opcode'] == 'sensing_touchingobject'){
+                                    //check that object is another sprite
+                                    var objmenuId = condition['inputs']['TOUCHINGOBJECTMENU'][1]
+                                    var objmenu = sprite['blocks'][objmenuId]
+                                    var obj = objmenu['fields']['TOUCHINGOBJECTMENU'][0]
+                                    if(obj != '_mouse_' && obj != '_edge_'){
+                                        this.requirements.stop.bool = true
+                                    }
+                                }
+                                //if condition is a color
+                                if(condition['opcode'] == 'sensing_touchingcolor'){
+                                    this.requirements.stop.bool = true
+                                }                                
+                                //check to see if speaks after stopping
+                                var next = sprite['blocks'][script[k]['next']]
+                                while(next != null){
+                                    if(soundOptions.includes(next['opcode'])){
+                                        this.requirements.speak.bool = true
+                                    }
+                                    next = next['next']
+                                }
                             }
                         }
                     }
                 }
+                if(sprite['name'] == 'Sign'){
+                    //check if rearranged
+                    if (sprite['x'] != 76 && sprite['y'] != 60){
+                        arrange ++
+                    }                   
+                }
             }
+                  
         }
-    }
+        
+        if(num_sprites > 2){
+            this.extensions.addSprite.bool = true;
+        }
+        
+        if(arrange > 1){
+            this.requirements.arrange.bool = true
+        }
+        
+    } 
     
-    checkMult(ben, opblock){
-        var mult = [opblock['inputs']['NUM1'][1], opblock['inputs']['NUM2'][1]]
-        var height = false
-        var width = false
-        
-        if(mult[0][1] != undefined && mult[0][1] == '2'){
-            if(ben['blocks'][mult[1]] != undefined && ben['blocks'][mult[1]]['opcode'] == 'operator_add'){
-                var num1 = ben['blocks'][mult[1]]['inputs']['NUM1'][1][1]
-                var num2 = ben['blocks'][mult[1]]['inputs']['NUM2'][1][1]
-                if(num1 != undefined){
-                    if(num1 == 'width'){
-                        width = true
-                    }
-                    else if(num1 == 'height'){
-                        height = true
-                    }
-                }
-                if(num2 != undefined){
-                    if(num2 == 'width'){
-                        width = true
-                    }
-                    else if(num2 == 'height'){
-                        height = true
-                    }
-                }
-            }
-        }
-        else if(mult[1][1] != undefined && mult[1][1] == '2'){
-            if(ben['blocks'][mult[0]] != undefined && ben['blocks'][mult[0]]['opcode'] == 'operator_add'){
-                var num1 = ben['blocks'][mult[0]]['inputs']['NUM1'][1][1]
-                var num2 = ben['blocks'][mult[0]]['inputs']['NUM2'][1][1]
-                if(num1 != undefined){
-                    if(num1 == 'width'){
-                        width = true
-                    }
-                    else if(num1 == 'height'){
-                        height = true
-                    }
-                }
-                if(num2 != undefined){
-                    if(num2 == 'width'){
-                        width = true
-                    }
-                    else if(num2 == 'height'){
-                        height = true
-                    }
-                }
-            }
-        }
-        
-        if(width && height){
-            this.requirements.calcPerimeter.bool = true
-        }
-
-    }
-    
-    checkAdd(ben, opblock){
-        var aID = opblock['inputs']['NUM1'][1]
-        var a = ben['blocks'][aID]
-        var bID = opblock['inputs']['NUM2'][1]
-        var b = ben['blocks'][bID]
-        
-        if(!b || !a){
-            return
-        }
-        
-        var height = false;
-        var width = false;
-        
-        if(a['opcode'] == 'operator_multiply'){  
-            var amult = [a['inputs']['NUM1'][1][1], a['inputs']['NUM2'][1][1]]
-            if(amult.includes('2') && amult.includes('height')){
-                height = true
-            }
-            else if(amult.includes(2) && amult.includes('width')){
-                width = true
-            }
-        }
-        if(a['opcode'] == 'operator_add'){  
-            var aadd = [a['inputs']['NUM1'][1][1], a['inputs']['NUM2'][1][1]]
-            
-            if(aadd[0] == 'height' && aadd[1] == 'height'){
-                height = true
-            }
-            else if(aadd[0] == 'width' && aadd[1] == 'width'){
-                width = true
-            }
-
-        }
-        if(b['opcode'] == 'operator_multiply'){
-            
-            var bmult = [b['inputs']['NUM1'][1][1], b['inputs']['NUM2'][1][1]]
-            
-            if(bmult.includes('2') && bmult.includes('height')){
-                height = true
-            }
-            else if(bmult.includes('2') && bmult.includes('width')){
-                width = true
-            }
-            
-            
-        }
-        if(b['opcode'] == 'operator_add'){  
-            var badd = [b['inputs']['NUM1'][1][1], b['inputs']['NUM2'][1][1]]
-            
-            if(badd[0] == 'height' && badd[1] == 'height'){
-                height = true
-            }
-            else if(badd[0] == 'width' && badd[1] == 'width'){
-                width = true
-            }
-
-        }
-
-        if(width && height){
-            this.requirements.calcPerimeter.bool = true
-        }
-
-    }
 }
-        
-module.exports = GradeVariablesL1;
+
+module.exports = GradeCondLoops2;

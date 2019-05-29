@@ -162,9 +162,6 @@ var sb3 = {
             curBlockInfo = blocks[curBlockID]; //Pull out info about the block
             script.push(curBlockInfo); //Add the block itself to the script dictionary                
 
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-            //nextInfo = blocks[nextID]
             opcode = curBlockInfo['opcode'];
             
             //extract nested children if loop block
@@ -177,6 +174,9 @@ var sb3 = {
                     }
                 }
             }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
             if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -201,9 +201,7 @@ var sb3 = {
         while(curBlockID != null){
             var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
             script.push(curBlockInfo); //Add the block itself to the script dictionary 
-            
-            //Get parent info out
-            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
+        
             //parentInfo = blocks[parentID]
     		var opcode = curBlockInfo['opcode'];
 
@@ -218,6 +216,8 @@ var sb3 = {
                     }
                 }
             }
+            //Get parent info out
+            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
             
             //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
             if ((parentID == null) && !(event_opcodes.includes(opcode))){
@@ -233,8 +233,6 @@ var sb3 = {
         while(curBlockID != null){
             curBlockInfo = blocks[curBlockID]; //Pull out info about the block
 
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
             //nextInfo = blocks[nextID]
             opcode = curBlockInfo['opcode'];
             
@@ -248,6 +246,9 @@ var sb3 = {
                     }
                 }
             }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
             if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -274,12 +275,12 @@ class GradeCondLoops {
         this.requirements.carStop       =
             {bool:false, str:'Car stops at Libby, yellow line, white line, or purple line.'};
         this.requirements.saySomething  = 
-            {bool:false, str:'Car says something.'};
+            {bool:false, str:'Car says something after stopping.'};
         this.requirements.changeSpeed   = 
             {bool:false, str:'Changed car speed.'};
-
+        /* TODO
         this.extensions.otherSprites    =   
-            {bool:false, str:'Other sprites perform actions.'};
+            {bool:false, str:'Other sprites perform actions when the car stops.'};*/
         this.extensions.carSound        = 
             {bool:false, str:'Car makes a sound.'};
     }
@@ -290,15 +291,11 @@ class GradeCondLoops {
         var car  = sb3.jsonToSpriteBlocks(fileObj, 'Car'); 
         this.checkCostume(fileObj); 
         this.checkStopandSay(car);
-        this.checkSpeed(car);
         
         this.checkSound(car);
         var stop = sb3.jsonToSpriteBlocks(fileObj, 'Stop');
-        this.checkSprites(stop);
         var darian = sb3.jsonToSpriteBlocks(fileObj, 'Darian');
-        this.checkSprites(darian);
         var libby = sb3.jsonToSpriteBlocks(fileObj, 'Libby');
-        this.checkSprites(libby);
         
     }
 
@@ -313,16 +310,28 @@ class GradeCondLoops {
     }
 
     /// Checks that speed was changed (requirement).
-    checkSpeed(car) {
+    checkSpeed(car, currid) {
         
-        var waits = sb3.findBlockIDs(car, 'control_wait');
+        var curr = car[currid]
         
-        for(i in waits){
-            var duration = car[waits[i]]['inputs']['DURATION'][1][1]
-            if(duration != '0.1'){
-                this.requirements.changeSpeed.bool = true;
+        while(curr != null){
+            //check if wait time changed
+            if(curr['opcode'] == 'control_wait'){
+                if(curr['inputs']['DURATION'][1][1] != '0.1'){
+                        this.requirements.changeSpeed.bool = true;
+                }
             }
+            //check if changed number of steps
+            else if(curr['opcode'] == 'motion_movesteps'){
+                if(curr['inputs']['STEPS'][1][1] != '10'){
+                        this.requirements.changeSpeed.bool = true;
+                } 
+            }
+            
+            //iterate through substack
+            curr = car[curr['next']]
         }
+
     }
 
     /// Checks for car sound (extension).
@@ -332,16 +341,6 @@ class GradeCondLoops {
         
         if(sound1.length != 0 || sound2.length != 0){
             this.extensions.carSound.bool = true;
-        }
-    }
-
-    /// Checks that other sprites perform actions (extension).
-    checkSprites(sprite) {      
-        var blocks = sb3.findBlockIDs(sprite, 'event_whenflagclicked');
-        for(i in blocks){
-            if(sprite[blocks[i]]['next'] != null){
-                this.extensions.otherSprites.bool = true;
-            }
         }
     }
 
@@ -357,9 +356,13 @@ class GradeCondLoops {
             //check stop
             var condition = car[repeats[i]]['inputs']['CONDITION'][1] //extract repeat until condition
             var condop = car[condition]['opcode'];
+            
+            //check whether speed was changed
+            this.checkSpeed(car, car[repeats[i]]['inputs']['SUBSTACK'][1]);
+            
             if(condop == 'sensing_touchingobject'){
                 var objkey = car[condition]['inputs']['TOUCHINGOBJECTMENU'][1] //extract key of object
-                var obj = car[obj]['fields']['TOUCHINGOBJECTMENU'][0] //extract name of object
+                var obj = car[objkey]['fields']['TOUCHINGOBJECTMENU'][0] //extract name of object
                 if(obj == 'Libby'){
                     this.requirements.carStop.bool = true;
                 }
@@ -368,7 +371,7 @@ class GradeCondLoops {
                 var color = car[condition]['inputs']['COLOR'][1][1] //extract key of object
                 if(color == '#ffd208' || color == '#a52cff' || color == '#ffffff'){ //purple, yellow, white line color
                     this.requirements.carStop.bool = true;
-                }          
+                } 
             }
             
             //check say

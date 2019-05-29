@@ -1,4 +1,4 @@
-/* Variables L1 Autograder
+/* Decomposition By Sequence L2 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
 */
@@ -263,191 +263,88 @@ var sb3 = {
     }
 };
 
-class GradeVariablesL1 {
-
+class GradeDecomp2{
+    
     constructor() {
-        this.requirements   = {};
-        this.extensions     = {};
-        this.help           = {};
+        this.requirements = {}
     }
-
-    initReqs() {
-        this.requirements.calcPerimeter  = 
-            {bool: false, str: 'Computer correctly calculates perimeter.'};
-        this.requirements.printPerimeter =
-            {bool: false, str: 'Computer outputs calculated perimeter.'};
-
-        /*this.extensions.calcVolume      =
-            {bool: false, str: 'Uses length, width, and height variables to calculate volume and then outputs it.'};*/
+    
+    init() {
+        this.requirements = {
+            changedBackdrop:
+                {bool: false, str: 'Added a new backdrop.'},
+            threeSprites:
+                {bool: false, str: 'Chose three sprites.'},
+            startingPosition:
+                {bool: false, str: 'At least two sprites use \'go to x y\' block when the green flag is clicked in their touching animation scripts'},
+            touching:
+                {bool: false, str: 'At least two sprites \'touching\' or \'repeat until touching\' blocks'},
+        }
+        this.extensions = {/* TODO */
+            
+        }
     }
-
-    grade(fileObj, user) {
-        this.initReqs(); 
+    
+    
+    
+    grade(fileObj, user){
+        this.init();
+        
+        var num_sprites = 0;
+        var touching = 0
+        var goto = 0
+        var touchOptions = ['sensing_coloristouchingcolor', 'sensing_touchingobject', 'sensing_touchingcolor']
         
         for(var i in fileObj['targets']){
-            var sprite = fileObj['targets'][i]
-            if(sprite['name'] == 'Ben'){
-                var ben = sprite;
-                this.checkBen(ben);
-                return;
-            }
-        }
-    }
-
-    checkBen(ben){
-        var benid = sb3.findBlockIDs(ben['blocks'], 'event_whenkeypressed');
-        if(benid != null){
-            var benScript = sb3.makeScript(ben['blocks'], benid);
-            for(var i in benScript){
-                if(benScript[i]['opcode'] == 'data_setvariableto'){
-                    if(benScript[i]['fields']['VARIABLE'][0] == 'perimeter'){
-                        var opId = benScript[i]['inputs']['VALUE'][1]
-                        var opblock = ben['blocks'][opId]
-                        //(2*h) + (2*w); (h + h) + (w +w) cases
-                        if(opblock['opcode'] == 'operator_add'){
-                            this.checkAdd(ben, opblock)
-                        }
-                        //(h + w) * 2 case
-                        else if(opblock['opcode'] == 'operator_multiply'){
-                            this.checkMult(ben, opblock)
-                        }    
-                    }
-                }
-                if(benScript[i]['opcode'] == 'looks_say' || benScript[i]['opcode'] == 'looks_sayforsecs'){
-                    var id = benScript[i]['inputs']['MESSAGE']
-                    var say = ben['blocks'][id[1]]
-                    if(say != undefined){ 
-                        if(say['opcode'] == 'operator_join'){
-                            var msgs = [say['inputs']['STRING1'][1][1], say['inputs']['STRING2'][1][1]]
-                            if(msgs.includes('perimeter')){
-                                this.requirements.printPerimeter.bool = true
-                            }
-                        }
-                    }
+            var sprite = fileObj['targets'][i];
+            if(sprite['isStage'] == true){ 
+                var currCostumeIndex = sprite['currentCostume']
+                var currCostume = sprite['costumes'][currCostumeIndex]
+                if(currCostume['name'] != 'backdrop1'){
+                    this.requirements.changedBackdrop.bool = true
                 }
             }
+            if(sprite['isStage'] == false){ //only check sprites if they aren't a backdrop
+                num_sprites++
+                var curr_costume_index = sprite['currentCostume']
+                var curr_costume = sprite['costumes'][curr_costume_index]['name']
+                if(curr_costume != 'costume1' && curr_costume != 'backdrop1'){ //if student just added a new costume to the default sprite
+                    this.requirements.threeSprites.bool = true;
+                }
+            }
+                
+            //make scripts    
+            var touchIDs = []
+            for(var j in touchOptions){
+                touchIDs.push(sb3.findBlockIDs(sprite['blocks'], touchOptions[j]))
+            }
+        
+            for(var k in touchIDs){ //make script from each 
+                var script = sb3.makeScript(sprite['blocks'], touchIDs[k])
+                if(script.length != 0){
+                    touching++
+                }
+                for(var l in script){
+                    if(script[l]['opcode'] == 'motion_gotoxy'){
+                        goto ++
+                    }
+                }
+            }    
         }
-    }
+        
+        if(num_sprites > 2){
+            this.requirements.threeSprites.bool = true;
+        }
+        
+        if(goto > 1){
+            this.requirements.startingPosition.bool = true
+        }
+        
+        if(touching > 1){
+            this.requirements.touching.bool = true
+        }
+    }   
     
-    checkMult(ben, opblock){
-        var mult = [opblock['inputs']['NUM1'][1], opblock['inputs']['NUM2'][1]]
-        var height = false
-        var width = false
-        
-        if(mult[0][1] != undefined && mult[0][1] == '2'){
-            if(ben['blocks'][mult[1]] != undefined && ben['blocks'][mult[1]]['opcode'] == 'operator_add'){
-                var num1 = ben['blocks'][mult[1]]['inputs']['NUM1'][1][1]
-                var num2 = ben['blocks'][mult[1]]['inputs']['NUM2'][1][1]
-                if(num1 != undefined){
-                    if(num1 == 'width'){
-                        width = true
-                    }
-                    else if(num1 == 'height'){
-                        height = true
-                    }
-                }
-                if(num2 != undefined){
-                    if(num2 == 'width'){
-                        width = true
-                    }
-                    else if(num2 == 'height'){
-                        height = true
-                    }
-                }
-            }
-        }
-        else if(mult[1][1] != undefined && mult[1][1] == '2'){
-            if(ben['blocks'][mult[0]] != undefined && ben['blocks'][mult[0]]['opcode'] == 'operator_add'){
-                var num1 = ben['blocks'][mult[0]]['inputs']['NUM1'][1][1]
-                var num2 = ben['blocks'][mult[0]]['inputs']['NUM2'][1][1]
-                if(num1 != undefined){
-                    if(num1 == 'width'){
-                        width = true
-                    }
-                    else if(num1 == 'height'){
-                        height = true
-                    }
-                }
-                if(num2 != undefined){
-                    if(num2 == 'width'){
-                        width = true
-                    }
-                    else if(num2 == 'height'){
-                        height = true
-                    }
-                }
-            }
-        }
-        
-        if(width && height){
-            this.requirements.calcPerimeter.bool = true
-        }
-
-    }
-    
-    checkAdd(ben, opblock){
-        var aID = opblock['inputs']['NUM1'][1]
-        var a = ben['blocks'][aID]
-        var bID = opblock['inputs']['NUM2'][1]
-        var b = ben['blocks'][bID]
-        
-        if(!b || !a){
-            return
-        }
-        
-        var height = false;
-        var width = false;
-        
-        if(a['opcode'] == 'operator_multiply'){  
-            var amult = [a['inputs']['NUM1'][1][1], a['inputs']['NUM2'][1][1]]
-            if(amult.includes('2') && amult.includes('height')){
-                height = true
-            }
-            else if(amult.includes(2) && amult.includes('width')){
-                width = true
-            }
-        }
-        if(a['opcode'] == 'operator_add'){  
-            var aadd = [a['inputs']['NUM1'][1][1], a['inputs']['NUM2'][1][1]]
-            
-            if(aadd[0] == 'height' && aadd[1] == 'height'){
-                height = true
-            }
-            else if(aadd[0] == 'width' && aadd[1] == 'width'){
-                width = true
-            }
-
-        }
-        if(b['opcode'] == 'operator_multiply'){
-            
-            var bmult = [b['inputs']['NUM1'][1][1], b['inputs']['NUM2'][1][1]]
-            
-            if(bmult.includes('2') && bmult.includes('height')){
-                height = true
-            }
-            else if(bmult.includes('2') && bmult.includes('width')){
-                width = true
-            }
-            
-            
-        }
-        if(b['opcode'] == 'operator_add'){  
-            var badd = [b['inputs']['NUM1'][1][1], b['inputs']['NUM2'][1][1]]
-            
-            if(badd[0] == 'height' && badd[1] == 'height'){
-                height = true
-            }
-            else if(badd[0] == 'width' && badd[1] == 'width'){
-                width = true
-            }
-
-        }
-
-        if(width && height){
-            this.requirements.calcPerimeter.bool = true
-        }
-
-    }
 }
-        
-module.exports = GradeVariablesL1;
+
+module.exports = GradeDecomp2;

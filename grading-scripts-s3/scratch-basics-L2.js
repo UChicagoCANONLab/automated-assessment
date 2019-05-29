@@ -1,4 +1,4 @@
-/* Variables L1 Autograder
+/* Scratch Basics L2 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
 */
@@ -262,192 +262,134 @@ var sb3 = {
         return script;
     }
 };
-
-class GradeVariablesL1 {
+class GradeScratchBasicsL2 {
 
     constructor() {
-        this.requirements   = {};
-        this.extensions     = {};
-        this.help           = {};
+        this.requirements = {};
+        this.extensions   = {};
     }
 
-    initReqs() {
-        this.requirements.calcPerimeter  = 
-            {bool: false, str: 'Computer correctly calculates perimeter.'};
-        this.requirements.printPerimeter =
-            {bool: false, str: 'Computer outputs calculated perimeter.'};
-
-        /*this.extensions.calcVolume      =
-            {bool: false, str: 'Uses length, width, and height variables to calculate volume and then outputs it.'};*/
+    init() {
+        this.requirements = {
+            changedBackdrop:
+                {bool: false, str: 'Added a new backdrop.'},
+            pickedSprite:
+                {bool: false, str: 'Added a new sprite to the project.'},
+            greenFlag:
+                {bool: false, str: 'Created a script starting with the "when green flag clicked" block.'},
+            goTo:
+                {bool: false, str: 'Script uses the "go to x:_ y:_" block.'},
+            say:
+                {bool: false, str: 'Script uses the "say _ for _ secs" blocks.'},
+            move:
+                {bool: false, str: 'Script uses the "move _ steps" block.'}
+        }
+        this.extensions = {
+            secondEvent:
+                {bool: false, str: 'Added another script using the "when sprite clicked" or "when key pressed" event.'},
+            newBlocks:
+                {bool: false, str: 'Project includes new blocks you haven\'t used before.'},
+            secondSprite:
+                {bool: false, str: 'Added a second sprite with its own scripts.'}
+        }
     }
 
     grade(fileObj, user) {
-        this.initReqs(); 
-        
-        for(var i in fileObj['targets']){
-            var sprite = fileObj['targets'][i]
-            if(sprite['name'] == 'Ben'){
-                var ben = sprite;
-                this.checkBen(ben);
+        this.init();
+        this.checkBackdrop(fileObj); // changedBackdrop
+        this.checkSprite(fileObj);   // pickedSprite
+        this.checkScripts(fileObj);  // greenFlag, goTo, say, move, secondEvent, newBlocks, secondSprite
+    }
+
+    checkBackdrop(fileObj) {
+        if(sb3.jsonToSpriteBlocks(fileObj, 'Stage')){ //if backdrop found
+            var backdrop = sb3.jsonToSprite(fileObj, 'Stage')
+            var currCostumeIndex = backdrop['currentCostume']
+            var currCostume = backdrop['costumes'][currCostumeIndex]
+            if(currCostume['name'] == 'backdrop1'){
                 return;
             }
         }
+        this.requirements.changedBackdrop.bool = true;
     }
 
-    checkBen(ben){
-        var benid = sb3.findBlockIDs(ben['blocks'], 'event_whenkeypressed');
-        if(benid != null){
-            var benScript = sb3.makeScript(ben['blocks'], benid);
-            for(var i in benScript){
-                if(benScript[i]['opcode'] == 'data_setvariableto'){
-                    if(benScript[i]['fields']['VARIABLE'][0] == 'perimeter'){
-                        var opId = benScript[i]['inputs']['VALUE'][1]
-                        var opblock = ben['blocks'][opId]
-                        //(2*h) + (2*w); (h + h) + (w +w) cases
-                        if(opblock['opcode'] == 'operator_add'){
-                            this.checkAdd(ben, opblock)
-                        }
-                        //(h + w) * 2 case
-                        else if(opblock['opcode'] == 'operator_multiply'){
-                            this.checkMult(ben, opblock)
-                        }    
-                    }
+    checkSprite(fileObj) {
+        var num_sprites = 0;
+        for(var i in fileObj['targets']){
+            var sprite = fileObj['targets'][i];
+            if(sprite['isStage'] == false){ //only check sprites if they aren't a backdrop
+                num_sprites++
+                var curr_costume_index = sprite['currentCostume']
+                var curr_costume = sprite['costumes'][curr_costume_index]['name']
+                if(curr_costume != 'costume1' && curr_costume != 'backdrop1'){ //if student just added a new costume to the default sprite
+                    this.requirements.pickedSprite.bool = true;
                 }
-                if(benScript[i]['opcode'] == 'looks_say' || benScript[i]['opcode'] == 'looks_sayforsecs'){
-                    var id = benScript[i]['inputs']['MESSAGE']
-                    var say = ben['blocks'][id[1]]
-                    if(say != undefined){ 
-                        if(say['opcode'] == 'operator_join'){
-                            var msgs = [say['inputs']['STRING1'][1][1], say['inputs']['STRING2'][1][1]]
-                            if(msgs.includes('perimeter')){
-                                this.requirements.printPerimeter.bool = true
+                if(num_sprites > 1){
+                    this.requirements.pickedSprite.bool = true;
+                }
+            }
+        }                
+    }
+
+    checkScripts(fileObj) {
+        var defaultOpcodes = [
+            'event_whenflagclicked',
+            'motion_gotoxy', 
+            'motion_movesteps',
+            'looks_sayforsecs', 
+            'event_whenkeypressed', 
+            'looks_switchcostumeto', 
+            'control_repeat', 
+            'event_whenthisspriteclicked' 
+        ];
+        
+        var event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
+        
+        var spritesWithScripts = 0;
+        
+        for(var i in fileObj['targets']){ //for each sprite
+            var sprite = fileObj['targets'][i]
+            
+            if((sprite['isStage'] == false)){ //if sprite not a backdrop
+                spritesWithScripts ++;
+                for(var opcodenum in event_opcodes){ //for each opcode
+                    var ids = sb3.findBlockIDs(sprite['blocks'], event_opcodes[opcodenum]);
+                    for(var id in ids){
+                        if(id != null){ //if opcode found
+                            var script = sb3.makeScript(sprite['blocks'], ids[id]); //make script
+                            var sayCount = 0;
+
+                            for (var key in script) {
+
+                                if('event_whenflagclicked' == script[key]['opcode']){
+                                    this.requirements.greenFlag.bool = true;
+                                }
+                                if('motion_gotoxy' == script[key]['opcode']){
+                                    this.requirements.goTo.bool  = true;
+                                }
+                                if('motion_movesteps' == script[key]['opcode']){
+                                    this.requirements.move.bool  = true;                               
+                                }
+                                if (script[key]['opcode'] === 'looks_sayforsecs'){
+                                    this.requirements.say.bool = true;                                  
+                                }
+                                if(('event_whenthisspriteclicked' == script[key]['opcode']  || 'event_whenkeypressed' == script[key]['opcode']) && script.length > 1){
+                                    this.extensions.secondEvent.bool = true;                              
+                                }
+                                for(var opcodeID in defaultOpcodes){
+                                    if(defaultOpcodes[opcodeID] != script[key]['opcode']){
+                                        this.extensions.newBlocks.bool = true;
+                                    }
+                                }
+
                             }
                         }
                     }
+
                 }
             }
+        this.extensions.secondSprite.bool = (spritesWithScripts > 1);
         }
-    }
-    
-    checkMult(ben, opblock){
-        var mult = [opblock['inputs']['NUM1'][1], opblock['inputs']['NUM2'][1]]
-        var height = false
-        var width = false
-        
-        if(mult[0][1] != undefined && mult[0][1] == '2'){
-            if(ben['blocks'][mult[1]] != undefined && ben['blocks'][mult[1]]['opcode'] == 'operator_add'){
-                var num1 = ben['blocks'][mult[1]]['inputs']['NUM1'][1][1]
-                var num2 = ben['blocks'][mult[1]]['inputs']['NUM2'][1][1]
-                if(num1 != undefined){
-                    if(num1 == 'width'){
-                        width = true
-                    }
-                    else if(num1 == 'height'){
-                        height = true
-                    }
-                }
-                if(num2 != undefined){
-                    if(num2 == 'width'){
-                        width = true
-                    }
-                    else if(num2 == 'height'){
-                        height = true
-                    }
-                }
-            }
-        }
-        else if(mult[1][1] != undefined && mult[1][1] == '2'){
-            if(ben['blocks'][mult[0]] != undefined && ben['blocks'][mult[0]]['opcode'] == 'operator_add'){
-                var num1 = ben['blocks'][mult[0]]['inputs']['NUM1'][1][1]
-                var num2 = ben['blocks'][mult[0]]['inputs']['NUM2'][1][1]
-                if(num1 != undefined){
-                    if(num1 == 'width'){
-                        width = true
-                    }
-                    else if(num1 == 'height'){
-                        height = true
-                    }
-                }
-                if(num2 != undefined){
-                    if(num2 == 'width'){
-                        width = true
-                    }
-                    else if(num2 == 'height'){
-                        height = true
-                    }
-                }
-            }
-        }
-        
-        if(width && height){
-            this.requirements.calcPerimeter.bool = true
-        }
-
-    }
-    
-    checkAdd(ben, opblock){
-        var aID = opblock['inputs']['NUM1'][1]
-        var a = ben['blocks'][aID]
-        var bID = opblock['inputs']['NUM2'][1]
-        var b = ben['blocks'][bID]
-        
-        if(!b || !a){
-            return
-        }
-        
-        var height = false;
-        var width = false;
-        
-        if(a['opcode'] == 'operator_multiply'){  
-            var amult = [a['inputs']['NUM1'][1][1], a['inputs']['NUM2'][1][1]]
-            if(amult.includes('2') && amult.includes('height')){
-                height = true
-            }
-            else if(amult.includes(2) && amult.includes('width')){
-                width = true
-            }
-        }
-        if(a['opcode'] == 'operator_add'){  
-            var aadd = [a['inputs']['NUM1'][1][1], a['inputs']['NUM2'][1][1]]
-            
-            if(aadd[0] == 'height' && aadd[1] == 'height'){
-                height = true
-            }
-            else if(aadd[0] == 'width' && aadd[1] == 'width'){
-                width = true
-            }
-
-        }
-        if(b['opcode'] == 'operator_multiply'){
-            
-            var bmult = [b['inputs']['NUM1'][1][1], b['inputs']['NUM2'][1][1]]
-            
-            if(bmult.includes('2') && bmult.includes('height')){
-                height = true
-            }
-            else if(bmult.includes('2') && bmult.includes('width')){
-                width = true
-            }
-            
-            
-        }
-        if(b['opcode'] == 'operator_add'){  
-            var badd = [b['inputs']['NUM1'][1][1], b['inputs']['NUM2'][1][1]]
-            
-            if(badd[0] == 'height' && badd[1] == 'height'){
-                height = true
-            }
-            else if(badd[0] == 'width' && badd[1] == 'width'){
-                width = true
-            }
-
-        }
-
-        if(width && height){
-            this.requirements.calcPerimeter.bool = true
-        }
-
     }
 }
-        
-module.exports = GradeVariablesL1;
+module.exports = GradeScratchBasicsL2;
