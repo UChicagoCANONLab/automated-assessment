@@ -5,6 +5,7 @@ import sys
 from subprocess import call
 from Naked.toolshed.shell import execute_js, muterun_js
 import csv
+import os
 
 # Order of operations:
 # Scrape Web
@@ -47,9 +48,11 @@ def main():
 
     #Prepare inputs for grading script
     modname = module.strip("./")
-    script = module+"/"+modname+".js"
+
+    # looks for script in higher directory
+    script = "../grading-scripts-s3/"+modname+".js"
     project = module+"/json_files_by_studio/"+studioID+"/"
-    results = module+"/output.txt"
+    results = module+"/grades/"+studioID+".txt"
 
     # Check for verbose tag
     verbose = ""
@@ -59,7 +62,7 @@ def main():
 
     # Run grading script on studio
     print("Running grading script...")
-    result = execute_js('grade.js', script + " " + project + " " + results + verbose)
+    jsReturn = execute_js('grade.js', script + " " + project + " " + results + verbose)
     print("Finished grading.\n")
 
 
@@ -83,7 +86,11 @@ def main():
             while (next != "|"):
                 if next == '': #check for EOF
                     break
-                if "Requirements:" not in next and "Extensions:" not in next:
+                if "Extension" in next: #ignore extensions
+                    while (next != "|"):
+                        next = grades.readline().strip('\n')
+                    continue
+                if "Requirements:" not in next:
                     stripped = next.split(',')
                     if len(line) == 1 and len(stripped) > 1: #if no error grading project
                         line.append(0)
@@ -113,7 +120,12 @@ def main():
 
     # Adds grades to CSV
     print("Pushing data to CSV...")
-    with open(module+"/csv/"+grade+"/"+studioID+'.csv', 'w') as csvfile:
+    folder = module+"/csv/"+grade+'/'
+
+    # Create target Directory if doesn't exist
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+    with open(folder+studioID+'.csv', 'w+') as csvfile:
         filewriter = csv.writer(csvfile, delimiter=',',
                                 quotechar='|', quoting=csv.QUOTE_MINIMAL)
         for i in range(len(data)):

@@ -7,7 +7,6 @@
 
 import sys
 import csv
-from numpy import ndarray
 
 
 def main():
@@ -16,7 +15,7 @@ def main():
     output = sys.argv[2]
 
     #Get grade level (should be name of csv file)
-    grade = input.split('/')[-1][:-4]
+    grade = output.split('/')[-1][:-4]
 
     with open(input,'r') as input:
         with open(output,'w') as output:
@@ -29,7 +28,7 @@ def main():
 
             # Create array to count
             length = len(header)
-            count = ndarray((length,),int)
+            count = [0] * length
             count[0] = grade
 
             # Iterate through CSV

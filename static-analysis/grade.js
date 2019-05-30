@@ -16,7 +16,12 @@ if (process.argv.length > 5) {
     isVerbose = true;
 }
 
+
+//Check if project is directory
 var projectPathIsDirectory = fs.lstatSync(projectPath).isDirectory();
+
+
+
 
 //Wipe the results file to allow for new assessment
 fs.writeFile(resultsFile, "", function (err) {
@@ -85,7 +90,7 @@ function gradeProjectWithGrader(projectPath, graderPath,isVerbose,resultsFile) {
     }
 
     //write the output to the file
-   fs.appendFileSync(resultsFile,output)
+    fs.appendFileSync(resultsFile,output)
 
 
 }
