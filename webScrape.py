@@ -53,10 +53,9 @@ def main():
             json_filename = user_directory + scratch_username + ".json"
             if not os.path.exists(user_directory):
                 os.makedirs(user_directory)
-            open(json_filename, 'wb').write(json_stream.content)
-            json_data = open(json_filename, "r")
-            data = json.load(json_data)
-            json_data.close()
+            write_json = open(json_filename, 'wb')
+            write_json.write(json_stream.content)
+            write_json.close()
 
 
 

@@ -7,32 +7,35 @@
 import os
 import sys
 import csv
+import io
 
 
-def merge(input, output):
-    header = False #Check for header
-    with open(input,'r') as input:
-        with open(output,'a') as output:
+def merge(infile, outfile):
+    needHeader = False # to check if file needs a header (is empty or non-existent)
+    with open(infile,'r') as input:
+        try: #check for file exist
+            with open(outfile, 'r') as check:
+                #check for file empty
+                needHeader = len(check.readline().strip('\n').split(',')) < 2
+        except:
+            #if does not exist, mark as needing header
+            needHeader = True
+
+        with open(outfile,'a+') as output:
             filewriter = csv.writer(output, delimiter=',',
                                     quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
-            # loop through input then write to output
             inline = input.readline().strip('\n').split(',')
-            outline = ''
-            needHeader = True
-            while (len(inline) > 1):
-                # If merging into empty document, copy the header
-                if needHeader:
-                    try:
-                        outline = output.readline().strip('\n').split(',')
-                    except:
-                        pass
-                    if len(outline) < 2:
-                        filewriter.writerow(inline)
-                    needHeader = False
-                # if not, just append the data
-                else:
-                    filewriter.writerow(inline)
+
+            # if new or empty document create and/or add header
+            if needHeader:
+                filewriter.writerow(inline)
+
+            inline = input.readline().strip('\n').split(',')
+
+            # iterate through input, append to output
+            while (len(inline) > 1): #check for EOF
+                filewriter.writerow(inline)
                 inline = input.readline().strip('\n').split(',')
 
 
@@ -47,6 +50,7 @@ def main():
     for filename in os.listdir(folder):
         if filename.endswith(".csv"):
             path = folder+filename
+            print(path)
             merge(path,output)
         else:
             continue
