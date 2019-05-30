@@ -1,9 +1,17 @@
+/* Scratch Events Autograder
+Scratch 2 (original) version: Max White, Summer 2018
+Scratch 3 updates: Elizabeth Crowdus, Zachary Crenshaw Spring 2019
+*/
+
 var sb3 = {
-    no: function(x) { //null checker
+    //null checker
+    no: function(x) { 
         return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
     },
 
-    jsonToSpriteBlocks: function(json, spriteName) { //retrieve a given sprite's blocks from JSON
+    //retrieve a given sprite's blocks from JSON
+    //note: doesn't check whether or not blocks are properly attached
+    jsonToSpriteBlocks: function(json, spriteName) { 
         if (this.no(json)) return []; //make sure script exists
 
         var projInfo = json['targets'] //extract targets from JSON data
@@ -19,7 +27,8 @@ var sb3 = {
         return [];
     }, //done
     
-    jsonToSprite: function(json, spriteName) { //retrieve a given sprite's blocks from JSON
+    //retrieve a given sprite's info (not just blocks) from JSON
+    jsonToSprite: function(json, spriteName) { 
         if (this.no(json)) return []; //make sure script exists
 
         var projInfo = json['targets'] //extract targets from JSON data
@@ -33,6 +42,7 @@ var sb3 = {
         return [];
     }, //done
     
+    //counts the number of non-background sprites in a project
     countSprites: function(json){
         if (this.no(json)) return false; //make sure script exists
         
@@ -47,7 +57,9 @@ var sb3 = {
         return numSprites
     },
     
-    findSprite: function(json, spriteName){ //returns true if sprite with given name found
+    //looks through json to see if a sprite with a given name is present
+    //returns true if sprite with given name found
+    findSprite: function(json, spriteName){ 
         if (this.no(json)) return false; //make sure script exists
 
         var projInfo = json['targets'] //extract targets from JSON data
@@ -61,28 +73,34 @@ var sb3 = {
         return false;
     }, //done
     
-    findBlockID: function(blocks, opcode){
-        if(this.no(blocks) || blocks == {}) return null;
+    //returns list of block ids given a set of blocks
+    findBlockIDs: function(blocks, opcode){
+        if(this.no(blocks) || blocks == {}) return [];
+        
+        var blockids = [];
         
         for(block in blocks){ 
             if(blocks[block]['opcode'] == opcode){
-                return block;
+                blockids.push(block);
             }
         }
-        return null;
+        return blockids;
     },
     
+    //given particular key, returns list of block ids of a certain kind of key press given a set of blocks 
     findKeyPressID: function(blocks, key){
-        if(this.no(blocks) || blocks == {}) return null;
+        if(this.no(blocks) || blocks == {}) return [];
+        
+        var blockids = [];
         
         for(block in blocks){ 
             if(blocks[block]['opcode'] == 'event_whenkeypressed'){
                 if(blocks[block]['fields']['KEY_OPTION'][0] == key){
-                    return block;
+                    blockids.push(block);
                 }
             }
         }
-        return null;
+        return blockids;
     },
     
     opcodeBlocks: function(script, myOpcode) { //retrieve blocks with a certain opcode from a script list of blocks
@@ -113,22 +131,78 @@ var sb3 = {
         return total;
     }, //done
     
-    //given list of blocks, return a script
+    //(recursive) helper function to extract blocks inside a given loop
+    //works like makeScript except it only goes down the linked list (rather than down & up)
+    loopExtract: function(blocks, blockID){
+        if (this.no(blocks) || this.no(blockID)) return [];
+        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
+        
+        var curBlockID = blockID;
+        var script = [];
+
+        //Find all blocks that come after
+        curBlockID = blockID //Initialize with blockID of interest
+        while(curBlockID != null){
+            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+            script.push(curBlockInfo); //Add the block itself to the script dictionary                
+
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+            //nextInfo = blocks[nextID]
+            opcode = curBlockInfo['opcode'];
+            
+            //extract nested children if loop block
+            if(loop_opcodes.includes(opcode)){
+                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+                if(innerloop != undefined){
+                    var nested_blocks = this.makeScript(blocks, innerloop)
+                    for(b in nested_blocks){
+                        script.push(nested_blocks[b])
+                    }
+                }
+            }
+		
+            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
+            if((nextID == null) && (event_opcodes.includes(opcode))){
+                return [];
+            }
+            //Iterate: Set next to curBlock
+            curBlockID = nextID;
+        }     
+        return script;        
+    },
+    
+    //given list of blocks and a keyID of a block, return a script
     makeScript: function(blocks, blockID){
         if (this.no(blocks) || this.no(blockID)) return [];
         event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
+        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
         
         var curBlockID = blockID;
-        var script = {};
+        var script = [];
     
+        //find all blocks that come before
         while(curBlockID != null){
             var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-            script[curBlockID]=curBlockInfo; //Add the block itself to the script dictionary DEBUG PUSH SITUATION
+            script.push(curBlockInfo); //Add the block itself to the script dictionary 
+            
             //Get parent info out
             var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
             //parentInfo = blocks[parentID]
     		var opcode = curBlockInfo['opcode'];
 
+            
+            //extract nested children if loop block
+            if(loop_opcodes.includes(opcode)){
+                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+                if(innerloop != undefined){
+                    var nested_blocks = this.loopExtract(blocks, innerloop)
+                    for(b in nested_blocks){
+                        script.push(nested_blocks[b])
+                    }
+                }
+            }
+            
             //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
             if ((parentID == null) && !(event_opcodes.includes(opcode))){
                 return [];
@@ -137,25 +211,36 @@ var sb3 = {
             //Iterate: set parent to curBlock
             curBlockID = parentID
         }
-        //Find all blocks that come after
-        curBlockID = blockID //Initialize with blockID of interest
+
+        //find all blocks that come after
+        curBlockID = blocks[blockID]['next']
         while(curBlockID != null){
             curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-            script[curBlockID]=curBlockInfo; //Add the block itself to the script dictionary                
-            
 
             //Get next info out
             nextID = curBlockInfo['next']; //Block that comes after has key 'next'
             //nextInfo = blocks[nextID]
             opcode = curBlockInfo['opcode'];
+            
+            //extract nested children if loop block
+            if(loop_opcodes.includes(opcode)){
+                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+                if(innerloop != undefined){
+                    var nested_blocks = this.loopExtract(blocks, innerloop)
+                    for(b in nested_blocks){                            
+                        script.push(nested_blocks[b])
+                    }
+                }
+            }
 		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
             if((nextID == null) && (event_opcodes.includes(opcode))){
-                return {};
+                return [];
             }
+            script.push(curBlockInfo); //Add the block itself to the script dictionary                
             //Iterate: Set next to curBlock
             curBlockID = nextID;
-        }     
+        }
         return script;
     }
 };
@@ -189,6 +274,7 @@ class GradeAnimation {
 
 
     grade(fileObj, user) {
+        
         this.initReqs();
         // for private method
         var that = this;
@@ -215,8 +301,10 @@ class GradeAnimation {
         //make space key script
         var keyid = sb3.findKeyPressID(bee['blocks'], 'space');
         if(keyid != null){
+            
             this.requirements.handlesSpaceBar.bool = true;
             var spaceScript = sb3.makeScript(bee['blocks'], keyid);
+            console.log(spaceScript);
             for(var i in spaceScript){
                 //check for loop
                 if(validLoops.includes(spaceScript[i]['opcode'])){
@@ -253,7 +341,7 @@ class GradeAnimation {
                     this.requirements.downArrowWaitBlock.bool = true;
                 }
             }
-        }c
+        }
 
     }
     

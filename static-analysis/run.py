@@ -17,7 +17,7 @@ import csv
 
 # TODO: Able to batch input
 
-#COMMAND LINE: python3 run.py (studio URL) (module folder) [--verbose]
+#COMMAND LINE: python3 run.py (studio URL) (module folder) (grade level) [--verbose]
 #if do not need to call from the web again (local files saved), put just the studio number
 
 def main():
@@ -34,6 +34,9 @@ def main():
     if module[-1] == '/':
         module = module[:-1]
 
+    #Get grade level
+    grade = sys.argv[3]
+
     # Get data from web
     if studioScrape != "":
         print("Scraping data from web...")
@@ -45,12 +48,12 @@ def main():
     #Prepare inputs for grading script
     modname = module.strip("./")
     script = module+"/"+modname+".js"
-    project = module+"/user_json_files/"+studioID
+    project = module+"/json_files_by_studio/"+studioID+"/"
     results = module+"/output.txt"
 
     # Check for verbose tag
     verbose = ""
-    if len(sys.argv) > 3 and sys.argv[3] == "--verbose":
+    if len(sys.argv) > 4 and sys.argv[4] == "--verbose":
         verbose = " --verbose"
         print("Verbose grading active.")
 
@@ -64,9 +67,6 @@ def main():
     print("Loading grades data...")
     with open(results,'r') as grades:
         data = []
-        line = []
-        firstID = grades.readline().strip('\n') #first id is special
-        line.append(firstID)
         headers = []
         headers.append("ID")
         headers.append("Error grading project")
@@ -80,7 +80,6 @@ def main():
         # Get user data
         while (next != ''): #read until EOF
             line = []
-            next = grades.readline().strip('\n')
             while (next != "|"):
                 if next == '': #check for EOF
                     break
@@ -106,6 +105,7 @@ def main():
             if len(headers) > 2:
                 seek = False
             data.append(line)
+            next = grades.readline().strip('\n')
 
         data[0] = headers
 
@@ -113,10 +113,9 @@ def main():
 
     # Adds grades to CSV
     print("Pushing data to CSV...")
-    with open(module+"/csv/"+studioID+'.csv', 'w') as csvfile:
+    with open(module+"/csv/"+grade+"/"+studioID+'.csv', 'w') as csvfile:
         filewriter = csv.writer(csvfile, delimiter=',',
                                 quotechar='|', quoting=csv.QUOTE_MINIMAL)
-
         for i in range(len(data)):
             filewriter.writerow(data[i])
 

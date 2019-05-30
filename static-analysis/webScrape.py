@@ -22,9 +22,6 @@ def main():
     # Get module
     module = sys.argv[2]
 
-    # Create a csv of all Scratch usernames and project IDs
-    studentInfo = open(module +'/students.csv', 'a+') #append mode
-
     # Convert studio URL to the one necessary for scraping Scratch usernames and project IDs.
     # Pull projects until page number does not exist
 
@@ -62,11 +59,6 @@ def main():
             json_data.close()
 
 
-
-            # Print to students.csv
-            studentInfoLine = scratch_username + "," + "https://scratch.mit.edu/projects/" + proj_id + "/"
-
-            print(studentInfoLine, file=studentInfo)
 
         pageNum += 1
         studio_api_url = sa.studio_to_API(studioURL, pageNum)
