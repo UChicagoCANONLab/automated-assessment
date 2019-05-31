@@ -14,9 +14,7 @@ import os
 
 # Create grade for this studio
 
-# TODO: Enforce labeling for first set of data in grade
-
-# TODO: Able to batch input
+#Save grade to CSV
 
 #COMMAND LINE: python3 run.py (studio URL) (module folder) (grade level) [--verbose]
 #if do not need to call from the web again (local files saved), put just the studio number
@@ -31,23 +29,22 @@ def main():
 
 
     #Get folder for a module
-    module = sys.argv[2]
+    module = sys.argv[2].strip()
     if module[-1] == '/':
         module = module[:-1]
-
     #Get grade level
     grade = sys.argv[3]
 
     # Get data from web
     if studioScrape != "":
-        print("Scraping data from web...")
+        print("Scraping " + studioID+ " data from web...")
         call(["python3", "webScrape.py",studioURL,module])
         print("Scraped.\n")
     else:
         print("No request to scrape...moving on to grading.\n")
 
     #Prepare inputs for grading script
-    modname = module.strip("./")
+    modname = module.strip("./ ")
 
     # looks for script in higher directory
     script = "../grading-scripts-s3/"+modname+".js"
@@ -68,6 +65,7 @@ def main():
 
     # Get CSV data from text file
     print("Loading grades data...")
+
     with open(results,'r') as grades:
         data = []
         headers = []
@@ -86,7 +84,7 @@ def main():
             while (next != "|"):
                 if next == '': #check for EOF
                     break
-                if "Extension" in next: #ignore extensions
+                if "Extension" in next or "ScratchEncore" in next: #ignore extensions or ScratchEncore user
                     while (next != "|"):
                         next = grades.readline().strip('\n')
                     continue

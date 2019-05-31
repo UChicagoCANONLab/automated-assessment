@@ -21,8 +21,6 @@ if (process.argv.length > 5) {
 var projectPathIsDirectory = fs.lstatSync(projectPath).isDirectory();
 
 
-
-
 //Wipe the results file to allow for new assessment
 fs.writeFile(resultsFile, "", function (err) {
     if (err) throw err;

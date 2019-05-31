@@ -5,7 +5,6 @@
 #COMMAND LINE: python3 webScrape.py (studio URL) (file path)
 
 import sys
-import json
 import requests
 import scratchAPI as sa
 import os
@@ -49,13 +48,14 @@ def main():
             # Read json file from URL. Convert Scratch URL to Scratch API URL, then read file.
             apiURL = sa.create_API_URL(proj_id)
             json_stream = requests.get(apiURL, allow_redirects=True)
-            user_directory = module + "/json_files_by_studio/" + studioID + "/"
+            user_directory = module + "/json_files_by_studio/" + studioID+ "/"
             json_filename = user_directory + scratch_username + ".json"
-            if not os.path.exists(user_directory):
+            try:
                 os.makedirs(user_directory)
-            write_json = open(json_filename, 'wb')
-            write_json.write(json_stream.content)
-            write_json.close()
+            except:
+                pass
+            with open(json_filename, 'wb') as json:
+                json.write(json_stream.content)
 
 
 
