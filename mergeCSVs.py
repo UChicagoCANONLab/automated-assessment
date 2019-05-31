@@ -7,7 +7,6 @@
 import os
 import sys
 import csv
-import io
 
 
 def merge(infile, outfile):

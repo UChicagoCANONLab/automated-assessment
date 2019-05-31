@@ -22,20 +22,26 @@ def main():
             filewriter = csv.writer(output, delimiter=',',
                                     quotechar='|', quoting=csv.QUOTE_MINIMAL)
             # Get header data
-            header = input.readline().strip('\n').split(',')
+            nativeHeader = input.readline().strip('\n').split(',')
+            length = len(nativeHeader)
+            header = [0] * (length + 1)
             header[0] = "Grade level"
+            header[1] = "Count"
+            for i in range(1, length):
+                header[i+1] = nativeHeader[i]
+
             filewriter.writerow(header)
 
             # Create array to count
-            length = len(header)
-            count = [0] * length
+            count = [0] * (length + 1)
             count[0] = grade
 
             # Iterate through CSV
             next = input.readline().strip('\n').split(',')
             while (next != ['']):
-                for i in range (1,length):
-                    count[i] += int(next[i])
+                count[1]+=1
+                for i in range (2,length):
+                    count[i+1] += int(next[i])
                 next = input.readline().strip('\n').split(',')
             filewriter.writerow(count)
 
