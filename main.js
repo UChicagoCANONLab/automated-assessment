@@ -1,3 +1,5 @@
+/// Provides necessary scripts for index.html.
+
 /// Requirements (scripts)
 var graders = {
   scratchBasicsL1: { name: 'Scratch Basics L1',      file: require('./grading-scripts-s3/scratch-basics-L1') },
@@ -10,6 +12,9 @@ var graders = {
   oneWaySyncL1:    { name: 'One-Way Sync L1',        file: require('./grading-scripts-s3/one-way-sync-L1')   },
   oneWaySyncL2:    { name: 'Two-Way Sync L2',        file: require('./grading-scripts-s3/two-way-sync-L2')   },
 };
+
+/// Globals
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* MAKE SURE OBJ'S AUTO INITIALIZE AT GRADE */
 
@@ -29,9 +34,8 @@ var table = 0;
 var IS_LOADING = false;
 var numLoadingProjects = 0;
 
-/*
-  SELECTION HTML
-*/
+/// HTML helpers
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Helps with form submission.
 window.formHelper = function() {
@@ -118,6 +122,8 @@ window.onclick = function(event) {
   });
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 /// Web crawling
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 function crawlS3(studioID, offset) {
@@ -126,45 +132,44 @@ function crawlS3(studioID, offset) {
   var studioRequest = new XMLHttpRequest();
   studioRequest.open('GET', studioRequestURL);
   studioRequest.send();
-  studioRequest.onload = 
-      function() {
-          var studioResponse = JSON.parse(studioRequest.response);
-          if (studioResponse.length === 0) {
-              return;
-          }
-          else {
-              for (var projectOverview of studioResponse) {
-                  var projectID = projectOverview.id;
-                  var projectRequestURL = 'https://chord.cs.uchicago.edu/projects3/' + projectID;
-                  var projectRequest = new XMLHttpRequest();
-                  numLoadingProjects++;
-                  projectRequest.open('GET', projectRequestURL);
-                  projectRequest.onload = 
-                      function() {
-                          var projectResponse = JSON.parse(projectRequest.response);
-                          try {
-                              gradeObj.grade(projectResponse, projectID);
-                          }
-                          catch (err) {
-                              console.log('Error grading project ' + projectID);
-                          }
-                          numLoadingProjects--;
-                          report(projectID, gradeObj.requirements, gradeObj.extensions, user);
-                      }
-                  }
-                  projectRequest.onerror =
-                      function() {
-                          numLoadingProjects--;
-                      }
-              return crawlS3(studioID, offset + 20);
-          }
+  studioRequest.onload =
+    function () {
+      var studioResponse = JSON.parse(studioRequest.response);
+      if (studioResponse.length === 0) {
+        return;
       }
+      else {
+        for (var projectOverview of studioResponse) {
+          var projectID = projectOverview.id;
+          var projectRequestURL = 'https://chord.cs.uchicago.edu/projects3/' + projectID;
+          var projectRequest = new XMLHttpRequest();
+          numLoadingProjects++;
+          projectRequest.open('GET', projectRequestURL);
+          projectRequest.onload =
+            function () {
+              var projectResponse = JSON.parse(projectRequest.response);
+              try {
+                gradeObj.grade(projectResponse, projectID);
+              }
+              catch (err) {
+                console.log('Error grading project ' + projectID);
+              }
+              numLoadingProjects--;
+              report(projectID, gradeObj.requirements, gradeObj.extensions, projectResponse.author.id);
+            }
+        }
+        projectRequest.onerror =
+          function () {
+            numLoadingProjects--;
+          }
+        return crawlS3(studioID, offset + 20);
+      }
+    }
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-  DISPLAY RESULTS
-*/
+/// Reporting results
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* Prints a line of grading text. */
 function appendText(string_list) {
@@ -274,9 +279,10 @@ function setProgress(bar,projects,total_projects,color) {
   }
 }
 
-/* 
-  ERROR REPORTS 
-*/
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Error reports
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 function linkError() {
   document.getElementById('myProgress').style.visibility = "hidden";
@@ -300,3 +306,5 @@ function noError() {
   document.getElementById('process_error').innerHTML = "";
   document.getElementById('process_error').style.visibility = 'hidden';
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////

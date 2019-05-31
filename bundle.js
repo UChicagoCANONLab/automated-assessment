@@ -1,149 +1,4 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-/* --- Contains web-crawling functions. --- */
-var web = require('./web');
-var my = module.exports;
-/* Parses out link to studio and initiates crawl. */
-function crawlFromStudio(string) {
-
-  /* Variables */
-  var id = 0;
-  var page = 1;
-  var res = string.split("/");
-
-  /* Retrieve studio ID. */
-  res.forEach(function(element) {
-    if(/^\d+$/.test(element)) {
-      id = element;
-    }
-  });
-
-  /* Check for invalid URL. */
-  if (id == 0) {
-    linkError();
-    return;
-  }
-  return id;
-}
-
-/* || Work In Progress || */
-function testCrossOrg(id) {
-  var newurl = "https://scratch.mit.edu/site-api/projects/in/" + id + "/1/";
-  var request = new XMLHttpRequest();
-  request.open('GET', newurl);
-  request.send();
-
-  /* Handle response. */
-  request.onload = function() {
-    if(request.status != 200) {
-      cross_org = false;      
-      console.log(cross_org);
-      return;
-    }
-    console.log(cross_org);
-    console.log(request.response);
-  }
-}
-
-/* Requests html from a studio page and recursively checks other studio pages. */
-function crawl(id, page) {
-  
-  /* Prepare link and send request. */
-  var newurl = "https://scratch.mit.edu/site-api/projects/in/" + id + "/" + page + "/";
-  var request = new XMLHttpRequest();
-  request.open('GET', newurl);
-  request.send();
-
-  /* Handle response. */
-  request.onload = function() {
-    if(request.status != 200) {
-      transferFailed(page);
-      return;
-    }
-    var project = request.response;
-
-    collectLinks(project);
-    crawl(id, page + 1);
-  }
-
-  /* Handle error. */
-  request.onerror = function() {
-    clearReport();
-    linkError();
-  }
-}
-
-/*Recursively builds an array of projects.*/
-my.crawlS3 = async function(studioID, offset, projects) {
-
-    var studioRequestURL = 'https://chord.cs.uchicago.edu/studios3/' + studioID + '/' + offset + '/';
-    var studioRequest = new XMLHttpRequest();
-    studioRequest.open('GET', studioRequestURL);
-    studioRequest.send();
-    studioRequest.onload = 
-        function() {
-            var studioResponse = JSON.parse(studioRequest.response);
-            if (studioResponse.length === 0) {
-                return Promise.all(projects);
-            }
-            else {
-                for (var projectOverview of studioResponse) {
-                    projects.push(
-                        web.promiseResource('https://chord.cs.uchicago.edu/projects3/' + projectOverview.id));
-                }
-                return my.crawlS3(studioID, offset + 20, projects);
-            }}}
-
-/* Logs unsuccessful transfer (generally intentional). */
-function transferFailed(page) {
-  console.log("XML transfer terminated on page " + page + ".");
-
-  if(page == 1) {
-    linkError();
-  }
-  else{
-    crawl_finished = true;
-    checkIfComplete();
-  }
-}
-
-/* Collects links to project pages from studio html and initiates JSON recovery. */
-function collectLinks(source) {
-  /* Constants. */
-  var pre = "https://chord.cs.uchicago.edu/";
-
-  /* Fetches project links and initiates JSON recovery for each. */
-  var doc = document.createElement( 'html' );
-  doc.innerHTML = source;
-  var thumb_items = doc.getElementsByClassName('project thumb item');
-  project_count += [...thumb_items].length;
-  
-  [...thumb_items].forEach(function(item){
-    var id = item.getAttribute('data-id');
-    var ret_val = pre + id;
-    var name;
-    try {
-      name = item.getElementsByClassName("owner")[0].children[0].innerHTML;
-    }
-    catch(err) {
-      name = '[undefined]';
-    }
-    getJSON(ret_val,analyze,[name,id]);
-  });
-}
-
-/* Request project jsons and initiate analysis. */
-function getJSON(requestURL,process_function, args){
-    var request = new XMLHttpRequest();
-    request.open('GET', requestURL);
-    request.responseType = 'json';
-    request.send();
-    request.onload = function() {
-      var project = request.response;
-      args.unshift(project)
-      process_function.apply(null,args);
-    }
-}
-},{"./web":13}],2:[function(require,module,exports){
 var sb3 = {
     no: function(x) { //null checker
         return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
@@ -865,7 +720,7 @@ class GradeAnimation {
 
 }
 module.exports = GradeAnimation;
-},{}],3:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 var sb3 = {
     no: function(x) { //null checker
         return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
@@ -1412,14 +1267,14 @@ class GradeAnimation{
             }
         }
         
-        if (Sprites.length > 2) {
+        if (Sprites.length > 2) { //checks for enough sprites
             this.requirements.EnoughSprites.bool = true;
         }
         
         var highestscoring = 0;
         var highscore = 0;
         for (var s = 0; s<Sprites.length; s++) {
-            //          0   1       2          3    4
+            //          0   1          2        3    4
             //REPORT: score,animated,reqs[4],types,dance
             var report = Sprites[s].grade();
             Reports.push(report);
@@ -1432,15 +1287,15 @@ class GradeAnimation{
             }
             
             
-            if (report[1]) {
+            if (report[1]) { //increment the number animated 
                 animated++;
             }
             
-            if (report[4]) {
+            if (report[4]) {//increment the number that dance
                 danceOnClick++;
             }
             
-            for (var t = 0; t<report[3].length;t++){
+            for (var t = 0; t<report[3].length;t++){ //count types of animation
                 if (!animationTypes.includes(report[3][t])){
                     animationTypes.push(report[3][t]);
                 }
@@ -1453,27 +1308,27 @@ class GradeAnimation{
         var chosen = Reports[highestscoring];
         
         
-        if (chosen[2][0]) {
+        if (chosen[2][0]) { //check loop
             this.requirements.Loop.bool = true;
         }
         
-        if (chosen[2][1]) {
+        if (chosen[2][1]) { //check movement
             this.requirements.Move.bool = true;
         }
         
-        if (chosen[2][2]) {
+        if (chosen[2][2]) { //check costume
             this.requirements.Costume.bool = true;
         }
         
-        if (chosen[2][3]) {
+        if (chosen[2][3]) { //check wait
             this.requirements.Wait.bool = true;
         }
         
-        if(chosen[0] == 4) {
+        if(chosen[0] == 4) { //if it has all four, then it's a dance
             this.requirements.Dance.bool = true;
         }
         
-        switch(animated) {
+        switch(animated) { //counts the number of animated sprites
             case 3: this.requirements.ThirdAnimated.bool = true;
             case 2: this.requirements.SecondAnimated.bool = true; 
             default: break;
@@ -1482,11 +1337,11 @@ class GradeAnimation{
         }
         
         
-        if (danceOnClick > 1) {
+        if (danceOnClick > 1) { //counts the sprites that dance on click
             this.extensions.MultipleDanceOnClick.bool = true;
         }
         
-        if (animationTypes.length > 1) {
+        if (animationTypes.length > 1) { //counts the number of animation blocks used
             this.extensions.OtherAnimation.bool = true;
         }
         
@@ -1499,7 +1354,7 @@ class GradeAnimation{
     
 }
 module.exports = GradeAnimation;
-},{}],4:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 /* Conditional Loops Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -1664,9 +1519,6 @@ var sb3 = {
             curBlockInfo = blocks[curBlockID]; //Pull out info about the block
             script.push(curBlockInfo); //Add the block itself to the script dictionary                
 
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-            //nextInfo = blocks[nextID]
             opcode = curBlockInfo['opcode'];
             
             //extract nested children if loop block
@@ -1679,6 +1531,9 @@ var sb3 = {
                     }
                 }
             }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
             if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -1703,9 +1558,7 @@ var sb3 = {
         while(curBlockID != null){
             var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
             script.push(curBlockInfo); //Add the block itself to the script dictionary 
-            
-            //Get parent info out
-            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
+        
             //parentInfo = blocks[parentID]
     		var opcode = curBlockInfo['opcode'];
 
@@ -1720,6 +1573,8 @@ var sb3 = {
                     }
                 }
             }
+            //Get parent info out
+            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
             
             //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
             if ((parentID == null) && !(event_opcodes.includes(opcode))){
@@ -1735,8 +1590,6 @@ var sb3 = {
         while(curBlockID != null){
             curBlockInfo = blocks[curBlockID]; //Pull out info about the block
 
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
             //nextInfo = blocks[nextID]
             opcode = curBlockInfo['opcode'];
             
@@ -1750,6 +1603,9 @@ var sb3 = {
                     }
                 }
             }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
             if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -1776,12 +1632,12 @@ class GradeCondLoops {
         this.requirements.carStop       =
             {bool:false, str:'Car stops at Libby, yellow line, white line, or purple line.'};
         this.requirements.saySomething  = 
-            {bool:false, str:'Car says something.'};
+            {bool:false, str:'Car says something after stopping.'};
         this.requirements.changeSpeed   = 
             {bool:false, str:'Changed car speed.'};
-
+        /* TODO
         this.extensions.otherSprites    =   
-            {bool:false, str:'Other sprites perform actions.'};
+            {bool:false, str:'Other sprites perform actions when the car stops.'};*/
         this.extensions.carSound        = 
             {bool:false, str:'Car makes a sound.'};
     }
@@ -1792,15 +1648,11 @@ class GradeCondLoops {
         var car  = sb3.jsonToSpriteBlocks(fileObj, 'Car'); 
         this.checkCostume(fileObj); 
         this.checkStopandSay(car);
-        this.checkSpeed(car);
         
         this.checkSound(car);
         var stop = sb3.jsonToSpriteBlocks(fileObj, 'Stop');
-        this.checkSprites(stop);
         var darian = sb3.jsonToSpriteBlocks(fileObj, 'Darian');
-        this.checkSprites(darian);
         var libby = sb3.jsonToSpriteBlocks(fileObj, 'Libby');
-        this.checkSprites(libby);
         
     }
 
@@ -1815,16 +1667,28 @@ class GradeCondLoops {
     }
 
     /// Checks that speed was changed (requirement).
-    checkSpeed(car) {
+    checkSpeed(car, currid) {
         
-        var waits = sb3.findBlockIDs(car, 'control_wait');
+        var curr = car[currid]
         
-        for(i in waits){
-            var duration = car[waits[i]]['inputs']['DURATION'][1][1]
-            if(duration != '0.1'){
-                this.requirements.changeSpeed.bool = true;
+        while(curr != null){
+            //check if wait time changed
+            if(curr['opcode'] == 'control_wait'){
+                if(curr['inputs']['DURATION'][1][1] != '0.1'){
+                        this.requirements.changeSpeed.bool = true;
+                }
             }
+            //check if changed number of steps
+            else if(curr['opcode'] == 'motion_movesteps'){
+                if(curr['inputs']['STEPS'][1][1] != '10'){
+                        this.requirements.changeSpeed.bool = true;
+                } 
+            }
+            
+            //iterate through substack
+            curr = car[curr['next']]
         }
+
     }
 
     /// Checks for car sound (extension).
@@ -1834,16 +1698,6 @@ class GradeCondLoops {
         
         if(sound1.length != 0 || sound2.length != 0){
             this.extensions.carSound.bool = true;
-        }
-    }
-
-    /// Checks that other sprites perform actions (extension).
-    checkSprites(sprite) {      
-        var blocks = sb3.findBlockIDs(sprite, 'event_whenflagclicked');
-        for(i in blocks){
-            if(sprite[blocks[i]]['next'] != null){
-                this.extensions.otherSprites.bool = true;
-            }
         }
     }
 
@@ -1859,9 +1713,13 @@ class GradeCondLoops {
             //check stop
             var condition = car[repeats[i]]['inputs']['CONDITION'][1] //extract repeat until condition
             var condop = car[condition]['opcode'];
+            
+            //check whether speed was changed
+            this.checkSpeed(car, car[repeats[i]]['inputs']['SUBSTACK'][1]);
+            
             if(condop == 'sensing_touchingobject'){
                 var objkey = car[condition]['inputs']['TOUCHINGOBJECTMENU'][1] //extract key of object
-                var obj = car[obj]['fields']['TOUCHINGOBJECTMENU'][0] //extract name of object
+                var obj = car[objkey]['fields']['TOUCHINGOBJECTMENU'][0] //extract name of object
                 if(obj == 'Libby'){
                     this.requirements.carStop.bool = true;
                 }
@@ -1870,7 +1728,7 @@ class GradeCondLoops {
                 var color = car[condition]['inputs']['COLOR'][1][1] //extract key of object
                 if(color == '#ffd208' || color == '#a52cff' || color == '#ffffff'){ //purple, yellow, white line color
                     this.requirements.carStop.bool = true;
-                }          
+                } 
             }
             
             //check say
@@ -1886,7 +1744,7 @@ class GradeCondLoops {
 
 }
 module.exports = GradeCondLoops;
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 /* Decomposition By Sequence L1 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -2051,8 +1909,6 @@ var sb3 = {
             curBlockInfo = blocks[curBlockID]; //Pull out info about the block
             script.push(curBlockInfo); //Add the block itself to the script dictionary                
 
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
             //nextInfo = blocks[nextID]
             opcode = curBlockInfo['opcode'];
             
@@ -2066,6 +1922,9 @@ var sb3 = {
                     }
                 }
             }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
             if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -2095,7 +1954,6 @@ var sb3 = {
             var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
             //parentInfo = blocks[parentID]
     		var opcode = curBlockInfo['opcode'];
-
             
             //extract nested children if loop block
             if(loop_opcodes.includes(opcode)){
@@ -2122,21 +1980,22 @@ var sb3 = {
         while(curBlockID != null){
             curBlockInfo = blocks[curBlockID]; //Pull out info about the block
 
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
             //nextInfo = blocks[nextID]
             opcode = curBlockInfo['opcode'];
-            
+
             //extract nested children if loop block
             if(loop_opcodes.includes(opcode)){
                 var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
                 if(innerloop != undefined){
                     var nested_blocks = this.loopExtract(blocks, innerloop)
-                    for(b in nested_blocks){                            
+                    for(b in nested_blocks){   
                         script.push(nested_blocks[b])
                     }
                 }
             }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
             if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -2214,9 +2073,9 @@ class GradeDecompBySeq{
     }
     
     checkJaime(jaime){
-        var jaimeid = sb3.findBlockIDs(jaime['blocks'], 'event_whenflagclicked');
-        if(jaimeid != null){
-            var jaimeScript = sb3.makeScript(jaime['blocks'], jaimeid);
+        var jaimeids = sb3.findBlockIDs(jaime['blocks'], 'event_whenflagclicked');
+        for(var j in jaimeids){
+            var jaimeScript = sb3.makeScript(jaime['blocks'], jaimeids[j]);
             for(var i in jaimeScript){
                 if(jaimeScript[i]['opcode'] == 'control_repeat_until'){
                     var condblock = jaimeScript[i]['inputs']['CONDITION'][1];
@@ -2242,8 +2101,8 @@ class GradeDecompBySeq{
     
     checkBall(ball){
         var ballids = sb3.findBlockIDs(ball['blocks'], 'event_whenflagclicked');
-        for(i in ballids){
-            var ballScript = sb3.makeScript(ball['blocks'], ballids[i]);
+        for(var j in ballids){
+            var ballScript = sb3.makeScript(ball['blocks'], ballids[j]);
             for(var i in ballScript){
                 if(ballScript[i]['opcode'] == 'control_wait_until'){
                     var condid = ballScript[i]['inputs']['CONDITION'][1] //find key of condition block
@@ -2315,8 +2174,8 @@ class GradeDecompBySeq{
     
     checkGoal(goal){
         var flags = sb3.findBlockIDs(goal['blocks'], 'event_whenflagclicked');
-        for(i in flags){
-            var goalScript = sb3.makeScript(goal['blocks'], flags[i]);
+        for(var j in flags){
+            var goalScript = sb3.makeScript(goal['blocks'], flags[j]);
             for(var i in goalScript){
                 if(goalScript[i]['opcode'] == 'control_wait_until'){
                     var condid = goalScript[i]['inputs']['CONDITION'][1] //find key of condition block
@@ -2377,7 +2236,7 @@ class GradeDecompBySeq{
 }
 
 module.exports = GradeDecompBySeq;
-},{}],6:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 /// Grader for Events.Multicultural.L1
 var sb3 = {
     no: function(x) { //null checker
@@ -2563,11 +2422,14 @@ var sb3 = {
 };
 
 class GradeEvents {
+    
 
     constructor() {
         this.requirements = {};
         this.extensions = {};
+        
     }
+    
 
     initReqs() {
 
@@ -2626,6 +2488,12 @@ class GradeEvents {
         
         var turn = false;
         var wait = false;
+        
+        var event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
+        
+        var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy'];
+        var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
+        var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
     
         
         //check number of sprites
@@ -2834,7 +2702,7 @@ class GradeEvents {
 module.exports = GradeEvents;
 
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var sb3 = {
     no: function(x) { //null checker
         return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
@@ -3325,491 +3193,516 @@ class GradeEvents {
     
 module.exports = GradeEvents;
     
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /* One Way Sync L1 Autograder
  * Marco Anaya, Spring 2019
  */
 
 var sb3 = {
-    //null checker
-    no: function(x) { 
-        return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
-    },
+	//null checker
+	no: function(x) { 
+	  return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
+	},
 
-    //retrieve a given sprite's blocks from JSON
-    //note: doesn't check whether or not blocks are properly attached
-    jsonToSpriteBlocks: function(json, spriteName) { 
-        if (this.no(json)) return []; //make sure script exists
+	//retrieve a given sprite's blocks from JSON
+	//note: doesn't check whether or not blocks are properly attached
+	jsonToSpriteBlocks: function(json, spriteName) { 
+		if (this.no(json)) return []; //make sure script exists
 
-        var projInfo = json['targets'] //extract targets from JSON data
-        var allBlocks={};
-        var blocks={};
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i]['blocks'];
-            }
-        }
-        return [];
-    }, //done
-    
-    //retrieve a given sprite's info (not just blocks) from JSON
-    jsonToSprite: function(json, spriteName) { 
-        if (this.no(json)) return []; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i];
-            }
-        }
-        return [];
-    }, //done
-    
-    //counts the number of non-background sprites in a project
-    countSprites: function(json){
-        if (this.no(json)) return false; //make sure script exists
-        
-        var numSprites = 0;
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['isStage'] == false){
-                numSprites ++;
-            }
-        }
-        return numSprites
-    },
-    
-    //looks through json to see if a sprite with a given name is present
-    //returns true if sprite with given name found
-    findSprite: function(json, spriteName){ 
-        if (this.no(json)) return false; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return true;
-            }
-        }
-        return false;
-    }, //done
-    
-    //returns list of block ids given a set of blocks
-    findBlockIDs: function(blocks, opcode){
-        if(this.no(blocks) || blocks == {}) return null;
-        
-        var blockids = [];
-        
-        for(block in blocks){ 
-            if(blocks[block]['opcode'] == opcode){
-                blockids.push(block);
-            }
-        }
-        return blockids;
-    },
-    
-    //given particular key, returns list of block ids of a certain kind of key press given a set of blocks 
-    findKeyPressID: function(blocks, key){
-        if(this.no(blocks) || blocks == {}) return [];
-        
-        var blockids = [];
-        
-        for(block in blocks){ 
-            if(blocks[block]['opcode'] == 'event_whenkeypressed'){
-                if(blocks[block]['fields']['KEY_OPTION'][0] == key){
-                    blockids.push(block);
-                }
-            }
-        }
-        return blockids;
-    },
-    
-    opcodeBlocks: function(script, myOpcode) { //retrieve blocks with a certain opcode from a script list of blocks
-        if (this.no(script)) return [];
-        
-        var miniscript = [];
-
-        for(block in script){
-            if(script[block]['opcode'] == myOpcode){
-                miniscript.push(script[block]);
-            }
-        }
-        return miniscript;
-    }, 
-    
-    opcode: function(block) { //retrives opcode from a block object 
-        if (this.no(block)) return "";
-        return block['opcode'];
-    }, 
-    
-    countBlocks: function(blocks,opcode){ //counts number of blocks with a given opcode
-        var total = 0;
-		for(id in blocks){ 
-            if([blocks][id]['opcode'] == opcode){
-                total = total + 1;
-            }
-        }
-        return total;
-    }, //done
-    
-    //(recursive) helper function to extract blocks inside a given loop
-    //works like makeScript except it only goes down the linked list (rather than down & up)
-    loopExtract: function(blocks, blockID){
-        if (this.no(blocks) || this.no(blockID)) return [];
-        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
-        
-        var curBlockID = blockID;
-        var script = [];
-
-        //Find all blocks that come after
-        curBlockID = blockID //Initialize with blockID of interest
-        while(curBlockID != null){
-            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-            script.push(curBlockInfo); //Add the block itself to the script dictionary                
-
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-            //nextInfo = blocks[nextID]
-            opcode = curBlockInfo['opcode'];
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.makeScript(blocks, innerloop)
-                    for(b in nested_blocks){
-                        script.push(nested_blocks[b])
-                    }
-                }
-            }
+		var projInfo = json['targets'] //extract targets from JSON data
+		var allBlocks={};
+		var blocks={};
 		
-            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
-            if((nextID == null) && (event_opcodes.includes(opcode))){
-                return [];
-            }
-            //Iterate: Set next to curBlock
-            curBlockID = nextID;
-        }     
-        return script;        
-    },
-    
-    //given list of blocks and a keyID of a block, return a script
-    makeScript: function(blocks, blockID){
-        if (this.no(blocks) || this.no(blockID)) return [];
-        event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
-        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
-        
-        var curBlockID = blockID;
-        var script = [];
-    
-        //find all blocks that come before
-        while(curBlockID != null){
-            var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-            script.push(curBlockInfo); //Add the block itself to the script dictionary 
-            
-            //Get parent info out
-            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
-            //parentInfo = blocks[parentID]
-    		var opcode = curBlockInfo['opcode'];
+		//find sprite
+		for(i=0; i <projInfo.length; i++){
+			if(projInfo[i]['name'] == spriteName){
+				return projInfo[i]['blocks'];
+			}
+		}
+		return [];
+	}, //done
+	
+	//retrieve a given sprite's info (not just blocks) from JSON
+	jsonToSprite: function(json, spriteName) { 
+		if (this.no(json)) return []; //make sure script exists
 
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.loopExtract(blocks, innerloop)
-                    for(b in nested_blocks){
-                        script.push(nested_blocks[b])
-                    }
-                }
-            }
-            
-            //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
-            if ((parentID == null) && !(event_opcodes.includes(opcode))){
-                return [];
-            }
-
-            //Iterate: set parent to curBlock
-            curBlockID = parentID
-        }
-
-        //find all blocks that come after
-        curBlockID = blocks[blockID]['next']
-        while(curBlockID != null){
-            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-            //nextInfo = blocks[nextID]
-            opcode = curBlockInfo['opcode'];
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.loopExtract(blocks, innerloop)
-                    for(b in nested_blocks){                            
-                        script.push(nested_blocks[b])
-                    }
-                }
-            }
+		var projInfo = json['targets'] //extract targets from JSON data
 		
-            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
-            if((nextID == null) && (event_opcodes.includes(opcode))){
-                return [];
-            }
-            script.push(curBlockInfo); //Add the block itself to the script dictionary                
-            //Iterate: Set next to curBlock
-            curBlockID = nextID;
-        }
-        return script;
-    }
+		//find sprite
+		for(i=0; i <projInfo.length; i++){
+			if(projInfo[i]['name'] == spriteName){
+				return projInfo[i];
+			}
+		}
+		return [];
+	}, //done
+	
+	//counts the number of non-background sprites in a project
+	countSprites: function(json){
+		if (this.no(json)) return false; //make sure script exists
+		
+		var numSprites = 0;
+		var projInfo = json['targets'] //extract targets from JSON data
+		
+		for(i=0; i <projInfo.length; i++){
+			if(projInfo[i]['isStage'] == false){
+				numSprites ++;
+			}
+		}
+		return numSprites
+	},
+	
+	//looks through json to see if a sprite with a given name is present
+	//returns true if sprite with given name found
+	findSprite: function(json, spriteName){ 
+		if (this.no(json)) return false; //make sure script exists
+
+		var projInfo = json['targets'] //extract targets from JSON data
+		
+		//find sprite
+		for(i=0; i <projInfo.length; i++){
+			if(projInfo[i]['name'] == spriteName){
+				return true;
+			}
+		}
+		return false;
+	}, //done
+	
+	//returns list of block ids given a set of blocks
+	findBlockIDs: function(blocks, opcode){
+		if(this.no(blocks) || blocks == {}) return null;
+		
+		var blockids = [];
+		
+		for(block in blocks){ 
+			if(blocks[block]['opcode'] == opcode){
+				blockids.push(block);
+			}
+		}
+		return blockids;
+	},
+	
+	//given particular key, returns list of block ids of a certain kind of key press given a set of blocks 
+	findKeyPressID: function(blocks, key){
+		if(this.no(blocks) || blocks == {}) return [];
+		
+		var blockids = [];
+		
+		for(block in blocks){ 
+			if(blocks[block]['opcode'] == 'event_whenkeypressed'){
+				if(blocks[block]['fields']['KEY_OPTION'][0] == key){
+					blockids.push(block);
+				}
+			}
+		}
+		return blockids;
+	},
+	
+	opcodeBlocks: function(script, myOpcode) { //retrieve blocks with a certain opcode from a script list of blocks
+		if (this.no(script)) return [];
+		
+		var miniscript = [];
+
+		for(block in script){
+			if(script[block]['opcode'] == myOpcode){
+				miniscript.push(script[block]);
+			}
+		}
+		return miniscript;
+	}, 
+	
+	opcode: function(block) { //retrives opcode from a block object 
+		if (this.no(block)) return "";
+		return block['opcode'];
+	}, 
+	
+	countBlocks: function(blocks,opcode){ //counts number of blocks with a given opcode
+		var total = 0;
+	for(id in blocks){ 
+			if([blocks][id]['opcode'] == opcode){
+				total = total + 1;
+			}
+		}
+		return total;
+	}, //done
+	
+	//(recursive) helper function to extract blocks inside a given loop
+	//works like makeScript except it only goes down the linked list (rather than down & up)
+	loopExtract: function(blocks, blockID){
+		if (this.no(blocks) || this.no(blockID)) return [];
+		loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
+		
+		var curBlockID = blockID;
+		var script = [];
+
+		//Find all blocks that come after
+		curBlockID = blockID //Initialize with blockID of interest
+		while(curBlockID != null){
+			curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+			script.push(curBlockInfo); //Add the block itself to the script dictionary                
+
+			//Get next info out
+			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+			//nextInfo = blocks[nextID]
+			opcode = curBlockInfo['opcode'];
+			
+			//extract nested children if loop block
+			if(loop_opcodes.includes(opcode)){
+				var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+				if(innerloop != undefined){
+					var nested_blocks = this.makeScript(blocks, innerloop)
+					for(b in nested_blocks){
+						script.push(nested_blocks[b])
+					}
+				}
+			}
+	
+			//If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
+			if((nextID == null) && (event_opcodes.includes(opcode))){
+				return [];
+			}
+			//Iterate: Set next to curBlock
+			curBlockID = nextID;
+		}     
+		return script;        
+	},
+	
+	//given list of blocks and a keyID of a block, return a script
+	makeScript: function(blocks, blockID){
+		if (this.no(blocks) || this.no(blockID)) return [];
+		event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
+		loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
+		
+		var curBlockID = blockID;
+		var script = [];
+	
+		//find all blocks that come before
+		while(curBlockID != null){
+			var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+			script.push(curBlockInfo); //Add the block itself to the script dictionary 
+			
+			//Get parent info out
+			var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
+			//parentInfo = blocks[parentID]
+		var opcode = curBlockInfo['opcode'];
+
+			
+			//extract nested children if loop block
+			if(loop_opcodes.includes(opcode)){
+				var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+				if(innerloop != undefined){
+					var nested_blocks = this.loopExtract(blocks, innerloop)
+					for(b in nested_blocks){
+						script.push(nested_blocks[b])
+					}
+				}
+			}
+			
+			//If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
+			if ((parentID == null) && !(event_opcodes.includes(opcode))){
+				return [];
+			}
+
+			//Iterate: set parent to curBlock
+			curBlockID = parentID
+		}
+
+		//find all blocks that come after
+		curBlockID = blocks[blockID]['next']
+		while(curBlockID != null){
+			curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+
+			//Get next info out
+			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+			//nextInfo = blocks[nextID]
+			opcode = curBlockInfo['opcode'];
+			
+			//extract nested children if loop block
+			if(loop_opcodes.includes(opcode)){
+				var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+				if(innerloop != undefined){
+					var nested_blocks = this.loopExtract(blocks, innerloop)
+					for(b in nested_blocks){                            
+						script.push(nested_blocks[b])
+					}
+				}
+			}
+	
+			//If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
+			if((nextID == null) && (event_opcodes.includes(opcode))){
+				return [];
+			}
+			script.push(curBlockInfo); //Add the block itself to the script dictionary                
+			//Iterate: Set next to curBlock
+			curBlockID = nextID;
+		}
+		return script;
+	}
 };
 
 class GradeOneWaySyncL1 {
 
-    constructor() {
-        this.requirements = {};
-        this.extentions = {};
-    }
+	constructor() {
+		this.requirements = {};
+		this.extensions = {};
+	}
 
-    initReqs() { //initialize all metrics to false
-        this.requirements = {
-            oneToOne: { bool:false, str:'Djembe passes unique message to Mali child'
-            },
-            djembePlays: {
-                bool: false, str: 'When Djembe is clicked, Djembe plays music'
-            },
-            djembeToChild: {
-                bool: false, str: 'When Djembe is clicked, Mali child dances'
-            },
-            startButton: {
-                bool: false, str: 'Start button sprite created'
-            },
-            oneToMany: {
-                bool: false, str: 'Start button passes the same message to all other sprites'
-            },
-            startToDjembe: {
-                bool: false, str: 'When start button is clicked, Djembe plays music'
-            },
-            startToFlute: {
-                bool: false, str: 'When start button is clicked, Flute plays music'
-            },
-            startToMaliChild: {
-                bool: false, str: 'When start button is clicked, Mali child dances'
-            },
-            startToNavajoChild: {
-                bool: false, str: 'When start button is clicked, Navajo child dances'
-            }
-        };
-    }
+	initReqs() { //initialize all metrics to false
+		this.requirements = {
 
-    /*
-     * Helper function that takes a sprite and a message to determine whether the sprite 
-     * has received that message and whether it has caused the sprite to play a sound
-     * 
-     * Returns an array of two booleans:
-     *   whether the sprite received the message
-     *   whether it is playing a sound
-     */
-    receivesMessageAndPlays(sprite, message) {
+			oneToOne: 
+				{bool:false, str:'Djembe passes unique message to Mali child'},
+			djembePlays: 
+				{bool: false, str: 'When Djembe is clicked, Djembe plays music'},
+			djembeToChild: 
+				{bool: false, str: 'When Djembe is clicked, Mali child dances'},
+			startButton: 
+				{bool: false, str: 'Start button sprite created'},
+			oneToMany: 
+				{bool: false, str: 'Start button passes the same message to all other sprites'},
+			startToDjembe: 
+				{bool: false, str: 'When start button is clicked, Djembe plays music'},
+			startToFlute: 
+				{bool: false, str: 'When start button is clicked, Flute plays music'},
+			startToMaliChild: 
+				{bool: false, str: 'When start button is clicked, Mali child dances'},
+			startToNavajoChild: 
+				{bool: false, str: 'When start button is clicked, Navajo child dances'}
+		};
+	}
+	initExts() {
+		this.extensions = {
+			changeWait: 
+				{bool: false, str: 'Changed the duration of a wait block'},
+			sayBlock: 
+				{bool: false, str: 'Added a say block under another event'}
+		}
+	}
 
-        var receivesMessage = false;
+	grade(fileObj, user) { //call to grade project //fileobj is 
+		this.initReqs();
+		this.initExts();
+		var sprites = {'Navajo Flute': null, 'Navajo child': null, 'Mali Djembe': null, 'Mali child': null};
+		const targets = fileObj.targets;
+		var spriteIsButton = true;
+		
+		// creates object of sprites, first non-default one is marked as the start button
+		for (var target of targets) {
+			if (target.isStage) {
+				continue;
+			}
+			if (target.name in sprites) {
+				sprites[target.name] = target;
+			} else if (spriteIsButton) {
+				sprites['Start Button'] = target;
+				spriteIsButton = false;
+			}
+		}
+		this.checkDjembeBroadcast(sprites)
+		this.checkStartBroadcast(sprites);
+		this.checkSayOnEvent(sprites);
+	}
 
-        const whenReceiveBlocks = sb3.findBlockIDs(sprite.blocks, 'event_whenbroadcastreceived');
+	/*
+	 * Returns an array of two booleans:
+	 *   whether the sprite received the message
+	 *   whether it is playing a sound
+	 */
+	broadcastToPlay(sprite, message) {
 
-        if(whenReceiveBlocks) {
-            for(var whenReceiveBlock of whenReceiveBlocks) {
-                var script = sb3.makeScript(sprite.blocks, whenReceiveBlock);
-                console.log(script[0]);
-                if (script[0].fields.BROADCAST_OPTION[0] == message) {
-                    receivesMessage = true;
-                    for (var block of script) {
-                        if (block.opcode == 'sound_play' || block.opcode == 'sound_playuntildone') {
-                            return [receivesMessage, true];
-                        }
-                    }
-                }
-            }
-        }
-        return [receivesMessage, false];
-    }
+		var receivesMessage = false;
+		const whenReceiveBlocks = sb3.findBlockIDs(sprite.blocks, 'event_whenbroadcastreceived');
 
-    /*
-     * Helper function that takes a sprite and a message to determine whether the sprite 
-     * has received that message and whether it has caused the sprite to dance
-     * 
-     * Returns an array of two booleans:
-     *   whether the sprite received the message
-     *   whether it is dancing
-     */
-    receivesMessageAndDances(sprite, message) {
-        // if costume change and waitblck within a repeat loop, the sprite is dancing
-        var changeCostume = false;
-        var waitBlock = false;
-        var receivesMessage = false;
-        console.log(sprite);
-        const whenReceiveBlocks = sb3.findBlockIDs(sprite.blocks, 'event_whenbroadcastreceived');
+		if(whenReceiveBlocks) {
+			for(var whenReceiveBlock of whenReceiveBlocks) {
+				var script = sb3.makeScript(sprite.blocks, whenReceiveBlock);
 
-        if (whenReceiveBlocks) {
-            for(var whenReceiveBlock of whenReceiveBlocks) {
-                var script = sb3.makeScript(sprite.blocks, whenReceiveBlock);
+				if (script[0].fields.BROADCAST_OPTION[0] == message) {
+					receivesMessage = true;
+					for (var block of script) {
+						if (['sound_play', 'sound_playuntildone'].includes(block.opcode)) {
+							return [receivesMessage, true];
+						}
+					}
+				}
+			}
+		}
+		return [receivesMessage, false];
+	}
 
-                if (script[0].fields.BROADCAST_OPTION[0] == message) {
-                    receivesMessage = true;
+	/* 
+	 * Returns an array of two booleans:
+	 *   whether the sprite received the message
+	 *   whether it is dancing
+	 */
+	broadcastToDance(sprite, message) {
+		// if costume change and waitblock within a repeat loop, the sprite is dancing
+		var animation = {constume: false, wait: false};
+		var receivesMessage = false;
 
-                    for (var block of script) {
-                        // if repeat block is found, 
-                        // look for inner loop for wait block and costume change
-                        if (block.opcode == 'control_repeat') {
+		const whenReceiveBlocks = sb3.findBlockIDs(sprite.blocks, 'event_whenbroadcastreceived');
 
-                            var sblock = block.inputs.SUBSTACK[1];
-                            while(sblock != null) {
-                                const sblockInfo = sprite.blocks[sblock];
-                                switch(sblockInfo.opcode) {
-                                    case 'looks_switchcostumeto':
-                                    case 'looks_nextcostume': {
-                                        changeCostume = true;
-                                        break;
-                                    }
-                                    case 'control_wait': {
-                                        waitBlock = true;
-                                    }
-                                }
-                                sblock = sblockInfo.next;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return [receivesMessage, changeCostume && waitBlock];
-    }
+		if (whenReceiveBlocks) {
+			for(var whenReceiveBlock of whenReceiveBlocks) {
+				var script = sb3.makeScript(sprite.blocks, whenReceiveBlock);
 
-    /* Checks first part of lesson, whether djembe broadcasts to child */
-    checkDjembeBroadcast({ 'Mali Djembe': djembe, 'Mali child': child}) {
-        if (!djembe) return;
-        
-        var messageSent = false;
-        var messageName = "";
-        var djembePlaysDirectly = false;
+				if (script[0].fields.BROADCAST_OPTION[0] == message) {
+					receivesMessage = true;
 
-        var whenClickedBlocks = sb3.findBlockIDs(djembe.blocks, 'event_whenthisspriteclicked');
+					for (var block of script) {
+							if (block.opcode == 'control_repeat') {
 
-        if(whenClickedBlocks) {
-            for(var whenClickedBlock of whenClickedBlocks) {
-                var script = sb3.makeScript(djembe.blocks, whenClickedBlock);
-                for(var block of script){
-                    switch(block.opcode) {
-                        case 'sound_play':
-                        case 'sound_playuntildone': {
-                            djembePlaysDirectly = true;
-                            break;
-                        }
-                        case 'event_broadcast':
-                        case 'event_broadcastandwait': {
-                            messageSent = true;
-                            messageName = block.inputs.BROADCAST_INPUT[1][1];
-                        }
-                    } 
-                }
-            }  
-            
-            const [, djembePlaysBroadcast] = this.receivesMessageAndPlays(djembe, messageName);
-            // djembe can be played directly when sprite is clicked, or it can send a message to itself
-            this.requirements.djembePlays.bool = djembePlaysDirectly || djembePlaysBroadcast;
-        }
-        // if message was sent, check if it was received and produced the desired result
-        if (messageSent) {
-            if (!child) 
-                return;
+							var sblock = block.inputs.SUBSTACK[1];
+							while(sblock != null) {
+								const sblockInfo = sprite.blocks[sblock];
+								switch(sblockInfo.opcode) {
+									case 'looks_switchcostumeto':
+									case 'looks_nextcostume': {
+										animation.costume = true;
+										break;
+									}
+									case 'control_wait': {
+										if (sblockInfo.inputs.DURATION[1][1] != .5)
+											this.extensions.changeWait.bool = true;
+										animation.wait = true;
+									}
+								}
+								sblock = sblockInfo.next;
+							}
+						}
+					}
+				}
+			}
+		}
+		return [receivesMessage, animation.costume && animation.wait];
+	}
 
-            const [childReceives, childDances] = this.receivesMessageAndDances(child, messageName);
-            // checks whether the child receives the message and whether it is unique
-            this.requirements.oneToOne.bool = childReceives && (messageName != 'Navajo');
-            this.requirements.djembeToChild.bool = childDances;
-        }
-    }
+	/* Checks first part of lesson, whether djembe broadcasts to child */
+	checkDjembeBroadcast({ 'Mali Djembe': djembe, 'Mali child': child}) {
+		if (!djembe) return;
+		
+		var messageSent = false;
+		var messageName = "";
+		var djembePlaysDirectly = false;
 
-    /* Checks second part of lesson, the creation and broadcasting of start sprite */
-    checkStartBroadcast({ 'Mali Djembe': djembe, 
-                          'Mali child': maliChild, 
-                          'Navajo Flute': flute, 
-                          'Navajo child': navajoChild, // assumes all default sprites exist
-                          'Start Button': start = null}) {
-        if (!start) {
-            return;
-        }
+		var whenClickedBlocks = sb3.findBlockIDs(djembe.blocks, 'event_whenthisspriteclicked');
 
-        this.requirements.startButton.bool = true;
+		if(whenClickedBlocks) {
+			for(var whenClickedBlock of whenClickedBlocks) {
+				var script = sb3.makeScript(djembe.blocks, whenClickedBlock);
+				for(var block of script){
+					switch(block.opcode) {
+						case 'sound_play':
+						case 'sound_playuntildone': {
+							djembePlaysDirectly = true;
+							break;
+						}
+						case 'event_broadcast':
+						case 'event_broadcastandwait': {
+							messageSent = true;
+							messageName = block.inputs.BROADCAST_INPUT[1][1];
+						}
+					} 
+				}
+			}  
+			
+			const [, djembePlaysBroadcast] = this.broadcastToPlay(djembe, messageName);
+			// djembe can be played directly when sprite is clicked, or it can send a message to itself
+			this.requirements.djembePlays.bool = djembePlaysDirectly || djembePlaysBroadcast;
+		}
+		// if message was sent, check if it was received and produced the desired result
+		if (messageSent) {
+			if (!child) 
+				return;
 
-        var messageSent = false;
-        var messageName = "";
+			const [childReceives, childDances] = this.broadcastToDance(child, messageName);
+			// checks whether the child receives the message and whether it is unique
+			this.requirements.oneToOne.bool = childReceives && (messageName != 'Navajo');
+			this.requirements.djembeToChild.bool = childDances;
+		}
+	}
 
-        var whenClickedBlocks = sb3.findBlockIDs(start.blocks, 'event_whenthisspriteclicked');
+	/* Checks second part of lesson, the creation and broadcasting of start sprite */
+	checkStartBroadcast({ 'Mali Djembe': djembe, 
+											  'Mali child': maliChild, 
+											  'Navajo Flute': flute, 
+											  'Navajo child': navajoChild, 
+											  'Start Button': start }) {
+		if (!start) {
+			return;
+		}
+
+		this.requirements.startButton.bool = true;
+
+		var messageSent = false;
+		var messageName = "";
+		var whenClickedBlocks = sb3.findBlockIDs(start.blocks, 'event_whenthisspriteclicked');
+
+		if(whenClickedBlocks) {
+			for(var whenClickedBlock of whenClickedBlocks) {
+				var script = sb3.makeScript(start.blocks, whenClickedBlock);
+				for(var block of script){
+					if(['event_broadcast', 'event_broadcastandwait'].includes(block.opcode)) {
+						messageSent = true;
+						messageName = block.inputs.BROADCAST_INPUT[1][1];
+					} 
+				}
+			}
+		}
+		// if message was sent, check if it was received and if it produced the desired results
+		if(messageSent) {
+			var receives = Array(4).fill(false);
+			
+			if (djembe) 
+				[receives[0], this.requirements.startToDjembe.bool] = this.broadcastToPlay(djembe, messageName);
+			if (flute)
+				[receives[1], this.requirements.startToFlute.bool] = this.broadcastToPlay(flute, messageName);
+			if (maliChild) 
+				[receives[2], this.requirements.startToMaliChild.bool] = this.broadcastToDance(maliChild, messageName);
+			if (navajoChild)
+				[receives[3], this.requirements.startToNavajoChild.bool] = this.broadcastToDance(navajoChild, messageName);
+				
+			// if all sprites receive the same message, this requirement is satisfied
+			if (djembe && flute && maliChild && navajoChild) 
+				this.requirements.oneToMany.bool = receives.every(received => received === true);
+		}
+	}
+	checkSayOnEvent(sprites) {
+		if (sb3.no(sprites)) {
+			return;
+		}
+		const eventOpcodes = [
+			'event_whenflagclicked', 'event_whenthisspriteclicked','event_whenkeypressed', 
+			'event_whenbackdropswitchesto','event_whengreaterthan'
+		];
 
 
-        if(whenClickedBlocks) {
-            for(var whenClickedBlock of whenClickedBlocks) {
-                var script = sb3.makeScript(start.blocks, whenClickedBlock);
-                for(var block of script){
-                    if(['event_broadcast', 'event_broadcastandwait'].includes(block.opcode)) {
-                            messageSent = true;
-                            messageName = block.inputs.BROADCAST_INPUT[1][1];
-                    } 
-                }
-            }
-        }
-        // if message was sent, check if it was received and if it produced the desired results
-        if(messageSent) {
-            const [djembeReceives, djembePlays] = this.receivesMessageAndPlays(djembe, messageName);
-            const [fluteReceives, flutePlays] = this.receivesMessageAndPlays(flute, messageName);
-            const [maliChildReceives, maliChildDances] = this.receivesMessageAndDances(maliChild, messageName);
-            const [navajoChildReceives, navajoChildDances] = this.receivesMessageAndDances(navajoChild, messageName);
-            // if all sprites receive the same message, this requirement is satisfied
-            this.requirements.oneToMany.bool = djembeReceives && 
-                                               fluteReceives && 
-                                               maliChildReceives && 
-                                               navajoChildReceives;
+		sprites = Object.values(sprites);
+		for (const sprite of sprites) {
 
-            this.requirements.startToDjembe.bool = djembePlays;
-            this.requirements.startToFlute.bool = flutePlays;
-            this.requirements.startToMaliChild.bool = maliChildDances;
-            this.requirements.startToNavajoChild.bool = navajoChildDances;
-        }
-    }
+			var eventBlocks = [];
+	
+			for(block in sprite.blocks){ 
+				if(sprite.blocks[block].opcode == opcode){
+					eventBlocks.push(block);
+				}
+			}
 
-    grade(fileObj, user) { //call to grade project //fileobj is 
-        this.initReqs();
-        var sprites = {};
-        const spriteNames = ['Navajo Flute', 'Navajo child', 'Mali Djembe', 'Mali child'];
-        const targets = fileObj.targets;
-
-        var spriteIsButton = true;
-        
-        // creates object of sprites, first non-default one is marked as the start button
-        for (var i = 1; i < targets.length; i++) {
-            if (spriteNames.includes(targets[i]['name']))
-                sprites[targets[i]['name']] = targets[i];
-            else if (spriteIsButton) {
-                sprites['Start Button'] = targets[i];
-                spriteIsButton = false;
-            }
-        }
-        console.log(sprites);
-        this.checkDjembeBroadcast(sprites)
-        this.checkStartBroadcast(sprites);
-    }
+			for (const eventBlock of eventBlocks) {
+				const script = sb3.makeScript(sprite.blocks, eventBlock);
+				for (const block of script) {
+					if (['looks_say', 'looks_sayforsecs'].includes(block.opcode)) {
+						this.extensions.sayBlock.bool = true;
+						return;
+					}
+				}
+			}
+		}
+	}
 }
 
 module.exports = GradeOneWaySyncL1;
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /* Scratch Basics L1 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -3958,8 +3851,6 @@ var sb3 = {
             curBlockInfo = blocks[curBlockID]; //Pull out info about the block
             script.push(curBlockInfo); //Add the block itself to the script dictionary                
 
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
             //nextInfo = blocks[nextID]
             opcode = curBlockInfo['opcode'];
             
@@ -3973,6 +3864,9 @@ var sb3 = {
                     }
                 }
             }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
             if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -3998,8 +3892,6 @@ var sb3 = {
             var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
             script.push(curBlockInfo); //Add the block itself to the script dictionary 
             
-            //Get parent info out
-            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
             //parentInfo = blocks[parentID]
     		var opcode = curBlockInfo['opcode'];
 
@@ -4015,6 +3907,9 @@ var sb3 = {
                 }
             }
             
+            //Get parent info out
+            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
+            
             //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
             if ((parentID == null) && !(event_opcodes.includes(opcode))){
                 return [];
@@ -4029,8 +3924,6 @@ var sb3 = {
         while(curBlockID != null){
             curBlockInfo = blocks[curBlockID]; //Pull out info about the block
 
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
             //nextInfo = blocks[nextID]
             opcode = curBlockInfo['opcode'];
             
@@ -4044,6 +3937,9 @@ var sb3 = {
                     }
                 }
             }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
             if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -4093,6 +3989,7 @@ class GradeScratchBasicsL1 {
         var stepcount = 0;
         var speakcount = 0;
         var havefun = false;
+        var funs = ['Have fun!', 'have fun!', 'have Fun!', 'HAVE FUN', 'HAVE FUN!', 'have fun', 'Have fun', 'have Fun', 'Have Fun', 'Have Fun!']
         
         var blockids = sb3.findBlockIDs(fred, 'event_whenflagclicked');
         
@@ -4108,7 +4005,7 @@ class GradeScratchBasicsL1 {
                     }
                     if (sblock['opcode'] == 'looks_sayforsecs'){ 
                         speakcount++;
-                        if(sblock['inputs']['MESSAGE'][1][1]  == 'Have fun!' || sblock['inputs']['MESSAGE'][1][1]  == 'have fun!' || sblock['inputs']['MESSAGE'][1][1]  == 'have fun' || sblock['inputs']['MESSAGE'][1][1]  == 'Have fun'){ //check for have fun message
+                        if(funs.includes(sblock['inputs']['MESSAGE'][1][1])){ //check for have fun message
                             havefun = true;
                         }
                         if(havefun && speakcount >= 4){ //check that new block was added
@@ -4140,7 +4037,7 @@ class GradeScratchBasicsL1 {
 
 
 module.exports = GradeScratchBasicsL1;
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var sb3 = {
     //null checker
     no: function(x) { 
@@ -4513,9 +4410,10 @@ class GradeTwoWaySyncL1 {
 }
 
 module.exports = GradeTwoWaySyncL1;
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
+/// Provides necessary scripts for index.html.
+
 /// Requirements (scripts)
-var crawler = require('./crawler');
 var graders = {
   scratchBasicsL1: { name: 'Scratch Basics L1',      file: require('./grading-scripts-s3/scratch-basics-L1') },
   animationL1:     { name: 'Animation L1',           file: require('./grading-scripts-s3/animation-L1')      },
@@ -4527,6 +4425,9 @@ var graders = {
   oneWaySyncL1:    { name: 'One-Way Sync L1',        file: require('./grading-scripts-s3/one-way-sync-L1')   },
   oneWaySyncL2:    { name: 'Two-Way Sync L2',        file: require('./grading-scripts-s3/two-way-sync-L2')   },
 };
+
+/// Globals
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* MAKE SURE OBJ'S AUTO INITIALIZE AT GRADE */
 
@@ -4544,10 +4445,10 @@ var gradeObj = null;
 var table = 0;
 
 var IS_LOADING = false;
+var numLoadingProjects = 0;
 
-/*
-  SELECTION HTML
-*/
+/// HTML helpers
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Helps with form submission.
 window.formHelper = function() {
@@ -4588,9 +4489,7 @@ window.buttonHandler = async function() {
 
   var requestURL = document.getElementById('inches_input').value;
   var studioID = parseInt(requestURL.match(/\d+/));
-  var projects = [];
-  var id = await crawler.crawlS3(studioID, 0, projects);
-  console.log(id);
+  crawlS3(studioID, 0);
   //crawl(id,1);
 }
 
@@ -4610,10 +4509,6 @@ function htmlInit() {
   document.getElementById('process_button').blur();
   clearReport();
   noError();
-}
-
-function dropdownHandler() {
-  document.getElementById("unit_dropdown").classList.toggle("show");
 }
 
 $(document).ready(function(){
@@ -4640,9 +4535,54 @@ window.onclick = function(event) {
   });
 }
 
-/*
-  DISPLAY RESULTS
-*/
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Web crawling
+///////////////////////////////////////////////////////////////////////////////////////////////////
+function crawlS3(studioID, offset) {
+
+  var studioRequestURL = 'https://chord.cs.uchicago.edu/studios3/' + studioID + '/' + offset + '/';
+  var studioRequest = new XMLHttpRequest();
+  studioRequest.open('GET', studioRequestURL);
+  studioRequest.send();
+  studioRequest.onload =
+    function () {
+      var studioResponse = JSON.parse(studioRequest.response);
+      if (studioResponse.length === 0) {
+        return;
+      }
+      else {
+        for (var projectOverview of studioResponse) {
+          var projectID = projectOverview.id;
+          var projectRequestURL = 'https://chord.cs.uchicago.edu/projects3/' + projectID;
+          var projectRequest = new XMLHttpRequest();
+          numLoadingProjects++;
+          projectRequest.open('GET', projectRequestURL);
+          projectRequest.onload =
+            function () {
+              var projectResponse = JSON.parse(projectRequest.response);
+              try {
+                gradeObj.grade(projectResponse, projectID);
+              }
+              catch (err) {
+                console.log('Error grading project ' + projectID);
+              }
+              numLoadingProjects--;
+              report(projectID, gradeObj.requirements, gradeObj.extensions, projectResponse.author.id);
+            }
+        }
+        projectRequest.onerror =
+          function () {
+            numLoadingProjects--;
+          }
+        return crawlS3(studioID, offset + 20);
+      }
+    }
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Reporting results
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* Prints a line of grading text. */
 function appendText(string_list) {
@@ -4752,9 +4692,10 @@ function setProgress(bar,projects,total_projects,color) {
   }
 }
 
-/* 
-  ERROR REPORTS 
-*/
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Error reports
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 function linkError() {
   document.getElementById('myProgress').style.visibility = "hidden";
@@ -4779,69 +4720,5 @@ function noError() {
   document.getElementById('process_error').style.visibility = 'hidden';
 }
 
-},{"./crawler":1,"./grading-scripts-s3/animation-L1":2,"./grading-scripts-s3/animation-L2":3,"./grading-scripts-s3/cond-loops":4,"./grading-scripts-s3/decomp-L1":5,"./grading-scripts-s3/events-L1":6,"./grading-scripts-s3/events-L2":7,"./grading-scripts-s3/one-way-sync-L1":8,"./grading-scripts-s3/scratch-basics-L1":9,"./grading-scripts-s3/two-way-sync-L2":10}],12:[function(require,module,exports){
-module.exports = XMLHttpRequest;
-
-},{}],13:[function(require,module,exports){
-var XMLHttpRequest = require('xhr2');
-
-/// Class of objects used to contain the data pulled from the web.
-class WebResource {
-    constructor() {
-        this.data = null;
-        this.meta = null;
-        this.status = 0;
-    }
-}
-
-/// Promises a WebResource object carrying the data from a specified URL.
-function promiseResource(URL) {
-
-    return new Promise(function(resolve, reject) {
-
-        /// Declare the resource that is being promised.
-        var resource = new WebResource();
-        resource.meta.URL = URL;
-
-        /// Send the request.
-        var request = new XMLHttpRequest();
-        request.open('GET', URL);
-        request.send();
-
-        /// Set a timeout for failure.
-        setTimeout(function() {
-            reject(resource);
-        }, 10000);
-
-        /// Receive the data and resolve the promise.
-        request.onload = function() {
-            resource.status = response.status;
-            resource.data = request.response;
-            resolve(resource);
-        }
-
-        /// Handle failed requests.
-        request.onerror = function() {
-            resource.status = response.status;
-            resolve(resource);
-        }
-
-    });
-
-}
-
-/// Promises all the WebResources generated by an array of URLs.
-function promiseAllResources(URLs) {
-
-    var promisedResourceArray = [];
-    for (var URL of URLs) promisedResourceArray.push(promiseResource(URL));
-    return Promise.all(promisedResourceArray);
-    
-}
-
-module.exports = {
-    WebResource,
-    promiseResource,
-    promiseAllResources
-}
-},{"xhr2":12}]},{},[11]);
+///////////////////////////////////////////////////////////////////////////////////////////////////
+},{"./grading-scripts-s3/animation-L1":1,"./grading-scripts-s3/animation-L2":2,"./grading-scripts-s3/cond-loops":3,"./grading-scripts-s3/decomp-L1":4,"./grading-scripts-s3/events-L1":5,"./grading-scripts-s3/events-L2":6,"./grading-scripts-s3/one-way-sync-L1":7,"./grading-scripts-s3/scratch-basics-L1":8,"./grading-scripts-s3/two-way-sync-L2":9}]},{},[10]);
