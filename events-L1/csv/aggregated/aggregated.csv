@@ -1,0 +1,6 @@
+Grade level,Count,Error grading project,Project has at least three sprites.,Left Sprite handles click.,Left Sprite gets bigger.,Then Left Sprite has at least two say blocks.,The Left Sprite resets size.,Middle Sprite handles click.,Middle Sprite gets bigger.,Then Middle Sprite has at least two say blocks.,The Middle Sprite resets size.,Right Sprite handles click.,Right Sprite gets bigger.,Then Right Sprite has at least two say blocks.,The Right Sprite resets size.
+3,27,5,22,22,22,22,20,22,7,11,7,20,14,16,14
+4,23,2,21,21,19,19,18,21,16,15,16,21,18,16,15
+5,31,13,18,17,16,15,15,17,14,13,12,17,15,15,14
+6,104,28,76,73,67,68,66,73,45,37,43,69,60,53,50
+7,58,11,47,43,39,43,37,41,10,11,8,11,8,8,6

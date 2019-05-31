@@ -1,0 +1,527 @@
+10JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,0
+Left Sprite gets bigger.,0
+Then Left Sprite has at least two say blocks.,0
+The Left Sprite resets size.,0
+Middle Sprite handles click.,0
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,0
+Right Sprite handles click.,0
+Right Sprite gets bigger.,0
+Then Right Sprite has at least two say blocks.,0
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+11JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,1
+|
+12JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,0
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,0
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,0
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+13JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,0
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,1
+|
+14JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,0
+Right Sprite handles click.,0
+Right Sprite gets bigger.,0
+Then Right Sprite has at least two say blocks.,0
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,1
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+15JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,0
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,0
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,1
+Middle sprite has new name.,1
+Right sprite has new name.,1
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,1
+|
+16JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+17JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,0
+Right Sprite handles click.,1
+Right Sprite gets bigger.,0
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,1
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+18JCL06
+Error grading project
+|
+19JCL06
+Error grading project
+|
+1JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,0
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,0
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,0
+Right Sprite handles click.,1
+Right Sprite gets bigger.,0
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,1
+Middle sprite has new name.,1
+Right sprite has new name.,1
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+20JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,1
+Right sprite has new name.,1
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+21JCL06
+Error grading project
+|
+22JCL06
+Error grading project
+|
+24JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,0
+Then Left Sprite has at least two say blocks.,0
+The Left Sprite resets size.,0
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,0
+Right Sprite handles click.,1
+Right Sprite gets bigger.,0
+Then Right Sprite has at least two say blocks.,0
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,1
+|
+26JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+27JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,0
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,0
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,0
+Right Sprite handles click.,1
+Right Sprite gets bigger.,0
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+28JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,0
+Left Sprite gets bigger.,0
+Then Left Sprite has at least two say blocks.,0
+The Left Sprite resets size.,0
+Middle Sprite handles click.,0
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,0
+Right Sprite handles click.,0
+Right Sprite gets bigger.,0
+Then Right Sprite has at least two say blocks.,0
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+29JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,1
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+2JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,0
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+30JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,0
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,0
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,1
+Middle sprite has new name.,1
+Right sprite has new name.,1
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+31JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,0
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,0
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,0
+Right Sprite handles click.,1
+Right Sprite gets bigger.,0
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+32JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,0
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,1
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+3JCL06
+Error grading project
+|
+4JCL06
+Error grading project
+|
+6JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,0
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,1
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+7JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+8JCL06
+Error grading project
+|
+9JCL06
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,1
+|
+ScratchEncore
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,0
+Right Sprite handles click.,0
+Right Sprite gets bigger.,0
+Then Right Sprite has at least two say blocks.,0
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|

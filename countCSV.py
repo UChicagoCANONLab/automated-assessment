@@ -3,7 +3,7 @@
 #Will count each field for a given CSV
 #Will replace the first field with the name of the input file
 
-#python3 countCSV.py (input) (output)
+#python3 countCSV.py (input) [output]
 
 import sys
 import csv
@@ -12,10 +12,16 @@ import csv
 def main():
 
     input = sys.argv[1]
-    output = sys.argv[2]
+    output = "default.csv" # will change
 
     #Get grade level (should be name of csv file)
-    grade = output.split('/')[-1][:-4]
+    grade = input.split('/')[-1][:-4]
+
+    #if no explicit output, will output to file with same name with "-counted" appended
+    if len(sys.argv) == 3:
+        output = sys.argv[2]
+    else:
+        output = input[:-4] + "-counted.csv"
 
     with open(input,'r') as input:
         with open(output,'w') as output:
@@ -40,8 +46,12 @@ def main():
             next = input.readline().strip('\n').split(',')
             while (next != ['']):
                 count[1]+=1
-                for i in range (2,length):
-                    count[i+1] += int(next[i])
+                for i in range (1,length):
+                    try:
+                        count[i+1] += int(next[i])
+                    except: # slight error in the aggregation where the first project is error
+                        #assume error – already counted, so move to next line
+                        break
                 next = input.readline().strip('\n').split(',')
             filewriter.writerow(count)
 

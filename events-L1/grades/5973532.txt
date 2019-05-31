@@ -1,0 +1,468 @@
+2oo1sgr8
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,1
+|
+adastra28
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,1
+Middle sprite has new name.,1
+Right sprite has new name.,1
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+basketballfan1000
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,0
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,0
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,0
+Right Sprite handles click.,1
+Right Sprite gets bigger.,0
+Then Right Sprite has at least two say blocks.,0
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+birds605
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+blaze703570
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,0
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,0
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,1
+Middle sprite has new name.,1
+Right sprite has new name.,1
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+catsareawesome789
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,1
+Middle sprite has new name.,1
+Right sprite has new name.,1
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,1
+|
+christmas3000
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,1
+|
+clover7777
+Error grading project
+|
+doggys332
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,1
+Middle sprite has new name.,1
+Right sprite has new name.,1
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+flyingunicorn2468
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,0
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,0
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,1
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+kingasparta35
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+kittyqueen231
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+luckystargirl09
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,0
+Right Sprite handles click.,1
+Right Sprite gets bigger.,0
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,1
+Right sprite has new name.,1
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,1
+|
+panda48000
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,0
+Then Right Sprite has at least two say blocks.,0
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+penguin88835
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+raspberry2000
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+redbirdmoney3
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,0
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,0
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,0
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,0
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+redhero59
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,0
+Then Middle Sprite has at least two say blocks.,0
+The Middle Sprite resets size.,0
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,1
+|
+schoolno3411
+Error grading project
+|
+shark730
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,1
+Middle sprite has new name.,1
+Right sprite has new name.,1
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+tigergirl1156
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,0
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+turtleshavetails123
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,1
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,1
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,1
+Middle sprite has new name.,1
+Right sprite has new name.,1
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|
+unicorn5087
+Requirements:
+Project has at least three sprites.,1
+Left Sprite handles click.,1
+Left Sprite gets bigger.,1
+Then Left Sprite has at least two say blocks.,0
+The Left Sprite resets size.,1
+Middle Sprite handles click.,1
+Middle Sprite gets bigger.,1
+Then Middle Sprite has at least two say blocks.,1
+The Middle Sprite resets size.,1
+Right Sprite handles click.,1
+Right Sprite gets bigger.,1
+Then Right Sprite has at least two say blocks.,0
+The Right Sprite resets size.,1
+Extensions:
+Left sprite has new name.,0
+Middle sprite has new name.,0
+Right sprite has new name.,0
+Left Sprite spins using turn and wait blocks.,0
+A Sprite reacts to another event.,0
+|

@@ -22,8 +22,9 @@ run.py: python3 run.py (studio URL) (module folder) (grade level) [--verbose]
 mergeCSVs.py: python3 mergeCSV (folder containing CSVs) (output CSV file)
     Appends data from CSVs into new CSV
     
-countCSV.py: python3 countCSV.py (input CSV) (output CSV)
+countCSV.py: python3 countCSV.py (input CSV) [output CSV]
     Counts each field of the input CSV, and saves the count to a single-line output CSV
+    If no explicit output, will output to file with same name with "-counted" appended
     Currently designed to aggregate the first field into "grade level"
     Sets second field to the total count
     Subsequent fields are from the original CSV

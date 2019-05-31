@@ -16,9 +16,9 @@ def main():
 
     # iterate through folder
     with open(file,'r') as commands:
-        next = commands.readline().strip().split(',')
+        next = commands.readline().split(',')
         for i in range (len(next)):
-            next[i] = next[i].strip()
+            next[i] = next[i].strip("\n ")
         while (len(next) > 1): # check for EOF
             # run the command
             call(['python3','run.py',next[0],next[1],next[2]])
