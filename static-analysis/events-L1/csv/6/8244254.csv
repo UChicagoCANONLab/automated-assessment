@@ -1,0 +1,17 @@
+ID,Error grading project,Project has at least three sprites.,Left Sprite handles click.,Left Sprite gets bigger.,Then Left Sprite has at least two say blocks.,The Left Sprite resets size.,Middle Sprite handles click.,Middle Sprite gets bigger.,Then Middle Sprite has at least two say blocks.,The Middle Sprite resets size.,Right Sprite handles click.,Right Sprite gets bigger.,Then Right Sprite has at least two say blocks.,The Right Sprite resets size.
+11JCL216,0,1,1,1,1,1,1,1,1,1,1,1,1,1
+12JCL216,0,1,1,1,1,1,1,1,0,1,1,1,1,1
+14JCL216,0,1,1,1,1,1,1,0,0,0,0,0,0,0
+15JCL216,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+17JCL216,0,1,1,1,1,1,1,0,0,0,0,0,0,0
+18JCL216,0,1,1,1,1,1,1,0,0,0,1,1,1,0
+19JCL216,0,1,1,1,1,1,1,0,0,0,1,1,1,1
+22JCL216,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+26JCL216,0,1,1,1,1,1,1,1,1,1,1,1,1,0
+27JCL216,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+28JCL216,0,1,1,1,1,1,1,1,0,1,1,1,0,1
+29JCL216,0,1,1,1,1,1,1,1,1,0,1,1,1,0
+31JCL216,0,1,1,1,1,1,1,1,0,1,1,1,0,1
+32JCL216,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+5JCL216,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+8JCL216,0,1,1,1,1,1,1,1,1,1,1,1,1,1

@@ -1,0 +1,12 @@
+ID,Error grading project,Background has an image.,There are at least 3 sprites.,Chosen sprite has a loop.,Chosen sprite moves.,Chosen sprite changes costume.,Chosen sprite has a wait block.,Chosen sprite does a complex dance.,Another sprite is animated.,A third sprite is animated.
+11JCL219,0,0,1,1,1,1,1,1,0,0
+12JCL219,0,1,1,1,0,1,1,0,0,0
+14JCL219,0,1,1,1,0,1,1,0,0,0
+16JCL219,0,1,1,1,1,0,0,0,0,0
+1JCL219,0,1,1,1,0,1,1,0,0,0
+22JCL219,0,1,1,1,0,1,1,0,0,0
+24JCL219,0,1,1,1,1,0,0,0,0,0
+26JCL219,0,1,1,1,0,1,1,0,0,0
+4JCL219,0,1,1,0,1,0,0,0,0,0
+7JCL219,0,1,1,1,0,1,1,0,0,0
+8JCL219,0,1,1,1,0,1,0,0,0,0

@@ -1,0 +1,24 @@
+ID,Error grading project,Background has an image.,There are three sprites.,Sprite 1 has at least two events.,Sprite 2 has at least two events.,Sprite 3 has at least two events.,Sprite 1 events have actions.,Sprite 2 events have actions.,Sprite 3 events have actions.
+10JCL216,0,1,1,0,0,0,0,0,0
+11JCL216,0,1,1,0,0,0,0,0,0
+12JCL216,0,1,1,0,0,0,0,0,0
+13JCL216,0,1,1,0,0,0,0,0,0
+15JCL216,0,1,1,0,1,0,0,1,0
+16JCL216,0,0,1,0,0,0,0,0,0
+18JCL216,0,0,1,0,0,1,0,0,1
+21JCL216,0,1,1,0,0,0,0,0,0
+22JCL216,0,1,1,0,0,0,0,0,0
+23JCL216,0,1,1,1,0,1,1,0,1
+26JCL216,0,1,1,1,0,0,1,0,0
+27JCL216,0,1,1,1,1,1,1,1,1
+28JCL216,0,0,1,1,1,0,1,1,0
+29JCL216,0,1,1,0,0,0,0,0,0
+2JCL216,0,1,1,0,1,1,0,1,1
+31JCL216,0,1,1,1,1,0,1,1,0
+32JCL216,0,1,1,0,0,0,0,0,0
+3JCL216,0,1,0,1,0,0,1,0,0
+5JCL216,0,1,1,0,0,0,0,0,0
+7JCL216,0,1,0,0,0,0,0,0,0
+8JCL216,0,1,1,0,0,0,0,0,0
+9JCL216,0,1,1,1,1,1,1,1,1
+

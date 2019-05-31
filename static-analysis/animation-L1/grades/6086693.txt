@@ -1,0 +1,575 @@
+5thLRG1
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,1
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG10
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,0
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,1
+Made the Kangaroo hop.,1
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,1
+Animated the addded sprite,1
+|
+5thLRG13
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG14
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,0
+Bee changes costume on down arrow.,0
+Bee wait block on down arrow.,0
+Bee handles space bar.,1
+Bee loop on space bar.,0
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,0
+Bee has wait block on space bar.,0
+Bee reaches the finish line.,0
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG15
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,1
+Animated the addded sprite,0
+|
+5thLRG16
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,0
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG18
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,1
+Made the Kangaroo hop.,1
+Made the Kangaroo take a wiggly path.,1
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG19
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG2
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,0
+Bee moves on space bar.,0
+Bee uses costume change on space bar.,0
+Bee has wait block on space bar.,0
+Bee reaches the finish line.,0
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG20
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG21
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG22
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,0
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG23
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG25
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG26
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,1
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG27
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,1
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG28
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,0
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG29
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG3
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG30
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG31
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG4
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG6
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG8
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,1
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,0
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,0
+Animated the addded sprite,0
+|
+5thLRG9
+Requirements:
+Bee starts at the beginning of the track.,1
+Bee handles down arrow.,1
+Bee changes costume on down arrow.,1
+Bee wait block on down arrow.,1
+Bee handles space bar.,1
+Bee loop on space bar.,1
+Bee moves on space bar.,1
+Bee uses costume change on space bar.,1
+Bee has wait block on space bar.,1
+Bee reaches the finish line.,0
+Extensions:
+There is a true winner to the race.,1
+Winner changes costume during victory dance.,0
+Winner uses turn block during victory dance.,0
+Made the Bee take a wiggly path.,0
+Added Kangaroo.,1
+Made the Kangaroo hop.,0
+Made the Kangaroo take a wiggly path.,0
+Added a sprite,1
+Animated the addded sprite,1
+|

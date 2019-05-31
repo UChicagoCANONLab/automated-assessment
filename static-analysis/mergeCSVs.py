@@ -49,7 +49,6 @@ def main():
     for filename in os.listdir(folder):
         if filename.endswith(".csv"):
             path = folder+filename
-            print(path)
             merge(path,output)
         else:
             continue

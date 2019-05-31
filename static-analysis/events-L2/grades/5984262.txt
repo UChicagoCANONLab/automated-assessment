@@ -1,0 +1,195 @@
+001JCL08
+Requirements:
+Background has an image.,1
+There are three sprites.,1
+Sprite 1 has at least two events.,0
+Sprite 2 has at least two events.,0
+Sprite 3 has at least two events.,0
+Sprite 1 events have actions.,0
+Sprite 2 events have actions.,0
+Sprite 3 events have actions.,0
+Extensions:
+A sprite spins (uses turn block),0
+A sprite reacts to more events.,0
+A sprite blinks (use hide, show, and wait blocks).,0
+|
+11JCL08
+Requirements:
+Background has an image.,1
+There are three sprites.,1
+Sprite 1 has at least two events.,1
+Sprite 2 has at least two events.,0
+Sprite 3 has at least two events.,0
+Sprite 1 events have actions.,1
+Sprite 2 events have actions.,0
+Sprite 3 events have actions.,0
+Extensions:
+A sprite spins (uses turn block),0
+A sprite reacts to more events.,0
+A sprite blinks (use hide, show, and wait blocks).,0
+|
+12JCL08
+Requirements:
+Background has an image.,1
+There are three sprites.,1
+Sprite 1 has at least two events.,0
+Sprite 2 has at least two events.,0
+Sprite 3 has at least two events.,0
+Sprite 1 events have actions.,0
+Sprite 2 events have actions.,0
+Sprite 3 events have actions.,0
+Extensions:
+A sprite spins (uses turn block),0
+A sprite reacts to more events.,0
+A sprite blinks (use hide, show, and wait blocks).,0
+|
+16JCL08
+Requirements:
+Background has an image.,1
+There are three sprites.,1
+Sprite 1 has at least two events.,0
+Sprite 2 has at least two events.,0
+Sprite 3 has at least two events.,0
+Sprite 1 events have actions.,0
+Sprite 2 events have actions.,0
+Sprite 3 events have actions.,0
+Extensions:
+A sprite spins (uses turn block),0
+A sprite reacts to more events.,0
+A sprite blinks (use hide, show, and wait blocks).,0
+|
+22JCL08
+Requirements:
+Background has an image.,1
+There are three sprites.,1
+Sprite 1 has at least two events.,0
+Sprite 2 has at least two events.,0
+Sprite 3 has at least two events.,0
+Sprite 1 events have actions.,0
+Sprite 2 events have actions.,0
+Sprite 3 events have actions.,0
+Extensions:
+A sprite spins (uses turn block),0
+A sprite reacts to more events.,0
+A sprite blinks (use hide, show, and wait blocks).,0
+|
+25JCL08
+Requirements:
+Background has an image.,1
+There are three sprites.,1
+Sprite 1 has at least two events.,1
+Sprite 2 has at least two events.,1
+Sprite 3 has at least two events.,1
+Sprite 1 events have actions.,1
+Sprite 2 events have actions.,1
+Sprite 3 events have actions.,1
+Extensions:
+A sprite spins (uses turn block),0
+A sprite reacts to more events.,0
+A sprite blinks (use hide, show, and wait blocks).,0
+|
+26JCL08
+Requirements:
+Background has an image.,1
+There are three sprites.,1
+Sprite 1 has at least two events.,0
+Sprite 2 has at least two events.,0
+Sprite 3 has at least two events.,0
+Sprite 1 events have actions.,0
+Sprite 2 events have actions.,0
+Sprite 3 events have actions.,0
+Extensions:
+A sprite spins (uses turn block),0
+A sprite reacts to more events.,0
+A sprite blinks (use hide, show, and wait blocks).,0
+|
+27JCL08
+Requirements:
+Background has an image.,0
+There are three sprites.,1
+Sprite 1 has at least two events.,1
+Sprite 2 has at least two events.,1
+Sprite 3 has at least two events.,1
+Sprite 1 events have actions.,1
+Sprite 2 events have actions.,1
+Sprite 3 events have actions.,1
+Extensions:
+A sprite spins (uses turn block),0
+A sprite reacts to more events.,0
+A sprite blinks (use hide, show, and wait blocks).,0
+|
+28JCL08
+Requirements:
+Background has an image.,0
+There are three sprites.,1
+Sprite 1 has at least two events.,0
+Sprite 2 has at least two events.,1
+Sprite 3 has at least two events.,1
+Sprite 1 events have actions.,0
+Sprite 2 events have actions.,1
+Sprite 3 events have actions.,1
+Extensions:
+A sprite spins (uses turn block),0
+A sprite reacts to more events.,0
+A sprite blinks (use hide, show, and wait blocks).,0
+|
+30JCL08
+Requirements:
+Background has an image.,1
+There are three sprites.,1
+Sprite 1 has at least two events.,1
+Sprite 2 has at least two events.,0
+Sprite 3 has at least two events.,0
+Sprite 1 events have actions.,1
+Sprite 2 events have actions.,0
+Sprite 3 events have actions.,0
+Extensions:
+A sprite spins (uses turn block),0
+A sprite reacts to more events.,0
+A sprite blinks (use hide, show, and wait blocks).,0
+|
+31JCL08
+Requirements:
+Background has an image.,1
+There are three sprites.,1
+Sprite 1 has at least two events.,0
+Sprite 2 has at least two events.,0
+Sprite 3 has at least two events.,0
+Sprite 1 events have actions.,0
+Sprite 2 events have actions.,0
+Sprite 3 events have actions.,0
+Extensions:
+A sprite spins (uses turn block),0
+A sprite reacts to more events.,0
+A sprite blinks (use hide, show, and wait blocks).,0
+|
+32JCL08
+Requirements:
+Background has an image.,1
+There are three sprites.,1
+Sprite 1 has at least two events.,0
+Sprite 2 has at least two events.,0
+Sprite 3 has at least two events.,0
+Sprite 1 events have actions.,0
+Sprite 2 events have actions.,0
+Sprite 3 events have actions.,0
+Extensions:
+A sprite spins (uses turn block),0
+A sprite reacts to more events.,0
+A sprite blinks (use hide, show, and wait blocks).,0
+|
+MrsKBaut
+Requirements:
+Background has an image.,1
+There are three sprites.,1
+Sprite 1 has at least two events.,1
+Sprite 2 has at least two events.,1
+Sprite 3 has at least two events.,1
+Sprite 1 events have actions.,1
+Sprite 2 events have actions.,1
+Sprite 3 events have actions.,1
+Extensions:
+A sprite spins (uses turn block),0
+A sprite reacts to more events.,0
+A sprite blinks (use hide, show, and wait blocks).,0
+|

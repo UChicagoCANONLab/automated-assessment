@@ -1,0 +1,345 @@
+11JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,0
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+13JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,1
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,1
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+14JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,1
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,1
+Another sprite is animated.,1
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+16JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,0
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,1
+A third sprite is animated.,1
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+17JCL06
+Requirements:
+Background has an image.,0
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,0
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+19JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,0
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+20JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,0
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+21JCL06
+Requirements:
+Background has an image.,0
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,0
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+22JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,0
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+23JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,0
+Chosen sprite moves.,0
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,0
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+24JCL06
+Requirements:
+Background has an image.,0
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,0
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+25JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,0
+Chosen sprite moves.,0
+Chosen sprite changes costume.,0
+Chosen sprite has a wait block.,0
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+26JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,0
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+27JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,0
+Chosen sprite moves.,0
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,0
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+28JCL06
+Requirements:
+Background has an image.,0
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,0
+Chosen sprite changes costume.,0
+Chosen sprite has a wait block.,0
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+29JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,0
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+2JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,0
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+31JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,1
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,1
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+4JCL06
+Requirements:
+Background has an image.,0
+There are at least 3 sprites.,0
+Chosen sprite has a loop.,1
+Chosen sprite moves.,0
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+6JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,0
+Chosen sprite moves.,1
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,0
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+7JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,1
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,1
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,1
+|
+8JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,0
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
+9JCL06
+Requirements:
+Background has an image.,1
+There are at least 3 sprites.,1
+Chosen sprite has a loop.,1
+Chosen sprite moves.,0
+Chosen sprite changes costume.,1
+Chosen sprite has a wait block.,1
+Chosen sprite does a complex dance.,0
+Another sprite is animated.,0
+A third sprite is animated.,0
+Extensions:
+At least another character dances when clicked.,0
+Student uses other block types to animate.,0
+|
