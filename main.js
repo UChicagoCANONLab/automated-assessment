@@ -76,7 +76,7 @@ window.buttonHandler = async function() {
 
   var requestURL = document.getElementById('inches_input').value;
   var studioID = parseInt(requestURL.match(/\d+/));
-  crawlS3(studioID, 0);
+  crawl(studioID, 0, []);
   //crawl(id,1);
 }
 
@@ -126,50 +126,73 @@ window.onclick = function(event) {
 
 /// Web crawling
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-function crawlS3(studioID, offset) {
 
-  var studioRequestURL = 'https://chord.cs.uchicago.edu/studios3/' + studioID + '/' + offset + '/';
-  var studioRequest = new XMLHttpRequest();
-  studioRequest.open('GET', studioRequestURL);
-  studioRequest.send();
-  studioRequest.onload =
-    function () {
-      var studioResponse = JSON.parse(studioRequest.response);
-      if (studioResponse.length === 0) {
-        return;
-      }
-      else {
-        for (var projectOverview of studioResponse) {
-          var projectID = projectOverview.id;
-          var projectRequestURL = 'https://chord.cs.uchicago.edu/projects3/' + projectID;
-          var projectRequest = new XMLHttpRequest();
-          numLoadingProjects++;
-          projectRequest.open('GET', projectRequestURL);
-          projectRequest.onload =
-            function () {
-              var projectResponse = JSON.parse(projectRequest.response);
-              try {
-                gradeObj.grade(projectResponse, projectID);
-              }
-              catch (err) {
-                console.log('Error grading project ' + projectID);
-              }
-              numLoadingProjects--;
-              report(projectID, gradeObj.requirements, gradeObj.extensions, projectResponse.author.id);
-            }
-        }
-        projectRequest.onerror =
-          function () {
-            numLoadingProjects--;
-          }
-        return crawlS3(studioID, offset + 20);
-      }
-    }
+function get(url) {
+  return new Promise(function(resolve, reject) {
+    var request = new XMLHttpRequest();
+    request.open('GET', url);
+    request.onload = resolve;
+    request.onerror = reject;
+    request.send();
+  });
 }
+
+async function crawl(studioID, offset, projectIDs) {
+    if (!offset) console.log('Grading studio ' + studioID);
+    get('https://chord.cs.uchicago.edu/scratch/studio/' + studioID + '/offset/' + offset)
+    .then(function(result) {
+        var studioResponse = JSON.parse(result.target.response);
+        /// Keep crawling or return?
+        if (studioResponse.length === 0) {
+            keepGoing = false;
+            for (var projectID of projectIDs) {
+                gradeProject(projectID);
+            }
+            IS_LOADING = false;
+            return;
+        }
+        else {
+            for (var projectOverview of studioResponse) {
+                projectIDs.push(projectOverview.id);
+            }
+            crawl(studioID, offset + 20, projectIDs);
+        }
+    });
+}
+
+function gradeProject(projectID) {
+    console.log('    Grading project ' + projectID);
+    get('https://chord.cs.uchicago.edu/scratch/project/' + projectID)
+    .then(function(result) {
+        var project = JSON.parse(result.target.response);
+        try {
+          console.log(project);
+          gradeObj.grade(project, projectID);
+          addReport(gradeObj, projectID);
+        }
+        catch (err) {
+          console.log('Error grading project ' + projectID);
+          console.log(err);
+          addReport(gradeObj, projectID);
+        }
+    });
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Reporting results
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+function addReport(gradeObj, projectID) {
+    var reportString = '';
+    reportString += 'Project ID: ' + projectID + '\n';
+    reportString += 'Requirements:'
+    for (var requirement of gradeObj.requirements) {
+        reportString += requirement.bool ? '✔️' : '❌';
+        reportString += ': ' + requirement.str + '\n';
+    }
+    console.log(reportString);
+}
 
 /* Prints a line of grading text. */
 function appendText(string_list) {
