@@ -1,0 +1,34 @@
+Full Static Analysis Toolchain (6/6/19)
+
+# Quick Tip: Find and replace the module name to run on each module
+# Quick tip: Just copy and paste this entire document into the command line (the invalid commands will be caught by the machine)
+# Note: anything in aggregated (and it’s subdirectories) must be wiped before re-doing aggregation (mergeCSVs.py currently just appends data, does not overwrite it)
+
+# Grade projects
+# Take out “-noWeb” to scrape from web
+python3 batch.py ./animation-L1/metadata-animation-L1-noWeb.csv
+
+# append all the graded csvs to each other
+python3 mergeCSVs.py ./animation-L1/csv/3/ ./animation-L1/csv/aggregated/3.csv
+python3 mergeCSVs.py ./animation-L1/csv/4/ ./animation-L1/csv/aggregated/4.csv
+python3 mergeCSVs.py ./animation-L1/csv/5/ ./animation-L1/csv/aggregated/5.csv
+python3 mergeCSVs.py ./animation-L1/csv/6/ ./animation-L1/csv/aggregated/6.csv
+python3 mergeCSVs.py ./animation-L1/csv/7/ ./animation-L1/csv/aggregated/7.csv
+python3 mergeCSVs.py ./animation-L1/csv/8/ ./animation-L1/csv/aggregated/8.csv
+
+# create count for each grade
+python3 countCSV.py ./animation-L1/csv/aggregated/3.csv ./animation-L1/csv/aggregated/counted/3-counted.csv
+python3 countCSV.py ./animation-L1/csv/aggregated/4.csv ./animation-L1/csv/aggregated/counted/4-counted.csv
+python3 countCSV.py ./animation-L1/csv/aggregated/5.csv ./animation-L1/csv/aggregated/counted/5-counted.csv
+python3 countCSV.py ./animation-L1/csv/aggregated/6.csv ./animation-L1/csv/aggregated/counted/6-counted.csv
+python3 countCSV.py ./animation-L1/csv/aggregated/7.csv ./animation-L1/csv/aggregated/counted/7-counted.csv
+python3 countCSV.py ./animation-L1/csv/aggregated/8.csv ./animation-L1/csv/aggregated/counted/8-counted.csv
+
+# append the grade-wide counts to each other
+python3 mergeCSVs.py ./animation-L1/csv/aggregated/counted ./animation-L1/csv/aggregated/aggregated.csv
+
+# add letter heading to a copy of the aggregated csv
+python3 addLetterHeading.py ./animation-L1/csv/aggregated/aggregated.csv copy 4
+
+# make a grouped bar graph
+python3 groupedBarGraph.py ./animation-L1/

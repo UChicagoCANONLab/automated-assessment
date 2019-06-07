@@ -3,6 +3,7 @@
 # Adds letter correspondence to CSV
 
 # python3 addLetterHeading.py (input file) (output file) (column to start lettering at)
+# output file: "self" for the same file, "copy" for a copy with addition to name
 
 # column is 1-indexed (starts at 1)
 
@@ -22,7 +23,7 @@ def main():
 
     if "self" in output: # will write back to the input file
         output = input
-    if "append" in output: # will copy to file with same name but added ending
+    if "copy" in output: # will copy to file with same name but added ending
         output = input[:-4] + "-letterHeadings.csv"
 
     # read input file, save in memory
