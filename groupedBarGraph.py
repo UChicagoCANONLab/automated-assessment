@@ -65,6 +65,10 @@ def main():
     labels = list(map(chr, range(ord('A'), ord('Z')+1)))
     width = .15
 
+    # Setting the color palette
+    # Currently designed to handle 6 grade levels, 3 through 8.
+    colors = ["#080080","#990099","#B31B00","#FFEB00","#07CC00","#00B1E6"]
+
     # Plotting the bars
     fig, ax = plt.subplots(figsize=(10, 6))
 
@@ -75,33 +79,10 @@ def main():
                     df[k],
                     width,
                     alpha=0.7,
-                    color="#%06x" % random.randint(0, 0xFFFFFF),
+                    color=colors[int(k)-3],
                     label=df['Requirement'][i])
             i+=1
 
-
-
-    # plt.bar(pos,
-    #         df['3'],
-    #         width,
-    #         alpha=0.5,
-    #         color='#EE3224',
-    #         label=df['Requirement'][0])
-    #
-    #
-    # plt.bar([p + width for p in pos],
-    #         df['4'],
-    #         width,
-    #         alpha=0.5,
-    #         color='#F78F1E',
-    #         label=df['Requirement'][1])
-    #
-    # plt.bar([p + width * 2 for p in pos],
-    #         df['5'],
-    #         width,
-    #         alpha=0.5,
-    #         color='#FFC222',
-    #         label=df['Requirement'][2])
 
     # Set the y axis label
     ax.set_ylabel('Percent Complete')
