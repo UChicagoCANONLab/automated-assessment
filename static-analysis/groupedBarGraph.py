@@ -75,13 +75,17 @@ def main():
     fig, ax = plt.subplots(figsize=(10, 6))
 
     i = 0
+    keys = []
     for k in graph_data.keys():
-        if "Requirement" not in k:
+        keys.append(k)
+    keys.sort()
+    for k in range(len(keys)):
+        if "Requirement" not in keys[k]:
             plt.bar(pos if i==0 else [p + width * i for p in pos] ,
-                    df[k],
+                    df[keys[k]],
                     width,
                     alpha=0.7,
-                    color=colors[int(k)-3],
+                    color=colors[int(keys[k])-3],
                     label=df['Requirement'][0])
             i+=1
 
@@ -103,7 +107,7 @@ def main():
     plt.ylim([0, 150])
 
     # Adding the legend and showing the plot
-    plt.legend(df.keys()[1:], loc='upper left')
+    plt.legend(keys, loc='upper left')
     plt.savefig(module+modname+'-groupedBar.pdf')
     #plt.show() #if you want to see it
 
