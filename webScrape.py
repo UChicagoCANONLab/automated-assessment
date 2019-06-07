@@ -41,6 +41,8 @@ def main():
             # Pull out scratch username
             scratch_username = span_string.split(">")[2]
             scratch_username = scratch_username[0:len(scratch_username) - 3]
+            if scratch_username == "ScratchEncore": #ignore scratch encore projects
+                continue
 
             # Get project ID
             proj_id = project.get('data-id')

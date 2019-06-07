@@ -80,7 +80,7 @@ function gradeProjectWithGrader(projectPath, graderPath,isVerbose,resultsFile,st
     //If there was an error, report it
     catch(err) {
         output += "Error grading project\n";
-        if (isVerbose) console.log(err);
+        console.log(err);
     }
 
     output += "|\n"; //add delimiter 
