@@ -338,8 +338,10 @@ class GradeEvents {
         
         var projInfo = fileObj['targets'] //extract targets from JSON data
         
+        if (sb3.no(projInfo)) return;
+        
         //make sprite objects, load scripts
-        for(var i=0; i <projInfo.length; i++){
+        for(var i=0; i < projInfo.length; i++){
             if(projInfo[i]['isStage'] == false){
                 var addMe = new Sprite(projInfo[i]['name']);
                 Sprites.push(addMe);
@@ -404,12 +406,12 @@ class GradeEvents {
                             }
 
                             if (opcode == 'looks_setsizeto') {
-                                if (scripts[p][b]['inputs']['CHANGE'][1][1] > 100) {
+                                if (scripts[p][b]['inputs']['SIZE'][1][1] > 100) {
                                     if (!grow.includes(name)){
                                         grow.push(name)
                                     }
                                 }
-                                if (scripts[p][b]['inputs']['CHANGE'][1][1] < 100) {
+                                if (scripts[p][b]['inputs']['SIZE'][1][1] < 100) {
                                     if (!shrink.includes(name)){
                                         shrink.push(name)
                                     }
@@ -438,8 +440,8 @@ class GradeEvents {
                             if (opcode == "event_whenthisspriteclicked") {
                                 clickedOn = true;
                                 if (scripts[p][b]["next"] != 'null') {
-                                    if (!talkTwice.includes(name)){
-                                        talkTwice.push(name)
+                                    if (!reactOnClick.includes(name)){
+                                        reactOnClick.push(name)
                                     }
                                 }
 
@@ -478,7 +480,7 @@ class GradeEvents {
                 }
 
                 if (talkTwice.length > 2) {
-                    this.requirements.ThreeSpritesReactToClick.bool = true;
+                    this.requirements.ThreeSpritesTalkTwice.bool = true;
                 }
                 
                 //evaluate extensions

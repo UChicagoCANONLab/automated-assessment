@@ -28,6 +28,8 @@ def main():
     module += '/' if module[-1] != '/' else ''
     file = module+"csv/aggregated/aggregated.csv"
 
+    modname = module.strip("./ ")
+
     #Will be structured: grade,count,attribute1...attributeN
     data = []
     header = []
@@ -80,7 +82,7 @@ def main():
                     width,
                     alpha=0.7,
                     color=colors[int(k)-3],
-                    label=df['Requirement'][i])
+                    label=df['Requirement'][0])
             i+=1
 
 
@@ -102,7 +104,7 @@ def main():
 
     # Adding the legend and showing the plot
     plt.legend(df.keys()[1:], loc='upper left')
-    plt.savefig(module+'groupedBar.pdf')
+    plt.savefig(module+modname+'-groupedBar.pdf')
     #plt.show() #if you want to see it
 
 
