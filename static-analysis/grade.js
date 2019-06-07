@@ -48,7 +48,7 @@ else /* if (!projectPathIsDirectory) */ {
 /// Helpers
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function gradeProjectWithGrader(projectPath, graderPath,isVerbose,resultsFile) {
+function gradeProjectWithGrader(projectPath, graderPath,isVerbose,resultsFile,studentID) {
 
     var GraderClass = require(graderPath);
     var grader = new GraderClass();
@@ -58,6 +58,8 @@ function gradeProjectWithGrader(projectPath, graderPath,isVerbose,resultsFile) {
     var projectJSON = JSON.parse(rawdata); 
     
     var output = "" + studentID + "\n";
+    
+    if (isVerbose) console.log(studentID);
 
     //Run grade and output results
     try {
@@ -78,7 +80,7 @@ function gradeProjectWithGrader(projectPath, graderPath,isVerbose,resultsFile) {
     //If there was an error, report it
     catch(err) {
         output += "Error grading project\n";
-        //fs.appendFileSync(resultsFile,"Error grading project\n");
+        if (isVerbose) console.log(err);
     }
 
     output += "|\n"; //add delimiter 

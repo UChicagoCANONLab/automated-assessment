@@ -21,7 +21,10 @@ def main():
             next[i] = next[i].strip("\n ")
         while (len(next) > 1): # check for EOF
             # run the command
-            call(['python3','run.py',next[0],next[1],next[2]])
+            if len(next) > 3:
+                call(['python3','run.py',next[0],next[1],next[2],next[3]])
+            else :  
+                call(['python3','run.py',next[0],next[1],next[2]])
             next = commands.readline().strip().split(',')
 
     print("Finished batch.")

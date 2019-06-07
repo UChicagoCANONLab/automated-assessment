@@ -33,7 +33,7 @@ def main():
     if module[-1] == '/':
         module = module[:-1]
     #Get grade level
-    grade = sys.argv[3]
+    grade = int(sys.argv[3])
 
     # Get data from web
     if studioScrape != "":
@@ -41,7 +41,7 @@ def main():
         call(["python3", "webScrape.py",studioURL,module])
         print("Scraped.\n")
     else:
-        print("No request to scrape...moving on to grading.\n")
+        print("No request to scrape...moving on to grading " + studioID + ".\n")
 
     #Prepare inputs for grading script
     modname = module.strip("./ ")
@@ -53,7 +53,7 @@ def main():
 
     # Check for verbose tag
     verbose = ""
-    if len(sys.argv) > 4 and sys.argv[4] == "--verbose":
+    if len(sys.argv) > 4 and "verbose" in sys.argv[4]:
         verbose = " --verbose"
         print("Verbose grading active.")
 
@@ -118,7 +118,7 @@ def main():
 
     # Adds grades to CSV
     print("Pushing data to CSV...")
-    folder = module+"/csv/"+grade+'/'
+    folder = module+"/csv/"+str(grade)+'/'
 
     # Create target Directory if doesn't exist
     if not os.path.exists(folder):
