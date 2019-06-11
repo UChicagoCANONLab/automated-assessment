@@ -18,6 +18,7 @@ def main():
     startLettering = int(sys.argv[3])
 
     data = [[]]
+    #initialize row with letters with blank spots for non-lettered attributes
     for i in range (startLettering-1):
         data[0].append("")
 

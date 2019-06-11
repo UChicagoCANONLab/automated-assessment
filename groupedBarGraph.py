@@ -35,6 +35,7 @@ def main():
     header = []
     needHeader = True
 
+    # Get data and headers (as needed)
     with open(file,'r') as rawdata:
         for d in rawdata.readlines():
             d = d.strip().split(',')
