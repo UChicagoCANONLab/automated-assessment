@@ -2,7 +2,6 @@
 
 Created by Zack Crenshaw, in part based on code from Max White and Jean Salac (as marked)
 
-
 batch.py: python3 batch.py (text file with commands)
     Will run a batch of calls of 'run.py', given a text or CSV file of arguments
     Each line of text file:
@@ -43,6 +42,8 @@ Metadata files in the module folders with data are designed to be run by batch.p
 These files thus have the structure: studioURL,module,grade level
 
 NOTE: See toolchain.txt for an example of how to use this toolchain. Below is a description of each step:
+
+NOTE: Metadata and collected data is contained in the Dropbox folder. 
 
 Data for each module is contained in the folder with that module's name.
 Json files output by run.py will be organized by studio in "json_files_by_studio"

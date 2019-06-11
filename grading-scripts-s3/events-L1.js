@@ -319,9 +319,7 @@ class GradeEvents {
     }
     
     initExts() {
-        
         this.extensions.ChangeNames = {bool:false,str:'Sprite names are changed.'}
-        
         this.extensions.TurnAndWait = {bool: false, str:'A Sprite spins using turn and wait blocks.'}
         this.extensions.AddEvent = {bool: false, str: 'A Sprite reacts to another event.'}
         
@@ -374,12 +372,13 @@ class GradeEvents {
             var name = sprite.name;
             var clickedOn = false;
             
+            //check if name has been changed
             if (!builtInNames.includes(name)) {
                 diffNames++;
             }
             
             
-            if (name != "Catrina") { //IGNORE CATRINA
+            if (name != "Catrina") { //IGNORE CATRINA (she would mess up the counts for the requirements)
             
                 for (var p=0; p <scripts.length; p++){ //iterate scripts
                     var talks = 0;
@@ -389,8 +388,10 @@ class GradeEvents {
                         var opcode = scripts[p][b]['opcode'];
 
                         //check only when sprite is clicked
-                        if (clickedOn) {    
+                        if (clickedOn) {   
+                            
                             //check for size change
+                            //type one: change size by
                             if (opcode == 'looks_changesizeby') {
                                 if (scripts[p][b]['inputs']['CHANGE'][1][1] > 0) {
                                     if (!grow.includes(name)){
@@ -404,7 +405,7 @@ class GradeEvents {
                                 }
 
                             }
-
+                            //type two: set size to
                             if (opcode == 'looks_setsizeto') {
                                 if (scripts[p][b]['inputs']['SIZE'][1][1] > 100) {
                                     if (!grow.includes(name)){
@@ -418,19 +419,18 @@ class GradeEvents {
                                 }
                             }
                             
+                            //check for say blocks
                             if (opcode.includes("looks_say")){
                                 talks++;
                             }
                         }
                         
+                        //checks if there are two say blocks
                         if (talks > 1) {
                             if (!talkTwice.includes(name)){
                                 talkTwice.push(name)
                             }
                         }
-                        
-                        
-
                         
     
                         //event handling
@@ -445,7 +445,7 @@ class GradeEvents {
                                     }
                                 }
 
-                            //turn off grading for other elements, count other events
+                            //otherwise, turn off grading for other elements, count other events
                             } else {
                                 clickedOn = false;
                                 if (scripts[p][b]["next"] != 'null') {
@@ -455,8 +455,6 @@ class GradeEvents {
 
                         }
 
-
-
                     } //end of blocks loop
 
 
@@ -465,30 +463,36 @@ class GradeEvents {
                 }  //end of sprites loop
 
                 //evaluate requirements
-
+                
+                //three sprites react to a click
                 if (reactOnClick.length > 2) {
                     this.requirements.ThreeSpritesReactToClick.bool = true;
                 }
 
+                //three sprites grow in size
                 if (grow.length > 2) {
                     this.requirements.ThreeSpritesGetBigger.bool = true;
                 }
 
+                //three sprites shrink in size
                 if (shrink.length > 2) {
                     this.requirements.ThreeSpritesResetSize.bool = true;
                     //does not check for true reset, just getting smaller again
                 }
-
+                
+                //three sprites talk twice
                 if (talkTwice.length > 2) {
                     this.requirements.ThreeSpritesTalkTwice.bool = true;
                 }
                 
                 //evaluate extensions
                 
+                //names have been changed for all sprites
                 if (diffNames > 2){
                     this.extensions.ChangeNames.bool = true;
                 }
                 
+                //check if other events are added
                 this.extensions.AddEvent.bool = otherEvents;
             
             }

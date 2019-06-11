@@ -43,7 +43,8 @@ def main():
     else:
         print("No request to scrape...moving on to grading " + studioID + ".\n")
 
-    #Prepare inputs for grading script
+    # Prepare inputs for grading script
+
     modname = module.strip("./ ")
 
     # looks for script in higher directory

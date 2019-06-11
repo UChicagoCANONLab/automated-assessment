@@ -336,6 +336,7 @@ class GradeEvents {
         
         var projInfo = fileObj['targets'] //extract targets from JSON data
         
+        //create sprite objects, add scripts
         for(var i=0; i <projInfo.length; i++){
             if(projInfo[i]['isStage'] == false){
                 var addMe = new Sprite(projInfo[i]['name']);
@@ -350,7 +351,7 @@ class GradeEvents {
                         }
                     }
                 }
-            } else {
+            } else { //if it is the stage, check for backdrop
                 if (projInfo[i]['costumes'].length > 1) {
                     this.requirements.HaveBackdrop.bool = true;
                 }
@@ -432,12 +433,12 @@ class GradeEvents {
                     
                 } //end of blocks loop
                 
-                 //check spins
+                 //check that a sprite spins
                 if (turn && wait) {
                     this.extensions.SpriteSpins.bool = true;
                 }
 
-                //check blinks
+                //check that a sprite blinks
                 if (hide && show && wait) {
                     this.extensions.SpriteBlinks.bool = true;
                 }
@@ -447,9 +448,15 @@ class GradeEvents {
             }  //end of scripts loop
             
 
+            //POTENTIAL ISSUE:
+            //because the following requirements are found using counts
+            //Sprite One for one requirement may not match Sprite One in the other
+            //However, as opposed to a requirement like: all three sprites need X,
+            //this approach allows partial credit. 
+    
             //check for enough unique events
             if (events.length > 1){
-                switch(s) {
+                switch(s) { 
                     case 0: this.requirements.SpriteOneTwoEvents.bool = true; 
                             break;
                     case 1: this.requirements.SpriteTwoTwoEvents.bool = true; 
@@ -474,6 +481,7 @@ class GradeEvents {
                 }
             }
             
+            //a sprite reacts to more than 2 events
             if (valids.length > 2) {
                 this.extensions.MoreScripts.bool = true;
             }

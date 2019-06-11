@@ -303,7 +303,6 @@ var sb3 = {
             }
         }
         
-        
         return (loop && wait && (costume || move));
         
     },
@@ -322,16 +321,6 @@ var sb3 = {
         
         var types = [];
         
-        //NEED TO ADD EXTS and MAKE ELIF –––––– !!!!!
-        /*
-        thoughts:
-            loop: in valid loops
-            costume: in valid costumes
-            move: req: use motion
-                    ext: track motion opcodes
-            wait: check opcode
-        
-        */
         
         for(var i in script) {
             var opcode = script[i]['opcode'];
@@ -362,6 +351,7 @@ var sb3 = {
         
         var reqs = [loop,move,costume,wait];
         
+        //animation: loop, wait, either costume or movement
         var isAnimated = (loop && wait && (costume || move))
         
         var report = [isAnimated,reqs,types];
@@ -423,17 +413,18 @@ class Sprite {
         return report;
     }
     
-    grade() {
-        for (var s in this.scripts) {
+    grade() { //grade a sprite
+        
+        for (var s in this.scripts) { //iterate scripts
             
             var scriptGrade = sb3.gradeAnimation(this.scripts[s]);
             
-            //check animation
+            //check if animated
             if (scriptGrade[0]) {
                 this.animated = true;
             }
             
-            //check dance reqs
+            //check dance reqs (find highest scoring script)
             var scriptScore = sb3.computeBoolArrayScore(scriptGrade[1])
             if (scriptScore >= this.getScore()) {
                 this.reqs = scriptGrade[1];
@@ -441,9 +432,9 @@ class Sprite {
                 
                 //check for dance on click
                 if (scriptScore == 4) {
-                    for (var b in this.scripts[s]) { //should only get to the first block
+                    for (var b in this.scripts[s]) { //should only get to the first block of script
                         if (this.scripts[s][b]['opcode'] == 'event_whenthisspriteclicked') {
-                            this.danceOnClick = true;
+                            this.danceOnClick = true; //ensures dance is on the click
                             break;
                         }
 
@@ -550,6 +541,7 @@ class GradeAnimation{
         
         var highestscoring = 0;
         var highscore = 0;
+        
         for (var s = 0; s<Sprites.length; s++) {
             //          0   1          2        3    4
             //REPORT: score,animated,reqs[4],types,dance
@@ -564,11 +556,11 @@ class GradeAnimation{
             }
             
             
-            if (report[1]) { //increment the number animated 
+            if (report[1]) { //increment the number animated if animated 
                 animated++;
             }
             
-            if (report[4]) {//increment the number that dance
+            if (report[4]) {//increment the number that dance if dances
                 danceOnClick++;
             }
             

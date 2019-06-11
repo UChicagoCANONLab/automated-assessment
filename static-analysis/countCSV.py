@@ -38,7 +38,7 @@ def main():
 
             filewriter.writerow(header)
 
-            # Create array to count
+            # Create array to count data
             count = [0] * (length + 1)
             count[0] = grade
 
@@ -49,10 +49,11 @@ def main():
                 for i in range (1,length):
                     try:
                         count[i+1] += int(next[i])
-                    except: # slight error in the aggregation where the first project is error
+                    except: # slight error in the aggregation if the first project is error
                         #assume error – already counted, so move to next line
                         break
                 next = input.readline().strip('\n').split(',')
+            # write counts to the output file
             filewriter.writerow(count)
 
 

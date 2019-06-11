@@ -8,7 +8,7 @@ import os
 import sys
 import csv
 
-
+# merges two csv files
 def merge(infile, outfile):
     needHeader = False # to check if file needs a header (is empty or non-existent)
     with open(infile,'r') as input:
@@ -45,13 +45,13 @@ def main():
 
     output = sys.argv[2]
 
-
+    # runs merge on all input files with the output
     for filename in os.listdir(folder):
         if filename.endswith(".csv"):
             path = folder+filename
             merge(path,output)
         else:
-            continue
+            continue #ignore non-csv files
 
 
 

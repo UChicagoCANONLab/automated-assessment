@@ -308,17 +308,13 @@ class GradeAnimation {
         this.requirements.spaceBarMovement = {bool:false, str:'Bee moves on space bar.'};;
         this.requirements.spaceBarCostumeChange = {bool:false, str:'Bee uses costume change on space bar.'};;
         this.requirements.spaceBarWaitBlock = {bool:false, str:'Bee has wait block on space bar.'};;
-        // checks for race winner
         this.requirements.BeeReachesFinish = {bool:false, str:'Bee reaches the finish line.'};;
         
     }
     
     initExts() {
-        // checks for extra components
-        
         this.extensions.HasWinner = {bool: false, str:'There is a true winner to the race.'}
         
-        // victory dance, turn block
         this.extensions.WinnerVictoryDanceCostume = {bool:false, str:'Winner changes costume during victory dance.'};
         this.extensions.WinnerVictoryDanceTurn = {bool:false, str:'Winner uses turn block during victory dance.'};
         
@@ -386,6 +382,10 @@ class GradeAnimation {
         
         for(var i in fileObj['targets']){ //find sprites
             var obj = fileObj['targets'][i];
+            //POTENTIAL ISSUE: requires names of sprites.
+            //However, as per the requirements, the Bee must do these things
+            //There's really no way to test if the Bee does something without checking if the name is Bee
+            //Another approach would be to just pick highest scoring sprite (as in Animation-L2)
             switch(obj['name']) {
                 case('Bee') : bee = obj;
                                 break;
@@ -400,6 +400,7 @@ class GradeAnimation {
                 }
         }
             
+        //check for fourth sprite
         if (fourth != null) {
             this.extensions.AddedFourthSprite.bool = true;
         }
@@ -449,12 +450,18 @@ class GradeAnimation {
                     if(validCostumes.includes(beeSpaceScript[i]['opcode'])){
                         this.requirements.spaceBarCostumeChange.bool = true;
                     }
+                     //POTENTIAL ISSUE:
+                    //only checks for reaching end on first loop in space script
+                    //this was done to prevent different loops with different steps from disrupting the count
+                    //a more robust version would be to create an array with reapeat and steps and wait from each loop
+                    //this was not done because of time constraints
+                    //this issue has been propagated to all other sprites being graded
                     if (numLoops == 1){
                         //check for wiggly path (turn blocks in first loop)
                         if (beeSpaceScript[i]['opcode'].includes('motion_turn')) {
                             this.extensions.BeeWiggle.bool = true;
                         }
-                            //get stats reaching finish and winner
+                        //get stats reaching finish and winner
                         if (beeSpaceScript[i]['opcode'] == 'control_repeat') {
                             beeRepeats += Number(beeSpaceScript[i]['inputs']['TIMES'][1][1]);
                         
@@ -471,6 +478,7 @@ class GradeAnimation {
                     }
                     
                     //check for reaching finish
+                    //POTENTIAL ISSUE: if the start position is bad, then this will fail even if the Bee reaches the end
                     if (beeRepeats * beeSteps >= 360 && this.requirements.goodStartPosition.bool){
                         this.requirements.BeeReachesFinish.bool = true;
                     }
@@ -502,12 +510,14 @@ class GradeAnimation {
     
 //GRADING SNAKE: ---------------------------
         if (snake != null){
+            //find spacebar script
            var snakekeyid = sb3.findKeyPressID(snake['blocks'], 'space');
 
             if(snakekeyid != null){
                 numLoops = 0;
                 snakeSpaceScript = sb3.makeScript(snake['blocks'], snakekeyid,true);
                 for(var i in snakeSpaceScript){  
+                    //count loops
                     if(validLoops.includes(snakeSpaceScript[i]['opcode'])){
                         numLoops++;
                     }  
@@ -548,6 +558,7 @@ class GradeAnimation {
                 }  
             }
             
+            //make kangaroo space script
             var kangarookeyid = sb3.findKeyPressID(kangaroo['blocks'], 'space');
 
             if(kangarookeyid != null){
@@ -566,7 +577,7 @@ class GradeAnimation {
                         if(validCostumes.includes(kangarooSpaceScript[i]['opcode'])){
                             this.extensions.KangarooHop.bool = true;
                         }
-                            //get stats reaching finish and winner
+                        //get stats reaching finish and winner
                         if (kangarooSpaceScript[i]['opcode'] == 'control_repeat') {
                             kangarooRepeats += Number(kangarooSpaceScript[i]['inputs']['TIMES'][1][1]);
                             
@@ -588,17 +599,21 @@ class GradeAnimation {
 //GRADING FOURTH: -------------------------
         
     if (fourth != null){
+        
+            //get the fourth sprite's space block
            var fourthkeyid = sb3.findKeyPressID(fourth['blocks'], 'space');
 
             if(fourthkeyid != null){
                 numLoops = 0;
                 fourthSpaceScript = sb3.makeScript(fourth['blocks'], fourthkeyid,true);
                 for(var i in fourthSpaceScript){  
+                    
+                    //count loops
                     if(validLoops.includes(fourthSpaceScript[i]['opcode'])){
                         numLoops++;
                     }  
                     if (numLoops == 1){
-                            //get stats reaching finish and winner
+                        //get stats reaching finish and winner
                         if (fourthSpaceScript[i]['opcode'] == 'control_repeat') {
                             fourthRepeats += Number(fourthSpaceScript[i]['inputs']['TIMES'][1][1]);
                             
@@ -615,7 +630,7 @@ class GradeAnimation {
                     }
                 }
             }
-        
+            //check if the fourth sprite has been animated for some event 
             var events = sb3.typeBlocks(fourth['blocks'], "event_");
             for (var b in events) {
                 var script = sb3.makeScript(fourth['blocks'],b,true);
@@ -629,6 +644,7 @@ class GradeAnimation {
     
     
 //FINAL GRADING: ------------------------------   
+        //if even one of the original three sprites has been deleted, no grading occurs
         if (bee == null || snake == null || kangaroo == null) {
             return;
         }
@@ -638,37 +654,12 @@ class GradeAnimation {
         var kangarooSpeed = (kangarooSteps / kangarooWait)*snakeRepeats;
         
         
-        
-        /*
         //find a winner
-        if (beeSpeed > snakeSpeed) {
-            if (snakeSpeed > kangarooSpeed || beeSpeed > kangarooSpeed) {
-                winner = bee;
-                winnerSpaceScript = beeSpaceScript;
-            } else if (beeSpeed < kangarooSpeed) {
-                winner = kangaroo;
-                winnerSpaceScript = kangarooSpaceScript;
-            }
-        } else if (snakeSpeed > beeSpeed) {
-            if (beeSpeed > kangarooSpeed || snakeSpeed > kangarooSpeed) {
-                winner = snake;
-                winnerSpaceScript = snakeSpaceScript;
-            } else if (snakeSpeed < kangarooSpeed) {
-                winner = kangaroo;
-                winnerSpaceScript = kangarooSpaceScript;
-            }   
-        }
-        */
-        
-        //find a winner
-        
         var speeds = [beeSpeed,snakeSpeed,kangarooSpeed];
         speeds.sort();
         speeds.reverse();
         
-        
-        
-        if (speeds[0] != speeds[1]) {
+        if (speeds[0] != speeds[1]) { //prevent a tie
             switch (speeds[0]) {
                 case beeSpeed: winner = bee;
                                 winnerSpaceScript = beeSpaceScript;
@@ -692,30 +683,27 @@ class GradeAnimation {
                 if (validLoops.includes(winnerSpaceScript[i]['opcode'])){
                     numLoops++;
                 }
-                if (numLoops > 1) { //in second part
+                if (numLoops > 1) { //in second part of the space event
+                    //POTENTIAL ISSUE:
+                    //if there is a loop within a loop in the motion portion
+                    
+                    //check for costume change
                     if(winnerSpaceScript[i]['opcode'] == 'looks_switchcostumeto' || winnerSpaceScript[i]['opcode'] == 'looks_nextcostume'){
                         this.extensions.WinnerVictoryDanceCostume.bool = true;
                     }
+                    
+                    //check for victory dance that includes a turn block
                     if (winnerSpaceScript[i]['opcode'].includes('motion_turn')){
                         this.extensions.WinnerVictoryDanceTurn.bool = true;
                     }
 
                 }
                 
-                
             }
-            
              
-        }
-        
-        
-
-        
-        
-        
+        } 
     
     }
-
-
+    
 }
 module.exports = GradeAnimation;
