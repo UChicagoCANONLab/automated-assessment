@@ -1,5 +1,7 @@
 Full Static Analysis Toolchain (6/6/19)
 
+# Link to Google Doc with this information: https://docs.google.com/document/d/1ya0KAzGwF_zaIjrqUfPIy7dB147JGXIgK_MWa0LBaR0/edit?usp=sharing
+
 # Quick Tip: Find and replace the module name to run on each module
 # Quick tip: Just copy and paste this entire document into the command line (the invalid commands will be caught by the machine)
 # Note: anything in aggregated (and it’s subdirectories) must be wiped before re-doing aggregation (mergeCSVs.py currently just appends data, does not overwrite it)

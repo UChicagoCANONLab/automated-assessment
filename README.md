@@ -45,6 +45,8 @@ NOTE: See toolchain.txt for an example of how to use this toolchain. Below is a 
 
 NOTE: Metadata and collected data is contained in the Dropbox folder. 
 
+Data collection and processing procedure:
+
 Data for each module is contained in the folder with that module's name.
 Json files output by run.py will be organized by studio in "json_files_by_studio"
 Text files containing the grades from these json files are in grades.txt, named for the studio ID
