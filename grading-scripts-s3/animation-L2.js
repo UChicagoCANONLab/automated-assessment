@@ -72,6 +72,19 @@ var sb3 = {
         return null;
     },
     
+    findAllBlockID: function(blocks, opcode){
+        if(this.no(blocks) || blocks == {}) return null;
+        
+        var IDs = [];
+        
+        for(block in blocks){ 
+            if(blocks[block]['opcode'] == opcode){
+                IDs.push(block);
+            }
+        }
+        return IDs;
+    },
+    
     findKeyPressID: function(blocks, key){
         if(this.no(blocks) || blocks == {}) return null;
         
@@ -271,7 +284,6 @@ var sb3 = {
     },
     
     checkAnimation: function(script) {
-        var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy','motion_pointindirection','motion_turnright','motion_turnleft'];
         var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
         var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
         
@@ -298,7 +310,7 @@ var sb3 = {
             }
             
             //check move
-            if (validMoves.includes(script[i]['opcode'])) {
+            if (opcode.includes("motion_")) {
                 move = true;
             }
         }
@@ -308,8 +320,6 @@ var sb3 = {
     },
     
     gradeAnimation: function(script) {
-        //TODO: edit valid moves!
-        var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy','motion_pointindirection','motion_turnright','motion_turnleft'];
         var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
         var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
         
@@ -341,18 +351,18 @@ var sb3 = {
             }
             
             //check move
-            if (validMoves.includes(opcode)) {
+            if (opcode.includes("motion_")) {
+                move = true;
                 if (!types.includes(opcode)){
                    types.push(opcode);
                 }
-                move = true;
             }
         }
         
         var reqs = [loop,move,costume,wait];
         
-        //animation: loop, wait, either costume or movement
-        var isAnimated = (loop && wait && (costume || move))
+        //animation: loop and wait and either costume or movement
+        var isAnimated = (loop && wait && (costume || move));
         
         var report = [isAnimated,reqs,types];
         
@@ -430,14 +440,13 @@ class Sprite {
                 this.reqs = scriptGrade[1];
                 
                 
-                //check for dance on click
+                //check for dance (and dance on click)
                 if (scriptScore == 4) {
                     for (var b in this.scripts[s]) { //should only get to the first block of script
                         if (this.scripts[s][b]['opcode'] == 'event_whenthisspriteclicked') {
                             this.danceOnClick = true; //ensures dance is on the click
                             break;
                         }
-
                     }
                 }
             }
@@ -452,6 +461,7 @@ class Sprite {
             
             
         }
+    
         
         return this.getReport();
     }
@@ -485,13 +495,8 @@ class GradeAnimation{
     }
     
     initExts() {
-        this.extensions.MultipleDanceOnClick = {bool: false, str: "At least another character dances when clicked."};
+        this.extensions.OtherDanceOnClick = {bool: false, str: "At least another character dances when clicked."};
         this.extensions.OtherAnimation = {bool: false, str: "Student uses other block types to animate."};
-        
-    }
-    
-    scoreReport(report) { //for determining the best sprite
-        return report[0];
         
     }
     
@@ -519,10 +524,10 @@ class GradeAnimation{
                 var addMe = new Sprite(projInfo[i]['name']);
                 Sprites.push(addMe);
                 for (var e = 0; e < this.event_opcodes.length; e++) {
-                    var event = this.event_opcodes[e]
-                    var ID = sb3.findBlockID(projInfo[i]['blocks'],event);
-                    if (ID != null) {
-                        var newScript = sb3.makeScript(projInfo[i]['blocks'], ID,true);
+                    var event = this.event_opcodes[e];
+                    var IDs = sb3.findAllBlockID(projInfo[i]['blocks'],event);
+                    for (var b=0; b<IDs.length; b++){
+                        var newScript = sb3.makeScript(projInfo[i]['blocks'],IDs[b],true);
                         if (newScript != null) {
                             addMe.addScript(newScript);
                         }
@@ -543,13 +548,13 @@ class GradeAnimation{
         var highscore = 0;
         
         for (var s = 0; s<Sprites.length; s++) {
-            //          0   1          2        3    4
-            //REPORT: score,animated,reqs[4],types,dance
+            //          0       1      2        3    4      
+            //REPORT: score,animated,reqs[4],types,danceOnClick
             var report = Sprites[s].grade();
             Reports.push(report);
             
             //to determine which sprite was the target sprite
-            var totalScore = this.scoreReport(report);
+            var totalScore = report[0];
             if (totalScore > highscore) {
                 highscore = totalScore;
                 highestscoring = s;
@@ -560,7 +565,7 @@ class GradeAnimation{
                 animated++;
             }
             
-            if (report[4]) {//increment the number that dance if dances
+            if (report[4]) {//increment the number that dance on click if does so
                 danceOnClick++;
             }
             
@@ -569,6 +574,8 @@ class GradeAnimation{
                     animationTypes.push(report[3][t]);
                 }
             }
+            
+    
             
             
         }
@@ -597,23 +604,29 @@ class GradeAnimation{
             this.requirements.Dance.bool = true;
         }
         
-        switch(animated) { //counts the number of animated sprites
-            case 3: this.requirements.ThirdAnimated.bool = true;
-            case 2: this.requirements.SecondAnimated.bool = true; 
-            default: break;
+        if (chosen[4]) { //remove from count of dancing on click if this is the chosen sprite
+            //this is to ensure the count is accurate for checking the extension "otherDanceOnClick"
+            danceOnClick--;
             
-                
+        }
+    
+        
+        if (animated > 1) {
+                this.requirements.SecondAnimated.bool = true;
+            if (animated > 2) {
+                this.requirements.ThirdAnimated.bool = true;
+            }
         }
         
         
-        if (danceOnClick > 1) { //counts the sprites that dance on click
-            this.extensions.MultipleDanceOnClick.bool = true;
+        if (danceOnClick > 0) { //counts the sprites that dance on click
+            this.extensions.OtherDanceOnClick.bool = true;
         }
         
         if (animationTypes.length > 1) { //counts the number of animation blocks used
             this.extensions.OtherAnimation.bool = true;
         }
-        
+    
         
     
     }

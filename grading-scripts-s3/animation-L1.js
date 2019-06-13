@@ -289,6 +289,7 @@ var sb3 = {
 };
 
 class GradeAnimation {
+    
 
     constructor() {
         this.requirements = {};
@@ -337,8 +338,6 @@ class GradeAnimation {
     grade(fileObj, user) {
         this.initReqs();
         this.initExts();
-        // for private method
-        var that = this;
 
         
         //sprites
@@ -466,6 +465,9 @@ class GradeAnimation {
                             beeRepeats += Number(beeSpaceScript[i]['inputs']['TIMES'][1][1]);
                         
                         }
+                        if (beeSpaceScript[i]['opcode'] == 'control_forever') {
+                            beeRepeats += 100000; //arbritary large number to simulate infinity
+                        }
                         if (beeSpaceScript[i]['opcode'] == 'motion_movesteps') {
                             beeSteps += Number(beeSpaceScript[i]['inputs']['STEPS'][1][1]);
                           
@@ -479,6 +481,7 @@ class GradeAnimation {
                     
                     //check for reaching finish
                     //POTENTIAL ISSUE: if the start position is bad, then this will fail even if the Bee reaches the end
+                    //ISSUE: 360 is not small enough in some cases. May need to make it more dynamic (based on start positon)
                     if (beeRepeats * beeSteps >= 360 && this.requirements.goodStartPosition.bool){
                         this.requirements.BeeReachesFinish.bool = true;
                     }
