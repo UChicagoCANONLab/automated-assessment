@@ -4445,7 +4445,6 @@ var gradeObj = null;
 var table = 0;
 
 var IS_LOADING = false;
-var numLoadingProjects = 0;
 
 /// HTML helpers
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4459,38 +4458,31 @@ window.formHelper = function() {
 };
 
 /// Populates the unit selector from a built-in list.
-window.fill_unitsHTML = function() {
+window.fillUnitsHTML = function() {
   var HTMLString = '';
   for (var graderKey in graders) {
-    HTMLString += '<input type="radio" value="' + graderKey + '" class = "hidden"/>';
+    //HTMLString += '<input type="radio" value="' + graderKey + '" class = "hidden"/>';
+    HTMLString += '';
+    HTMLString += '<a onclick="drop_handler(\'' + graderKey + '\')" class = unitselector>'
     HTMLString += '<label class = "unitlabel">';
-    HTMLString += '<a onclick="drop_handler(\'' + graderKey + '\')"> <img src="pictures/' + graderKey + '.png"> </a>';
+    HTMLString += '<img src="pictures/' + graderKey + '.png">';
     HTMLString += graders[graderKey].name;
-    HTMLString += '</label>';
+    HTMLString += '</label> </a>';
   }
   document.getElementById("unitsHTML").innerHTML = HTMLString;
 }
 
 /* Initializes html and initiates crawler. */
 window.buttonHandler = async function() {
-  if(IS_LOADING) {
-    return;
-  }
-
-  if(!gradeObj) {
-    unitError();
-    return;
-  }
-
+  if (IS_LOADING) return;
+  if(!gradeObj) return unitError();
   htmlInit();
   globalInit();
-  document.getElementById('wait_time').innerHTML = "loading...";
+  document.getElementById('wait_time').innerHTML = "Loading...";
   IS_LOADING = true;
-
   var requestURL = document.getElementById('inches_input').value;
   var studioID = parseInt(requestURL.match(/\d+/));
   crawl(studioID, 0, []);
-  //crawl(id,1);
 }
 
 /* Initializes global variables. */
@@ -4512,8 +4504,11 @@ function htmlInit() {
 }
 
 $(document).ready(function(){
-  $('.units label').click(function() {
-    $(this).addClass('selected').siblings().removeClass('selected');
+  $('.unitselector').click(function() {
+    $(this).addClass('selected');
+    $(this).children().addClass('selected');
+    $(this).siblings().removeClass('selected');
+    $(this).siblings().children().removeClass('selected');
   });
 });
 
@@ -4525,6 +4520,12 @@ window.drop_handler = function(graderKey) {
 window.onclick = function(event) {
   if(event.target.matches('.dropdown_btn')) {
     return;
+  }
+
+  if (event.target.matches('#process_button')) {
+    $('html, body').animate({
+      scrollTop: $("#myProgress").offset().top - 20
+    }, 800);
   }
 
   var droplinks = document.getElementsByClassName("dropdown_menu");
@@ -4568,7 +4569,6 @@ async function crawl(studioID, offset, projectIdentifiers) {
             for (var projectIdentifier of projectIdentifiers) {
                 gradeProject(projectIdentifier);
             }
-            IS_LOADING = false;
             return;
         }
         else {
@@ -4583,23 +4583,22 @@ async function crawl(studioID, offset, projectIdentifiers) {
 function gradeProject(projectIdentifier) {
     var projectID = projectIdentifier.id;
     var projectAuthor = projectIdentifier.author;
-    console.log('    Grading project ' + projectID);
+    console.log('Grading project ' + projectID);
     get('https://chord.cs.uchicago.edu/scratch/project/' + projectID)
     .then(function(result) {
         var project = JSON.parse(result.target.response);
         if (project.targets === undefined) {
-          console.log('        Project ' + projectID + ' could not be found');
+          console.log('Project ' + projectID + ' could not be found');
           return;
         }
         try {
           analyze(project, projectAuthor, projectID);
-          project_count++;
         }
         catch (err) {
-          console.log('        Error grading project ' + projectID);
-          console.log(err);
+          console.log('Error grading project ' + projectID);
+          /// console.log(err);
         }
-        printReport();
+        printReportList();
     });
 }
 
@@ -4620,15 +4619,15 @@ function appendText(string_list) {
     tbi.appendChild(br);
   });
 
-  tbi.style.width = 33 + "%";
+  tbi.style.width = "100%";
   tbi.style.fontSize = "15px";
-  tbi.style.display= 'inline-block';
+  tbi.style.fontWeight = "normal";
 
   var ai = document.getElementById("report");
   document.body.insertBefore(tbi, ai);
 
   table++;
-  if (table > 2) {
+  if (table > 0) {
     table = 0;
   }
 }
@@ -4637,32 +4636,23 @@ function appendText(string_list) {
 function appendNewLine() {
   var tbi = document.createElement("div");
   tbi.className = "lines";
-  tbi.style.padding = "15px";
+  tbi.style.padding = "20px";
 
   var ai = document.getElementById("report");
   document.body.insertBefore(tbi, ai);
 }
 
-/* Prints out the contents of report_list as a
-   series of consecutive project reports. */
-function printReport() {
+/* Prints out the contents of report_list as a series of consecutive project reports. */
+function printReportList() {
   clearReport();
   sortReport();
-  appendNewLine();
-  appendNewLine();
-
   printColorKey();
   showProgressBar();
-
-  table = 0;
-  reports_list.forEach(function(element) {
-    appendText(element);
-    if (table == 0){
-      appendNewLine();
-    }
-  });
   appendNewLine();
-  appendNewLine();
+  for (var report of reports_list) {
+    appendNewLine();
+    appendText(report);
+  }
   checkIfComplete();
 }
 
@@ -4681,9 +4671,9 @@ function clearReport() {
 /* Prints progress bar. */
 function showProgressBar() {
   document.getElementById('myProgress').style.visibility = "visible";
-  setProgress(document.getElementById('greenbar'),complete_projects, project_count,0);
-  setProgress(document.getElementById('yellowbar'),passing_projects, project_count,1);
-  setProgress(document.getElementById('redbar'),project_count-complete_projects-passing_projects, project_count,2);
+  setProgress(document.getElementById('greenbar'), complete_projects, project_count, 0);
+  setProgress(document.getElementById('yellowbar'), passing_projects, project_count, 1);
+  setProgress(document.getElementById('redbar'), project_count - complete_projects - passing_projects, project_count, 2);
 }
 
 /* Hides progress bar. */
@@ -4702,16 +4692,16 @@ function printColorKey() {
 function setProgress(bar,projects,total_projects,color) {
   var width_percent = ((projects/total_projects)*100);
   bar.style.width = width_percent + '%';
-  if (projects != 0 && color == 0) {
-    bar.innerHTML = projects 
+  if (projects && color === 0) {
+    bar.innerHTML = projects;
     if (width_percent >= 15) bar.innerHTML += ' done';
   }
-  else if (projects != 0 && color == 1) {
-    bar.innerHTML = projects 
+  else if (projects && color === 1) {
+    bar.innerHTML = projects;
     if (width_percent >= 15) bar.innerHTML += ' almost done';
   }
-  else if (projects != 0 && color == 2) {
-    bar.innerHTML = projects 
+  else if (projects && color === 2) {
+    bar.innerHTML = projects;
     if (width_percent >= 15) bar.innerHTML += ' need time or help';
   }
 }
@@ -4727,62 +4717,55 @@ function analyze(fileObj, user, id) {
       console.log('Error grading project ' + id);
   }
   report(id, gradeObj.requirements, gradeObj.extensions, user);
+  project_count++;
+  console.log(project_count);
   
 }
 
 /* Returns pass/fail symbol. */
 function checkbox(bool) {
-  if (bool) return '✔️';
-  else return '❌';
+  return (bool) ? ('✔️') : ('❌');
 }
 
 /* Adds results to reports_list and prints. */
 function report(pID, reqs, exts, user) {
   var ret_list = [];
   var project_complete = true;
-  var exts_pass = true;
   var passed_reqs_count = 0;
 
   /* Makes a string list of grading results. */
   ret_list.push('User: ' + user);
   ret_list.push('Project ID: ' + pID);
-  for(var x in reqs) {
-      if(!reqs[x].bool) project_complete = false;
+  ret_list.push('');
+  ret_list.push('Requirements:');
+  for (var x in reqs) {
+      if (!reqs[x].bool) project_complete = false;
       else passed_reqs_count++;
-
-      ret_list.push(checkbox(reqs[x].bool) + 
-          ' - ' + reqs[x].str);
+      ret_list.push(checkbox(reqs[x].bool) + ' - ' + reqs[x].str);
   }
-  if(exts) {
+  if (exts) {
+      ret_list.push('');
       ret_list.push('Extensions:')
-      for(var x in exts) {
-          ret_list.push(checkbox(exts[x].bool) + 
-              ' - ' + exts[x].str);
+      for (var x in exts) {
+          ret_list.push(checkbox(exts[x].bool) + ' - ' + exts[x].str);
       }
   }
   
   reports_list.push(ret_list);
 
   /* Adjusts class progress globals. */
-  if(project_complete) complete_projects++;
-  else if (passed_reqs_count >= (Object.keys(reqs).length / 2))
-      passing_projects++;
-
-  printReport();        
+  if (project_complete) complete_projects++;
+  else if (passed_reqs_count >= (Object.keys(reqs).length / 2)) passing_projects++;        
 }
 
 /* Checks if process is done.  */
 function checkIfComplete() {
-if(project_count == reports_list.length && crawl_finished) {
-  console.log("Done.");
-  document.getElementById('wait_time').innerHTML = 'done.';
-  IS_LOADING = false;
-  $('html, body').animate({
-    scrollTop: $("#process_status").offset().top -20
-  }, 800);
+  if(project_count) {
+    console.log("Done.");
+    document.getElementById('wait_time').innerHTML = 'Done.';
+    IS_LOADING = false;
+  }
 }
-}
-
 
 /* Sorts the reports in reports_list alphabetically
  username. */
@@ -4812,7 +4795,7 @@ function unitError() {
   var processObj = document.getElementById('process_error');
   processObj.style.visibility = 'visible';
   processObj.style.color = "red";
-  processObj.innerHTML = "error: no unit selected.";
+  processObj.innerHTML = "Please select a unit.";
   IS_LOADING = false;
 }
 
