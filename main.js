@@ -127,6 +127,13 @@ window.onclick = function(event) {
 /// Web crawling
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+class ProjectIdentifier {
+  constructor(projectOverview) {
+    this.id = projectOverview.id;
+    this.author = projectOverview.author.id;
+  }
+}
+
 function get(url) {
   return new Promise(function(resolve, reject) {
     var request = new XMLHttpRequest();
@@ -137,7 +144,7 @@ function get(url) {
   });
 }
 
-async function crawl(studioID, offset, projectIDs) {
+async function crawl(studioID, offset, projectIdentifiers) {
     if (!offset) console.log('Grading studio ' + studioID);
     get('https://chord.cs.uchicago.edu/scratch/studio/' + studioID + '/offset/' + offset)
     .then(function(result) {
@@ -145,40 +152,40 @@ async function crawl(studioID, offset, projectIDs) {
         /// Keep crawling or return?
         if (studioResponse.length === 0) {
             keepGoing = false;
-            project_count = projectIDs.length;
-            for (var projectID of projectIDs) {
-                gradeProject(projectID);
+            for (var projectIdentifier of projectIdentifiers) {
+                gradeProject(projectIdentifier);
             }
             IS_LOADING = false;
             return;
         }
         else {
             for (var projectOverview of studioResponse) {
-                projectIDs.push(projectOverview.id);
+                projectIdentifiers.push(new ProjectIdentifier(projectOverview));
             }
-            crawl(studioID, offset + 20, projectIDs);
+            crawl(studioID, offset + 20, projectIdentifiers);
         }
     });
 }
 
-function gradeProject(projectID) {
+function gradeProject(projectIdentifier) {
+    var projectID = projectIdentifier.id;
+    var projectAuthor = projectIdentifier.author;
     console.log('    Grading project ' + projectID);
     get('https://chord.cs.uchicago.edu/scratch/project/' + projectID)
     .then(function(result) {
         var project = JSON.parse(result.target.response);
         if (project.targets === undefined) {
-          console.log('Project ' + projectID + ' could not be found');
+          console.log('        Project ' + projectID + ' could not be found');
           return;
         }
         try {
-          console.log(project);
-          analyze(project, projectID, '');
+          analyze(project, projectAuthor, projectID);
+          project_count++;
         }
         catch (err) {
-          console.log('Error grading project ' + projectID);
+          console.log('        Error grading project ' + projectID);
           console.log(err);
         }
-        console.log(reports_list);
         printReport();
     });
 }
@@ -187,19 +194,6 @@ function gradeProject(projectID) {
 
 /// Reporting results
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-
-function addReport(gradeObj, projectID) {
-    var reportString = '';
-    reportString += 'Project ID: ' + projectID + '\n';
-    reportString += 'Requirements:\n'
-    for (var requirement in gradeObj.requirements) {
-        reportString += gradeObj.requirements[requirement].bool ? '✔️' : '❌';
-        reportString += ': ' + gradeObj.requirements[requirement].str + '\n';
-    }
-    console.log(reportString);
-    report(projectID, gradeObj.requirements, gradeObj.extensions, '');
-
-}
 
 /* Prints a line of grading text. */
 function appendText(string_list) {
@@ -312,9 +306,9 @@ function setProgress(bar,projects,total_projects,color) {
 /* --- Contains project analysis functions. --- */
 
 /* Top-level analysis function; initializes script analysis. */
-function analyze(fileObj, user,id) {
+function analyze(fileObj, user, id) {
   try {
-      gradeObj.grade(fileObj,id);     
+      gradeObj.grade(fileObj, id);     
   }
   catch (err) {
       console.log('Error grading project ' + id);
@@ -405,7 +399,7 @@ function unitError() {
   var processObj = document.getElementById('process_error');
   processObj.style.visibility = 'visible';
   processObj.style.color = "red";
-  processObj.innerHTML = "error: no unit selected.";
+  processObj.innerHTML = "Please select a unit.";
   IS_LOADING = false;
 }
 
