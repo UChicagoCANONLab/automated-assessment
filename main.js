@@ -145,6 +145,7 @@ async function crawl(studioID, offset, projectIDs) {
         /// Keep crawling or return?
         if (studioResponse.length === 0) {
             keepGoing = false;
+            project_count = projectIDs.length;
             for (var projectID of projectIDs) {
                 gradeProject(projectID);
             }
@@ -165,16 +166,20 @@ function gradeProject(projectID) {
     get('https://chord.cs.uchicago.edu/scratch/project/' + projectID)
     .then(function(result) {
         var project = JSON.parse(result.target.response);
+        if (project.targets === undefined) {
+          console.log('Project ' + projectID + ' could not be found');
+          return;
+        }
         try {
           console.log(project);
-          gradeObj.grade(project, projectID);
-          addReport(gradeObj, projectID);
+          analyze(project, projectID, '');
         }
         catch (err) {
           console.log('Error grading project ' + projectID);
           console.log(err);
-          addReport(gradeObj, projectID);
         }
+        console.log(reports_list);
+        printReport();
     });
 }
 
@@ -186,12 +191,14 @@ function gradeProject(projectID) {
 function addReport(gradeObj, projectID) {
     var reportString = '';
     reportString += 'Project ID: ' + projectID + '\n';
-    reportString += 'Requirements:'
-    for (var requirement of gradeObj.requirements) {
-        reportString += requirement.bool ? '✔️' : '❌';
-        reportString += ': ' + requirement.str + '\n';
+    reportString += 'Requirements:\n'
+    for (var requirement in gradeObj.requirements) {
+        reportString += gradeObj.requirements[requirement].bool ? '✔️' : '❌';
+        reportString += ': ' + gradeObj.requirements[requirement].str + '\n';
     }
     console.log(reportString);
+    report(projectID, gradeObj.requirements, gradeObj.extensions, '');
+
 }
 
 /* Prints a line of grading text. */
@@ -301,6 +308,83 @@ function setProgress(bar,projects,total_projects,color) {
     if (width_percent >= 15) bar.innerHTML += ' need time or help';
   }
 }
+
+/* --- Contains project analysis functions. --- */
+
+/* Top-level analysis function; initializes script analysis. */
+function analyze(fileObj, user,id) {
+  try {
+      gradeObj.grade(fileObj,id);     
+  }
+  catch (err) {
+      console.log('Error grading project ' + id);
+  }
+  report(id, gradeObj.requirements, gradeObj.extensions, user);
+  
+}
+
+/* Returns pass/fail symbol. */
+function checkbox(bool) {
+  if (bool) return '✔️';
+  else return '❌';
+}
+
+/* Adds results to reports_list and prints. */
+function report(pID, reqs, exts, user) {
+  var ret_list = [];
+  var project_complete = true;
+  var exts_pass = true;
+  var passed_reqs_count = 0;
+
+  /* Makes a string list of grading results. */
+  ret_list.push('User: ' + user);
+  ret_list.push('Project ID: ' + pID);
+  for(var x in reqs) {
+      if(!reqs[x].bool) project_complete = false;
+      else passed_reqs_count++;
+
+      ret_list.push(checkbox(reqs[x].bool) + 
+          ' - ' + reqs[x].str);
+  }
+  if(exts) {
+      ret_list.push('Extensions:')
+      for(var x in exts) {
+          ret_list.push(checkbox(exts[x].bool) + 
+              ' - ' + exts[x].str);
+      }
+  }
+  
+  reports_list.push(ret_list);
+
+  /* Adjusts class progress globals. */
+  if(project_complete) complete_projects++;
+  else if (passed_reqs_count >= (Object.keys(reqs).length / 2))
+      passing_projects++;
+
+  printReport();        
+}
+
+/* Checks if process is done.  */
+function checkIfComplete() {
+if(project_count == reports_list.length && crawl_finished) {
+  console.log("Done.");
+  document.getElementById('wait_time').innerHTML = 'done.';
+  IS_LOADING = false;
+  $('html, body').animate({
+    scrollTop: $("#process_status").offset().top -20
+  }, 800);
+}
+}
+
+
+/* Sorts the reports in reports_list alphabetically
+ username. */
+function sortReport() {
+reports_list.sort(function(a,b) {
+  return a[0].localeCompare(b[0]);
+})
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
