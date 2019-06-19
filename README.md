@@ -12,14 +12,8 @@ Grades a studio of Scratch projects by Scratch Encore module standards.
 ### main.js
 
 * Functions to animate HTML and handle events.
-
-### analyze.js
-
 * Functions for grading modules
 * Functions for printing grade summaries.
-
-### crawler.js
-
 * Functions for retrieving JSONs.
 
 ### favicon.png
@@ -42,6 +36,12 @@ Grades a studio of Scratch projects by Scratch Encore module standards.
 
 Connor Hopcraft
 chopcraft@uchicago.edu
+
+Ashley Wang
+
+
+Max White
+mnwhite@uchicago.edu
 
 ## Acknowledgments
 

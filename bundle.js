@@ -4442,8 +4442,6 @@ var complete_projects = 0;
 /* Grading object. */
 var gradeObj = null;
 
-var table = 0;
-
 var IS_LOADING = false;
 
 /// HTML helpers
@@ -4476,8 +4474,7 @@ window.fillUnitsHTML = function() {
 window.buttonHandler = async function() {
   if (IS_LOADING) return;
   if(!gradeObj) return unitError();
-  htmlInit();
-  globalInit();
+  init();
   document.getElementById('wait_time').innerHTML = "Loading...";
   IS_LOADING = true;
   var requestURL = document.getElementById('inches_input').value;
@@ -4486,7 +4483,15 @@ window.buttonHandler = async function() {
 }
 
 /* Initializes global variables. */
-function globalInit() {
+function init() {
+
+  /// HTML
+  document.getElementById('process_button').blur();
+  clearReport();
+  noError();
+  hideProgressBar();
+
+  /// Globals
   reports_list = [];
   project_count = 0;
   crawl_finished = false;
@@ -4494,13 +4499,6 @@ function globalInit() {
   grade_reqs = {};
   passing_projects = 0;
   complete_projects = 0;
-}
-
-/* Initializes HTML elements. */
-function htmlInit() {
-  document.getElementById('process_button').blur();
-  clearReport();
-  noError();
 }
 
 $(document).ready(function(){
@@ -4524,7 +4522,7 @@ window.onclick = function(event) {
 
   if (event.target.matches('#process_button')) {
     $('html, body').animate({
-      scrollTop: $("#myProgress").offset().top - 20
+      scrollTop: 750
     }, 800);
   }
 
@@ -4538,7 +4536,7 @@ window.onclick = function(event) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Web crawling
+/// Project retrieval and grading
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 class ProjectIdentifier {
@@ -4566,6 +4564,11 @@ async function crawl(studioID, offset, projectIdentifiers) {
         /// Keep crawling or return?
         if (studioResponse.length === 0) {
             keepGoing = false;
+            if (!project_count) {
+              document.getElementById('wait_time').innerHTML = 
+                'No Scratch 3.0+ projects found. Did you enter a valid Scratch studio URL?';
+              IS_LOADING = false;
+            }
             for (var projectIdentifier of projectIdentifiers) {
                 gradeProject(projectIdentifier);
             }
@@ -4602,6 +4605,19 @@ function gradeProject(projectIdentifier) {
     });
 }
 
+function analyze(fileObj, user, id) {
+  try {
+      gradeObj.grade(fileObj, id);     
+  }
+  catch (err) {
+      console.log('Error grading project ' + id);
+  }
+  report(id, gradeObj.requirements, gradeObj.extensions, user);
+  project_count++;
+  console.log(project_count);
+  
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Reporting results
@@ -4612,31 +4628,17 @@ function appendText(string_list) {
   var tbi = document.createElement("div");
   tbi.className = "dynamic";
 
-  string_list.forEach(function(sub_element) {
-    var newContent = document.createTextNode(sub_element);
-    tbi.appendChild(newContent);
-    var br = document.createElement("br");
-    tbi.appendChild(br);
-  });
+  var HTMLString = '';
+  for (var string of string_list) {
+    HTMLString += '<br>';
+    HTMLString += string;
+  }
+  HTMLString += '<br>';
 
   tbi.style.width = "100%";
-  tbi.style.fontSize = "15px";
+  tbi.style.fontSize = "14px";
   tbi.style.fontWeight = "normal";
-
-  var ai = document.getElementById("report");
-  document.body.insertBefore(tbi, ai);
-
-  table++;
-  if (table > 0) {
-    table = 0;
-  }
-}
-
-/* Prints a blank line. */
-function appendNewLine() {
-  var tbi = document.createElement("div");
-  tbi.className = "lines";
-  tbi.style.padding = "20px";
+  tbi.innerHTML = HTMLString;
 
   var ai = document.getElementById("report");
   document.body.insertBefore(tbi, ai);
@@ -4648,9 +4650,7 @@ function printReportList() {
   sortReport();
   printColorKey();
   showProgressBar();
-  appendNewLine();
   for (var report of reports_list) {
-    appendNewLine();
     appendText(report);
   }
   checkIfComplete();
@@ -4706,22 +4706,6 @@ function setProgress(bar,projects,total_projects,color) {
   }
 }
 
-/* --- Contains project analysis functions. --- */
-
-/* Top-level analysis function; initializes script analysis. */
-function analyze(fileObj, user, id) {
-  try {
-      gradeObj.grade(fileObj, id);     
-  }
-  catch (err) {
-      console.log('Error grading project ' + id);
-  }
-  report(id, gradeObj.requirements, gradeObj.extensions, user);
-  project_count++;
-  console.log(project_count);
-  
-}
-
 /* Returns pass/fail symbol. */
 function checkbox(bool) {
   return (bool) ? ('✔️') : ('❌');
@@ -4734,9 +4718,7 @@ function report(pID, reqs, exts, user) {
   var passed_reqs_count = 0;
 
   /* Makes a string list of grading results. */
-  ret_list.push('User: ' + user);
-  ret_list.push('Project ID: ' + pID);
-  ret_list.push('');
+  ret_list.push('Project ID: <a href="https://scratch.mit.edu/projects/' + pID + '">' + pID + '</a>');
   ret_list.push('Requirements:');
   for (var x in reqs) {
       if (!reqs[x].bool) project_complete = false;
@@ -4744,13 +4726,12 @@ function report(pID, reqs, exts, user) {
       ret_list.push(checkbox(reqs[x].bool) + ' - ' + reqs[x].str);
   }
   if (exts) {
-      ret_list.push('');
       ret_list.push('Extensions:')
       for (var x in exts) {
           ret_list.push(checkbox(exts[x].bool) + ' - ' + exts[x].str);
       }
   }
-  
+  ret_list.push('');
   reports_list.push(ret_list);
 
   /* Adjusts class progress globals. */
@@ -4760,11 +4741,10 @@ function report(pID, reqs, exts, user) {
 
 /* Checks if process is done.  */
 function checkIfComplete() {
-  if(project_count) {
-    console.log("Done.");
-    document.getElementById('wait_time').innerHTML = 'Done.';
-    IS_LOADING = false;
-  }
+  if (project_count) document.getElementById('wait_time').innerHTML = '';
+  else document.getElementById('wait_time').innerHTML = 'No Scratch 3.0+ projects found. Did you enter a valid Scratch studio URL?';
+  IS_LOADING = false;
+  console.log("Done.");
 }
 
 /* Sorts the reports in reports_list alphabetically

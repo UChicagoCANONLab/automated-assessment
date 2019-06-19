@@ -137,6 +137,7 @@ form p {
 }
 
 input:-webkit-autofill {
+  box-shadow: 0 0 0px 1000px black inset;
   -webkit-box-shadow: 0 0 0px 1000px black inset;
   -webkit-text-fill-color: white;
 }
@@ -207,6 +208,7 @@ input:-webkit-autofill {
     font-size: 1rem;
     line-height: 45px; /* To center it vertically */
     color: white;
+    border-radius: 5px;
 }
 
 #greenbar {
@@ -221,4 +223,7 @@ input:-webkit-autofill {
 #myProgress {
     visibility: hidden;
     padding-bottom: 25px;
+}
+#report {
+  background-color: black;
 }
