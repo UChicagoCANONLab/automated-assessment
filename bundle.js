@@ -290,6 +290,7 @@ var sb3 = {
 };
 
 class GradeAnimation {
+    
 
     constructor() {
         this.requirements = {};
@@ -309,17 +310,13 @@ class GradeAnimation {
         this.requirements.spaceBarMovement = {bool:false, str:'Bee moves on space bar.'};;
         this.requirements.spaceBarCostumeChange = {bool:false, str:'Bee uses costume change on space bar.'};;
         this.requirements.spaceBarWaitBlock = {bool:false, str:'Bee has wait block on space bar.'};;
-        // checks for race winner
         this.requirements.BeeReachesFinish = {bool:false, str:'Bee reaches the finish line.'};;
         
     }
     
     initExts() {
-        // checks for extra components
-        
         this.extensions.HasWinner = {bool: false, str:'There is a true winner to the race.'}
         
-        // victory dance, turn block
         this.extensions.WinnerVictoryDanceCostume = {bool:false, str:'Winner changes costume during victory dance.'};
         this.extensions.WinnerVictoryDanceTurn = {bool:false, str:'Winner uses turn block during victory dance.'};
         
@@ -342,8 +339,6 @@ class GradeAnimation {
     grade(fileObj, user) {
         this.initReqs();
         this.initExts();
-        // for private method
-        var that = this;
 
         
         //sprites
@@ -387,6 +382,10 @@ class GradeAnimation {
         
         for(var i in fileObj['targets']){ //find sprites
             var obj = fileObj['targets'][i];
+            //POTENTIAL ISSUE: requires names of sprites.
+            //However, as per the requirements, the Bee must do these things
+            //There's really no way to test if the Bee does something without checking if the name is Bee
+            //Another approach would be to just pick highest scoring sprite (as in Animation-L2)
             switch(obj['name']) {
                 case('Bee') : bee = obj;
                                 break;
@@ -401,6 +400,7 @@ class GradeAnimation {
                 }
         }
             
+        //check for fourth sprite
         if (fourth != null) {
             this.extensions.AddedFourthSprite.bool = true;
         }
@@ -450,15 +450,24 @@ class GradeAnimation {
                     if(validCostumes.includes(beeSpaceScript[i]['opcode'])){
                         this.requirements.spaceBarCostumeChange.bool = true;
                     }
+                     //POTENTIAL ISSUE:
+                    //only checks for reaching end on first loop in space script
+                    //this was done to prevent different loops with different steps from disrupting the count
+                    //a more robust version would be to create an array with reapeat and steps and wait from each loop
+                    //this was not done because of time constraints
+                    //this issue has been propagated to all other sprites being graded
                     if (numLoops == 1){
                         //check for wiggly path (turn blocks in first loop)
                         if (beeSpaceScript[i]['opcode'].includes('motion_turn')) {
                             this.extensions.BeeWiggle.bool = true;
                         }
-                            //get stats reaching finish and winner
+                        //get stats reaching finish and winner
                         if (beeSpaceScript[i]['opcode'] == 'control_repeat') {
                             beeRepeats += Number(beeSpaceScript[i]['inputs']['TIMES'][1][1]);
                         
+                        }
+                        if (beeSpaceScript[i]['opcode'] == 'control_forever') {
+                            beeRepeats += 100000; //arbritary large number to simulate infinity
                         }
                         if (beeSpaceScript[i]['opcode'] == 'motion_movesteps') {
                             beeSteps += Number(beeSpaceScript[i]['inputs']['STEPS'][1][1]);
@@ -472,6 +481,8 @@ class GradeAnimation {
                     }
                     
                     //check for reaching finish
+                    //POTENTIAL ISSUE: if the start position is bad, then this will fail even if the Bee reaches the end
+                    //ISSUE: 360 is not small enough in some cases. May need to make it more dynamic (based on start positon)
                     if (beeRepeats * beeSteps >= 360 && this.requirements.goodStartPosition.bool){
                         this.requirements.BeeReachesFinish.bool = true;
                     }
@@ -503,12 +514,14 @@ class GradeAnimation {
     
 //GRADING SNAKE: ---------------------------
         if (snake != null){
+            //find spacebar script
            var snakekeyid = sb3.findKeyPressID(snake['blocks'], 'space');
 
             if(snakekeyid != null){
                 numLoops = 0;
                 snakeSpaceScript = sb3.makeScript(snake['blocks'], snakekeyid,true);
                 for(var i in snakeSpaceScript){  
+                    //count loops
                     if(validLoops.includes(snakeSpaceScript[i]['opcode'])){
                         numLoops++;
                     }  
@@ -549,6 +562,7 @@ class GradeAnimation {
                 }  
             }
             
+            //make kangaroo space script
             var kangarookeyid = sb3.findKeyPressID(kangaroo['blocks'], 'space');
 
             if(kangarookeyid != null){
@@ -567,7 +581,7 @@ class GradeAnimation {
                         if(validCostumes.includes(kangarooSpaceScript[i]['opcode'])){
                             this.extensions.KangarooHop.bool = true;
                         }
-                            //get stats reaching finish and winner
+                        //get stats reaching finish and winner
                         if (kangarooSpaceScript[i]['opcode'] == 'control_repeat') {
                             kangarooRepeats += Number(kangarooSpaceScript[i]['inputs']['TIMES'][1][1]);
                             
@@ -589,17 +603,21 @@ class GradeAnimation {
 //GRADING FOURTH: -------------------------
         
     if (fourth != null){
+        
+            //get the fourth sprite's space block
            var fourthkeyid = sb3.findKeyPressID(fourth['blocks'], 'space');
 
             if(fourthkeyid != null){
                 numLoops = 0;
                 fourthSpaceScript = sb3.makeScript(fourth['blocks'], fourthkeyid,true);
                 for(var i in fourthSpaceScript){  
+                    
+                    //count loops
                     if(validLoops.includes(fourthSpaceScript[i]['opcode'])){
                         numLoops++;
                     }  
                     if (numLoops == 1){
-                            //get stats reaching finish and winner
+                        //get stats reaching finish and winner
                         if (fourthSpaceScript[i]['opcode'] == 'control_repeat') {
                             fourthRepeats += Number(fourthSpaceScript[i]['inputs']['TIMES'][1][1]);
                             
@@ -616,7 +634,7 @@ class GradeAnimation {
                     }
                 }
             }
-        
+            //check if the fourth sprite has been animated for some event 
             var events = sb3.typeBlocks(fourth['blocks'], "event_");
             for (var b in events) {
                 var script = sb3.makeScript(fourth['blocks'],b,true);
@@ -630,6 +648,7 @@ class GradeAnimation {
     
     
 //FINAL GRADING: ------------------------------   
+        //if even one of the original three sprites has been deleted, no grading occurs
         if (bee == null || snake == null || kangaroo == null) {
             return;
         }
@@ -639,37 +658,12 @@ class GradeAnimation {
         var kangarooSpeed = (kangarooSteps / kangarooWait)*snakeRepeats;
         
         
-        
-        /*
         //find a winner
-        if (beeSpeed > snakeSpeed) {
-            if (snakeSpeed > kangarooSpeed || beeSpeed > kangarooSpeed) {
-                winner = bee;
-                winnerSpaceScript = beeSpaceScript;
-            } else if (beeSpeed < kangarooSpeed) {
-                winner = kangaroo;
-                winnerSpaceScript = kangarooSpaceScript;
-            }
-        } else if (snakeSpeed > beeSpeed) {
-            if (beeSpeed > kangarooSpeed || snakeSpeed > kangarooSpeed) {
-                winner = snake;
-                winnerSpaceScript = snakeSpaceScript;
-            } else if (snakeSpeed < kangarooSpeed) {
-                winner = kangaroo;
-                winnerSpaceScript = kangarooSpaceScript;
-            }   
-        }
-        */
-        
-        //find a winner
-        
         var speeds = [beeSpeed,snakeSpeed,kangarooSpeed];
         speeds.sort();
         speeds.reverse();
         
-        
-        
-        if (speeds[0] != speeds[1]) {
+        if (speeds[0] != speeds[1]) { //prevent a tie
             switch (speeds[0]) {
                 case beeSpeed: winner = bee;
                                 winnerSpaceScript = beeSpaceScript;
@@ -693,31 +687,28 @@ class GradeAnimation {
                 if (validLoops.includes(winnerSpaceScript[i]['opcode'])){
                     numLoops++;
                 }
-                if (numLoops > 1) { //in second part
+                if (numLoops > 1) { //in second part of the space event
+                    //POTENTIAL ISSUE:
+                    //if there is a loop within a loop in the motion portion
+                    
+                    //check for costume change
                     if(winnerSpaceScript[i]['opcode'] == 'looks_switchcostumeto' || winnerSpaceScript[i]['opcode'] == 'looks_nextcostume'){
                         this.extensions.WinnerVictoryDanceCostume.bool = true;
                     }
+                    
+                    //check for victory dance that includes a turn block
                     if (winnerSpaceScript[i]['opcode'].includes('motion_turn')){
                         this.extensions.WinnerVictoryDanceTurn.bool = true;
                     }
 
                 }
                 
-                
             }
-            
              
-        }
-        
-        
-
-        
-        
-        
+        } 
     
     }
-
-
+    
 }
 module.exports = GradeAnimation;
 },{}],2:[function(require,module,exports){
@@ -793,6 +784,19 @@ var sb3 = {
             }
         }
         return null;
+    },
+    
+    findAllBlockID: function(blocks, opcode){
+        if(this.no(blocks) || blocks == {}) return null;
+        
+        var IDs = [];
+        
+        for(block in blocks){ 
+            if(blocks[block]['opcode'] == opcode){
+                IDs.push(block);
+            }
+        }
+        return IDs;
     },
     
     findKeyPressID: function(blocks, key){
@@ -994,7 +998,6 @@ var sb3 = {
     },
     
     checkAnimation: function(script) {
-        var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy','motion_pointindirection','motion_turnright','motion_turnleft'];
         var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
         var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
         
@@ -1021,19 +1024,16 @@ var sb3 = {
             }
             
             //check move
-            if (validMoves.includes(script[i]['opcode'])) {
+            if (opcode.includes("motion_")) {
                 move = true;
             }
         }
-        
         
         return (loop && wait && (costume || move));
         
     },
     
     gradeAnimation: function(script) {
-        //TODO: edit valid moves!
-        var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy','motion_pointindirection','motion_turnright','motion_turnleft'];
         var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
         var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
         
@@ -1045,16 +1045,6 @@ var sb3 = {
         
         var types = [];
         
-        //NEED TO ADD EXTS and MAKE ELIF –––––– !!!!!
-        /*
-        thoughts:
-            loop: in valid loops
-            costume: in valid costumes
-            move: req: use motion
-                    ext: track motion opcodes
-            wait: check opcode
-        
-        */
         
         for(var i in script) {
             var opcode = script[i]['opcode'];
@@ -1075,17 +1065,18 @@ var sb3 = {
             }
             
             //check move
-            if (validMoves.includes(opcode)) {
+            if (opcode.includes("motion_")) {
+                move = true;
                 if (!types.includes(opcode)){
                    types.push(opcode);
                 }
-                move = true;
             }
         }
         
         var reqs = [loop,move,costume,wait];
         
-        var isAnimated = (loop && wait && (costume || move))
+        //animation: loop and wait and either costume or movement
+        var isAnimated = (loop && wait && (costume || move));
         
         var report = [isAnimated,reqs,types];
         
@@ -1146,30 +1137,30 @@ class Sprite {
         return report;
     }
     
-    grade() {
-        for (var s in this.scripts) {
+    grade() { //grade a sprite
+        
+        for (var s in this.scripts) { //iterate scripts
             
             var scriptGrade = sb3.gradeAnimation(this.scripts[s]);
             
-            //check animation
+            //check if animated
             if (scriptGrade[0]) {
                 this.animated = true;
             }
             
-            //check dance reqs
+            //check dance reqs (find highest scoring script)
             var scriptScore = sb3.computeBoolArrayScore(scriptGrade[1])
             if (scriptScore >= this.getScore()) {
                 this.reqs = scriptGrade[1];
                 
                 
-                //check for dance on click
+                //check for dance (and dance on click)
                 if (scriptScore == 4) {
-                    for (var b in this.scripts[s]) { //should only get to the first block
+                    for (var b in this.scripts[s]) { //should only get to the first block of script
                         if (this.scripts[s][b]['opcode'] == 'event_whenthisspriteclicked') {
-                            this.danceOnClick = true;
+                            this.danceOnClick = true; //ensures dance is on the click
                             break;
                         }
-
                     }
                 }
             }
@@ -1184,6 +1175,7 @@ class Sprite {
             
             
         }
+    
         
         return this.getReport();
     }
@@ -1217,13 +1209,8 @@ class GradeAnimation{
     }
     
     initExts() {
-        this.extensions.MultipleDanceOnClick = {bool: false, str: "At least another character dances when clicked."};
+        this.extensions.OtherDanceOnClick = {bool: false, str: "At least another character dances when clicked."};
         this.extensions.OtherAnimation = {bool: false, str: "Student uses other block types to animate."};
-        
-    }
-    
-    scoreReport(report) { //for determining the best sprite
-        return report[0];
         
     }
     
@@ -1251,10 +1238,10 @@ class GradeAnimation{
                 var addMe = new Sprite(projInfo[i]['name']);
                 Sprites.push(addMe);
                 for (var e = 0; e < this.event_opcodes.length; e++) {
-                    var event = this.event_opcodes[e]
-                    var ID = sb3.findBlockID(projInfo[i]['blocks'],event);
-                    if (ID != null) {
-                        var newScript = sb3.makeScript(projInfo[i]['blocks'], ID,true);
+                    var event = this.event_opcodes[e];
+                    var IDs = sb3.findAllBlockID(projInfo[i]['blocks'],event);
+                    for (var b=0; b<IDs.length; b++){
+                        var newScript = sb3.makeScript(projInfo[i]['blocks'],IDs[b],true);
                         if (newScript != null) {
                             addMe.addScript(newScript);
                         }
@@ -1273,25 +1260,26 @@ class GradeAnimation{
         
         var highestscoring = 0;
         var highscore = 0;
+        
         for (var s = 0; s<Sprites.length; s++) {
-            //          0   1          2        3    4
-            //REPORT: score,animated,reqs[4],types,dance
+            //          0       1      2        3    4      
+            //REPORT: score,animated,reqs[4],types,danceOnClick
             var report = Sprites[s].grade();
             Reports.push(report);
             
             //to determine which sprite was the target sprite
-            var totalScore = this.scoreReport(report);
+            var totalScore = report[0];
             if (totalScore > highscore) {
                 highscore = totalScore;
                 highestscoring = s;
             }
             
             
-            if (report[1]) { //increment the number animated 
+            if (report[1]) { //increment the number animated if animated 
                 animated++;
             }
             
-            if (report[4]) {//increment the number that dance
+            if (report[4]) {//increment the number that dance on click if does so
                 danceOnClick++;
             }
             
@@ -1300,6 +1288,8 @@ class GradeAnimation{
                     animationTypes.push(report[3][t]);
                 }
             }
+            
+    
             
             
         }
@@ -1328,23 +1318,29 @@ class GradeAnimation{
             this.requirements.Dance.bool = true;
         }
         
-        switch(animated) { //counts the number of animated sprites
-            case 3: this.requirements.ThirdAnimated.bool = true;
-            case 2: this.requirements.SecondAnimated.bool = true; 
-            default: break;
+        if (chosen[4]) { //remove from count of dancing on click if this is the chosen sprite
+            //this is to ensure the count is accurate for checking the extension "otherDanceOnClick"
+            danceOnClick--;
             
-                
+        }
+    
+        
+        if (animated > 1) {
+                this.requirements.SecondAnimated.bool = true;
+            if (animated > 2) {
+                this.requirements.ThirdAnimated.bool = true;
+            }
         }
         
         
-        if (danceOnClick > 1) { //counts the sprites that dance on click
-            this.extensions.MultipleDanceOnClick.bool = true;
+        if (danceOnClick > 0) { //counts the sprites that dance on click
+            this.extensions.OtherDanceOnClick.bool = true;
         }
         
         if (animationTypes.length > 1) { //counts the number of animation blocks used
             this.extensions.OtherAnimation.bool = true;
         }
-        
+    
         
     
     }
@@ -2237,7 +2233,6 @@ class GradeDecompBySeq{
 
 module.exports = GradeDecompBySeq;
 },{}],5:[function(require,module,exports){
-/// Grader for Events.Multicultural.L1
 var sb3 = {
     no: function(x) { //null checker
         return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
@@ -2338,6 +2333,30 @@ var sb3 = {
         return miniscript;
     }, 
     
+    typeBlocks: function(script, type) { //retrieve blocks of certain type from a script list of blocks
+        if (this.no(script)) return [];
+        
+        var miniscript = [];
+
+        for(block in script){
+            if(script[block]['opcode'].includes(type)){
+                miniscript.push(script[block]);
+            }
+        }
+        return miniscript;
+    },
+    
+    startBlock: function(blocks){
+        if(this.no(blocks) || blocks == {}) return null;
+        
+        for(block in blocks){ 
+            if(blocks[block]['opcode'].includes("event_")){
+                return block;
+            }
+        }
+        return null;
+    },
+    
     opcode: function(block) { //retrives opcode from a block object 
         if (this.no(block)) return "";
         return block['opcode'];
@@ -2365,13 +2384,14 @@ var sb3 = {
     },
     
     //given list of blocks, return a script
-    makeScript: function(blocks, blockID){
+    makeScript: function(blocks, blockID,getsub){
         if (this.no(blocks) || this.no(blockID)) return [];
         event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
         
         var curBlockID = blockID;
         var script = {};
     
+        //find blocks before
         while(curBlockID != null){
             var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
             script[curBlockID]=curBlockInfo; //Add the block itself to the script dictionary DEBUG PUSH SITUATION
@@ -2384,21 +2404,44 @@ var sb3 = {
             if ((parentID == null) && !(event_opcodes.includes(opcode))){
                 return [];
             }
+            
+            if (getsub) {
+                //if there is script nested inside, add them
+                if (curBlockInfo['inputs']['SUBSTACK'] != undefined){
+                    var firstChildID = curBlockInfo['inputs']['SUBSTACK'][1]
+                    var sub = sb3.addSubScript(blocks,firstChildID,script)
+                    if (failedSub){
+                        return{};
+                    }
+
+                }
+            }
 
             //Iterate: set parent to curBlock
             curBlockID = parentID
         }
+        
         //Find all blocks that come after
         curBlockID = blockID //Initialize with blockID of interest
         while(curBlockID != null){
             curBlockInfo = blocks[curBlockID]; //Pull out info about the block
             script[curBlockID]=curBlockInfo; //Add the block itself to the script dictionary                
-            
-
             //Get next info out
             nextID = curBlockInfo['next']; //Block that comes after has key 'next'
             //nextInfo = blocks[nextID]
             opcode = curBlockInfo['opcode'];
+            
+            if (getsub) {
+                //if there is script nested inside, add them
+                if (curBlockInfo['inputs']['SUBSTACK'] != undefined){
+                    var firstChildID = curBlockInfo['inputs']['SUBSTACK'][1]
+                    var failedSub = sb3.addSubScript(blocks,firstChildID,script)
+                    if (failedSub){ //on failure to get subScript
+                        return {};
+                    }
+
+                }
+            }
 		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
             if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -2406,9 +2449,51 @@ var sb3 = {
             }
             //Iterate: Set next to curBlock
             curBlockID = nextID;
-        }     
+        } 
+        
         return script;
     },
+    
+    //adding nested script to the main script
+    addSubScript: function(blocks_sub,blockID_sub, script) {
+        if (this.no(blocks_sub) || this.no(blockID_sub)) {
+            return true;
+        }
+        
+        
+        var curBlockID_sub = blockID_sub;
+    
+        //Find all blocks that come after
+        curBlockID_sub = blockID_sub //Initialize with blockID of interest
+        while(curBlockID_sub != null){
+            var curBlockInfo_sub = blocks_sub[curBlockID_sub]; //Pull out info about the block
+            script[curBlockID_sub]=curBlockInfo_sub; //Add the block itself to the script dictionary                
+            //Get next info out
+            nextID_sub = curBlockInfo_sub['next']; //Block that comes after has key 'next'
+            //nextInfo = blocks[nextID]
+            opcode_sub = curBlockInfo_sub['opcode'];
+            
+            //if there is script nested inside, add them
+                if (curBlockInfo_sub['inputs']['SUBSTACK'] != undefined){
+                    var firstChildID_sub = curBlockInfo_sub['inputs']['SUBSTACK'][1]
+                    var failedSub_sub = sb3.addSubScript(blocks_sub,firstChildID_sub,script)
+                    if (failedSub_sub){ //on failure to get subScript
+                        return {};
+                    }
+
+                }
+            
+            
+		
+            //If the block is not a script (i.e. it's an event but doesn't have anything after), return failure
+            if((nextID_sub == null) && (event_opcodes.includes(opcode_sub))){
+                return true;
+            }
+            //Iterate: Set next to curBlock
+            curBlockID_sub = nextID_sub;
+        }   
+        return false;
+    }, 
     
     between: function(x, a, b) {
         if (x == undefined) {
@@ -2421,287 +2506,240 @@ var sb3 = {
     }
 };
 
-class GradeEvents {
+class Sprite {
     
+    constructor(name) {
+        this.name = name; 
+        this.scripts = [];
+    }
+    
+    getScripts() {
+        return this.scripts;
+    }
+    
+    getScript(i) {
+        return this.scripts[i];
+    }
+    
+    addScript(script) {
+        this.scripts.push(script);
+    }
+    
+    
+}
+
+class GradeEvents {
 
     constructor() {
         this.requirements = {};
         this.extensions = {};
         
+        this.event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
+        
+        this.validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy'];
+        this.validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
+        this.validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
     }
     
-
-    initReqs() {
-
-        this.requirements.containsThreeSprites =    /// contains >= 3 sprites
-            {bool:false, str:'Project has at least three sprites.'};
-        /// Sprite 1 aka Left
-        this.requirements.leftWhenClicked   =    /// sprite handles click
-            {bool:false, str:'Left Sprite handles click.'};
-        this.requirements.leftGetsBigger    =    /// sprite grows...
-            {bool:false, str:'Left Sprite gets bigger.'};
-        this.requirements.leftTalksTwice    =    /// then >= 2 say blocks...
-            {bool:false, str:'Then Left Sprite has at least two say blocks.'};
-        this.requirements.leftResetsSize    =    /// then resets size
-            {bool:false, str:'The Left Sprite resets size.'};
-        /// Sprite 2 aka middle
-        this.requirements.middleWhenClicked   =    /// ditto
-            {bool:false, str:'Middle Sprite handles click.'};
-        this.requirements.middleGetsBigger    =
-            {bool:false, str:'Middle Sprite gets bigger.'};
-        this.requirements.middleTalksTwice    =
-            {bool:false, str:'Then Middle Sprite has at least two say blocks.'};
-        this.requirements.middleResetsSize    =
-            {bool:false, str:'The Middle Sprite resets size.'};
-        /// Sprite 3 aka right
-        this.requirements.rightWhenClicked   =
-            {bool:false, str:'Right Sprite handles click.'};
-        this.requirements.rightGetsBigger    =
-            {bool:false, str:'Right Sprite gets bigger.'};
-        this.requirements.rightTalksTwice    =
-        {bool:false, str:'Then Right Sprite has at least two say blocks.'};
-        this.requirements.rightResetsSize    = 
-            {bool:false, str:'The Right Sprite resets size.'};
+   initReqs() {
+        this.requirements.ThreeSpritesReactToClick =
+            {bool:false,str:"Three Sprites react to being clicked."}
+        this.requirements.ThreeSpritesGetBigger =
+            {bool:false,str:"Three Sprites Get Bigger."}
+        this.requirements.ThreeSpritesTalkTwice = 
+            {bool:false,str:"Three Sprites talk twice."}
+        this.requirements.ThreeSpritesResetSize =
+            {bool:false,str:"Three Sprites reset size."}
 
     }
     
     initExts() {
-        
-        this.extensions.LeftNameDiff = {bool: false, str:'Left sprite has new name.'};
-        this.extensions.MiddleNameDiff = {bool: false, str:'Middle sprite has new name.'};
-        this.extensions.RightNameDiff = {bool: false, str:'Right sprite has new name.'};
-        
-        this.extensions.TurnAndWait = {bool: false, str:'Left Sprite spins using turn and wait blocks.'}
+        this.extensions.ChangeNames = {bool:false,str:'Sprite names are changed.'}
+        this.extensions.TurnAndWait = {bool: false, str:'A Sprite spins using turn and wait blocks.'}
         this.extensions.AddEvent = {bool: false, str: 'A Sprite reacts to another event.'}
+        
     }
-    
-    grade(fileObj, user) {
-
+    grade(fileObj,user) {
+        
         this.initReqs();
-        
         this.initExts();
-      
         
-        var left = null;
-        var middle = null;
-        var right = null;
+        //count and create sprites
+        if (sb3.no(fileObj)) return; //make sure script exists
         
-        var turn = false;
-        var wait = false;
+        var Sprites = [];
         
-        var event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
+        var projInfo = fileObj['targets'] //extract targets from JSON data
         
-        var validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy'];
-        var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
-        var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
+        if (sb3.no(projInfo)) return;
+        
+        //make sprite objects, load scripts
+        for(var i=0; i < projInfo.length; i++){
+            if(projInfo[i]['isStage'] == false){
+                var addMe = new Sprite(projInfo[i]['name']);
+                Sprites.push(addMe);
+                for (var e = 0; e < this.event_opcodes.length; e++) {
+                    var event = this.event_opcodes[e]
+                    var ID = sb3.findBlockID(projInfo[i]['blocks'],event);
+                    if (ID != null) {
+                        var newScript = sb3.makeScript(projInfo[i]['blocks'], ID,true);
+                        if (newScript != null) {
+                            addMe.addScript(newScript);
+                        }
+                    }
+                }
+            }
+        }
+        
+        //variables for analysis
+        var otherEvents = false;
+        var diffNames = 0;
+        var reactOnClick = [];
+        var grow = [];
+        var talkTwice = [];
+        var shrink = [];
+        var builtInNames = ["Left","Middle","Right","Catrina"]
+            
+        
+        for(var s=0; s < Sprites.length; s++) { //iterate sprites
+            var sprite = Sprites[s];
+            var scripts = sprite.getScripts();
+            var name = sprite.name;
+            var clickedOn = false;
+            
+            //check if name has been changed
+            if (!builtInNames.includes(name)) {
+                diffNames++;
+            }
+            
+            
+            if (name != "Catrina") { //IGNORE CATRINA (she would mess up the counts for the requirements)
+            
+                for (var p=0; p <scripts.length; p++){ //iterate scripts
+                    var talks = 0;
+
+                    for(var b in scripts[p]) {//iterate blocks
+
+                        var opcode = scripts[p][b]['opcode'];
+
+                        //check only when sprite is clicked
+                        if (clickedOn) {   
+                            
+                            //check for size change
+                            //type one: change size by
+                            if (opcode == 'looks_changesizeby') {
+                                if (scripts[p][b]['inputs']['CHANGE'][1][1] > 0) {
+                                    if (!grow.includes(name)){
+                                        grow.push(name)
+                                    }
+                                }
+                                if (scripts[p][b]['inputs']['CHANGE'][1][1] < 0) {
+                                    if (!shrink.includes(name)){
+                                        shrink.push(name)
+                                    }
+                                }
+
+                            }
+                            //type two: set size to
+                            if (opcode == 'looks_setsizeto') {
+                                if (scripts[p][b]['inputs']['SIZE'][1][1] > 100) {
+                                    if (!grow.includes(name)){
+                                        grow.push(name)
+                                    }
+                                }
+                                if (scripts[p][b]['inputs']['SIZE'][1][1] < 100) {
+                                    if (!shrink.includes(name)){
+                                        shrink.push(name)
+                                    }
+                                }
+                            }
+                            
+                            //check for say blocks
+                            if (opcode.includes("looks_say")){
+                                talks++;
+                            }
+                        }
+                        
+                        //checks if there are two say blocks
+                        if (talks > 1) {
+                            if (!talkTwice.includes(name)){
+                                talkTwice.push(name)
+                            }
+                        }
+                        
     
-        
-        //check number of sprites
-        if(sb3.countSprites(fileObj) > 2){
-            this.requirements.containsThreeSprites.bool = true; 
-        }
+                        //event handling
+                        if (opcode.includes("event_")) {
+
+                            //turn on grading for other elements if clicked on event
+                            if (opcode == "event_whenthisspriteclicked") {
+                                clickedOn = true;
+                                if (scripts[p][b]["next"] != 'null') {
+                                    if (!reactOnClick.includes(name)){
+                                        reactOnClick.push(name)
+                                    }
+                                }
+
+                            //otherwise, turn off grading for other elements, count other events
+                            } else {
+                                clickedOn = false;
+                                if (scripts[p][b]["next"] != 'null') {
+                                    otherEvents = true;
+                                }
+                            }
+
+                        }
+
+                    } //end of blocks loop
+
+
+
+
+                }  //end of sprites loop
+
+                //evaluate requirements
+                
+                //three sprites react to a click
+                if (reactOnClick.length > 2) {
+                    this.requirements.ThreeSpritesReactToClick.bool = true;
+                }
+
+                //three sprites grow in size
+                if (grow.length > 2) {
+                    this.requirements.ThreeSpritesGetBigger.bool = true;
+                }
+
+                //three sprites shrink in size
+                if (shrink.length > 2) {
+                    this.requirements.ThreeSpritesResetSize.bool = true;
+                    //does not check for true reset, just getting smaller again
+                }
+                
+                //three sprites talk twice
+                if (talkTwice.length > 2) {
+                    this.requirements.ThreeSpritesTalkTwice.bool = true;
+                }
+                
+                //evaluate extensions
+                
+                //names have been changed for all sprites
+                if (diffNames > 2){
+                    this.extensions.ChangeNames.bool = true;
+                }
+                
+                //check if other events are added
+                this.extensions.AddEvent.bool = otherEvents;
+            
+            }
+            
     
-        //left in for debugging (and the log statements in the next loop)
-       /*for(var i in fileObj['targets']){
-            var sprite = fileObj['targets'][i];
-           console.log(sprite['name'] + "  " + sprite['x'])
-       } */
-        
-        //find sprite by position
-        for(var i in fileObj['targets']){
-            var sprite = fileObj['targets'][i];
-            if (sb3.between(sprite['x'],60,80)){
-                right = sprite;
-                //console.log("Found right " + right['name'] + " x: " + sprite['x'])
-            }
-            else if (sb3.between(sprite['x'],-80,-60)){
-                left = sprite;
-                //console.log("Found left " + left['name'] + " x: " + sprite['x'])
-            }
-            else if (sb3.between(sprite['x'],-5,25)){
-                middle = sprite;
-                //console.log("Found middle " + middle['name'] + " x: " + sprite['x'])
-            }
         }
-        
-        /* find sprite by name
-        for(var i in fileObj['targets']){ //find sprite
-            var sprite = fileObj['targets'][i]
-            if(sprite['name'] == 'Right'){
-                var right = sprite;
-            }
-            if(sprite['name'] == 'Middle'){
-                var middle = sprite;
-            }
-            if(sprite['name'] == 'Left'){
-                var left = sprite;
-            }
-        }
-        */
-        
-        //check Left sprite
-        var leftid = sb3.findBlockID(left['blocks'], 'event_whenthisspriteclicked');
-        if(leftid != null){
-            var leftchange = null
-            this.requirements.leftWhenClicked.bool = true;
-            var lefttalkcount = 0;
-            var leftScript = sb3.makeScript(left['blocks'], leftid);
-            for(var i in leftScript){
-                //change size, case 1
-                if(leftScript[i]['opcode'] == 'looks_changesizeby'){
-                    if(leftScript[i]['inputs']['CHANGE'][1][1] >= 1 ){
-                        this.requirements.leftGetsBigger.bool = true;
-                        leftchange = leftScript[i]['inputs']['CHANGE'][1][1]
-                    }
-                }  
-                //change size, case 2
-                if(leftScript[i]['opcode'] == 'looks_setsizeto' && leftScript[i]['inputs']['CHANGE'][1][1] >= 100 ){
-                    this.requirements.leftGetsBigger.bool = true
-                    leftchange = leftScript[i]['inputs']['CHANGE'][1][1]
-                } 
-                //talks twice
-                if(leftScript[i]['opcode'] == 'looks_sayforsecs'){
-                    lefttalkcount ++;
-                    if(lefttalkcount >= 2){
-                        this.requirements.leftTalksTwice.bool = true;
-                    }
-                }
-                //size reset, case 1
-                if(leftScript[i]['opcode'] == 'looks_changesizeby' && leftchange != null && (leftScript[i]['inputs']['CHANGE'][1][1]) == -leftchange){
-                    this.requirements.leftResetsSize.bool = true;
-                
-                }
-                //check for turn block
-                if(leftScript[i]['opcode'].includes('motion_turn')){
-                    turn = true;
-                }
-                //check for wait block
-                if(leftScript[i]['opcode'] == 'control_wait'){
-                    wait = true;
-                }   
-            }
-            
-            //check extensions –––––––––
-            
-            //check for turn and wait blocks
-            if (turn && wait) {
-                this.extensions.TurnAndWait.bool = true;
-            }
-            
-            
-            //check name different
-            if (left['name'] != "Left") {
-                this.extensions.LeftNameDiff.bool = true;
-            }
-         
-            //check if add event
-            if (sb3.countScripts(left['blocks'],'event') > 2) {
-                this.extensions.AddEvent.bool = true;
-            }
-            
-        }
-        
-        
-        //check Middle sprite
-        var middleid = sb3.findBlockID(middle['blocks'], 'event_whenthisspriteclicked');
-        if(middleid != null){
-            var middlechange = null
-            this.requirements.middleWhenClicked.bool = true;
-            var middletalkcount = 0;
-            var middleScript = sb3.makeScript(middle['blocks'], middleid);
-            for(var i in middleScript){
-                //change size, case 1
-                if(middleScript[i]['opcode'] == 'looks_changesizeby'){
-                    if(middleScript[i]['inputs']['CHANGE'][1][1] >= 1 ){
-                        this.requirements.middleGetsBigger.bool = true;
-                        middlechange = middleScript[i]['inputs']['CHANGE'][1][1]
-                    }
-                }  
-                //change size, case 2
-                if(middleScript[i]['opcode'] == 'looks_setsizeto' && middleScript[i]['inputs']['CHANGE'][1][1] >= 100 ){
-                    this.requirements.middleGetsBigger.bool = true
-                    middlechange = middleScript[i]['inputs']['CHANGE'][1][1]
-                } 
-                //talks twice
-                if(middleScript[i]['opcode'] == 'looks_sayforsecs'){
-                    middletalkcount ++;
-                    if(middletalkcount >= 2){
-                        this.requirements.middleTalksTwice.bool = true;
-                    }
-                }
-                //size reset, case 1
-                if(middleScript[i]['opcode'] == 'looks_changesizeby' && middlechange != null && (middleScript[i]['inputs']['CHANGE'][1][1]) == -middlechange){
-                    this.requirements.middleResetsSize.bool = true;
-                
-                }
-            }
-            //check extensions -------
-            
-            //check name different
-            if (middle['name'] != "Middle") {
-                this.extensions.MiddleNameDiff.bool = true;
-            }
-            
-            //check if add event
-            if (sb3.countScripts(middle['blocks'],'event') > 2) {
-                this.extensions.AddEvent.bool = true;
-            }
-        }
-        
-        
-        //check Right sprite
-        var rightid = sb3.findBlockID(right['blocks'], 'event_whenthisspriteclicked');
-        if(rightid != null){
-            var rightchange = null
-            this.requirements.rightWhenClicked.bool = true;
-            var righttalkcount = 0;
-            var rightScript = sb3.makeScript(right['blocks'], rightid);
-            for(var i in rightScript){
-                //change size, case 1
-                if(rightScript[i]['opcode'] == 'looks_changesizeby'){
-                    if(rightScript[i]['inputs']['CHANGE'][1][1] >= 1 ){
-                        this.requirements.rightGetsBigger.bool = true;
-                        rightchange = rightScript[i]['inputs']['CHANGE'][1][1]
-                    }
-                }  
-                //change size, case 2
-                if(rightScript[i]['opcode'] == 'looks_setsizeto' && rightScript[i]['inputs']['CHANGE'][1][1] >= 100 ){
-                    this.requirements.rightGetsBigger.bool = true
-                    rightchange = rightScript[i]['inputs']['CHANGE'][1][1]
-                } 
-                //talks twice
-                if(rightScript[i]['opcode'] == 'looks_sayforsecs'){
-                    righttalkcount ++;
-                    if(righttalkcount >= 2){
-                        this.requirements.rightTalksTwice.bool = true;
-                    }
-                }
-                //size reset, case 1
-                if(rightScript[i]['opcode'] == 'looks_changesizeby' && rightchange != null && (rightScript[i]['inputs']['CHANGE'][1][1]) == -rightchange){
-                    this.requirements.rightResetsSize.bool = true;
-                
-                }
-            }
-            //check extensions –––––
-            
-        
-            //check name different
-            if (right['name'] != "Right") {
-                this.extensions.RightNameDiff.bool = true;
-            }
-            
-            //check if add event    
-            if (sb3.countScripts(right['blocks'],'event') > 2) {
-                this.extensions.AddEvent.bool = true;
-            }
-        }
-  
     }
+
 }
-
+    
 module.exports = GradeEvents;
-
-
+    
 },{}],6:[function(require,module,exports){
 var sb3 = {
     no: function(x) { //null checker
@@ -3041,6 +3079,7 @@ class GradeEvents {
         
         var projInfo = fileObj['targets'] //extract targets from JSON data
         
+        //create sprite objects, add scripts
         for(var i=0; i <projInfo.length; i++){
             if(projInfo[i]['isStage'] == false){
                 var addMe = new Sprite(projInfo[i]['name']);
@@ -3055,7 +3094,7 @@ class GradeEvents {
                         }
                     }
                 }
-            } else {
+            } else { //if it is the stage, check for backdrop
                 if (projInfo[i]['costumes'].length > 1) {
                     this.requirements.HaveBackdrop.bool = true;
                 }
@@ -3137,12 +3176,12 @@ class GradeEvents {
                     
                 } //end of blocks loop
                 
-                 //check spins
+                 //check that a sprite spins
                 if (turn && wait) {
                     this.extensions.SpriteSpins.bool = true;
                 }
 
-                //check blinks
+                //check that a sprite blinks
                 if (hide && show && wait) {
                     this.extensions.SpriteBlinks.bool = true;
                 }
@@ -3152,9 +3191,15 @@ class GradeEvents {
             }  //end of scripts loop
             
 
+            //POTENTIAL ISSUE:
+            //because the following requirements are found using counts
+            //Sprite One for one requirement may not match Sprite One in the other
+            //However, as opposed to a requirement like: all three sprites need X,
+            //this approach allows partial credit. 
+    
             //check for enough unique events
             if (events.length > 1){
-                switch(s) {
+                switch(s) { 
                     case 0: this.requirements.SpriteOneTwoEvents.bool = true; 
                             break;
                     case 1: this.requirements.SpriteTwoTwoEvents.bool = true; 
@@ -3179,6 +3224,7 @@ class GradeEvents {
                 }
             }
             
+            //a sprite reacts to more than 2 events
             if (valids.length > 2) {
                 this.extensions.MoreScripts.bool = true;
             }
@@ -3341,8 +3387,7 @@ var sb3 = {
 			curBlockInfo = blocks[curBlockID]; //Pull out info about the block
 			script.push(curBlockInfo); //Add the block itself to the script dictionary                
 
-			//Get next info out
-			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+			
 			//nextInfo = blocks[nextID]
 			opcode = curBlockInfo['opcode'];
 			
@@ -3356,6 +3401,9 @@ var sb3 = {
 					}
 				}
 			}
+
+			//Get next info out
+			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 	
 			//If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
 			if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -3412,8 +3460,6 @@ var sb3 = {
 		while(curBlockID != null){
 			curBlockInfo = blocks[curBlockID]; //Pull out info about the block
 
-			//Get next info out
-			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 			//nextInfo = blocks[nextID]
 			opcode = curBlockInfo['opcode'];
 			
@@ -3427,6 +3473,9 @@ var sb3 = {
 					}
 				}
 			}
+
+			//Get next info out
+			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
 	
 			//If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
 			if((nextID == null) && (event_opcodes.includes(opcode))){
@@ -3500,7 +3549,9 @@ class GradeOneWaySyncL1 {
 		}
 		this.checkDjembeBroadcast(sprites)
 		this.checkStartBroadcast(sprites);
+		sprites = Object.values(sprites).filter(sprite => sprite != null);
 		this.checkSayOnEvent(sprites);
+		this.checkChangeWait(sprites);
 	}
 
 	/*
@@ -3509,7 +3560,9 @@ class GradeOneWaySyncL1 {
 	 *   whether it is playing a sound
 	 */
 	broadcastToPlay(sprite, message) {
-
+		if (sb3.no(sprite)) {
+			return;
+		}
 		var receivesMessage = false;
 		const whenReceiveBlocks = sb3.findBlockIDs(sprite.blocks, 'event_whenbroadcastreceived');
 
@@ -3536,6 +3589,9 @@ class GradeOneWaySyncL1 {
 	 *   whether it is dancing
 	 */
 	broadcastToDance(sprite, message) {
+		if (sb3.no(sprite)) {
+			return;
+		}
 		// if costume change and waitblock within a repeat loop, the sprite is dancing
 		var animation = {constume: false, wait: false};
 		var receivesMessage = false;
@@ -3562,8 +3618,7 @@ class GradeOneWaySyncL1 {
 										break;
 									}
 									case 'control_wait': {
-										if (sblockInfo.inputs.DURATION[1][1] != .5)
-											this.extensions.changeWait.bool = true;
+
 										animation.wait = true;
 									}
 								}
@@ -3578,7 +3633,7 @@ class GradeOneWaySyncL1 {
 	}
 
 	/* Checks first part of lesson, whether djembe broadcasts to child */
-	checkDjembeBroadcast({ 'Mali Djembe': djembe, 'Mali child': child}) {
+	checkDjembeBroadcast({ 'Mali Djembe': djembe = null, 'Mali child': child = null}) {
 		if (!djembe) return;
 		
 		var messageSent = false;
@@ -3627,7 +3682,7 @@ class GradeOneWaySyncL1 {
 											  'Mali child': maliChild, 
 											  'Navajo Flute': flute, 
 											  'Navajo child': navajoChild, 
-											  'Start Button': start }) {
+											  'Start Button': start = null }) {
 		if (!start) {
 			return;
 		}
@@ -3671,19 +3726,18 @@ class GradeOneWaySyncL1 {
 		if (sb3.no(sprites)) {
 			return;
 		}
+
 		const eventOpcodes = [
 			'event_whenflagclicked', 'event_whenthisspriteclicked','event_whenkeypressed', 
 			'event_whenbackdropswitchesto','event_whengreaterthan'
 		];
-
-
-		sprites = Object.values(sprites);
+			
 		for (const sprite of sprites) {
-
 			var eventBlocks = [];
-	
-			for(block in sprite.blocks){ 
-				if(sprite.blocks[block].opcode == opcode){
+			for(const block in sprite.blocks){ 
+				const blockInfo = sprite.blocks[block];
+				if(eventOpcodes.includes(blockInfo.opcode)){
+
 					eventBlocks.push(block);
 				}
 			}
@@ -3694,6 +3748,28 @@ class GradeOneWaySyncL1 {
 					if (['looks_say', 'looks_sayforsecs'].includes(block.opcode)) {
 						this.extensions.sayBlock.bool = true;
 						return;
+					}
+				}
+			}
+		}
+	}
+
+	checkChangeWait(sprites) {
+		if (sb3.no(sprites)) {
+			return;
+		}
+
+		for (const sprite of sprites) {
+			const whenReceivedBlocks = sb3.findBlockIDs(sprite.blocks, 'event_whenbroadcastreceived');
+			for (const whenReceivedBlock of whenReceivedBlocks) {
+				const script = sb3.makeScript(sprite.blocks, whenReceivedBlock);
+				for (const block of script) {
+
+					if (block.opcode == 'control_wait') {
+
+						if (block.inputs.DURATION[1][1] != .5) {
+							this.extensions.changeWait.bool = true;
+						}
 					}
 				}
 			}
@@ -4459,8 +4535,6 @@ window.formHelper = function() {
 window.fillUnitsHTML = function() {
   var HTMLString = '';
   for (var graderKey in graders) {
-    //HTMLString += '<input type="radio" value="' + graderKey + '" class = "hidden"/>';
-    HTMLString += '';
     HTMLString += '<a onclick="drop_handler(\'' + graderKey + '\')" class = unitselector>'
     HTMLString += '<label class = "unitlabel">';
     HTMLString += '<img src="pictures/' + graderKey + '.png">';

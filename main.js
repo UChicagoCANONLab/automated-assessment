@@ -46,8 +46,6 @@ window.formHelper = function() {
 window.fillUnitsHTML = function() {
   var HTMLString = '';
   for (var graderKey in graders) {
-    //HTMLString += '<input type="radio" value="' + graderKey + '" class = "hidden"/>';
-    HTMLString += '';
     HTMLString += '<a onclick="drop_handler(\'' + graderKey + '\')" class = unitselector>'
     HTMLString += '<label class = "unitlabel">';
     HTMLString += '<img src="pictures/' + graderKey + '.png">';
