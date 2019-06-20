@@ -4,7 +4,9 @@ try {
     if (!loadedModule) throw new Error('Module ' + process.argv[2] + ' was not found. Please check the file path.');
     const loadedFunction = loadedModule[process.argv[3]];
     if (!loadedFunction) throw new Error('Function ' + process.argv[3] + ' was not found. Make sure that you are exporting it.');
-    console.log(loadedFunction(...process.argv.slice(4)));
+    var returnValue = loadedFunction(...process.argv.slice(4));
+    if (returnValue === undefined) returnValue = 'Undefined return value';
+    console.log(returnValue);
 }
 catch (err) {
     console.log(err);
