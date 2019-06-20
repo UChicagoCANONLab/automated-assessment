@@ -1,3 +1,9 @@
+/* Animation L2 Autograder
+Initial version and testing: Zack Crenshaw, Spring 2019
+Reformatting and minor bug fixes: Marco Anaya, Summer 2019
+*/
+
+
 var sb3 = {
     no: function(x) { //null checker
         return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
@@ -72,7 +78,7 @@ var sb3 = {
         return null;
     },
     
-    findAllBlockID: function(blocks, opcode){
+    findBlockIDs: function(blocks, opcode){
         if(this.no(blocks) || blocks == {}) return null;
         
         var IDs = [];
@@ -169,16 +175,17 @@ var sb3 = {
 
             //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
             if ((parentID == null) && !(event_opcodes.includes(opcode))){
-                return [];
+                return {};
             }
             
             if (getsub) {
                 //if there is script nested inside, add them
                 if (curBlockInfo['inputs']['SUBSTACK'] != undefined){
                     var firstChildID = curBlockInfo['inputs']['SUBSTACK'][1]
+                    
                     var sub = sb3.addSubScript(blocks,firstChildID,script)
                     if (failedSub){
-                        return{};
+                        return {};
                     }
 
                 }
@@ -201,7 +208,7 @@ var sb3 = {
             if (getsub) {
                 //if there is script nested inside, add them
                 if (curBlockInfo['inputs']['SUBSTACK'] != undefined){
-                    var firstChildID = curBlockInfo['inputs']['SUBSTACK'][1]
+                    var firstChildID = curBlockInfo['inputs']['SUBSTACK'][1];
                     var failedSub = sb3.addSubScript(blocks,firstChildID,script)
                     if (failedSub){ //on failure to get subScript
                         return {};
@@ -217,17 +224,15 @@ var sb3 = {
             //Iterate: Set next to curBlock
             curBlockID = nextID;
         } 
-        
         return script;
     },
     
-    //adding nested script to the main script
+    // Adds nested script to the main script.
+    // returns true if adding script was unsuccessful
     addSubScript: function(blocks_sub,blockID_sub, script) {
         if (this.no(blocks_sub) || this.no(blockID_sub)) {
-            return true;
+            return false;
         }
-        
-        
         var curBlockID_sub = blockID_sub;
     
         //Find all blocks that come after
@@ -249,9 +254,6 @@ var sb3 = {
                     }
 
                 }
-            
-            
-		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return failure
             if((nextID_sub == null) && (event_opcodes.includes(opcode_sub))){
                 return true;
@@ -271,209 +273,152 @@ var sb3 = {
         }
         return false;
     },
-    
-    computeBoolArrayScore: function(arr) {
+    // for an object of bool values, counts those that are "true"
+    computeBoolObjScore: function(obj) {
         var score = 0;
-        for (var i = 0; i<arr.length; i++) {
-            if(arr[i]) {
+        for (var key in obj) {
+            if(obj[key]) {
                 score++;
             }
         }
-        
         return score;
     },
     
-    checkAnimation: function(script) {
-        var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
-        var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
-        
-        var loop = false;
-        var wait = false;
-        var costume = false;
-        var move = false;
-        
-        for(var i in script) {
-            
-            //check loop
-            if (validLoops.includes(script[i]['opcode'])) {
-                loop = true;
-            }
-            
-            //check wait
-            if ((script[i]['opcode']) == 'control_wait') {
-                wait = true;
-            }
-            
-            //check costume
-            if (validCostumes.includes(script[i]['opcode'])) {
-                costume = true;
-            }
-            
-            //check move
-            if (opcode.includes("motion_")) {
-                move = true;
-            }
-        }
-        
-        return (loop && wait && (costume || move));
-        
-    },
-    
-    gradeAnimation: function(script) {
-        var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
-        var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
-        
-        var loop = false;
-        var wait = false;
-        var costume = false;
-        var move = false;
+};
 
-        
+//SPRITE CLASS –––––––––––
+/* A sprite class is used to hold all the necessary aspects of the sprite that 
+ * we must track for grading purposes
+ */
+class Sprite {
+    constructor(name) {
+        this.name = name;
+        // list where all the sprite's scritps will be added to
+        this.scripts = [];
+
+        // whether a given sprite has met the following block requirements
+        this.reqs = {
+            loop: false,
+            move: false,
+            costume: false,
+            wait: false
+        }
+        // and the following additional requirements
+        this.animated = false;
+        this.danceOnClick = false;
+        this.types = []; //types of animation
+    }
+    //calculate the score (of requirements), in order to find the "chosen" sprite
+    getScore() { 
+        return sb3.computeBoolObjScore(this.reqs);
+    }
+    //add a script to the sprite
+    addScript(script) { 
+        this.scripts.push(script);
+    }
+    // helper function to grade an individual script
+    gradeScript(script) {
+        var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
+        var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
+  
+        // object to check off whether these blocks are present
+        // these are for an individual script
+        var reqs = {
+            loop: false,
+            move: false,
+            costume: false,
+            wait: false
+        };
+        // records unique types of "motion_" blocks used
         var types = [];
-        
-        
+
+        // check each block in the script and see if it matches required blocks
+        // NOTE: since task requirements do not specify that move, wait, and costume change
+        //   blocks must occur within a loop, we are not checking that 
         for(var i in script) {
             var opcode = script[i]['opcode'];
             
             //check loop
             if (validLoops.includes(opcode)) {
-                loop = true;
+                reqs.loop = true;
             }
-            
             //check wait
             if (opcode == 'control_wait') {
-                wait = true;
+                reqs.wait = true;
             }
-            
             //check costume
             if (validCostumes.includes(opcode)) {
-                costume = true;
+                reqs.costume = true;
             }
-            
             //check move
             if (opcode.includes("motion_")) {
-                move = true;
+                reqs.move = true;
                 if (!types.includes(opcode)){
                    types.push(opcode);
                 }
             }
         }
-        
-        var reqs = [loop,move,costume,wait];
-        
         //animation: loop and wait and either costume or movement
-        var isAnimated = (loop && wait && (costume || move));
+        var isAnimated = (reqs.loop && reqs.wait && (reqs.costume || reqs.move));
         
-        var report = [isAnimated,reqs,types];
-        
-        return report;
-        
+        var scriptReport = {
+            animated: isAnimated,
+            reqs: reqs,
+            types: types
+        };
+        return scriptReport;
     }
-};
+    //grades the given sprite, iterating over all of its scripts to:
+    // -find the script that meets the most requirements
+    // -determine whether the sprite is animated and dances on the click event 
+    grade() { 
 
-//SPRITE CLASS –––––––––––
-
-class Sprite {
-    
-    constructor(name) {
-        this.name = name; 
-        this.scripts = [];
-        
-        this.animated = false;
-        this.danceOnClick = false;
-        
-        //requirements:
-        //members of array in this order:
-        //loop,move,costume change,wait
-        this.reqs = [false,false,false,false]
-        
-        //types of animation
-        this.types = [];
-        
-    }
-    
-    getScore() { //calculate the score (of requirements)
-        var score = 0;
-        for (var i = 0; i<this.reqs.length; i++) {
-            if(this.reqs[i]) {
-                score++;
-            }
-        }
-        
-        return score;
-    }
-    
-    
-    getScripts() { //get all the scripts
-        return this.scripts;
-    }
-    
-    getScript(i) { //get a particular script
-        return this.scripts[i];
-    }
-    
-    addScript(script) { //add a script to the sprite
-        this.scripts.push(script);
-    }
-    
-    getReport() { //gets a report on what this sprite has been programmed to do
-        //score,animated,reqs[4],exts
-        var report = [this.getScore(),this.animated,this.reqs,this.types,this.danceOnClick];
-    
-        return report;
-    }
-    
-    grade() { //grade a sprite
-        
-        for (var s in this.scripts) { //iterate scripts
+        for (var script of this.scripts) { 
             
-            var scriptGrade = sb3.gradeAnimation(this.scripts[s]);
+            var scriptReport = this.gradeScript(script);
             
             //check if animated
-            if (scriptGrade[0]) {
+            if (scriptReport.animated) {
                 this.animated = true;
             }
-            
             //check dance reqs (find highest scoring script)
-            var scriptScore = sb3.computeBoolArrayScore(scriptGrade[1])
+            var scriptScore = sb3.computeBoolObjScore(scriptReport.reqs)
             if (scriptScore >= this.getScore()) {
-                this.reqs = scriptGrade[1];
-                
+                this.reqs = scriptReport.reqs;
                 
                 //check for dance (and dance on click)
                 if (scriptScore == 4) {
-                    for (var b in this.scripts[s]) { //should only get to the first block of script
-                        if (this.scripts[s][b]['opcode'] == 'event_whenthisspriteclicked') {
+                    for (var b in script) { //should only get to the first block of script
+
+                        if (script[b]['opcode'] == 'event_whenthisspriteclicked') {
                             this.danceOnClick = true; //ensures dance is on the click
                             break;
                         }
                     }
                 }
             }
-            
-            
             //checks for new types of animation blocks
-            for (var t = 0; t<scriptGrade[2].length; t++) {
-                if (!this.types.includes(scriptGrade[2][t])) {
-                    this.types.push(scriptGrade[2][t]);
+            for (var type of scriptReport.types) {
+                if (!this.types.includes(type)) {
+                    this.types.push(type);
                 }
             }
-            
-            
         }
-    
-        
-        return this.getReport();
+        var spriteReport = {
+            score: this.getScore(),
+            animated: this.animated,
+            reqs: this.reqs,
+            types: this.types,
+            danceOnClick: this.danceOnClick
+        };
+        return spriteReport;
     }
-    
-    
 }
 
 // MAIN GRADER CLASS –––––––––––––––
-
-
 class GradeAnimation{
-    
+    // initializes the empty requirement objects and a list of event block codes
+    // which will be used below
     constructor() {
         this.requirements = {};
         this.extensions = {};
@@ -501,138 +446,112 @@ class GradeAnimation{
     }
     
     grade(fileObj,user) {
-        
+        // initializing requirements
         this.initReqs();
         this.initExts();
         
-        //count and create sprites
-        if (sb3.no(fileObj)) return; //make sure script exists
-        
+        // if project does not exist, return early
+        if (sb3.no(fileObj)) 
+            return; 
+        // list for sprite classes to be added
         var Sprites = [];
+        // list for report objects to be added
         var Reports = [];
         
         var danceOnClick = 0;
         var animated = 0;
         var animationTypes = [];
         
-        var projInfo = fileObj['targets'] //extract targets from JSON data
+        var projInfo = fileObj['targets']; //extract targets from JSON data
         
-        
-        //generate scripts for each sprite
-        for(var i=0; i <projInfo.length; i++){
-            if(!projInfo[i]['isStage']){
-                var addMe = new Sprite(projInfo[i]['name']);
-                Sprites.push(addMe);
-                for (var e = 0; e < this.event_opcodes.length; e++) {
-                    var event = this.event_opcodes[e];
-                    var IDs = sb3.findAllBlockID(projInfo[i]['blocks'],event);
-                    for (var b=0; b<IDs.length; b++){
-                        var newScript = sb3.makeScript(projInfo[i]['blocks'],IDs[b],true);
+        // initializes sprite class for each sprite and adds scripts
+        for(var target of projInfo){
+            // if target is the stage
+            if(target['isStage']){ 
+                if (target['costumes'].length > 1) {
+                    this.requirements.HaveBackdrop.bool = true;
+                }
+            //if target is a spritea sprite
+            } else { 
+                var sprite = new Sprite(target['name']);
+                Sprites.push(sprite);
+                for (var event of this.event_opcodes) {
+                    var IDs = sb3.findBlockIDs(target['blocks'],event);
+                    for (var ID of IDs){
+                        console.log(target['name']);
+                        var newScript = sb3.makeScript(target['blocks'],ID,true);
                         if (newScript != null) {
-                            addMe.addScript(newScript);
+                            sprite.addScript(newScript);
                         }
                     }
                 }
-            } else { //if it is the stage
-                if (projInfo[i]['costumes'].length > 1) {
-                    this.requirements.HaveBackdrop.bool = true;
-                }
             }
         }
-        
-        if (Sprites.length > 2) { //checks for enough sprites
+        //checks for enough sprites
+        if (Sprites.length > 2) { 
             this.requirements.EnoughSprites.bool = true;
         }
         
         var highestscoring = 0;
         var highscore = 0;
         
-        for (var s = 0; s<Sprites.length; s++) {
-            //          0       1      2        3    4      
-            //REPORT: score,animated,reqs[4],types,danceOnClick
+        for (var s in Sprites) {    
+            //REPORT: {score,animated,reqs: {loop, move, costume, wait},types,danceOnClick}
             var report = Sprites[s].grade();
             Reports.push(report);
             
-            //to determine which sprite was the target sprite
-            var totalScore = report[0];
-            if (totalScore > highscore) {
-                highscore = totalScore;
+            //to determine which sprite was the "chosen" sprite
+            if (report.score > highscore) {
+                highscore = report.score;
                 highestscoring = s;
             }
-            
-            
-            if (report[1]) { //increment the number animated if animated 
+            //
+            if (report.animated) { 
                 animated++;
             }
-            
-            if (report[4]) {//increment the number that dance on click if does so
+            //increment the number that dance on click if does so
+            if (report.danceOnClick) {
                 danceOnClick++;
             }
-            
-            for (var t = 0; t<report[3].length;t++){ //count types of animation
-                if (!animationTypes.includes(report[3][t])){
-                    animationTypes.push(report[3][t]);
+            //count types of animation used throughout project
+            for (var type of report.types){ 
+                if (!animationTypes.includes(type)){
+                    animationTypes.push(type);
                 }
             }
-            
-    
-            
-            
         }
-        
-        //sprite most likely to be the chosen sprite
+        console.log(Sprites.length);
+        console.log(Reports.length);
+        // sprite most likely to be the chosen sprite
         var chosen = Reports[highestscoring];
         
+        // Set lesson requirements to those of "chosen" sprite
+        this.requirements.Loop.bool = chosen.reqs.loop;
+        this.requirements.Move.bool = chosen.reqs.move;
+        this.requirements.Costume.bool = chosen.reqs.costume;
+        this.requirements.Wait.bool = chosen.reqs.wait;
         
-        if (chosen[2][0]) { //check loop
-            this.requirements.Loop.bool = true;
-        }
+        // if previous 4 requirements are met, then the "chosen" sprite danced
+        this.requirements.Dance.bool = (chosen.score === 4);
         
-        if (chosen[2][1]) { //check movement
-            this.requirements.Move.bool = true;
-        }
-        
-        if (chosen[2][2]) { //check costume
-            this.requirements.Costume.bool = true;
-        }
-        
-        if (chosen[2][3]) { //check wait
-            this.requirements.Wait.bool = true;
-        }
-        
-        if(chosen[0] == 4) { //if it has all four, then it's a dance
-            this.requirements.Dance.bool = true;
-        }
-        
-        if (chosen[4]) { //remove from count of dancing on click if this is the chosen sprite
-            //this is to ensure the count is accurate for checking the extension "otherDanceOnClick"
-            danceOnClick--;
-            
-        }
-    
-        
+        // checks if there are more than 1 and 2 animated sprites
         if (animated > 1) {
-                this.requirements.SecondAnimated.bool = true;
+            this.requirements.SecondAnimated.bool = true;
             if (animated > 2) {
                 this.requirements.ThirdAnimated.bool = true;
             }
         }
-        
-        
-        if (danceOnClick > 0) { //counts the sprites that dance on click
-            this.extensions.OtherDanceOnClick.bool = true;
+        // Since lesson is looking for if a non-chosen sprite dances on click,
+        // decrement the danceOnClick counter if the chosen sprite danced on click
+        if (chosen.danceOnClick) { 
+            //this is to ensure the count is accurate for checking the extension "otherDanceOnClick"
+            danceOnClick--;
         }
+        //counts the sprites that dance on click
+        this.extensions.OtherDanceOnClick.bool = danceOnClick > 0;
         
-        if (animationTypes.length > 1) { //counts the number of animation blocks used
-            this.extensions.OtherAnimation.bool = true;
-        }
-    
-        
-    
-    }
-    
-    
-
-    
+        //counts the number of animation blocks used
+        this.extensions.OtherAnimation.bool = (animationTypes.length > 1)
+    }    
 }
 module.exports = GradeAnimation;
