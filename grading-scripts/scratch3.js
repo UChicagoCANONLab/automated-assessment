@@ -52,13 +52,15 @@ global.Block = class {
 /// Returns the next block in the script.
     nextBlock() {
         if (!is(this.next)) return null;
-        return this.toBlock(this.target.blocks[this.next]);
+        
+        return this.toBlock(this.next);
     }
 
 /// Returns the previous block in the script.
     prevBlock() {
         if (!is(this.parent)) return null;
-        return this.toBlock(this.target.blocks[this.parent]);
+
+        return this.toBlock(this.parent);
     }
 
 /// Returns the conditional statement of the block, if it exists.
@@ -77,15 +79,17 @@ global.Block = class {
             x = indexer.prevBlock();
         }
 
+        
     /// Steps to the end while pushing the blocks to an array.
         var array = [];
         x = indexer;
         while (x) {
-            //console.log(indexer);
-            array.push(indexer);
+
+            array.push(x);
             indexer = x;
             x = indexer.nextBlock();
         }
+        
         return array;
     }
 
@@ -93,8 +97,15 @@ global.Block = class {
     subScripts() {
         if (!is(this.inputs)) return [];
         var array = [];
-        if (is(this.inputs.SUBSTACK))  array.push(new Script(this.target.blocks[this.inputs.SUBSTACK ]));
-        if (is(this.inputs.SUBSTACK2)) array.push(new Script(this.target.blocks[this.inputs.SUBSTACK2]));
+
+        if (is(this.inputs.SUBSTACK))  {
+
+            array.push(new Script(this.toBlock(this.inputs.SUBSTACK[1])));
+        }
+        if (is(this.inputs.SUBSTACK2)) {
+
+            array.push(new Script(this.toBlock(this.inputs.SUBSTACK2[1])));
+        }
         return array;
     }
 }
@@ -115,7 +126,7 @@ global.Target = class {
         if (!is(target_.blocks)) this.blocks = {};
         this.scripts = [];
         for (var block_ in this.blocks) {
-            var block = new Block(target_, block_)
+            var block = new Block(target_, block_);
             this.blocks[block_] = block;
             if (!is(block.prevBlock())) this.scripts.push(new Script(block));
         }
