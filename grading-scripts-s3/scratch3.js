@@ -5,10 +5,6 @@ global.is = function(x) {
     return !(x == null || x === {} || x === []);
 }
 
-global.isEmpty = function(x) {
-    return (x === [] || x === {});
-}
-
 /// Container class for Scratch blocks.
 global.Block = class {
     constructor(target, block) {
