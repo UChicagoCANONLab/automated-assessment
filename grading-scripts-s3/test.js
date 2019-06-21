@@ -1,7 +1,7 @@
 require('./scratch3');
 
 module.exports.main = function() {
-    var project = new Project(require('./pirate'));
+    var project = new Project(require('../test-projects/pirate'));
     for (var target of project.targets) {
         console.log('Target: ' + target.name);
         for (var script of target.scripts) {
