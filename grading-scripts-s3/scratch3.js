@@ -1,33 +1,5 @@
 /// Scratch 3 helper functions
 
-/* Hierarchy:
-
-Project project {
-    ...
-    Array targets [
-        ...
-        Target target {
-            ...
-            Script script {
-                ...
-                Array blocks [
-                    ...
-                    Block block {
-                        Internals
-                        Array subscripts [
-                            ...
-                            Script script {
-                                ...
-                            }
-                        ]
-
-Types required:
-Project
-Script
-Block
-
-*/
-
 /// Returns false for null, undefined, and zero-length values.
 global.is = function(x) { 
     return !(x == null || x === {} || x === []);
@@ -65,31 +37,18 @@ global.Block = class {
 
 /// Returns the conditional statement of the block, if it exists.
     conditionBlock() {
-        if (!is(this.inputs.CONDITION[1])) return null;
-        return this.toBlock(this.target.blocks[this.inputs.CONDITION[1]]);
+        if (!is(this.inputs.CONDITION)) return null;
+        return this.toBlock(this.inputs.CONDITION[1]);
     }
 
 /// Returns an array representing the script that contains the block.
-    containingArray() {
-
-    /// Steps to the beginning of the script.
-        var indexer = this, x = this;
-        while (x) {
-            indexer = x;
-            x = indexer.prevBlock();
-        }
-
-        
-    /// Steps to the end while pushing the blocks to an array.
+    childBlocks() {     
         var array = [];
-        x = indexer;
+        var x = this;
         while (x) {
-
             array.push(x);
-            indexer = x;
-            x = indexer.nextBlock();
+            x = x.nextBlock();
         }
-        
         return array;
     }
 
@@ -114,7 +73,7 @@ global.Block = class {
 global.Script = class {
 /// Pass this a Block object!
     constructor(block) {
-        this.blocks = block.containingArray();
+        this.blocks = block.childBlocks();
         this.target = block.target;
     }
 }
