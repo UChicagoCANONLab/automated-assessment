@@ -28,3 +28,9 @@ function printBlocks(script, level) {
         }
     }
 }
+/*
+module.exports.test = function() {
+    var grader = new GradeEvents;
+    grader.grade(require('../test-projects/events'), null);
+    return (grader)
+};*/

@@ -1,6 +1,6 @@
 require('./scratch3');
 
-class GradeEvents {
+module.exports = class {
 
     init() {
         this.requirements = {
@@ -59,9 +59,3 @@ class GradeEvents {
         project.context.makeGrade(this);
     }
 }
-
-module.exports.test = function() {
-    var grader = new GradeEvents;
-    grader.grade(require('../test-projects/events'), null);
-    return (grader)
-};
