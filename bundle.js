@@ -2239,7 +2239,7 @@ module.exports = class {
             sprite.context.pull(['reactToClick', 'getBigger', 'resetSize', 'addedEvent', 'addedSpin'], 1, false);
             sprite.context.pull(['talkTwice'], 2, false);
         }
-        project.context.pull(['reactToClick', 'getBigger', 'talkTwice', 'resetSize'], 2, true);
+        project.context.pull(['reactToClick', 'getBigger', 'talkTwice', 'resetSize'], 3, true);
         project.context.pull(['changedName', 'addedSpin', 'addedEvent'], 1, false);
         project.context.makeGrade(this);
     }
