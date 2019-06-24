@@ -1,14 +1,21 @@
 /// Scratch 3 helper functions
+require('./context');
 
 /// Returns false for null, undefined, and zero-length values.
 global.is = function(x) { 
     return !(x == null || x === {} || x === []);
 }
 
+/// Opposite of is().
+global.no = function(x) {
+    return !is(x);
+}
+
 /// Container class for Scratch blocks.
 global.Block = class {
     constructor(target, block) {
         Object.assign(this, target.blocks[block]);
+        this.context = new Context(target.context, false);
         this.target = target;
     }
 
@@ -19,21 +26,21 @@ global.Block = class {
 
 /// Returns the next block in the script.
     nextBlock() {
-        if (!is(this.next)) return null;
+        if (no(this.next)) return null;
         
         return this.toBlock(this.next);
     }
 
 /// Returns the previous block in the script.
     prevBlock() {
-        if (!is(this.parent)) return null;
+        if (no(this.parent)) return null;
 
         return this.toBlock(this.parent);
     }
 
 /// Returns the conditional statement of the block, if it exists.
     conditionBlock() {
-        if (!is(this.inputs.CONDITION)) return null;
+        if (no(this.inputs.CONDITION)) return null;
         return this.toBlock(this.inputs.CONDITION[1]);
     }
 
@@ -48,9 +55,9 @@ global.Block = class {
         return array;
     }
 
-/// Returns an array of arrays representing the subscripts of the block.
+/// Returns an array of Scripts representing the subscripts of the block.
     subScripts() {
-        if (!is(this.inputs)) return [];
+        if (no(this.inputs)) return [];
         var array = [];
 
         if (is(this.inputs.SUBSTACK))  {
@@ -68,32 +75,48 @@ global.Block = class {
 /// Container class for Scratch scripts.
 global.Script = class {
 /// Pass this a Block object!
-    constructor(block) {
-        this.blocks = block.childBlocks();
-        this.target = block.target;
+    constructor(block, target) {
+        this.blocks  = block.childBlocks();
+        this.target  = target;
+        this.context = new Context(target.context, false);
+        for (var block of this.blocks) {
+            this.context.sublayers.push(block.context);
+        }
     }
 }
 
 /// Container class for Scratch targets (stages & sprites).
 global.Target = class {
-    constructor(target_) {
+    constructor(target_, project) {
+        this.project = project;
+        this.context = new Context(project.context, false);
         Object.assign(this, target_);
-        if (!is(target_.blocks)) this.blocks = {};
+        if (no(target_.blocks)) this.blocks = {};
         this.scripts = [];
         for (var block_ in this.blocks) {
             var block = new Block(target_, block_);
             this.blocks[block_] = block;
-            if (!is(block.prevBlock())) this.scripts.push(new Script(block));
+            if (!(block.prevBlock())) this.scripts.push(new Script(block, this));
+        }
+        for (var script of this.scripts) {
+            this.context.sublayers.push(script.context);
         }
     }
 }
 
 /// Container class for a whole project.
 global.Project = class {
-    constructor(json) {
+    constructor(json, items) {
+        this.context = new Context(items, false);
         this.targets = [];
+        this.sprites = [];
         for (var target_ of json.targets) {
-            this.targets.push(new Target(target_));
+            var target = new Target(target_, this);
+            this.targets.push(target);
+            if (!target_.isStage) this.sprites.push(target); 
+        }
+        for (var target of this.targets) {
+            this.context.sublayers.push(target.context);
         }
     }
 }
