@@ -60,12 +60,10 @@ global.Block = class {
         if (no(this.inputs)) return [];
         var array = [];
 
-        if (is(this.inputs.SUBSTACK))  {
-
+        if (is(this.inputs.SUBSTACK) && is(this.inputs.SUBSTACK[1])) {
             array.push(new Script(this.toBlock(this.inputs.SUBSTACK[1])));
         }
-        if (is(this.inputs.SUBSTACK2)) {
-
+        if (is(this.inputs.SUBSTACK2) && is(this.inputs.SUBSTACK2[1])) {
             array.push(new Script(this.toBlock(this.inputs.SUBSTACK2[1])));
         }
         return array;

@@ -42,7 +42,7 @@ module.exports = class {
                 if (script.blocks[0].opcode === 'event_whenthisspriteclicked' && script.blocks.length > 1) {
                     script.context.reactToClick = 1;
                 }
-                else if (script.blocks.length > 1) {
+                else if (script.blocks[0].opcode !== 'event_whenflagclicked' && script.blocks.length > 1) {
                     script.context.addedEvent = 1;
                 }
                 if (script.blocks.some(block => block.opcode.includes('motion_turn')) &&

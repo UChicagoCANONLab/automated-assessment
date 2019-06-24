@@ -2227,7 +2227,7 @@ module.exports = class {
                 if (script.blocks[0].opcode === 'event_whenthisspriteclicked' && script.blocks.length > 1) {
                     script.context.reactToClick = 1;
                 }
-                else if (script.blocks.length > 1) {
+                else if (script.blocks[0].opcode !== 'event_whenflagclicked' && script.blocks.length > 1) {
                     script.context.addedEvent = 1;
                 }
                 if (script.blocks.some(block => block.opcode.includes('motion_turn')) &&
@@ -3681,12 +3681,10 @@ global.Block = class {
         if (no(this.inputs)) return [];
         var array = [];
 
-        if (is(this.inputs.SUBSTACK))  {
-
+        if (is(this.inputs.SUBSTACK) && is(this.inputs.SUBSTACK[1])) {
             array.push(new Script(this.toBlock(this.inputs.SUBSTACK[1])));
         }
-        if (is(this.inputs.SUBSTACK2)) {
-
+        if (is(this.inputs.SUBSTACK2) && is(this.inputs.SUBSTACK2[1])) {
             array.push(new Script(this.toBlock(this.inputs.SUBSTACK2[1])));
         }
         return array;
