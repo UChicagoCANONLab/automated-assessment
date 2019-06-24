@@ -712,6 +712,12 @@ class GradeAnimation {
 }
 module.exports = GradeAnimation;
 },{}],2:[function(require,module,exports){
+/* Animation L2 Autograder
+Initial version and testing: Zack Crenshaw, Spring 2019
+Reformatting and minor bug fixes: Marco Anaya, Summer 2019
+*/
+
+
 var sb3 = {
     no: function(x) { //null checker
         return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
@@ -786,7 +792,7 @@ var sb3 = {
         return null;
     },
     
-    findAllBlockID: function(blocks, opcode){
+    findBlockIDs: function(blocks, opcode){
         if(this.no(blocks) || blocks == {}) return null;
         
         var IDs = [];
@@ -883,16 +889,17 @@ var sb3 = {
 
             //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
             if ((parentID == null) && !(event_opcodes.includes(opcode))){
-                return [];
+                return {};
             }
             
             if (getsub) {
                 //if there is script nested inside, add them
                 if (curBlockInfo['inputs']['SUBSTACK'] != undefined){
                     var firstChildID = curBlockInfo['inputs']['SUBSTACK'][1]
+                    
                     var sub = sb3.addSubScript(blocks,firstChildID,script)
                     if (failedSub){
-                        return{};
+                        return {};
                     }
 
                 }
@@ -915,7 +922,7 @@ var sb3 = {
             if (getsub) {
                 //if there is script nested inside, add them
                 if (curBlockInfo['inputs']['SUBSTACK'] != undefined){
-                    var firstChildID = curBlockInfo['inputs']['SUBSTACK'][1]
+                    var firstChildID = curBlockInfo['inputs']['SUBSTACK'][1];
                     var failedSub = sb3.addSubScript(blocks,firstChildID,script)
                     if (failedSub){ //on failure to get subScript
                         return {};
@@ -931,17 +938,15 @@ var sb3 = {
             //Iterate: Set next to curBlock
             curBlockID = nextID;
         } 
-        
         return script;
     },
     
-    //adding nested script to the main script
+    // Adds nested script to the main script.
+    // returns true if adding script was unsuccessful
     addSubScript: function(blocks_sub,blockID_sub, script) {
         if (this.no(blocks_sub) || this.no(blockID_sub)) {
-            return true;
+            return false;
         }
-        
-        
         var curBlockID_sub = blockID_sub;
     
         //Find all blocks that come after
@@ -963,9 +968,6 @@ var sb3 = {
                     }
 
                 }
-            
-            
-		
             //If the block is not a script (i.e. it's an event but doesn't have anything after), return failure
             if((nextID_sub == null) && (event_opcodes.includes(opcode_sub))){
                 return true;
@@ -985,209 +987,152 @@ var sb3 = {
         }
         return false;
     },
-    
-    computeBoolArrayScore: function(arr) {
+    // for an object of bool values, counts those that are "true"
+    computeBoolObjScore: function(obj) {
         var score = 0;
-        for (var i = 0; i<arr.length; i++) {
-            if(arr[i]) {
+        for (var key in obj) {
+            if(obj[key]) {
                 score++;
             }
         }
-        
         return score;
     },
     
-    checkAnimation: function(script) {
-        var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
-        var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
-        
-        var loop = false;
-        var wait = false;
-        var costume = false;
-        var move = false;
-        
-        for(var i in script) {
-            
-            //check loop
-            if (validLoops.includes(script[i]['opcode'])) {
-                loop = true;
-            }
-            
-            //check wait
-            if ((script[i]['opcode']) == 'control_wait') {
-                wait = true;
-            }
-            
-            //check costume
-            if (validCostumes.includes(script[i]['opcode'])) {
-                costume = true;
-            }
-            
-            //check move
-            if (opcode.includes("motion_")) {
-                move = true;
-            }
-        }
-        
-        return (loop && wait && (costume || move));
-        
-    },
-    
-    gradeAnimation: function(script) {
-        var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
-        var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
-        
-        var loop = false;
-        var wait = false;
-        var costume = false;
-        var move = false;
+};
 
-        
+//SPRITE CLASS –––––––––––
+/* A sprite class is used to hold all the necessary aspects of the sprite that 
+ * we must track for grading purposes
+ */
+class Sprite {
+    constructor(name) {
+        this.name = name;
+        // list where all the sprite's scritps will be added to
+        this.scripts = [];
+
+        // whether a given sprite has met the following block requirements
+        this.reqs = {
+            loop: false,
+            move: false,
+            costume: false,
+            wait: false
+        }
+        // and the following additional requirements
+        this.animated = false;
+        this.danceOnClick = false;
+        this.types = []; //types of animation
+    }
+    //calculate the score (of requirements), in order to find the "chosen" sprite
+    getScore() { 
+        return sb3.computeBoolObjScore(this.reqs);
+    }
+    //add a script to the sprite
+    addScript(script) { 
+        this.scripts.push(script);
+    }
+    // helper function to grade an individual script
+    gradeScript(script) {
+        var validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
+        var validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
+  
+        // object to check off whether these blocks are present
+        // these are for an individual script
+        var reqs = {
+            loop: false,
+            move: false,
+            costume: false,
+            wait: false
+        };
+        // records unique types of "motion_" blocks used
         var types = [];
-        
-        
+
+        // check each block in the script and see if it matches required blocks
+        // NOTE: since task requirements do not specify that move, wait, and costume change
+        //   blocks must occur within a loop, we are not checking that 
         for(var i in script) {
             var opcode = script[i]['opcode'];
             
             //check loop
             if (validLoops.includes(opcode)) {
-                loop = true;
+                reqs.loop = true;
             }
-            
             //check wait
             if (opcode == 'control_wait') {
-                wait = true;
+                reqs.wait = true;
             }
-            
             //check costume
             if (validCostumes.includes(opcode)) {
-                costume = true;
+                reqs.costume = true;
             }
-            
             //check move
             if (opcode.includes("motion_")) {
-                move = true;
+                reqs.move = true;
                 if (!types.includes(opcode)){
                    types.push(opcode);
                 }
             }
         }
-        
-        var reqs = [loop,move,costume,wait];
-        
         //animation: loop and wait and either costume or movement
-        var isAnimated = (loop && wait && (costume || move));
+        var isAnimated = (reqs.loop && reqs.wait && (reqs.costume || reqs.move));
         
-        var report = [isAnimated,reqs,types];
-        
-        return report;
-        
+        var scriptReport = {
+            animated: isAnimated,
+            reqs: reqs,
+            types: types
+        };
+        return scriptReport;
     }
-};
+    //grades the given sprite, iterating over all of its scripts to:
+    // -find the script that meets the most requirements
+    // -determine whether the sprite is animated and dances on the click event 
+    grade() { 
 
-//SPRITE CLASS –––––––––––
-
-class Sprite {
-    
-    constructor(name) {
-        this.name = name; 
-        this.scripts = [];
-        
-        this.animated = false;
-        this.danceOnClick = false;
-        
-        //requirements:
-        //members of array in this order:
-        //loop,move,costume change,wait
-        this.reqs = [false,false,false,false]
-        
-        //types of animation
-        this.types = [];
-        
-    }
-    
-    getScore() { //calculate the score (of requirements)
-        var score = 0;
-        for (var i = 0; i<this.reqs.length; i++) {
-            if(this.reqs[i]) {
-                score++;
-            }
-        }
-        
-        return score;
-    }
-    
-    
-    getScripts() { //get all the scripts
-        return this.scripts;
-    }
-    
-    getScript(i) { //get a particular script
-        return this.scripts[i];
-    }
-    
-    addScript(script) { //add a script to the sprite
-        this.scripts.push(script);
-    }
-    
-    getReport() { //gets a report on what this sprite has been programmed to do
-        //score,animated,reqs[4],exts
-        var report = [this.getScore(),this.animated,this.reqs,this.types,this.danceOnClick];
-    
-        return report;
-    }
-    
-    grade() { //grade a sprite
-        
-        for (var s in this.scripts) { //iterate scripts
+        for (var script of this.scripts) { 
             
-            var scriptGrade = sb3.gradeAnimation(this.scripts[s]);
+            var scriptReport = this.gradeScript(script);
             
             //check if animated
-            if (scriptGrade[0]) {
+            if (scriptReport.animated) {
                 this.animated = true;
             }
-            
             //check dance reqs (find highest scoring script)
-            var scriptScore = sb3.computeBoolArrayScore(scriptGrade[1])
+            var scriptScore = sb3.computeBoolObjScore(scriptReport.reqs)
             if (scriptScore >= this.getScore()) {
-                this.reqs = scriptGrade[1];
-                
+                this.reqs = scriptReport.reqs;
                 
                 //check for dance (and dance on click)
                 if (scriptScore == 4) {
-                    for (var b in this.scripts[s]) { //should only get to the first block of script
-                        if (this.scripts[s][b]['opcode'] == 'event_whenthisspriteclicked') {
+                    for (var b in script) { //should only get to the first block of script
+
+                        if (script[b]['opcode'] == 'event_whenthisspriteclicked') {
                             this.danceOnClick = true; //ensures dance is on the click
                             break;
                         }
                     }
                 }
             }
-            
-            
             //checks for new types of animation blocks
-            for (var t = 0; t<scriptGrade[2].length; t++) {
-                if (!this.types.includes(scriptGrade[2][t])) {
-                    this.types.push(scriptGrade[2][t]);
+            for (var type of scriptReport.types) {
+                if (!this.types.includes(type)) {
+                    this.types.push(type);
                 }
             }
-            
-            
         }
-    
-        
-        return this.getReport();
+        var spriteReport = {
+            score: this.getScore(),
+            animated: this.animated,
+            reqs: this.reqs,
+            types: this.types,
+            danceOnClick: this.danceOnClick
+        };
+        return spriteReport;
     }
-    
-    
 }
 
 // MAIN GRADER CLASS –––––––––––––––
-
-
 class GradeAnimation{
-    
+    // initializes the empty requirement objects and a list of event block codes
+    // which will be used below
     constructor() {
         this.requirements = {};
         this.extensions = {};
@@ -1215,139 +1160,113 @@ class GradeAnimation{
     }
     
     grade(fileObj,user) {
-        
+        // initializing requirements
         this.initReqs();
         this.initExts();
         
-        //count and create sprites
-        if (sb3.no(fileObj)) return; //make sure script exists
-        
+        // if project does not exist, return early
+        if (sb3.no(fileObj)) 
+            return; 
+        // list for sprite classes to be added
         var Sprites = [];
+        // list for report objects to be added
         var Reports = [];
         
         var danceOnClick = 0;
         var animated = 0;
         var animationTypes = [];
         
-        var projInfo = fileObj['targets'] //extract targets from JSON data
+        var projInfo = fileObj['targets']; //extract targets from JSON data
         
-        
-        //generate scripts for each sprite
-        for(var i=0; i <projInfo.length; i++){
-            if(!projInfo[i]['isStage']){
-                var addMe = new Sprite(projInfo[i]['name']);
-                Sprites.push(addMe);
-                for (var e = 0; e < this.event_opcodes.length; e++) {
-                    var event = this.event_opcodes[e];
-                    var IDs = sb3.findAllBlockID(projInfo[i]['blocks'],event);
-                    for (var b=0; b<IDs.length; b++){
-                        var newScript = sb3.makeScript(projInfo[i]['blocks'],IDs[b],true);
+        // initializes sprite class for each sprite and adds scripts
+        for(var target of projInfo){
+            // if target is the stage
+            if(target['isStage']){ 
+                if (target['costumes'].length > 1) {
+                    this.requirements.HaveBackdrop.bool = true;
+                }
+            //if target is a spritea sprite
+            } else { 
+                var sprite = new Sprite(target['name']);
+                Sprites.push(sprite);
+                for (var event of this.event_opcodes) {
+                    var IDs = sb3.findBlockIDs(target['blocks'],event);
+                    for (var ID of IDs){
+                        console.log(target['name']);
+                        var newScript = sb3.makeScript(target['blocks'],ID,true);
                         if (newScript != null) {
-                            addMe.addScript(newScript);
+                            sprite.addScript(newScript);
                         }
                     }
                 }
-            } else { //if it is the stage
-                if (projInfo[i]['costumes'].length > 1) {
-                    this.requirements.HaveBackdrop.bool = true;
-                }
             }
         }
-        
-        if (Sprites.length > 2) { //checks for enough sprites
+        //checks for enough sprites
+        if (Sprites.length > 2) { 
             this.requirements.EnoughSprites.bool = true;
         }
         
         var highestscoring = 0;
         var highscore = 0;
         
-        for (var s = 0; s<Sprites.length; s++) {
-            //          0       1      2        3    4      
-            //REPORT: score,animated,reqs[4],types,danceOnClick
+        for (var s in Sprites) {    
+            //REPORT: {score,animated,reqs: {loop, move, costume, wait},types,danceOnClick}
             var report = Sprites[s].grade();
             Reports.push(report);
             
-            //to determine which sprite was the target sprite
-            var totalScore = report[0];
-            if (totalScore > highscore) {
-                highscore = totalScore;
+            //to determine which sprite was the "chosen" sprite
+            if (report.score > highscore) {
+                highscore = report.score;
                 highestscoring = s;
             }
-            
-            
-            if (report[1]) { //increment the number animated if animated 
+            //
+            if (report.animated) { 
                 animated++;
             }
-            
-            if (report[4]) {//increment the number that dance on click if does so
+            //increment the number that dance on click if does so
+            if (report.danceOnClick) {
                 danceOnClick++;
             }
-            
-            for (var t = 0; t<report[3].length;t++){ //count types of animation
-                if (!animationTypes.includes(report[3][t])){
-                    animationTypes.push(report[3][t]);
+            //count types of animation used throughout project
+            for (var type of report.types){ 
+                if (!animationTypes.includes(type)){
+                    animationTypes.push(type);
                 }
             }
-            
-    
-            
-            
         }
-        
-        //sprite most likely to be the chosen sprite
+        console.log(Sprites.length);
+        console.log(Reports.length);
+        // sprite most likely to be the chosen sprite
         var chosen = Reports[highestscoring];
         
+        // Set lesson requirements to those of "chosen" sprite
+        this.requirements.Loop.bool = chosen.reqs.loop;
+        this.requirements.Move.bool = chosen.reqs.move;
+        this.requirements.Costume.bool = chosen.reqs.costume;
+        this.requirements.Wait.bool = chosen.reqs.wait;
         
-        if (chosen[2][0]) { //check loop
-            this.requirements.Loop.bool = true;
-        }
+        // if previous 4 requirements are met, then the "chosen" sprite danced
+        this.requirements.Dance.bool = (chosen.score === 4);
         
-        if (chosen[2][1]) { //check movement
-            this.requirements.Move.bool = true;
-        }
-        
-        if (chosen[2][2]) { //check costume
-            this.requirements.Costume.bool = true;
-        }
-        
-        if (chosen[2][3]) { //check wait
-            this.requirements.Wait.bool = true;
-        }
-        
-        if(chosen[0] == 4) { //if it has all four, then it's a dance
-            this.requirements.Dance.bool = true;
-        }
-        
-        if (chosen[4]) { //remove from count of dancing on click if this is the chosen sprite
-            //this is to ensure the count is accurate for checking the extension "otherDanceOnClick"
-            danceOnClick--;
-            
-        }
-    
-        
+        // checks if there are more than 1 and 2 animated sprites
         if (animated > 1) {
-                this.requirements.SecondAnimated.bool = true;
+            this.requirements.SecondAnimated.bool = true;
             if (animated > 2) {
                 this.requirements.ThirdAnimated.bool = true;
             }
         }
-        
-        
-        if (danceOnClick > 0) { //counts the sprites that dance on click
-            this.extensions.OtherDanceOnClick.bool = true;
+        // Since lesson is looking for if a non-chosen sprite dances on click,
+        // decrement the danceOnClick counter if the chosen sprite danced on click
+        if (chosen.danceOnClick) { 
+            //this is to ensure the count is accurate for checking the extension "otherDanceOnClick"
+            danceOnClick--;
         }
+        //counts the sprites that dance on click
+        this.extensions.OtherDanceOnClick.bool = danceOnClick > 0;
         
-        if (animationTypes.length > 1) { //counts the number of animation blocks used
-            this.extensions.OtherAnimation.bool = true;
-        }
-    
-        
-    
-    }
-    
-    
-
-    
+        //counts the number of animation blocks used
+        this.extensions.OtherAnimation.bool = (animationTypes.length > 1)
+    }    
 }
 module.exports = GradeAnimation;
 },{}],3:[function(require,module,exports){
@@ -1741,6 +1660,37 @@ class GradeCondLoops {
 }
 module.exports = GradeCondLoops;
 },{}],4:[function(require,module,exports){
+(function (global){
+/// Info layer template
+global.Context = class {
+
+    constructor(x, keepValues) {
+        if (x && x.hasOwnProperty('requirements') && x.hasOwnProperty('extensions')) {
+            for (var requirement in x.requirements) this[requirement] = keepValues ? x.requirements[requirement] : 0;
+            for (var extension   in x.extensions  ) this[extension  ] = keepValues ? x.extensions  [extension  ] : 0;
+        }
+        else {
+            for (var item in x) this[item] = keepValues ? x[item] : 0;
+        }
+        this.sublayers = [];
+    }
+
+    pull(keys, thresh, sum) {
+        for (var key of keys) {
+            if (!sum) this[key] = this.sublayers.some(x => x[key] >= thresh);
+            else      this[key] = this.sublayers.reduce((acc = 0, x) => acc += x[key], 0) >= thresh;
+        }
+    }
+
+    makeGrade(grader) {
+        for (var key in this) {
+            if (grader.requirements[key] !== undefined) grader.requirements[key].bool = !!this[key];
+            if (grader.extensions  [key] !== undefined) grader.extensions  [key].bool = !!this[key];
+        }
+    }
+}
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],5:[function(require,module,exports){
 /* Decomposition By Sequence L1 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -2232,515 +2182,75 @@ class GradeDecompBySeq{
 }
 
 module.exports = GradeDecompBySeq;
-},{}],5:[function(require,module,exports){
-var sb3 = {
-    no: function(x) { //null checker
-        return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
-    },
-
-    jsonToSpriteBlocks: function(json, spriteName) { //retrieve a given sprite's blocks from JSON
-        if (this.no(json)) return []; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        var allBlocks={};
-        var blocks={};
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i]['blocks'];
-            }
-        }
-        return [];
-    }, //done
-    
-    jsonToSprite: function(json, spriteName) { //retrieve a given sprite's blocks from JSON
-        if (this.no(json)) return []; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i];
-            }
-        }
-        return [];
-    }, //done
-    
-    countSprites: function(json){
-        if (this.no(json)) return false; //make sure script exists
-        
-        var numSprites = 0;
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['isStage'] == false){
-                numSprites ++;
-            }
-        }
-        return numSprites
-    },
-    
-    findSprite: function(json, spriteName){ //returns true if sprite with given name found
-        if (this.no(json)) return false; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return true;
-            }
-        }
-        return false;
-    }, //done
-    
-    findBlockID: function(blocks, opcode){
-        if(this.no(blocks) || blocks == {}) return null;
-        
-        for(block in blocks){ 
-            if(blocks[block]['opcode'] == opcode){
-                return block;
-            }
-        }
-        return null;
-    },
-    
-    findKeyPressID: function(blocks, key){
-        if(this.no(blocks) || blocks == {}) return null;
-        
-        for(block in blocks){ 
-            if(blocks[block]['opcode'] == 'event_whenkeypressed'){
-                if(blocks[block]['fields']['KEY_OPTION'][0] == key){
-                    return block;
-                }
-            }
-        }
-        return null;
-    },
-    
-    opcodeBlocks: function(script, myOpcode) { //retrieve blocks with a certain opcode from a script list of blocks
-        if (this.no(script)) return [];
-        
-        var miniscript = [];
-
-        for(block in script){
-            if(script[block]['opcode'] == myOpcode){
-                miniscript.push(script[block]);
-            }
-        }
-        return miniscript;
-    }, 
-    
-    typeBlocks: function(script, type) { //retrieve blocks of certain type from a script list of blocks
-        if (this.no(script)) return [];
-        
-        var miniscript = [];
-
-        for(block in script){
-            if(script[block]['opcode'].includes(type)){
-                miniscript.push(script[block]);
-            }
-        }
-        return miniscript;
-    },
-    
-    startBlock: function(blocks){
-        if(this.no(blocks) || blocks == {}) return null;
-        
-        for(block in blocks){ 
-            if(blocks[block]['opcode'].includes("event_")){
-                return block;
-            }
-        }
-        return null;
-    },
-    
-    opcode: function(block) { //retrives opcode from a block object 
-        if (this.no(block)) return "";
-        return block['opcode'];
-    }, 
-    
-    countBlocks: function(blocks,opcode){ //counts number of blocks with a given opcode
-        var total = 0;
-		for(id in blocks){ 
-            if([blocks][id]['opcode'] == opcode){
-                total = total + 1;
-            }
-        }
-        return total;
-    }, //done
-    
-    countScripts: function(blocks,type){ //counts valid scripts of a certain type
-        var count = 0;
-        for (i in blocks){
-            if(blocks[i]['opcode'].includes(type) && !this.no(blocks[i]['next'])){
-                    count = count + 1;
-            }
-        }
-        return count;
-        
-    },
-    
-    //given list of blocks, return a script
-    makeScript: function(blocks, blockID,getsub){
-        if (this.no(blocks) || this.no(blockID)) return [];
-        event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
-        
-        var curBlockID = blockID;
-        var script = {};
-    
-        //find blocks before
-        while(curBlockID != null){
-            var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-            script[curBlockID]=curBlockInfo; //Add the block itself to the script dictionary DEBUG PUSH SITUATION
-            //Get parent info out
-            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
-            //parentInfo = blocks[parentID]
-    		var opcode = curBlockInfo['opcode'];
-
-            //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
-            if ((parentID == null) && !(event_opcodes.includes(opcode))){
-                return [];
-            }
-            
-            if (getsub) {
-                //if there is script nested inside, add them
-                if (curBlockInfo['inputs']['SUBSTACK'] != undefined){
-                    var firstChildID = curBlockInfo['inputs']['SUBSTACK'][1]
-                    var sub = sb3.addSubScript(blocks,firstChildID,script)
-                    if (failedSub){
-                        return{};
-                    }
-
-                }
-            }
-
-            //Iterate: set parent to curBlock
-            curBlockID = parentID
-        }
-        
-        //Find all blocks that come after
-        curBlockID = blockID //Initialize with blockID of interest
-        while(curBlockID != null){
-            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-            script[curBlockID]=curBlockInfo; //Add the block itself to the script dictionary                
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-            //nextInfo = blocks[nextID]
-            opcode = curBlockInfo['opcode'];
-            
-            if (getsub) {
-                //if there is script nested inside, add them
-                if (curBlockInfo['inputs']['SUBSTACK'] != undefined){
-                    var firstChildID = curBlockInfo['inputs']['SUBSTACK'][1]
-                    var failedSub = sb3.addSubScript(blocks,firstChildID,script)
-                    if (failedSub){ //on failure to get subScript
-                        return {};
-                    }
-
-                }
-            }
-		
-            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
-            if((nextID == null) && (event_opcodes.includes(opcode))){
-                return {};
-            }
-            //Iterate: Set next to curBlock
-            curBlockID = nextID;
-        } 
-        
-        return script;
-    },
-    
-    //adding nested script to the main script
-    addSubScript: function(blocks_sub,blockID_sub, script) {
-        if (this.no(blocks_sub) || this.no(blockID_sub)) {
-            return true;
-        }
-        
-        
-        var curBlockID_sub = blockID_sub;
-    
-        //Find all blocks that come after
-        curBlockID_sub = blockID_sub //Initialize with blockID of interest
-        while(curBlockID_sub != null){
-            var curBlockInfo_sub = blocks_sub[curBlockID_sub]; //Pull out info about the block
-            script[curBlockID_sub]=curBlockInfo_sub; //Add the block itself to the script dictionary                
-            //Get next info out
-            nextID_sub = curBlockInfo_sub['next']; //Block that comes after has key 'next'
-            //nextInfo = blocks[nextID]
-            opcode_sub = curBlockInfo_sub['opcode'];
-            
-            //if there is script nested inside, add them
-                if (curBlockInfo_sub['inputs']['SUBSTACK'] != undefined){
-                    var firstChildID_sub = curBlockInfo_sub['inputs']['SUBSTACK'][1]
-                    var failedSub_sub = sb3.addSubScript(blocks_sub,firstChildID_sub,script)
-                    if (failedSub_sub){ //on failure to get subScript
-                        return {};
-                    }
-
-                }
-            
-            
-		
-            //If the block is not a script (i.e. it's an event but doesn't have anything after), return failure
-            if((nextID_sub == null) && (event_opcodes.includes(opcode_sub))){
-                return true;
-            }
-            //Iterate: Set next to curBlock
-            curBlockID_sub = nextID_sub;
-        }   
-        return false;
-    }, 
-    
-    between: function(x, a, b) {
-        if (x == undefined) {
-            return false;
-        }
-        if (x >= a && x <= b) {
-            return true;
-        }
-        return false;
-    }
-};
-
-class Sprite {
-    
-    constructor(name) {
-        this.name = name; 
-        this.scripts = [];
-    }
-    
-    getScripts() {
-        return this.scripts;
-    }
-    
-    getScript(i) {
-        return this.scripts[i];
-    }
-    
-    addScript(script) {
-        this.scripts.push(script);
-    }
-    
-    
-}
+},{}],6:[function(require,module,exports){
+require('./scratch3');
 
 class GradeEvents {
 
-    constructor() {
-        this.requirements = {};
-        this.extensions = {};
-        
-        this.event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
-        
-        this.validMoves = ['motion_gotoxy', 'motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy'];
-        this.validLoops = ['control_forever', 'control_repeat', 'control_repeat_until'];
-        this.validCostumes = ['looks_switchcostumeto', 'looks_nextcostume'];
+    init() {
+        this.requirements = {
+            reactToClick: { bool: false, str: 'Three sprites react to being clicked.'                          },
+            getBigger:    { bool: false, str: 'Three sprites get bigger when clicked.'                         },
+            talkTwice:    { bool: false, str: 'After getting bigger, the sprites talk twice.'                  },
+            resetSize:    { bool: false, str: 'After talking twice, the sprites reset to their original size.' }
+        };
+        this.extensions = {
+            changedName:  { bool: false, str: 'At least one sprite\'s name has been changed.'                  },
+            addedSpin:    { bool: false, str: 'At least one sprite spins using turn and wait blocks.'          },
+            addedEvent:   { bool: false, str: 'At least one sprite reacts to a different event.'               }
+        };
     }
-    
-   initReqs() {
-        this.requirements.ThreeSpritesReactToClick =
-            {bool:false,str:"Three Sprites react to being clicked."}
-        this.requirements.ThreeSpritesGetBigger =
-            {bool:false,str:"Three Sprites Get Bigger."}
-        this.requirements.ThreeSpritesTalkTwice = 
-            {bool:false,str:"Three Sprites talk twice."}
-        this.requirements.ThreeSpritesResetSize =
-            {bool:false,str:"Three Sprites reset size."}
 
-    }
-    
-    initExts() {
-        this.extensions.ChangeNames = {bool:false,str:'Sprite names are changed.'}
-        this.extensions.TurnAndWait = {bool: false, str:'A Sprite spins using turn and wait blocks.'}
-        this.extensions.AddEvent = {bool: false, str: 'A Sprite reacts to another event.'}
-        
-    }
-    grade(fileObj,user) {
-        
-        this.initReqs();
-        this.initExts();
-        
-        //count and create sprites
-        if (sb3.no(fileObj)) return; //make sure script exists
-        
-        var Sprites = [];
-        
-        var projInfo = fileObj['targets'] //extract targets from JSON data
-        
-        if (sb3.no(projInfo)) return;
-        
-        //make sprite objects, load scripts
-        for(var i=0; i < projInfo.length; i++){
-            if(projInfo[i]['isStage'] == false){
-                var addMe = new Sprite(projInfo[i]['name']);
-                Sprites.push(addMe);
-                for (var e = 0; e < this.event_opcodes.length; e++) {
-                    var event = this.event_opcodes[e]
-                    var ID = sb3.findBlockID(projInfo[i]['blocks'],event);
-                    if (ID != null) {
-                        var newScript = sb3.makeScript(projInfo[i]['blocks'], ID,true);
-                        if (newScript != null) {
-                            addMe.addScript(newScript);
-                        }
+    grade(json, user) {
+        this.init();
+        if (no(json)) return;
+        var project = new Project(json, this);
+        for (var sprite of project.sprites.filter(sprite => sprite.name !== 'Catrina')) {
+            for (var script of sprite.scripts.filter(script => script.blocks[0].opcode.includes('event_when'))) {
+                script.context.spriteSize = script.context.initialSpriteSize = sprite.size;
+                for (var block of script.blocks) {
+                    if (block.opcode === 'looks_changesizeby') {
+                        if (block.inputs.CHANGE[1][1] > 0) script.context.getBigger = 1;
+                        script.context.spriteSize += block.inputs.CHANGE[1][1];
+                    }
+                    else if (block.opcode === 'looks_setsizeto') {
+                        if (block.inputs.SIZE[1][1] > script.context.initialSpriteSize) script.context.getBigger = 1;
+                        script.context.spriteSize = block.inputs.SIZE[1][1];
+                    }
+                    if (block.opcode.includes('looks_say') && script.context.spriteSize > script.context.initialSpriteSize) {
+                        script.context.talkTwice++;
                     }
                 }
+                if (script.context.getBigger && Math.abs(script.context.spriteSize - script.context.initialSpriteSize) < 0.05) {
+                    script.context.resetSize = 1;
+                }
+                if (script.blocks[0].opcode === 'event_whenthisspriteclicked' && script.blocks.length > 1) {
+                    script.context.reactToClick = 1;
+                }
+                else if (script.blocks.length > 1) {
+                    script.context.addedEvent = 1;
+                }
+                if (script.blocks.some(block => block.opcode.includes('motion_turn')) &&
+                        script.blocks.some(block => block.opcode === 'control_wait')) {
+                    script.context.addedSpin = 1;
+                }
             }
+            sprite.context.changedName = !['Left', 'Middle', 'Right', 'Catrina'].includes(sprite.name);
+            sprite.context.pull(['reactToClick', 'getBigger', 'resetSize', 'addedEvent', 'addedSpin'], 1, false);
+            sprite.context.pull(['talkTwice'], 2, false);
         }
-        
-        //variables for analysis
-        var otherEvents = false;
-        var diffNames = 0;
-        var reactOnClick = [];
-        var grow = [];
-        var talkTwice = [];
-        var shrink = [];
-        var builtInNames = ["Left","Middle","Right","Catrina"]
-            
-        
-        for(var s=0; s < Sprites.length; s++) { //iterate sprites
-            var sprite = Sprites[s];
-            var scripts = sprite.getScripts();
-            var name = sprite.name;
-            var clickedOn = false;
-            
-            //check if name has been changed
-            if (!builtInNames.includes(name)) {
-                diffNames++;
-            }
-            
-            
-            if (name != "Catrina") { //IGNORE CATRINA (she would mess up the counts for the requirements)
-            
-                for (var p=0; p <scripts.length; p++){ //iterate scripts
-                    var talks = 0;
-
-                    for(var b in scripts[p]) {//iterate blocks
-
-                        var opcode = scripts[p][b]['opcode'];
-
-                        //check only when sprite is clicked
-                        if (clickedOn) {   
-                            
-                            //check for size change
-                            //type one: change size by
-                            if (opcode == 'looks_changesizeby') {
-                                if (scripts[p][b]['inputs']['CHANGE'][1][1] > 0) {
-                                    if (!grow.includes(name)){
-                                        grow.push(name)
-                                    }
-                                }
-                                if (scripts[p][b]['inputs']['CHANGE'][1][1] < 0) {
-                                    if (!shrink.includes(name)){
-                                        shrink.push(name)
-                                    }
-                                }
-
-                            }
-                            //type two: set size to
-                            if (opcode == 'looks_setsizeto') {
-                                if (scripts[p][b]['inputs']['SIZE'][1][1] > 100) {
-                                    if (!grow.includes(name)){
-                                        grow.push(name)
-                                    }
-                                }
-                                if (scripts[p][b]['inputs']['SIZE'][1][1] < 100) {
-                                    if (!shrink.includes(name)){
-                                        shrink.push(name)
-                                    }
-                                }
-                            }
-                            
-                            //check for say blocks
-                            if (opcode.includes("looks_say")){
-                                talks++;
-                            }
-                        }
-                        
-                        //checks if there are two say blocks
-                        if (talks > 1) {
-                            if (!talkTwice.includes(name)){
-                                talkTwice.push(name)
-                            }
-                        }
-                        
-    
-                        //event handling
-                        if (opcode.includes("event_")) {
-
-                            //turn on grading for other elements if clicked on event
-                            if (opcode == "event_whenthisspriteclicked") {
-                                clickedOn = true;
-                                if (scripts[p][b]["next"] != 'null') {
-                                    if (!reactOnClick.includes(name)){
-                                        reactOnClick.push(name)
-                                    }
-                                }
-
-                            //otherwise, turn off grading for other elements, count other events
-                            } else {
-                                clickedOn = false;
-                                if (scripts[p][b]["next"] != 'null') {
-                                    otherEvents = true;
-                                }
-                            }
-
-                        }
-
-                    } //end of blocks loop
-
-
-
-
-                }  //end of sprites loop
-
-                //evaluate requirements
-                
-                //three sprites react to a click
-                if (reactOnClick.length > 2) {
-                    this.requirements.ThreeSpritesReactToClick.bool = true;
-                }
-
-                //three sprites grow in size
-                if (grow.length > 2) {
-                    this.requirements.ThreeSpritesGetBigger.bool = true;
-                }
-
-                //three sprites shrink in size
-                if (shrink.length > 2) {
-                    this.requirements.ThreeSpritesResetSize.bool = true;
-                    //does not check for true reset, just getting smaller again
-                }
-                
-                //three sprites talk twice
-                if (talkTwice.length > 2) {
-                    this.requirements.ThreeSpritesTalkTwice.bool = true;
-                }
-                
-                //evaluate extensions
-                
-                //names have been changed for all sprites
-                if (diffNames > 2){
-                    this.extensions.ChangeNames.bool = true;
-                }
-                
-                //check if other events are added
-                this.extensions.AddEvent.bool = otherEvents;
-            
-            }
-            
-    
-        }
+        project.context.pull(['reactToClick', 'getBigger', 'talkTwice', 'resetSize'], 2, true);
+        project.context.pull(['changedName', 'addedSpin', 'addedEvent'], 1, false);
+        project.context.makeGrade(this);
     }
-
 }
-    
-module.exports = GradeEvents;
-    
-},{}],6:[function(require,module,exports){
+
+module.exports.test = function() {
+    var grader = new GradeEvents;
+    grader.grade(require('../test-projects/events'), null);
+    return (grader)
+};
+},{"../test-projects/events":13,"./scratch3":10}],7:[function(require,module,exports){
 var sb3 = {
     no: function(x) { //null checker
         return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
@@ -3239,7 +2749,7 @@ class GradeEvents {
     
 module.exports = GradeEvents;
     
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /* One Way Sync L1 Autograder
  * Marco Anaya, Spring 2019
  */
@@ -3778,7 +3288,7 @@ class GradeOneWaySyncL1 {
 }
 
 module.exports = GradeOneWaySyncL1;
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /* Scratch Basics L1 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -4113,7 +3623,132 @@ class GradeScratchBasicsL1 {
 
 
 module.exports = GradeScratchBasicsL1;
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
+(function (global){
+/// Scratch 3 helper functions
+require('./context');
+
+/// Returns false for null, undefined, and zero-length values.
+global.is = function(x) { 
+    return !(x == null || x === {} || x === []);
+}
+
+/// Opposite of is().
+global.no = function(x) {
+    return !is(x);
+}
+
+/// Container class for Scratch blocks.
+global.Block = class {
+    constructor(target, block) {
+        Object.assign(this, target.blocks[block]);
+        this.context = new Context(target.context, false);
+        this.target = target;
+    }
+
+/// Internal function that converts a block to a Block.
+    toBlock(x) {
+        return new Block(this.target, x);
+    }
+
+/// Returns the next block in the script.
+    nextBlock() {
+        if (no(this.next)) return null;
+        
+        return this.toBlock(this.next);
+    }
+
+/// Returns the previous block in the script.
+    prevBlock() {
+        if (no(this.parent)) return null;
+
+        return this.toBlock(this.parent);
+    }
+
+/// Returns the conditional statement of the block, if it exists.
+    conditionBlock() {
+        if (no(this.inputs.CONDITION)) return null;
+        return this.toBlock(this.inputs.CONDITION[1]);
+    }
+
+/// Returns an array representing the script that contains the block.
+    childBlocks() {     
+        var array = [];
+        var x = this;
+        while (x) {
+            array.push(x);
+            x = x.nextBlock();
+        }
+        return array;
+    }
+
+/// Returns an array of Scripts representing the subscripts of the block.
+    subScripts() {
+        if (no(this.inputs)) return [];
+        var array = [];
+
+        if (is(this.inputs.SUBSTACK))  {
+
+            array.push(new Script(this.toBlock(this.inputs.SUBSTACK[1])));
+        }
+        if (is(this.inputs.SUBSTACK2)) {
+
+            array.push(new Script(this.toBlock(this.inputs.SUBSTACK2[1])));
+        }
+        return array;
+    }
+}
+
+/// Container class for Scratch scripts.
+global.Script = class {
+/// Pass this a Block object!
+    constructor(block, target) {
+        this.blocks  = block.childBlocks();
+        this.target  = target;
+        this.context = new Context(target.context, false);
+        for (var block of this.blocks) {
+            this.context.sublayers.push(block.context);
+        }
+    }
+}
+
+/// Container class for Scratch targets (stages & sprites).
+global.Target = class {
+    constructor(target_, project) {
+        this.project = project;
+        this.context = new Context(project.context, false);
+        Object.assign(this, target_);
+        if (no(target_.blocks)) this.blocks = {};
+        this.scripts = [];
+        for (var block_ in this.blocks) {
+            var block = new Block(target_, block_);
+            this.blocks[block_] = block;
+            if (!(block.prevBlock())) this.scripts.push(new Script(block, this));
+        }
+        for (var script of this.scripts) {
+            this.context.sublayers.push(script.context);
+        }
+    }
+}
+
+/// Container class for a whole project.
+global.Project = class {
+    constructor(json, items) {
+        this.context = new Context(items, false);
+        this.targets = [];
+        this.sprites = [];
+        for (var target_ of json.targets) {
+            var target = new Target(target_, this);
+            this.targets.push(target);
+            if (!target_.isStage) this.sprites.push(target); 
+        }
+        for (var target of this.targets) {
+            this.context.sublayers.push(target.context);
+        }
+    }
+}
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./context":4}],11:[function(require,module,exports){
 var sb3 = {
     //null checker
     no: function(x) { 
@@ -4486,7 +4121,7 @@ class GradeTwoWaySyncL1 {
 }
 
 module.exports = GradeTwoWaySyncL1;
-},{}],10:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /// Provides necessary scripts for index.html.
 
 /// Requirements (scripts)
@@ -4859,4 +4494,1207 @@ function noError() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-},{"./grading-scripts-s3/animation-L1":1,"./grading-scripts-s3/animation-L2":2,"./grading-scripts-s3/cond-loops":3,"./grading-scripts-s3/decomp-L1":4,"./grading-scripts-s3/events-L1":5,"./grading-scripts-s3/events-L2":6,"./grading-scripts-s3/one-way-sync-L1":7,"./grading-scripts-s3/scratch-basics-L1":8,"./grading-scripts-s3/two-way-sync-L2":9}]},{},[10]);
+},{"./grading-scripts-s3/animation-L1":1,"./grading-scripts-s3/animation-L2":2,"./grading-scripts-s3/cond-loops":3,"./grading-scripts-s3/decomp-L1":5,"./grading-scripts-s3/events-L1":6,"./grading-scripts-s3/events-L2":7,"./grading-scripts-s3/one-way-sync-L1":8,"./grading-scripts-s3/scratch-basics-L1":9,"./grading-scripts-s3/two-way-sync-L2":11}],13:[function(require,module,exports){
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "0fdc016498ad18ef64083324fc555e07",
+                    "name": "Ofrenda",
+                    "bitmapResolution": 2,
+                    "md5ext": "0fdc016498ad18ef64083324fc555e07.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Catrina",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "4=OBk(?v80oZ0Pq+%(H~": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "AV@XkheCf+f!A^5`KwRO",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 16,
+                    "y": 18
+                },
+                "AV@XkheCf+f!A^5`KwRO": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "frT;cx:Fk?@lVF}61}58",
+                    "parent": "4=OBk(?v80oZ0Pq+%(H~",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "This is an Ofrenda. we only use it the horner the dead "
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                6
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "frT;cx:Fk?@lVF}61}58": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "AV@XkheCf+f!A^5`KwRO",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click on the space bar key to learn more about Día de los Muertos."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                5
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ",Jl:Wgr^)58R2@MhABJ-": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "(UsJ|HPdsP4{jl,=+M=X",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 16,
+                    "y": 271
+                },
+                "(UsJ|HPdsP4{jl,=+M=X": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "QVuj*E,DC#/kwAQJS4X0",
+                    "parent": ",Jl:Wgr^)58R2@MhABJ-",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Día de los Muertos is on May 5 and means day of the dead"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                7
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "QVuj*E,DC#/kwAQJS4X0": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "I,b*#Xt4AvH1`%ExmX0:",
+                    "parent": "(UsJ|HPdsP4{jl,=+M=X",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "These are love ones who died and their favorite food next to them"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                7
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "I,b*#Xt4AvH1`%ExmX0:": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "QVuj*E,DC#/kwAQJS4X0",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click on one of the pictures of my family members to learn about them."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                6
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "e0e41178da1d2a44cf7a5d6b16c78de3",
+                    "name": "Catrina",
+                    "bitmapResolution": 2,
+                    "md5ext": "e0e41178da1d2a44cf7a5d6b16c78de3.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 192,
+                    "rotationCenterY": 228
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": -181.3,
+            "y": -28.80000000000001,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Left",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "j}r/a_49WnrQa=?q/cp+": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "/A}-Hy{,`L?`JqdXjlVv",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 15,
+                    "y": 22
+                },
+                "/A}-Hy{,`L?`JqdXjlVv": {
+                    "opcode": "looks_setsizeto",
+                    "next": null,
+                    "parent": "j}r/a_49WnrQa=?q/cp+",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "IAc^N7xh5DZ[Jzt4i8`G": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "?Y,tn#;Pp9B4:1xqoUAa",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 10,
+                    "y": 453
+                },
+                "?Y,tn#;Pp9B4:1xqoUAa": {
+                    "opcode": "looks_gotofrontback",
+                    "next": "{_N0!5B-4^0c2:-p1PO`",
+                    "parent": "IAc^N7xh5DZ[Jzt4i8`G",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "{_N0!5B-4^0c2:-p1PO`": {
+                    "opcode": "looks_changesizeby",
+                    "next": "sc+CQOw[0)mwGe8BK4%s",
+                    "parent": "?Y,tn#;Pp9B4:1xqoUAa",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "sc+CQOw[0)mwGe8BK4%s": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "P;q,_65d?`P3?sH)kWMc",
+                    "parent": "{_N0!5B-4^0c2:-p1PO`",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "I am cute doggy"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                2
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "P;q,_65d?`P3?sH)kWMc": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "9gqmCC%_!/E)(M.M:XPe",
+                    "parent": "sc+CQOw[0)mwGe8BK4%s",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "I like to chase my own tail"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                4
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "9gqmCC%_!/E)(M.M:XPe": {
+                    "opcode": "looks_changesizeby",
+                    "next": null,
+                    "parent": "P;q,_65d?`P3?sH)kWMc",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                -100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "Ugqn4^4KXxmP65UOtkgK": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "9d5|`%Es)IAu`Cq]fn+F",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 489,
+                    "y": 332
+                },
+                "9d5|`%Es)IAu`Cq]fn+F": {
+                    "opcode": "looks_setsizeto",
+                    "next": "5*/2U.P|1]Zt9Qm.(KK(",
+                    "parent": "Ugqn4^4KXxmP65UOtkgK",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                200
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "5*/2U.P|1]Zt9Qm.(KK(": {
+                    "opcode": "control_wait",
+                    "next": "BNgSu]t1vgzx8n!Ow4mc",
+                    "parent": "9d5|`%Es)IAu`Cq]fn+F",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                2
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "BNgSu]t1vgzx8n!Ow4mc": {
+                    "opcode": "looks_setsizeto",
+                    "next": null,
+                    "parent": "5*/2U.P|1]Zt9Qm.(KK(",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 8,
+            "costumes": [
+                {
+                    "assetId": "7f24161f04680291faeb630df4dd5085",
+                    "name": "person1",
+                    "bitmapResolution": 2,
+                    "md5ext": "7f24161f04680291faeb630df4dd5085.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 66,
+                    "rotationCenterY": 86
+                },
+                {
+                    "assetId": "a943ecf732baa09e8b27c333ed0943b6",
+                    "name": "person2",
+                    "bitmapResolution": 1,
+                    "md5ext": "a943ecf732baa09e8b27c333ed0943b6.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 31,
+                    "rotationCenterY": 42
+                },
+                {
+                    "assetId": "f708b3db499fa3cc95b53f67f3763a3c",
+                    "name": "person3",
+                    "bitmapResolution": 1,
+                    "md5ext": "f708b3db499fa3cc95b53f67f3763a3c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 33,
+                    "rotationCenterY": 42
+                },
+                {
+                    "assetId": "8900e1f586f49453f2e7501e3fe4cfdd",
+                    "name": "person4",
+                    "bitmapResolution": 2,
+                    "md5ext": "8900e1f586f49453f2e7501e3fe4cfdd.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 64,
+                    "rotationCenterY": 86
+                },
+                {
+                    "assetId": "08ab2e17ccc33f08537f0c83fcc7fb94",
+                    "name": "person5",
+                    "bitmapResolution": 2,
+                    "md5ext": "08ab2e17ccc33f08537f0c83fcc7fb94.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 60,
+                    "rotationCenterY": 90
+                },
+                {
+                    "assetId": "0ef17772da4b50818bfbabae2623da9b",
+                    "name": "person6",
+                    "bitmapResolution": 1,
+                    "md5ext": "0ef17772da4b50818bfbabae2623da9b.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 32,
+                    "rotationCenterY": 46
+                },
+                {
+                    "assetId": "0cf26ad0a01de4e756e0d9146d462e2b",
+                    "name": "person7",
+                    "bitmapResolution": 1,
+                    "md5ext": "0cf26ad0a01de4e756e0d9146d462e2b.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 43
+                },
+                {
+                    "assetId": "ab5d20625a4775810403dc0dad83bfdc",
+                    "name": "person8",
+                    "bitmapResolution": 1,
+                    "md5ext": "ab5d20625a4775810403dc0dad83bfdc.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 32,
+                    "rotationCenterY": 43
+                },
+                {
+                    "assetId": "821eea8283abf1731fe2e4ca5de62392",
+                    "name": "pet1",
+                    "bitmapResolution": 1,
+                    "md5ext": "821eea8283abf1731fe2e4ca5de62392.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 31,
+                    "rotationCenterY": 41
+                },
+                {
+                    "assetId": "92f730147c3da95fb4efd4efff95334c",
+                    "name": "pet2",
+                    "bitmapResolution": 1,
+                    "md5ext": "92f730147c3da95fb4efd4efff95334c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 40
+                },
+                {
+                    "assetId": "5f80e7f6079369945d9f57b7ca6e38d1",
+                    "name": "pet3",
+                    "bitmapResolution": 1,
+                    "md5ext": "5f80e7f6079369945d9f57b7ca6e38d1.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 19,
+                    "rotationCenterY": 37
+                },
+                {
+                    "assetId": "d0a1ea97c3863c2443d62b713b743620",
+                    "name": "pet4",
+                    "bitmapResolution": 1,
+                    "md5ext": "d0a1ea97c3863c2443d62b713b743620.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 20,
+                    "rotationCenterY": 37
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": -71,
+            "y": 56,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Middle",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "on,7!p;A++BSH%65]b,,": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "pP42uP2%=ZJH!jmnFLJ#",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 15,
+                    "y": 22
+                },
+                "pP42uP2%=ZJH!jmnFLJ#": {
+                    "opcode": "looks_setsizeto",
+                    "next": null,
+                    "parent": "on,7!p;A++BSH%65]b,,",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "ym0#Xn7Xd2k}j3uuArn#": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "C#OmvUY7uerh7F/VUiCo",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 24,
+                    "y": 264
+                },
+                "C#OmvUY7uerh7F/VUiCo": {
+                    "opcode": "looks_gotofrontback",
+                    "next": "7miAMdr{|aLS}JD*);Es",
+                    "parent": "ym0#Xn7Xd2k}j3uuArn#",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "7miAMdr{|aLS}JD*);Es": {
+                    "opcode": "looks_changesizeby",
+                    "next": "m62;PKfA5KsYR3X4fRZG",
+                    "parent": "C#OmvUY7uerh7F/VUiCo",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "m62;PKfA5KsYR3X4fRZG": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "5IEQ[l}#90m5z48Q6/6D",
+                    "parent": "7miAMdr{|aLS}JD*);Es",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "I am old grandpa"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                2
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "5IEQ[l}#90m5z48Q6/6D": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "NE1AM]VP4hX=rqvv0LJ=",
+                    "parent": "m62;PKfA5KsYR3X4fRZG",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "I only watch Tv everyday"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                4
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "NE1AM]VP4hX=rqvv0LJ=": {
+                    "opcode": "looks_changesizeby",
+                    "next": null,
+                    "parent": "5IEQ[l}#90m5z48Q6/6D",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                -100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "hPNqyUL%0[=,4lLrsbSv": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "X_p9b?8suX+sjBockHD6",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 15,
+                    "y": 22
+                },
+                "X_p9b?8suX+sjBockHD6": {
+                    "opcode": "looks_setsizeto",
+                    "next": null,
+                    "parent": "hPNqyUL%0[=,4lLrsbSv",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "*crdANuCQn](!R@uI-lq": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "Z]*Q-v4=ZhlfiDa6`;@.",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 482,
+                    "y": 172
+                },
+                "Z]*Q-v4=ZhlfiDa6`;@.": {
+                    "opcode": "looks_hide",
+                    "next": "M?23(oRR%MLs3RO?T,DC",
+                    "parent": "*crdANuCQn](!R@uI-lq",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "M?23(oRR%MLs3RO?T,DC": {
+                    "opcode": "control_wait",
+                    "next": "v5)MrD7??lK#a.67SLYu",
+                    "parent": "Z]*Q-v4=ZhlfiDa6`;@.",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                2
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "v5)MrD7??lK#a.67SLYu": {
+                    "opcode": "looks_show",
+                    "next": null,
+                    "parent": "M?23(oRR%MLs3RO?T,DC",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 9,
+            "costumes": [
+                {
+                    "assetId": "b5c90b0fe4246c0c14ab6d57904e7c96",
+                    "name": "pet3",
+                    "bitmapResolution": 2,
+                    "md5ext": "b5c90b0fe4246c0c14ab6d57904e7c96.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 50,
+                    "rotationCenterY": 84
+                },
+                {
+                    "assetId": "5997ae532241f6350008b2aa3d2df9e1",
+                    "name": "pet4",
+                    "bitmapResolution": 1,
+                    "md5ext": "5997ae532241f6350008b2aa3d2df9e1.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 24,
+                    "rotationCenterY": 43
+                },
+                {
+                    "assetId": "a35b99eac64be329f3a7756b1f3c42b1",
+                    "name": "pet1",
+                    "bitmapResolution": 1,
+                    "md5ext": "a35b99eac64be329f3a7756b1f3c42b1.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "afed63f3bfcc44eed02fc7f0ccc27c47",
+                    "name": "pet2",
+                    "bitmapResolution": 1,
+                    "md5ext": "afed63f3bfcc44eed02fc7f0ccc27c47.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 41
+                },
+                {
+                    "assetId": "6e98221fdbac6856d675e6dd5aabc7e2",
+                    "name": "person6",
+                    "bitmapResolution": 1,
+                    "md5ext": "6e98221fdbac6856d675e6dd5aabc7e2.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "653ee33046dd0e44d6152b0aeb5d613e",
+                    "name": "person8",
+                    "bitmapResolution": 1,
+                    "md5ext": "653ee33046dd0e44d6152b0aeb5d613e.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 37,
+                    "rotationCenterY": 47
+                },
+                {
+                    "assetId": "48fbd7ff01f057e7d532ea089a1aa845",
+                    "name": "person5",
+                    "bitmapResolution": 1,
+                    "md5ext": "48fbd7ff01f057e7d532ea089a1aa845.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 37,
+                    "rotationCenterY": 46
+                },
+                {
+                    "assetId": "e804a55d25a37a0b2adfb6b2c369564a",
+                    "name": "person7",
+                    "bitmapResolution": 1,
+                    "md5ext": "e804a55d25a37a0b2adfb6b2c369564a.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 46
+                },
+                {
+                    "assetId": "c0b9a29685c85e15da9ef99c16aa026b",
+                    "name": "person1",
+                    "bitmapResolution": 1,
+                    "md5ext": "c0b9a29685c85e15da9ef99c16aa026b.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "0be1fa3c9ef8d0235dd9465dbff8e6c7",
+                    "name": "person2",
+                    "bitmapResolution": 1,
+                    "md5ext": "0be1fa3c9ef8d0235dd9465dbff8e6c7.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 44
+                },
+                {
+                    "assetId": "8b549f9bea7a02a1438859eeee1a8229",
+                    "name": "person4",
+                    "bitmapResolution": 1,
+                    "md5ext": "8b549f9bea7a02a1438859eeee1a8229.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 38,
+                    "rotationCenterY": 46
+                },
+                {
+                    "assetId": "0a6c45bf201564cc7cc80239ed25dcc0",
+                    "name": "person3",
+                    "bitmapResolution": 1,
+                    "md5ext": "0a6c45bf201564cc7cc80239ed25dcc0.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 37,
+                    "rotationCenterY": 44
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": 6,
+            "y": 53,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Right",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "4`BPmj%1/[=0VP=#(t]k": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "x3-@6dkiNowwuR{4C0o:",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 38,
+                    "y": 209
+                },
+                "x3-@6dkiNowwuR{4C0o:": {
+                    "opcode": "looks_setsizeto",
+                    "next": null,
+                    "parent": "4`BPmj%1/[=0VP=#(t]k",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "TB_|BGmanZ.4O_FtnvY/": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": ".yMdk87z/tChig#m(s|}",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 17,
+                    "y": 403
+                },
+                ".yMdk87z/tChig#m(s|}": {
+                    "opcode": "looks_gotofrontback",
+                    "next": "P3S=}Ls}M`Xk%zc+FoiN",
+                    "parent": "TB_|BGmanZ.4O_FtnvY/",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "P3S=}Ls}M`Xk%zc+FoiN": {
+                    "opcode": "looks_changesizeby",
+                    "next": "?5B,T1}1T+6}2I@/6vZ,",
+                    "parent": ".yMdk87z/tChig#m(s|}",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "?5B,T1}1T+6}2I@/6vZ,": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "4pu,ae[`NGYRe~Nw0WA=",
+                    "parent": "P3S=}Ls}M`Xk%zc+FoiN",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "MEOW Im a cat"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                2
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "4pu,ae[`NGYRe~Nw0WA=": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "%aDW:@/vtmvORghmzQXb",
+                    "parent": "?5B,T1}1T+6}2I@/6vZ,",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "I like to chase cats around my house"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                4
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "%aDW:@/vtmvORghmzQXb": {
+                    "opcode": "looks_changesizeby",
+                    "next": null,
+                    "parent": "4pu,ae[`NGYRe~Nw0WA=",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                -100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 7,
+            "costumes": [
+                {
+                    "assetId": "49c12ffb44165bb3f3fda8d202a046b8",
+                    "name": "person5",
+                    "bitmapResolution": 2,
+                    "md5ext": "49c12ffb44165bb3f3fda8d202a046b8.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 60,
+                    "rotationCenterY": 90
+                },
+                {
+                    "assetId": "3a4c8f33ef9249ca42832eaf22be3a7d",
+                    "name": "person6",
+                    "bitmapResolution": 1,
+                    "md5ext": "3a4c8f33ef9249ca42832eaf22be3a7d.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 32,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "18e49d159574b179b2701e2a6a538014",
+                    "name": "person8",
+                    "bitmapResolution": 1,
+                    "md5ext": "18e49d159574b179b2701e2a6a538014.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 29,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "089f3b60d35adb076b8efc5f210e2895",
+                    "name": "person7",
+                    "bitmapResolution": 1,
+                    "md5ext": "089f3b60d35adb076b8efc5f210e2895.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 29,
+                    "rotationCenterY": 47
+                },
+                {
+                    "assetId": "d4fb119822f8bb55181abfde5bf28424",
+                    "name": "pet2",
+                    "bitmapResolution": 1,
+                    "md5ext": "d4fb119822f8bb55181abfde5bf28424.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 42
+                },
+                {
+                    "assetId": "8c9812f103e47e18bc427741677fc9fd",
+                    "name": "pet1",
+                    "bitmapResolution": 1,
+                    "md5ext": "8c9812f103e47e18bc427741677fc9fd.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 29,
+                    "rotationCenterY": 44
+                },
+                {
+                    "assetId": "5d37f0778cb6b6ef45046372cd96aef4",
+                    "name": "pet4",
+                    "bitmapResolution": 1,
+                    "md5ext": "5d37f0778cb6b6ef45046372cd96aef4.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 17,
+                    "rotationCenterY": 40
+                },
+                {
+                    "assetId": "fa8141790e03ede32160f7660996ef60",
+                    "name": "pet3",
+                    "bitmapResolution": 1,
+                    "md5ext": "fa8141790e03ede32160f7660996ef60.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 18,
+                    "rotationCenterY": 41
+                },
+                {
+                    "assetId": "0edc0bdacf6d17c257b6ed1aa8a0d5fa",
+                    "name": "person2",
+                    "bitmapResolution": 1,
+                    "md5ext": "0edc0bdacf6d17c257b6ed1aa8a0d5fa.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 32,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "c154d2f70066eded8930a27f5de96e1e",
+                    "name": "person1",
+                    "bitmapResolution": 1,
+                    "md5ext": "c154d2f70066eded8930a27f5de96e1e.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "e335ed90173be096cbfbe4dad1202656",
+                    "name": "person3",
+                    "bitmapResolution": 1,
+                    "md5ext": "e335ed90173be096cbfbe4dad1202656.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "af6b8c5d46debafcad153a9da3d11d43",
+                    "name": "person4",
+                    "bitmapResolution": 1,
+                    "md5ext": "af6b8c5d46debafcad153a9da3d11d43.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 31,
+                    "rotationCenterY": 45
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 4,
+            "visible": true,
+            "x": 71,
+            "y": 54,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190610152034",
+        "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"
+    }
+}
+},{}]},{},[12]);
