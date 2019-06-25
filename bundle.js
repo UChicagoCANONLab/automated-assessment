@@ -738,7 +738,10 @@ function boolObjOr(a, b) {
         return acc;
     }, {})
 }
+<<<<<<< HEAD
 // recursive function that searches a script and any subscripts (those within loops)
+=======
+>>>>>>> a6e9b658f7d5f3f61387f1c5fe8ea454939c2810
 function scriptSearch(script, func) {
     function recursive(scripts, func, level) {
 
@@ -750,6 +753,10 @@ function scriptSearch(script, func) {
             for(var block of script.blocks) {
                 
                 func(block, level);
+<<<<<<< HEAD
+=======
+                
+>>>>>>> a6e9b658f7d5f3f61387f1c5fe8ea454939c2810
                 recursive(block.subScripts(), func, level + 1);
 
             }
@@ -763,6 +770,10 @@ const print = (block, level) => {
     console.log("   ".repeat(level) + block.opcode);
 };
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> a6e9b658f7d5f3f61387f1c5fe8ea454939c2810
 // MAIN GRADER CLASS –––––––––––––––
 class GradeAnimationL2{
     // initializes the empty requirement objects and a list of event block codes
@@ -791,6 +802,7 @@ class GradeAnimationL2{
      
         this.extensions.multipleDancingOnClick = {bool: false, str: "Multiple characters dance on click"};
         this.extensions.moreThanOneAnimation = {bool: false, str: "Student uses more than one motion block to animate their sprites"};
+<<<<<<< HEAD
     }
     
 
@@ -854,6 +866,8 @@ class GradeAnimationL2{
             reqs: spriteDanceReqs,
             danceOnClick: danceOnClick
         };
+=======
+>>>>>>> a6e9b658f7d5f3f61387f1c5fe8ea454939c2810
     }
     // the main grading function
     grade(fileObj,user) {
@@ -908,11 +922,80 @@ class GradeAnimationL2{
         this.extensions.multipleDancingOnClick.bool = (danceOnClick > 1);
 
         //checks if there were at least 3 sprites (the minus 1 accounts for the Stage target, which isn't a sprite)
+<<<<<<< HEAD
         this.requirements.atLeastThreeSprites.bool = (project.targets.length - 1 >= 3);
+=======
+        this.requirements.atLeastThreeSprites.bool = (project.targets.length - 1 > 3);
+>>>>>>> a6e9b658f7d5f3f61387f1c5fe8ea454939c2810
 
         //counts the number of animation (motion) blocks used
         this.extensions.moreThanOneAnimation.bool = (this.animationTypes.length > 1)
     }
+<<<<<<< HEAD
+=======
+
+    // helper function for grading an individual sprite
+    gradeSprite(sprite) {
+
+        var spriteDanceReqs = {
+            loop: false,
+            move: false,
+            costume: false,
+            wait: false
+        };
+        // and the following additional requirements
+        var isAnimated = false;
+        var danceOnClick = false;
+        //
+        for (var script of sprite.scripts) { 
+
+            var scriptDanceReqs = {loop: false, wait: false, costume: false, move: false};
+    
+            // callback function to scriptSearch that determines what to look for and what to do (through side effects) for each block
+            const gradeBlock = (block, level) => {
+                var opcode = block.opcode;
+                var reqs = {}
+                reqs.loop = this.loops.includes(opcode);
+                reqs.wait = (opcode == 'control_wait');
+                reqs.costume = this.costumeChange.includes(opcode);
+                if (opcode.includes("motion_")) {
+                    reqs.move = true;
+                    if (!this.animationTypes.includes(opcode)) this.animationTypes.push(opcode);
+                } else {
+                    reqs.move = false;
+                }
+    
+                scriptDanceReqs = boolObjOr(scriptDanceReqs, reqs);
+            }
+            //search through each block and execute gradeBlock
+            scriptSearch(script, gradeBlock);
+            // console.log(sprite.name);
+            // scriptSearch(script, print);
+        
+            isAnimated = isAnimated || (scriptDanceReqs.loop && scriptDanceReqs.wait && (scriptDanceReqs.costume || scriptDanceReqs.move));
+            
+            //check dance reqs (find highest scoring script)
+            var scriptScore = score(scriptDanceReqs);
+            if (scriptScore >= score(spriteDanceReqs)) {
+                spriteDanceReqs = scriptDanceReqs;
+                
+                //check for dance (and dance on click)
+                if (scriptScore == 4) {
+                    if (script.blocks[0].opcode == 'event_whenthisspriteclicked') {
+                        danceOnClick = true;
+                    }
+                }
+            }            
+        }
+        return {
+            name: sprite.name,
+            danceScore: score(spriteDanceReqs),
+            animated: isAnimated,
+            reqs: spriteDanceReqs,
+            danceOnClick: danceOnClick
+        };
+    }    
+>>>>>>> a6e9b658f7d5f3f61387f1c5fe8ea454939c2810
 }
 module.exports = GradeAnimationL2;
 },{"./scratch3":10}],3:[function(require,module,exports){
@@ -1853,15 +1936,15 @@ module.exports = class {
         var project = new Project(json, this);
         for (var sprite of project.sprites.filter(sprite => sprite.name !== 'Catrina')) {
             for (var script of sprite.scripts.filter(script => script.blocks[0].opcode.includes('event_when'))) {
-                script.context.spriteSize = script.context.initialSpriteSize = sprite.size;
+                script.context.spriteSize = script.context.initialSpriteSize = parseFloat(sprite.size);
                 for (var block of script.blocks) {
                     if (block.opcode === 'looks_changesizeby') {
                         if (block.inputs.CHANGE[1][1] > 0) script.context.getBigger = 1;
-                        script.context.spriteSize += block.inputs.CHANGE[1][1];
+                        script.context.spriteSize += parseFloat(block.inputs.CHANGE[1][1]);
                     }
                     else if (block.opcode === 'looks_setsizeto') {
                         if (block.inputs.SIZE[1][1] > script.context.initialSpriteSize) script.context.getBigger = 1;
-                        script.context.spriteSize = block.inputs.SIZE[1][1];
+                        script.context.spriteSize = parseFloat(block.inputs.SIZE[1][1]);
                     }
                     if (block.opcode.includes('looks_say') && script.context.spriteSize > script.context.initialSpriteSize) {
                         script.context.talkTwice++;
@@ -1880,10 +1963,12 @@ module.exports = class {
                         script.blocks.some(block => block.opcode === 'control_wait')) {
                     script.context.addedSpin = 1;
                 }
+                console.log(script.layer);
             }
             sprite.context.changedName = !['Left', 'Middle', 'Right', 'Catrina'].includes(sprite.name);
             sprite.context.pull(['reactToClick', 'getBigger', 'resetSize', 'addedEvent', 'addedSpin'], 1, false);
             sprite.context.pull(['talkTwice'], 2, false);
+            console.log(sprite.context);
         }
         project.context.pull(['reactToClick', 'getBigger', 'talkTwice', 'resetSize'], 3, true);
         project.context.pull(['changedName', 'addedSpin', 'addedEvent'], 1, false);

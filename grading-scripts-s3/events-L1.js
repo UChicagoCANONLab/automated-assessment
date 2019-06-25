@@ -22,15 +22,15 @@ module.exports = class {
         var project = new Project(json, this);
         for (var sprite of project.sprites.filter(sprite => sprite.name !== 'Catrina')) {
             for (var script of sprite.scripts.filter(script => script.blocks[0].opcode.includes('event_when'))) {
-                script.context.spriteSize = script.context.initialSpriteSize = sprite.size;
+                script.context.spriteSize = script.context.initialSpriteSize = parseFloat(sprite.size);
                 for (var block of script.blocks) {
                     if (block.opcode === 'looks_changesizeby') {
                         if (block.inputs.CHANGE[1][1] > 0) script.context.getBigger = 1;
-                        script.context.spriteSize += block.inputs.CHANGE[1][1];
+                        script.context.spriteSize += parseFloat(block.inputs.CHANGE[1][1]);
                     }
                     else if (block.opcode === 'looks_setsizeto') {
                         if (block.inputs.SIZE[1][1] > script.context.initialSpriteSize) script.context.getBigger = 1;
-                        script.context.spriteSize = block.inputs.SIZE[1][1];
+                        script.context.spriteSize = parseFloat(block.inputs.SIZE[1][1]);
                     }
                     if (block.opcode.includes('looks_say') && script.context.spriteSize > script.context.initialSpriteSize) {
                         script.context.talkTwice++;
@@ -49,10 +49,12 @@ module.exports = class {
                         script.blocks.some(block => block.opcode === 'control_wait')) {
                     script.context.addedSpin = 1;
                 }
+                console.log(script.layer);
             }
             sprite.context.changedName = !['Left', 'Middle', 'Right', 'Catrina'].includes(sprite.name);
             sprite.context.pull(['reactToClick', 'getBigger', 'resetSize', 'addedEvent', 'addedSpin'], 1, false);
             sprite.context.pull(['talkTwice'], 2, false);
+            console.log(sprite.context);
         }
         project.context.pull(['reactToClick', 'getBigger', 'talkTwice', 'resetSize'], 3, true);
         project.context.pull(['changedName', 'addedSpin', 'addedEvent'], 1, false);
