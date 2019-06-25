@@ -24,6 +24,7 @@ function boolObjOr(a, b) {
         return acc;
     }, {})
 }
+// recursive function that searches a script and any subscripts (those within loops)
 function scriptSearch(script, func) {
     function recursive(scripts, func, level) {
 
@@ -35,7 +36,6 @@ function scriptSearch(script, func) {
             for(var block of script.blocks) {
                 
                 func(block, level);
-                
                 recursive(block.subScripts(), func, level + 1);
 
             }
@@ -48,7 +48,6 @@ function scriptSearch(script, func) {
 const print = (block, level) => {
     console.log("   ".repeat(level) + block.opcode);
 };
-
 
 // MAIN GRADER CLASS –––––––––––––––
 class GradeAnimationL2{
@@ -78,6 +77,69 @@ class GradeAnimationL2{
      
         this.extensions.multipleDancingOnClick = {bool: false, str: "Multiple characters dance on click"};
         this.extensions.moreThanOneAnimation = {bool: false, str: "Student uses more than one motion block to animate their sprites"};
+    }
+    
+
+    // helper function for grading an individual sprite
+    gradeSprite(sprite) {
+
+        var spriteDanceReqs = {
+            loop: false,
+            move: false,
+            costume: false,
+            wait: false
+        };
+        // and the following additional requirements
+        var isAnimated = false;
+        var danceOnClick = false;
+        //iterating through each of the sprite's scripts, ensuring that only those that start with an event block are counted
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) { 
+
+            var scriptDanceReqs = {loop: false, wait: false, costume: false, move: false};
+    
+            // callback function to scriptSearch that determines what to look for and what to do (through side effects) for each block
+            const gradeBlock = (block, level) => {
+                var opcode = block.opcode;
+                var reqs = {}
+                reqs.loop = this.loops.includes(opcode);
+                reqs.wait = (opcode == 'control_wait');
+                reqs.costume = this.costumeChange.includes(opcode);
+                if (opcode.includes("motion_")) {
+                    reqs.move = true;
+                    if (!this.animationTypes.includes(opcode)) this.animationTypes.push(opcode);
+                } else {
+                    reqs.move = false;
+                }
+    
+                scriptDanceReqs = boolObjOr(scriptDanceReqs, reqs);
+            }
+            //search through each block and execute gradeBlock
+            scriptSearch(script, gradeBlock);
+            // console.log(sprite.name);
+            // scriptSearch(script, print);
+        
+            isAnimated = isAnimated || (scriptDanceReqs.loop && scriptDanceReqs.wait && (scriptDanceReqs.costume || scriptDanceReqs.move));
+            
+            //check dance reqs (find highest scoring script)
+            var scriptScore = score(scriptDanceReqs);
+            if (scriptScore >= score(spriteDanceReqs)) {
+                spriteDanceReqs = scriptDanceReqs;
+                
+                //check for dance (and dance on click)
+                if (scriptScore == 4) {
+                    if (script.blocks[0].opcode == 'event_whenthisspriteclicked') {
+                        danceOnClick = true;
+                    }
+                }
+            }            
+        }
+        return {
+            name: sprite.name,
+            danceScore: score(spriteDanceReqs),
+            animated: isAnimated,
+            reqs: spriteDanceReqs,
+            danceOnClick: danceOnClick
+        };
     }
     // the main grading function
     grade(fileObj,user) {
@@ -132,72 +194,10 @@ class GradeAnimationL2{
         this.extensions.multipleDancingOnClick.bool = (danceOnClick > 1);
 
         //checks if there were at least 3 sprites (the minus 1 accounts for the Stage target, which isn't a sprite)
-        this.requirements.atLeastThreeSprites.bool = (project.targets.length - 1 > 3);
+        this.requirements.atLeastThreeSprites.bool = (project.targets.length - 1 >= 3);
 
         //counts the number of animation (motion) blocks used
         this.extensions.moreThanOneAnimation.bool = (this.animationTypes.length > 1)
     }
-
-    // helper function for grading an individual sprite
-    gradeSprite(sprite) {
-
-        var spriteDanceReqs = {
-            loop: false,
-            move: false,
-            costume: false,
-            wait: false
-        };
-        // and the following additional requirements
-        var isAnimated = false;
-        var danceOnClick = false;
-        //
-        for (var script of sprite.scripts) { 
-
-            var scriptDanceReqs = {loop: false, wait: false, costume: false, move: false};
-    
-            // callback function to scriptSearch that determines what to look for and what to do (through side effects) for each block
-            const gradeBlock = (block, level) => {
-                var opcode = block.opcode;
-                var reqs = {}
-                reqs.loop = this.loops.includes(opcode);
-                reqs.wait = (opcode == 'control_wait');
-                reqs.costume = this.costumeChange.includes(opcode);
-                if (opcode.includes("motion_")) {
-                    reqs.move = true;
-                    if (!this.animationTypes.includes(opcode)) this.animationTypes.push(opcode);
-                } else {
-                    reqs.move = false;
-                }
-    
-                scriptDanceReqs = boolObjOr(scriptDanceReqs, reqs);
-            }
-            //search through each block and execute gradeBlock
-            scriptSearch(script, gradeBlock);
-            // console.log(sprite.name);
-            // scriptSearch(script, print);
-        
-            isAnimated = isAnimated || (scriptDanceReqs.loop && scriptDanceReqs.wait && (scriptDanceReqs.costume || scriptDanceReqs.move));
-            
-            //check dance reqs (find highest scoring script)
-            var scriptScore = score(scriptDanceReqs);
-            if (scriptScore >= score(spriteDanceReqs)) {
-                spriteDanceReqs = scriptDanceReqs;
-                
-                //check for dance (and dance on click)
-                if (scriptScore == 4) {
-                    if (script.blocks[0].opcode == 'event_whenthisspriteclicked') {
-                        danceOnClick = true;
-                    }
-                }
-            }            
-        }
-        return {
-            name: sprite.name,
-            danceScore: score(spriteDanceReqs),
-            animated: isAnimated,
-            reqs: spriteDanceReqs,
-            danceOnClick: danceOnClick
-        };
-    }    
 }
 module.exports = GradeAnimationL2;
