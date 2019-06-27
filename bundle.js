@@ -1880,12 +1880,10 @@ module.exports = class {
                         script.blocks.some(block => block.opcode === 'control_wait')) {
                     script.context.addedSpin = 1;
                 }
-                console.log(script.layer);
             }
             sprite.context.changedName = !['Left', 'Middle', 'Right', 'Catrina'].includes(sprite.name);
             sprite.context.pull(['reactToClick', 'getBigger', 'resetSize', 'addedEvent', 'addedSpin'], 1, false);
             sprite.context.pull(['talkTwice'], 2, false);
-            console.log(sprite.context);
         }
         project.context.pull(['reactToClick', 'getBigger', 'talkTwice', 'resetSize'], 3, true);
         project.context.pull(['changedName', 'addedSpin', 'addedEvent'], 1, false);
