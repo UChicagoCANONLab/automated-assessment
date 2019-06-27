@@ -1805,7 +1805,7 @@ module.exports = class {
         this.init();
         if (no(json)) return;
         var project = new Project(json, this);
-        for (var sprite of project.sprites.filter(sprite => sprite.name !== 'Catrina')) {
+        for (var sprite of project.sprites) {
             for (var script of sprite.scripts.filter(script => script.blocks[0].opcode.includes('event_when'))) {
                 script.context.spriteSize = script.context.initialSpriteSize = parseFloat(sprite.size);
                 for (var block of script.blocks) {
@@ -3326,8 +3326,8 @@ var graders = {
   eventsL2:        { name: 'Events L2',              file: require('./grading-scripts-s3/events-L2')         },
   condLoops:       { name: 'Conditional Loops L1',   file: require('./grading-scripts-s3/cond-loops')        },
   decompL1:        { name: 'Decomp. by Sequence L1', file: require('./grading-scripts-s3/decomp-L1')         },
-  onewaysyncL1:    { name: 'One-Way Sync L1',        file: require('./grading-scripts-s3/one-way-sync-L1')   },
-  onewaysyncL2:    { name: 'Two-Way Sync L2',        file: require('./grading-scripts-s3/two-way-sync-L2')   },
+  oneWaySyncL1:    { name: 'One-Way Sync L1',        file: require('./grading-scripts-s3/one-way-sync-L1')   },
+  oneWaySyncL2:    { name: 'Two-Way Sync L2',        file: require('./grading-scripts-s3/two-way-sync-L2')   },
 };
 
 /// Globals
