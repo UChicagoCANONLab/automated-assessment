@@ -20,14 +20,15 @@ function iterateBlocks(script, func) {
 module.exports = class {
     init() {
         this.requirements = {
-            hasBackdrop: {bool: false, str: "Background has an image."},
-            hasThreeSprites: {bool: false, str: "There are at least three sprites."},
-            spriteHasTwoEvents1: {bool: false, str: "A sprite has at least two events."},
-            spriteHasTwoEvents2: {bool: false, str: "A second sprite has at least two events."},
-            spriteHasTwoEvents3: {bool: false, str: "A third sprite has at least two events."},
-            spriteHasTwoScripts1: {bool: false, str: "A sprite events have actions."},
-            spriteHasTwoScripts2: {bool: false, str: "A second sprite events have actions."},
-            spriteHasTwoScripts3: {bool: false, str: "A third sprite events have actions."}
+            choseBackdrop: {bool: false, str: "The backdrop of the project was changed"},
+            hasThreeSprites: {bool: false, str: "There are at least three sprites"},
+            spriteHasTwoEvents1: {bool: false, str: "A sprite has two required events"},
+            spriteHasTwoEvents2: {bool: false, str: "A second sprite has two required events"},
+            spriteHasTwoEvents3: {bool: false, str: "A third sprite has two required events"},
+            spriteHasTwoScripts1: {bool: false, str: "A sprite has two scripts with unique events"},
+            spriteHasTwoScripts2: {bool: false, str: "A second sprite has two scripts with unique events"},
+            spriteHasTwoScripts3: {bool: false, str: "A third sprite has two scripts with unique events"},
+            usesTheThreeEvents: {bool: false, str: "Uses all event blocks from lesson plan"}
         };
         this.extensions = {
             spriteSpins: {bool: false, str: "A sprite spins (uses turn block)"},
@@ -37,9 +38,9 @@ module.exports = class {
     }
     
     gradeSprite(sprite) {
+        var reqEvents = [];
         var events = [];
-        var validScripts = 0;
-        
+        var validScripts = 0;     
         for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes('event_when'))){
 
             //look for extension requirements throughout each block
@@ -60,40 +61,58 @@ module.exports = class {
             if (Object.values(blink).reduce((acc, val) => acc && val, true)) this.extensions.spriteBlinks.bool = true;
 
             var event = script.blocks[0];
+            //records the use of required events
+            if (['event_whenflagclicked', 'event_whenthisspriteclicked', 'event_whenkeypressed'].includes(event.opcode) && !reqEvents.includes(event.opcode))
+                reqEvents.push(event.opcode);
+            // differentiates event key presses that use different keys
             if (event.opcode == "event_whenkeypressed") 
-                event.opcode = event.opcode + event.fields.KEY_OPTION[0];
-                
+                event.opcode += event.fields.KEY_OPTION[0];
+            // adds to list of unique events and scripts
             if (!events.includes(event.opcode)) {
                 events.push(event.opcode);
                 if (script.blocks.length > 1) 
                     validScripts++;
-            } 
+            }
+            // checks if scripts outside of the required were used (only the first key pressed event is counted as required)
+            if (!(['event_whenflagclicked', 'event_whenthisspriteclicked'].includes(event.opcode) || event.opcode.includes('event_whenkeypressed')) ||
+                    (event.opcode.includes('event_whenkeypressed') && !events.includes(event.opcode))) {
+                this.extensions.moreScripts.bool = true;
+                console.log(event.opcode);
+            }
         } 
+
         // check off how many sprites have met the requirements
-        if (events.length < 2 && validScripts < 2) return;
-        for (var n of ['1', '2', '3']) {
-            if (this.requirements['spriteHasTwoEvents' + n].bool && this.requirements['spriteHasTwoScripts' + n].bool) 
-                continue;
-            this.requirements['spriteHasTwoEvents' + n].bool = (events.length >= 2);
-            this.requirements['spriteHasTwoScripts' + n].bool = (validScripts >= 2);
-            break;
+        if (reqEvents.length >= 2 || validScripts >= 2) {
+            for (var n of [1, 2, 3]) {
+                if (this.requirements['spriteHasTwoEvents' + n].bool && this.requirements['spriteHasTwoScripts' + n].bool) 
+                    continue;
+                if (n !== 3) {
+                    this.requirements['spriteHasTwoEvents' + (n + 1)].bool = this.requirements['spriteHasTwoEvents' + n].bool;
+                    this.requirements['spriteHasTwoScripts' + (n + 1)].bool = this.requirements['spriteHasTwoScripts' + n].bool;
+                }
+                this.requirements['spriteHasTwoEvents' + n].bool = (reqEvents.length >= 2);
+                this.requirements['spriteHasTwoScripts' + n].bool = (validScripts >= 2);
+                break;
+            }
         }
-        this.extensions.moreScripts.bool = (validScripts > 2);
+        return reqEvents;
     }
 
     grade(fileObj,user) {
         if (no(fileObj)) return; //make sure script exists
         this.init();        
         var project = new Project(fileObj);
+        var reqEvents = [];
         for(var target of project.targets){
             if(target.isStage ){
-                if (target.costumes.length)
-                    this.requirements.hasBackdrop.bool = true;
+                if (target.costumes.length > 1 || target.costumes[0].name !== 'backdrop1') 
+                    this.requirements.choseBackdrop.bool = true;
                 continue;
             }
-            this.gradeSprite(target);
+            // calls the sprite grader while aggregating the total required events used
+            reqEvents = [...new Set([...reqEvents, ...this.gradeSprite(target)])];
         }
-        //check for enough sprites
+        this.requirements.usesTheThreeEvents.bool = (reqEvents.length === 3);
         this.requirements.hasThreeSprites.bool = (project.targets.length - 1 >= 3);
     }
 } 
