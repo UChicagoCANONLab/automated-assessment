@@ -19,7 +19,6 @@ module.exports = class {
     }
 
     grade(fileObj, user) {
-        console.log('start grade');
         var project = new Project(fileObj, null);
         var original = new Project(require('../act1-grading-scripts/name-poem-original-test'), null);
         this.initReqs();
