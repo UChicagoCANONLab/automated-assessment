@@ -35,6 +35,7 @@ module.exports = class {
         let spritesWithNewDialogue = 0;
         let spritesWithNewCostumes = 0;
         let spritesWithNewMovement = 0;
+        let newBackdrop = false;
 
         //make list of original costumes
         //make map of original blocks for movement
@@ -48,8 +49,6 @@ module.exports = class {
             }
             mapOriginal.set(target.name, target.blocks);
         }
-
-        let newBackdrop = false;
 
         for (let target of project.targets) {
 
@@ -107,6 +106,7 @@ module.exports = class {
             }
         }
 
+
         //checking movement
         let inDIANE = false;
         for (let v of mapProject.values()) {
@@ -115,9 +115,9 @@ module.exports = class {
                 var util = require('util');
                 v = util.inspect(v);
                 w = util.inspect(w);
-                
-                
-                
+
+                //||(v.includes('{}'))
+
                 if (v === w) {
                     inDIANE = true;
                 };
