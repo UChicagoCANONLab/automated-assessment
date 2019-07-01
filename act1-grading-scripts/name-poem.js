@@ -200,14 +200,14 @@ module.exports = class {
         let inDIANE = false;
         for (let v of mapProject.values()) {
             for (let w of mapOriginal.values()) {
-                // console.log('v:');
-                // console.log(v);
-                // console.log('w:');
-                // console.log(w);
-                // console.log('w is finished');
-
                 
-                if (this.compare(v, w)) {
+                var util = require('util');
+                v = util.inspect(v);
+                w = util.inspect(w);
+                
+                
+                
+                if (v === w) {
                    // console.log('object is');
                     inDIANE = true;
                 };
@@ -232,3 +232,4 @@ module.exports = class {
         console.log(spritesWithNewDialogue);
     }
 }
+
