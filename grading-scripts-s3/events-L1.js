@@ -20,7 +20,7 @@ module.exports = class {
         this.init();
         if (no(json)) return;
         var project = new Project(json, this);
-        for (var sprite of project.sprites.filter(sprite => sprite.name !== 'Catrina')) {
+        for (var sprite of project.sprites) {
             for (var script of sprite.scripts.filter(script => script.blocks[0].opcode.includes('event_when'))) {
                 script.context.spriteSize = script.context.initialSpriteSize = parseFloat(sprite.size);
                 for (var block of script.blocks) {
@@ -49,12 +49,10 @@ module.exports = class {
                         script.blocks.some(block => block.opcode === 'control_wait')) {
                     script.context.addedSpin = 1;
                 }
-                console.log(script.layer);
             }
             sprite.context.changedName = !['Left', 'Middle', 'Right', 'Catrina'].includes(sprite.name);
             sprite.context.pull(['reactToClick', 'getBigger', 'resetSize', 'addedEvent', 'addedSpin'], 1, false);
             sprite.context.pull(['talkTwice'], 2, false);
-            console.log(sprite.context);
         }
         project.context.pull(['reactToClick', 'getBigger', 'talkTwice', 'resetSize'], 3, true);
         project.context.pull(['changedName', 'addedSpin', 'addedEvent'], 1, false);
