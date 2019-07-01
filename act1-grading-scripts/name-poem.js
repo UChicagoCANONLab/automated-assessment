@@ -18,56 +18,6 @@ module.exports = class {
         this.requirements.backdrop = { bool: false, str: 'The background has been changed' };//done
     }
 
-    compare(obj1,obj2){//debugging this - recursion doesn't stop
-
-        for (var p in obj1){
-            if (obj1.hasOwnProperty(p) !== obj2.hasOwnProperty(p)) {
-                console.log('return false');
-                return false;
-            }
-            if(obj1[p]===null && obj2[p]!==null) {
-                console.log('return false');
-                return false;
-            }
-            if(obj2[p]===null && obj1[p]!==null) {
-                console.log('return false');
-                return false;
-            }
-
-            switch (typeof (obj1[p])) {
-                case 'object':
-                    console.log('case object');
-                    if (!this.compare(obj1[p],obj2[p])){
-                        console.log('return false');
-                        return false;}
-                    break;
-                case 'function':
-                    console.log('case function');
-                    if (typeof (obj2[p])==='undefined' || (p !== 'compare' && obj1[p].toString() !== obj2[p].toString())) {
-                        console.log('return false');
-                        return false;
-                    }
-                    break;
-                default:
-                    console.log('case default');
-                    console.log(obj1[p]);
-                    console.log(obj2[p]);
-                    if (obj1[p] !== obj2[p]) {
-                        console.log('return false');
-                        return false;
-                    }
-            }
-        }
-        for (var p in obj2) {
-            if (typeof (obj1[p])==='undefined') {
-                console.log('return false');
-                return false;
-            }
-        }
-        console.log('return true');
-        return true;
-    }
-
     grade(fileObj, user) {
         console.log('start grade');
         var project = new Project(fileObj, null);
@@ -80,63 +30,46 @@ module.exports = class {
             this.requirements.hasOneSprite.bool = true;
         }
 
+        //instantiate counters for requirements
         let spritesWithScripts = 0;
         let spritesWithNewDialogue = 0;
         let spritesWithNewCostumes = 0;
         let spritesWithNewMovement = 0;
 
+        //make list of original costumes
+        //make map of original blocks for movement
         let originalCostumes = [];
-        let originalBlocks = [];
-        let projectBlocks = [];
-
         let mapOriginal = new Map();
         let mapProject = new Map();
-
-
         for (let target of original.targets) {
             if (target.isStage) { continue; }
             for (let costume of target.costumes) {
                 originalCostumes.push(costume.assetId);
             }
             mapOriginal.set(target.name, target.blocks);
-        }//checking costumes, making map for movement
+        }
 
-        //    console.log('mapOriginal:');
-        //    console.log(mapOriginal);
+        let newBackdrop = false;
 
-        // let blockArray = [];
-        // let spr = 0;
-        // for (let target of project.targets) {
-        //     blockArray[spr] = new Array();
-        //     for (let block in target.blocks) {
-        //         let opc = target.blocks[block].opcode;
-        //         if (opc !== 'looks_sayforsecs') {
-        //             blockArray[spr].push(target.blocks[block]);
-        //         }
-        //     }
-        //     spr++;
-        // }//checking movement
-
-        let equal = false;
         for (let target of project.targets) {
 
-
-            let backdropInOriginal = true;
-            if (target.isStage) { //check to see if backdrop is changed
+            //checking backdrop
+            if (target.isStage) {
                 for (let cost of target.costumes) {
+                    let equal = false;
                     for (let tOriginal of original.targets) {
                         for (let originalCostume of tOriginal.costumes) {
                             if (cost.assetId === originalCostume.assetId) {
                                 equal = true;
                             }
                         }
-                    }
-                    if (!equal) {
-                        backdropInOriginal = false;
+                        if (!equal){
+                            newBackdrop=true;
+                        }
                     }
                 }
-                this.requirements.backdrop.bool = !backdropInOriginal;
-            } else {//check all these if target is a sprite
+                this.requirements.backdrop.bool = newBackdrop;
+            } else {
 
                 //checking scripts
                 for (let block in target.blocks) {
@@ -171,32 +104,10 @@ module.exports = class {
                 }
 
                 mapProject.set(target.name, target.blocks);
-
-                // let map1 = new Map();
-                // map1.set(target.name, target.blocks);
-                // //checking movement
-                // let moved = false;
-                // for (let block in target.blocks){
-                //     if (target.blocks[block].opcode!=='looks_sayforsecs'){
-                //         for (let i = 0; i<blockArray.length;i++){
-                //             for (let j = 0; j<blockArray[i].length;j++){
-                //             //     if (block===blockArray[i][j]){
-                //             //         moved=false;
-                //             //     }
-                //             }
-                //         }
-                //     }
-                // }
-                // if (moved===true){
-                //     spritesWithNewMovement++;
-                // }
             }
         }
 
-
-        // console.log('mapProject:');
-        //console.log(mapProject);
-
+        //checking movement
         let inDIANE = false;
         for (let v of mapProject.values()) {
             for (let w of mapOriginal.values()) {
@@ -208,7 +119,6 @@ module.exports = class {
                 
                 
                 if (v === w) {
-                   // console.log('object is');
                     inDIANE = true;
                 };
             }
@@ -217,6 +127,7 @@ module.exports = class {
             }
         }
 
+        // > 1/2 of sprites fulfill requirement?
         if (spritesWithScripts >= project.sprites.length / 2) {
             this.requirements.scripts.bool = true;
         }
@@ -229,7 +140,6 @@ module.exports = class {
         if (spritesWithNewMovement >= project.sprites.length / 2) {
             this.requirements.movement.bool = true;
         }
-        console.log(spritesWithNewDialogue);
     }
 }
 
