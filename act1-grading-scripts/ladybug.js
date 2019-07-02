@@ -11,9 +11,10 @@ module.exports = class {
         this.requirements.oneAphid = { bool: false, str: 'Ladybug eats at least one aphid using only blocks specified' };
         this.requirements.bothAphids = { bool: false, str: 'Ladybug eats both aphids using only blocks specified' };
         this.requirements.eatAphidBlock = { bool: false, str: '"Eat Aphid" block is used' };
-        this.requirements.moveStepsBlock = { bool: false, str: 'A "move 50 steps" block is added' }
-        this.requirements.turnBlock = { bool: false, str: 'A "turn 90 degrees" block is added' };
+        // this.requirements.moveStepsBlock = { bool: false, str: 'A "move 50 steps" block is added' }
+        // this.requirements.turnBlock = { bool: false, str: 'A "turn 90 degrees" block is added' };
         this.requirements.ladybugInBounds = { bool: true, str: 'The ladybug stays on the branch' };
+        this.requirements.changedProject = {bool: false, str: 'Project has been modified from the original project'};
     }
     
     //helper functions
@@ -60,9 +61,27 @@ module.exports = class {
     grade(fileObj, user) {
         
         var project = new Project(fileObj, null);
+        var original = new Project(require('../act1-grading-scripts/originalLadybug-test'), null);
+        
         this.initReqs();
         if (!is(fileObj)) return;
 
+        var projList = new Array();
+        var originalList = new Array();
+
+        // creates a list of the opcodes attached to event when flag clicked from the original project
+        for (let origTarget of original.targets) {
+            if (origTarget.name === 'Ladybug1') {
+                for (let block in origTarget.blocks) {
+                    if (origTarget.blocks[block].opcode === 'event_whenflagclicked') {
+                        for (let i = block; origTarget.blocks[i].next !== null; i = origTarget.blocks[i].next) {
+                            originalList.push(origTarget.blocks[i].opcode);
+                        }
+                    }
+                }
+            }
+        }
+        
         let moveStepsBlocks = 0;
         let turnBlocks = 0;
 
@@ -85,10 +104,10 @@ module.exports = class {
                     if (target.blocks[block].opcode === 'event_whenflagclicked') {
                         for (let i=block; target.blocks[i].next !== null; i = target.blocks[i].next) {//fix this linked list for loop!
                            
+                            projList.push(target.blocks[i].opcode);
+
                             this.updateBug(target.blocks[i]);
-                           
-                                                
-                         
+                        
                             let onBranch = this.inBounds(this.bug.locX, this.bug.locY);
                        
                             if (!onBranch) {
@@ -117,8 +136,6 @@ module.exports = class {
                         }
                     }
 
-
-
                     //checks if 'Eat Aphid' block is connected to a script
                     if (target.blocks[block].opcode === 'procedures_call') {
                         if (target.blocks[block].mutation.proccode === 'Eat Aphid') {
@@ -145,12 +162,24 @@ module.exports = class {
             }
         }
 
-        if (moveStepsBlocks > 2) {
-            this.requirements.moveStepsBlock.bool = true;
+        if (projList.length !== originalList.length) {
+            this.requirements.changedProject.bool = true;
+        } else {
+            for (let i = projList.length; i --;) {
+                if (projList[i] !== originalList[i])
+                {
+                    this.requirements.changedProject.bool = true;
+                }
+            }
         }
-        if (turnBlocks > 1) {
-            this.requirements.turnBlock.bool = true;
-        }
+        
+        // // if (moveStepsBlocks > 2) {
+        // //     this.requirements.moveStepsBlock.bool = true;
+        // // }
+        // // if (turnBlocks > 1) {
+        // //     this.requirements.turnBlock.bool = true;
+        // }
+
         if (aphidsEaten > 0){
             this.requirements.oneAphid.bool = true;
         }
