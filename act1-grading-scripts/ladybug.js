@@ -1,3 +1,9 @@
+/*
+Act 1 Ladybug Scramble Autograder
+Initial version and testing: Saranya Turimella and Zipporah Klain, 2019
+*/
+
+
 require('../grading-scripts-s3/scratch3')
 
 module.exports = class {
@@ -159,6 +165,8 @@ module.exports = class {
                 break;
             }
         }
+
+        // checks to see if original project has been modified
 
         if (projList.length !== originalList.length) {
             this.requirements.changedProject.bool = true;

@@ -1,5 +1,8 @@
-require('../grading-scripts-s3/scratch3')
+/* Act 1 Name Poem Autograder
+Initial version and testing: Saranya Turimella and Zipporah Klain, 2019
+*/
 
+require('../grading-scripts-s3/scratch3')
 
 module.exports = class {
     constructor() {
