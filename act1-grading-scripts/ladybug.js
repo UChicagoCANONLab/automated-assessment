@@ -11,8 +11,6 @@ module.exports = class {
         this.requirements.oneAphid = { bool: false, str: 'Ladybug eats at least one aphid using only blocks specified' };
         this.requirements.bothAphids = { bool: false, str: 'Ladybug eats both aphids using only blocks specified' };
         this.requirements.eatAphidBlock = { bool: false, str: '"Eat Aphid" block is used' };
-        // this.requirements.moveStepsBlock = { bool: false, str: 'A "move 50 steps" block is added' }
-        // this.requirements.turnBlock = { bool: false, str: 'A "turn 90 degrees" block is added' };
         this.requirements.ladybugInBounds = { bool: true, str: 'The ladybug stays on the branch' };
         this.requirements.changedProject = {bool: false, str: 'Project has been modified from the original project'};
     }
@@ -172,13 +170,6 @@ module.exports = class {
                 }
             }
         }
-        
-        // // if (moveStepsBlocks > 2) {
-        // //     this.requirements.moveStepsBlock.bool = true;
-        // // }
-        // // if (turnBlocks > 1) {
-        // //     this.requirements.turnBlock.bool = true;
-        // }
 
         if (aphidsEaten > 0){
             this.requirements.oneAphid.bool = true;
