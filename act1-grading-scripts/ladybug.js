@@ -4,6 +4,7 @@ module.exports = class {
     constructor() {
         this.requirements = {};
         this.extensions = {};
+        this.bug = {dir: 0, locX: -200, locY: -25}
     }
 
     initReqs() {
@@ -14,9 +15,10 @@ module.exports = class {
         this.requirements.turnBlock = { bool: false, str: 'A "turn 90 degrees" block is added' };
         this.requirements.ladybugInBounds = { bool: true, str: 'The ladybug stays on the branch' };
     }
-
+    
     //helper functions
     inBounds(x, y) {
+        
         if ((x < -130) || ((x > -117) && (x < -31)) || ((x > -18) && (x < 69))) {
             return ((y <= -19) && (y > -32));
         }
@@ -33,28 +35,30 @@ module.exports = class {
     }
 
     updateBug(block) {
+
         if (block.opcode === 'motion_gotoxy') {
-            bugLocX = block.inputs.X[1][1];
-            bugLocY = block.inputs.Y[1][1];
+            this.bug.locX = parseFloat(block.inputs.X[1][1]);
+            this.bug.locY = parseFloat(block.inputs.Y[1][1]);
         }
         if (block.opcode === 'motion_pointindirection') {
-            bugDir = block.inputs.DIRECTION[1][1];
+            this.bug.dir = parseFloat(block.inputs.DIRECTION[1][1]);
         }
         if (block.opcode === 'motion_turnright') {
-            bugDir += block.inputs.DEGREES[1][1];
+            this.bug.dir -= parseFloat(block.inputs.DEGREES[1][1]);
         }
         if (block.opcode === 'motion_turnleft') {
-            bugDir -= block.inputs.DEGREES[1][1];
+            this.bug.dir += parseFloat(block.inputs.DEGREES[1][1]);
         }
         if (block.opcode === 'motion_movesteps') {
-            let radDir = bugDir * Math.PI / 180;
-            let steps = block.inputs.STEPS[1][1];
-            bugLocX += steps * Math.cos(radDir);
-            bugLocY += steps * Math.sin(radDir);
+            let radDir = (this.bug.dir - 90) * Math.PI / 180;
+            let steps = parseFloat(block.inputs.STEPS[1][1]);
+            this.bug.locX += Math.round(steps * Math.cos(radDir));
+            this.bug.locY += Math.round(steps * Math.sin(radDir));
         }
     }
 
     grade(fileObj, user) {
+        
         var project = new Project(fileObj, null);
         this.initReqs();
         if (!is(fileObj)) return;
@@ -63,29 +67,57 @@ module.exports = class {
         let turnBlocks = 0;
 
         let aphidLocations = [];
-        let bugLocX = 0;
-        let bugLocY = 0;
-        let bugDir = 0;
+        let aphidsEaten = 0;
+        let failed = false;
+
+        for (let target of project.targets){
+            if ((target.name === 'Aphid') || (target.name === 'Aphid2')) {
+                let loc = [];
+                loc.push(target.x);
+                loc.push(target.y);
+                aphidLocations.push(loc);
+            }
+        }
 
         for (let target of project.targets) {
             if (target.name === 'Ladybug1') {
                 for (let block in target.blocks) {
                     if (target.blocks[block].opcode === 'event_whenflagclicked') {
-                        for (let i=target.blocks[block]; target.blocks[i].next !== null; i = target.blocks[i].next) {//fix this linked list for loop!
-                            this.updateBug(i);
+                        for (let i=block; target.blocks[i].next !== null; i = target.blocks[i].next) {//fix this linked list for loop!
+                           
+                            this.updateBug(target.blocks[i]);
+                           
+                                                
+                         
+                            let onBranch = this.inBounds(this.bug.locX, this.bug.locY);
+                       
+                            if (!onBranch) {
+                                this.requirements.ladybugInBounds.bool = false;
+                                failed = true;
+                            }
+    
+                            let onAphid = false;
+                            for (let aphidLoc of aphidLocations){
+                                if ((Math.abs(aphidLoc[0]-this.bug.locX)<=40) &&
+                                    (Math.abs(aphidLoc[1]-this.bug.locY)<=40)){
+                                        onAphid = true;
+                                    }
+                            }
+
+                            if (onAphid){
+                                let nextBlock = target.blocks[i].next;
+                                if (target.blocks[nextBlock].opcode === 'procedures_call'){
+                                    if (target.blocks[nextBlock].mutation.proccode === 'Eat Aphid'){
+                                        if (failed === false){
+                                            aphidsEaten++;
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
 
 
-
-                    //check if out of bounds or onAphid
-                    let onBranch = this.inBounds(bugLocX, bugLocY);
-                    console.log(onBranch);
-                    if (!onBranch) {
-                        this.requirements.ladybugInBounds.bool = false;
-                    }
-                    let bugLocArr = [bugLocX, bugLocY];
-                    let onAphid = aphidLocations.includes(bugLocArr);
 
                     //checks if 'Eat Aphid' block is connected to a script
                     if (target.blocks[block].opcode === 'procedures_call') {
@@ -110,11 +142,6 @@ module.exports = class {
                     }
                 }
                 break;
-            } else if ((target.name === 'Aphid') || (target.name === 'Aphid2')) {
-                let loc = [];
-                loc.push(target.x);
-                loc.push(target.y);
-                aphidLocations.push(loc);
             }
         }
 
@@ -124,7 +151,12 @@ module.exports = class {
         if (turnBlocks > 1) {
             this.requirements.turnBlock.bool = true;
         }
-
+        if (aphidsEaten > 0){
+            this.requirements.oneAphid.bool = true;
+        }
+        if (aphidsEaten > 1){
+            this.requirements.bothAphids.bool = true;
+        }
     }
 
 }
