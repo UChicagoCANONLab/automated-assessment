@@ -69,9 +69,10 @@ module.exports = class {
     {
         for (let block in target.blocks)
         {
-            if (target.blocks[block].opcode === 'Eat Aphid')
-            {
-                return true;
+            if (target.blocks[block].opcode === 'procedures_call'){
+                if (target.blocks[block].mutation.proccode === 'Eat Aphid'){
+                    return true;
+                }
             }
         }
         return false;
@@ -93,8 +94,8 @@ module.exports = class {
         // if there is an eat aphid block in the script that means that it is as ladybug
         // set is ladybug boolean to true
         for (let origTarget of original.targets) {
-            var isLadybugBool = this.isLadybug(origTarget);
-            if (origTarget.name === 'Ladybug1'  || isLadybugBool) {
+//            var isLadybugBool = this.isLadybug(origTarget);
+            if (origTarget.name === 'Ladybug1'  || this.isLadybug(origTarget)) {
                 for (let block in origTarget.blocks) {
                     if (origTarget.blocks[block].opcode === 'event_whenflagclicked') {
                         for (let i = block; origTarget.blocks[i].next !== null; i = origTarget.blocks[i].next) {
@@ -113,7 +114,7 @@ module.exports = class {
         let failed = false;
 
         for (let target of project.targets){
-            if ((target.name === 'Aphid') || (target.name === 'Aphid2') || !isLadybugBool) {
+            if ((target.name === 'Aphid') || (target.name === 'Aphid2') || !(this.isLadybug(target))) {
                 let loc = [];
                 loc.push(target.x);
                 loc.push(target.y);
@@ -138,7 +139,7 @@ module.exports = class {
                 }
             }
 
-            if (target.name === 'Ladybug1' || isLadybugBool) {
+            if (target.name === 'Ladybug1' || this.isLadybug(target)) {
                 for (let cost in target.costumes){
                     if ((target.costumes[cost].assetId !== 'fb24a06d820171b65efe8e07d2fe4121')
                     && (target.costumes[cost].assetId !== '7a27483bfa7eee92804b16c8e8ba419a')){
