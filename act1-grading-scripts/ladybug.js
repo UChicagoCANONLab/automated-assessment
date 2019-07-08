@@ -19,6 +19,9 @@ module.exports = class {
         this.requirements.eatAphidBlock = { bool: false, str: '"Eat Aphid" block is used' };
         this.requirements.ladybugInBounds = { bool: true, str: 'The ladybug stays on the branch' };
         this.requirements.changedProject = {bool: false, str: 'Project has been modified from the original project'};
+        this.extensions.music = {bool: false, str: 'Background music added'};
+        this.extensions.aphidsMoving = {bool: false, str: 'Aphids move'};
+        this.extensions.ladybugRedrawn = {bool: false, str: 'The ladybug has been redrawn in the costumes tab'};
     }
     
     //helper functions
@@ -99,11 +102,35 @@ module.exports = class {
                 loc.push(target.x);
                 loc.push(target.y);
                 aphidLocations.push(loc);
+
+                for (let block in target.blocks){
+                    if (target.blocks[block].opcode.includes('motion_')){
+                        this.extensions.aphidsMoving.bool = true;
+                        break;
+                    }
+                }
             }
         }
 
         for (let target of project.targets) {
+
+            for (let block in target.blocks){
+                if ((target.blocks[block].opcode === 'sound_playuntildone')
+                ||(target.blocks[block].opcode === 'sound_play')){
+                    this.extensions.music.bool = true;
+                    break;
+                }
+            }
+
             if (target.name === 'Ladybug1') {
+                for (let cost in target.costumes){
+                    if ((target.costumes[cost].assetId !== 'fb24a06d820171b65efe8e07d2fe4121')
+                    && (target.costumes[cost].assetId !== '7a27483bfa7eee92804b16c8e8ba419a')){
+                        this.extensions.ladybugRedrawn.bool = true;
+                        break;
+                    }
+                }
+
                 for (let block in target.blocks) {
                     if (target.blocks[block].opcode === 'event_whenflagclicked') {
                         for (let i=block; target.blocks[i].next !== null; i = target.blocks[i].next) {//fix this linked list for loop!
