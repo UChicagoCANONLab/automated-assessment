@@ -138,7 +138,7 @@ module.exports = class {
                 }
             }
 
-            if (target.name === 'Ladybug1') {
+            if (target.name === 'Ladybug1' || isLadybugBool) {
                 for (let cost in target.costumes){
                     if ((target.costumes[cost].assetId !== 'fb24a06d820171b65efe8e07d2fe4121')
                     && (target.costumes[cost].assetId !== '7a27483bfa7eee92804b16c8e8ba419a')){
