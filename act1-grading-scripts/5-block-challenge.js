@@ -13,6 +13,8 @@ module.exports = class {
         this.requirements.fiveBlocks = { bool: false, str: 'Used (only) 5 blocks specified' };
         this.requirements.backdrop = { bool: false, str: 'Backdrop added' };
         this.requirements.twoSprites = { bool: false, str: 'At least two sprites chosen' };
+        this.extensions.moreSprites = {bool: false, str: 'More sprites added'};
+        this.extensions.convo = {bool: false, str: 'Sprites have a conversation (at least two sprites say something)'};
     }
 
     grade(fileObj, user) {
@@ -22,6 +24,7 @@ module.exports = class {
 
         let numSprites = 0;
         let scriptLengths = [];
+        let spritesTalking = 0;
 
         for (let target of project.targets) {
             if (target.isStage) {
@@ -31,11 +34,16 @@ module.exports = class {
                 }
             } else {
                 numSprites++;
+                let spriteTalks = false;
 
                 for (let block in target.blocks) {
                     if ((this.eventOpcodes.includes(target.blocks[block].opcode)
                         || (this.otherOpcodes.includes(target.blocks[block].opcode)))) {
                         this.requirements.fiveBlocks.bool = true;
+                    }
+
+                    if (target.blocks[block].opcode==='looks_sayforsecs'){
+                        spriteTalks = true;
                     }
 
                     if ((target.blocks[block].opcode==='event_whenflagclicked')
@@ -47,10 +55,18 @@ module.exports = class {
                             scriptLengths.push(scriptLength);
                         }
                 }
+
+                if (spriteTalks) {spritesTalking++};
             }
         }
         if (numSprites >= 2) {
             this.requirements.twoSprites.bool = true;
+        }
+        if (numSprites >= 3){
+            this.extensions.moreSprites.bool = true;
+        }
+        if (spritesTalking>=2){
+            this.extensions.convo.bool = true;
         }
 
         const reducer = (accumulator, currentValue) => accumulator + currentValue;
