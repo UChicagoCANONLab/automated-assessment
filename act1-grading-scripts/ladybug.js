@@ -62,6 +62,18 @@ module.exports = class {
         }
     }
 
+    isLadybug(target)
+    {
+        for (let block in target.blocks)
+        {
+            if (target.blocks[block].opcode === 'Eat Aphid')
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     grade(fileObj, user) {
         
         var project = new Project(fileObj, null);
@@ -74,8 +86,12 @@ module.exports = class {
         var originalList = new Array();
 
         // creates a list of the opcodes attached to event when flag clicked from the original project
+
+        // if there is an eat aphid block in the script that means that it is as ladybug
+        // set is ladybug boolean to true
         for (let origTarget of original.targets) {
-            if (origTarget.name === 'Ladybug1') {
+            var isLadybugBool = this.isLadybug(origTarget);
+            if (origTarget.name === 'Ladybug1'  || isLadybugBool) {
                 for (let block in origTarget.blocks) {
                     if (origTarget.blocks[block].opcode === 'event_whenflagclicked') {
                         for (let i = block; origTarget.blocks[i].next !== null; i = origTarget.blocks[i].next) {
@@ -94,7 +110,7 @@ module.exports = class {
         let failed = false;
 
         for (let target of project.targets){
-            if ((target.name === 'Aphid') || (target.name === 'Aphid2')) {
+            if ((target.name === 'Aphid') || (target.name === 'Aphid2') || !isLadybugBool) {
                 let loc = [];
                 loc.push(target.x);
                 loc.push(target.y);
@@ -103,10 +119,10 @@ module.exports = class {
         }
 
         for (let target of project.targets) {
-            if (target.name === 'Ladybug1') {
+            if (target.name === 'Ladybug1' || isLadybugBool) {
                 for (let block in target.blocks) {
                     if (target.blocks[block].opcode === 'event_whenflagclicked') {
-                        for (let i=block; target.blocks[i].next !== null; i = target.blocks[i].next) {//fix this linked list for loop!
+                        for (let i=block; target.blocks[i].next !== null; i = target.blocks[i].next) {
                            
                             projList.push(target.blocks[i].opcode);
 
@@ -167,7 +183,6 @@ module.exports = class {
         }
 
         // checks to see if original project has been modified
-
         if (projList.length !== originalList.length) {
             this.requirements.changedProject.bool = true;
         } else {
