@@ -15,6 +15,9 @@ module.exports = class {
         this.requirements.twoSprites = { bool: false, str: 'At least two sprites chosen' };
         this.extensions.moreSprites = {bool: false, str: 'More sprites added'};
         this.extensions.convo = {bool: false, str: 'Sprites have a conversation (at least two sprites say something)'};
+        this.extensions.three = {bool: false, str: 'Average script length is at least three'};
+        this.extensions.four = {bool: false, str: 'Average script length is at least four'};
+        this.extensions.five = {bool: false, str: 'Average script length is at least five'};
     }
 
     grade(fileObj, user) {
@@ -78,6 +81,26 @@ module.exports = class {
         }
         console.log('Average Script Length (including event block):');
         console.log(this.avgScriptLength);
+
+        if (this.avgScriptLength>=3){
+            this.extensions.three.bool=true;
+        }
+        if (this.avgScriptLength>=4){
+            this.extensions.four.bool=true;
+        }
+        if (this.avgScriptLength>=5){
+            this.extensions.five.bool=true;
+        }
+
+        let longestLength = scriptLengths[0];
+        for (let i = 1; i < scriptLengths.length; i++){
+            if (scriptLengths[i]>longestLength){
+                longestLength=scriptLengths[i];
+            }
+        }
+
+        console.log('Longest Script Length (including event block):');
+        console.log(longestLength);
 
     }
 }
