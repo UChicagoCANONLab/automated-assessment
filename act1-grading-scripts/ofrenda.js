@@ -40,6 +40,9 @@ module.exports = class {
         let middleUsesSay = false;
         let rightUsesClick = false;
         let middleUsesClick = false;
+        let leftSizeChanges = false;
+        let rightSizeChanges = false;
+        let middleSizeChanges = false;
 
         // original
         for (let origTarget of original.targets) {
@@ -62,10 +65,14 @@ module.exports = class {
         // new
         for (let target of project.targets) {
             if (target.name === 'Left') {
+               
                 newCostumeLeft = target.currentCostume;
                 for (let block in target.blocks) {
                     if (target.blocks[block].opcode === 'looks_sayforsecs') {
                         newWordsLeft = target.blocks[block].inputs.MESSAGE[1][1];
+                    }
+                    if (target.blocks[block].opcode === 'looks_changesizeby') {
+                        leftSizeChanges = true;
                     }
                 }
             }
@@ -84,6 +91,9 @@ module.exports = class {
                              rightUsesSay = true;
                          }
                      }
+                     if (target.blocks[block].opcode === 'looks_changesizeby') {
+                        rightSizeChanges = true;
+                    }
 
                 }
             }
@@ -114,6 +124,9 @@ module.exports = class {
                              middleUsesSay = true;
                          }
                      }
+                     if (target.blocks[block].opcode === 'looks_changesizeby') {
+                        middleSizeChanges = true;
+                    }
                 }
             }
         }
@@ -134,15 +147,15 @@ module.exports = class {
             this.requirements.usesSayMiddle.bool = true;
         }
         
-        if (origCostumeLeft !== newCostumeLeft) {
+        if (origCostumeLeft !== newCostumeLeft || leftSizeChanges) {
             this.requirements.leftSpriteCostume.bool = true;
         }
 
-        if (origCostumeRight !== newCostumeRight) {
+        if (origCostumeRight !== newCostumeRight || rightSizeChanges) {
             this.requirements.rightChanged.bool = true;
         }
 
-        if (origCostumeMiddle !== newCostumeMiddle) {
+        if (origCostumeMiddle !== newCostumeMiddle || middleSizeChanges) {
             this.requirements.middleChanged.bool = true;
         }
 

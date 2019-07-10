@@ -29,28 +29,28 @@ module.exports = class {
 
         for (let target of project.targets) {
             for (let block in target.blocks) {
-                console.log(target.blocks[block].opcode)
                 if (target.blocks[block].opcode === "event_whenthisspriteclicked") {
-                    isInteractive = true;
-                    if (isInteractive) {
-                        for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
-                            scriptLengthInteractive++;
-                        }
-                        if (scriptLengthInteractive > 1) {
-                            this.requirements.interactiveSprite.bool = true;
-                            break;
-                        }
+
+                    for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
+                        scriptLengthInteractive++;
                     }
-                    else {
-                        for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
-                            scriptLengthInteractive++;
-                        }
-                        if (scriptLengthInteractive > 1) {
-                            this.requirements.interactiveSprite.bool = true;
-                            break;
-                        } 
+                    if (scriptLengthInteractive > 1) {
+                        this.requirements.interactiveSprite.bool = true;
+                        break;
                     }
                 }
+
+                if (target.blocks[block].opcode === 'event_whenflagclicked') {
+                    console.log('here');
+                    for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
+                        scriptLengthNotInteractive++;
+                    }
+                    if (scriptLengthNotInteractive > 1) {
+                        this.requirements.nonInteractiveSprite.bool = true;
+                        break;
+                    }
+                }
+
             }
         }
 
