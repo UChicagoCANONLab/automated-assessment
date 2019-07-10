@@ -15,7 +15,7 @@ module.exports = class {
         this.requirements.guitar = { bool: false, str: 'Script added for guitar (including event and action block)' }
         this.requirements.sprite = { bool: false, str: 'Added at least one new sprite' };
         this.requirements.script = { bool: false, str: 'At least one of the new sprites has a script' };
-        this.requirements.cat = { bool: false, str: 'Cat animated using loop with wait block and motion (including "next costume")' };
+        this.requirements.cat = { bool: false, str: 'Cat animated using loop with wait block and motion (including changing costumes and size)' };
     }
 
     grade(fileObj, user) {
@@ -30,27 +30,27 @@ module.exports = class {
                         if (target.blocks[block].opcode.includes('event_')) {
                             for (let i = block; i !== null; i = target.blocks[i].next) {
                                 let opc = target.blocks[i].opcode;
-                                console.log(opc);
-
                                 if ((opc === 'control_forever')
                                     || (opc.includes('control_repeat'))) {
                                     if (target.blocks[i].inputs.SUBSTACK[1] !== null) {
                                         let wait = 0;
-                                        let nextCost = 0;
-                                        let switchCost = 0;
+                                        let nextCostChangeSize = 0;
+                                        let switchCostSize = 0;
                                         let motion = 0;
                                         for (let j = target.blocks[i].inputs.SUBSTACK[1];
                                             j !== null; j = target.blocks[j].next) {
                                                 let opc2 = target.blocks[j].opcode;
                                                 switch (opc2) {
                                                     case 'control_wait': wait++; break;
-                                                    case 'looks_nextcostume': nextCost++; break;
-                                                    case 'looks_switchcostumeto': switchCost++; break;
+                                                    case 'looks_nextcostume': nextCostChangeSize++; break;
+                                                    case 'looks_switchcostumeto': switchCostSize++; break;
+                                                    case 'looks_setsizeto': switchCostSize++;break;
+                                                    case 'looks_changesizeby': nextCostChangeSize++;break;
                                                 }
                                                 if (opc2.includes('motion_')) { motion++ };
 
                                             }
-                                        if (wait && (nextCost || motion || (switchCost > 1))) {
+                                        if (wait && (nextCostChangeSize || motion || (switchCostSize > 1))) {
                                             this.requirements.cat.bool = true;
                                         }
                                     }
