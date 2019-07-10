@@ -15,10 +15,10 @@ module.exports = class {
         this.requirements.leftSpriteCostume = { bool: false, str: 'The costume of the Left Sprite has been changed' }; // done
         this.requirements.rightChanged = { bool: false, str: 'The costumes of the Right Sprite has been changed' }; // done
         this.requirements.middleChanged = { bool: false, str: 'The costumes of the Middle Sprite has been changed' }; // done
-        this.requirements.usesClickRight = { bool: false, str: 'The Right Sprite uses the "when this sprite clicked" block' };
-        this.requirements.usesClickMiddle = { bool: false, str: 'The Middle Sprite uses the "when this sprite clicked" block' };
-        this.requirements.usesSayRight = { bool: false, str: 'The Right Sprite uses a "say" block' };
-        this.requirements.usesSayMiddle = { bool: false, str: 'The Middle Sprite uses a "say" block' };
+        this.requirements.usesClickRight = { bool: false, str: 'The Right Sprite uses the "when this sprite clicked" block' }; // done
+        this.requirements.usesClickMiddle = { bool: false, str: 'The Middle Sprite uses the "when this sprite clicked" block' }; // done
+        this.requirements.usesSayRight = { bool: false, str: 'The Right Sprite uses a "say" block' }; // done
+        this.requirements.usesSayMiddle = { bool: false, str: 'The Middle Sprite uses a "say" block' }; // done
     }
 
     grade(fileObj, user) {
@@ -59,7 +59,6 @@ module.exports = class {
             }
         }
 
-
         // new
         for (let target of project.targets) {
             if (target.name === 'Left') {
@@ -68,25 +67,23 @@ module.exports = class {
                     if (target.blocks[block].opcode === 'looks_sayforsecs') {
                         newWordsLeft = target.blocks[block].inputs.MESSAGE[1][1];
                     }
-
                 }
             }
             if (target.name === 'Right') {
                 newCostumeRight = target.currentCostume;
                 for (let block in target.blocks) {
-                    let opcodesRight = [];
-                    opcodesRight.push(target.blocks[block].opcode);
+                
                     if (target.blocks[block].opcode === 'event_whenthisspriteclicked') {
                         if (target.blocks[block].next !== null) {
                             rightUsesClick = true;
                         }
                     }
-
-
-
-                    if ((opcodesRight.includes('looks_sayforsecs')) || (opcodesRight.includes('looks_say'))) {
-                        rightUsesSay = true;
-                    }
+                    if ((target.blocks[block].opcode === 'looks_sayforsecs') ||
+                     (target.blocks[block].opcode === 'looks_say')) {
+                         if (target.blocks[block].parent !== null) {
+                             rightUsesSay = true;
+                         }
+                     }
 
                 }
             }
@@ -94,22 +91,32 @@ module.exports = class {
             if (target.name === 'Middle') {
                 newCostumeMiddle = target.currentCostume;
                 for (let block in target.blocks) {
-                    let opcodesMiddle = [];
-                    opcodesMiddle.push(target.blocks[block].opcode);
-
+            
                     if (target.blocks[block].opcode === 'event_whenthisspriteclicked') {
+                        let nextBlock = target.blocks[block].next;
+                      
                         if (target.blocks[block].next !== null) {
-                            middleUsesClick = true;
+                           if (target.blocks[nextBlock].opcode !== "looks_gotofrontback") {
+                               let nextnextBlock = target.blocks[nextBlock].next;
+                               if (target.blocks[nextnextBlock].next !== null) {
+                                   middleUsesClick = true;
+                               }
+                           } 
+                           if(target.blocks[nextBlock].next !== null) {
+                               middleUsesClick = true;
+                           }
+                        
                         }
                     }
-
-                    if ((opcodesMiddle.includes('looks_sayforsecs')) || (opcodesMiddle.includes('looks_say'))) {
-                        middleUsesSay = true;
-                    }
+                    if ((target.blocks[block].opcode === 'looks_sayforsecs') ||
+                     (target.blocks[block].opcode === 'looks_say')) {
+                         if (target.blocks[block].parents !== null) {
+                             middleUsesSay = true;
+                         }
+                     }
                 }
             }
         }
-
 
         if (rightUsesClick) {
             this.requirements.usesClickRight.bool = true;
@@ -126,7 +133,7 @@ module.exports = class {
         if (middleUsesSay) {
             this.requirements.usesSayMiddle.bool = true;
         }
-
+        
         if (origCostumeLeft !== newCostumeLeft) {
             this.requirements.leftSpriteCostume.bool = true;
         }
