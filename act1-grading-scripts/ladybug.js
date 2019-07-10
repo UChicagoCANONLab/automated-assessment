@@ -91,10 +91,7 @@ module.exports = class {
 
         // creates a list of the opcodes attached to event when flag clicked from the original project
 
-        // if there is an eat aphid block in the script that means that it is as ladybug
-        // set is ladybug boolean to true
         for (let origTarget of original.targets) {
-//            var isLadybugBool = this.isLadybug(origTarget);
             if (origTarget.name === 'Ladybug1'  || this.isLadybug(origTarget)) {
                 for (let block in origTarget.blocks) {
                     if (origTarget.blocks[block].opcode === 'event_whenflagclicked') {
