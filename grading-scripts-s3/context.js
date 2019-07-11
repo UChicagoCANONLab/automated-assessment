@@ -14,8 +14,12 @@ global.Context = class {
 
     pull(keys, thresh, sum) {
         for (var key of keys) {
-            if (!sum) this[key] = this.sublayers.some(x => x[key] >= thresh);
-            else      this[key] = this.sublayers.reduce((acc = 0, x) => acc += x[key], 0) >= thresh;
+            if (!sum) {
+                this[key] = this.sublayers.some(x => x[key] >= thresh);
+            }
+            else {
+                this[key] = this.sublayers.reduce((acc = 0, x) => acc += x[key], 0) >= thresh;
+            }
         }
     }
 

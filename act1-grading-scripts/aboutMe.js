@@ -14,6 +14,10 @@ module.exports = class {
         this.requirements.hasOneSprite = { bool: false, str: 'Project has at least one sprite' };
         this.requirements.interactiveSprite = { bool: false, str: 'Project has at least one interactive sprite with a multi-block script attached' };
         this.requirements.nonInteractiveSprite = { bool: false, str: 'Proejct has at least one non-interactive sprite with a multi-block script attached to it' };
+        this.extensions.multipleSprites = { bool: false, str: 'This project uses more than one sprite' }; // done
+        this.extensions.additionalBackdrop = { bool: false, str: 'This project has an additional backdrop' };
+        this.extensions.movingSprites = { bool: false, str: 'This project has a moving sprite' };
+        this.extensions.hasBackgroundMusic = { bool: false, str: 'This project has background music' };
     }
 
     grade(fileObj, user) {
@@ -28,27 +32,46 @@ module.exports = class {
         let numSprites = project.sprites.length;
 
         for (let target of project.targets) {
-            for (let block in target.blocks) {
-                console.log(target.blocks[block].opcode)
-                if (target.blocks[block].opcode === "event_whenthisspriteclicked") {
-                    isInteractive = true;
-                    if (isInteractive) {
+            if (target.isStage) {
+                for (let cost in target.costumes) {
+                    if ((target.costumes.length > 1) || (cost.assetID !== "cd21514d0531fdffb22204e0ec5ed84a")) {
+                        this.extensions.additionalBackdrop.bool = true;
+                    }
+                }
+            }
+            else {
+                for (let block in target.blocks) {
+                    
+                    if (target.blocks[block].opcode === "event_whenthisspriteclicked") {
+
                         for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
                             scriptLengthInteractive++;
                         }
                         if (scriptLengthInteractive > 1) {
                             this.requirements.interactiveSprite.bool = true;
-                            break;
+                            
                         }
                     }
-                    else {
+
+                    else if (target.blocks[block].opcode === 'event_whenflagclicked') {
                         for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
-                            scriptLengthInteractive++;
+                            scriptLengthNotInteractive++;
                         }
-                        if (scriptLengthInteractive > 1) {
-                            this.requirements.interactiveSprite.bool = true;
-                            break;
-                        } 
+                        if (scriptLengthNotInteractive > 1) {
+                            this.requirements.nonInteractiveSprite.bool = true;
+                            
+                        }
+                    }
+
+                    else if ((target.blocks[block].opcode === 'motion_gotoxy') ||
+                    target.blocks[block].opcode === 'motion_glidesecstoxy' ||
+                    target.blocks[block].opcode === 'motion_movesteps') {
+                        this.extensions.movingSprites.bool = true;
+                    }
+
+                    else if ((target.blocks[block].opcode === 'sound_playuntildone') ||
+                    (target.blocks[block].opcode === 'sound_play')) {
+                        this.extensions.hasBackgroundMusic.bool = true;
                     }
                 }
             }
@@ -56,6 +79,10 @@ module.exports = class {
 
         if (numSprites >= 1) {
             this.requirements.hasOneSprite.bool = true;
+        }
+
+        if (numSprites > 1) {
+            this.extensions.multipleSprites.bool = true;
         }
 
     }
