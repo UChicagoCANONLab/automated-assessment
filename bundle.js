@@ -933,7 +933,7 @@ module.exports = class {
                                         var touchingObject = sprite.blocks[
                                             anyBlock.inputs.TOUCHINGOBJECTMENU[1]].fields.TOUCHINGOBJECTMENU[0];
                                         for (var anySprite of project.sprites) {
-                                            if (anySprite.name === touchingObject && anySprite.name !== 'Stop Sign') {
+                                            if (anySprite.name === touchingObject && !anySprite.name.includes('Stop')) {
                                                 script.context.carStops = 1;
                                             }
                                         }
