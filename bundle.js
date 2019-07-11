@@ -870,396 +870,117 @@ module.exports = class {
     }
 }
 },{"./scratch3":10}],3:[function(require,module,exports){
-/* Conditional Loops Autograder
-Scratch 2 (original) version: Max White, Summer 2018
-Scratch 3 updates: Elizabeth Crowdus, Spring 2019
-*/
+require('./scratch3');
 
-var sb3 = {
-    //null checker
-    no: function(x) { 
-        return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
-    },
+module.exports = class {
 
-    //retrieve a given sprite's blocks from JSON
-    //note: doesn't check whether or not blocks are properly attached
-    jsonToSpriteBlocks: function(json, spriteName) { 
-        if (this.no(json)) return []; //make sure script exists
+    init() {
+        this.requirements = {
+            changedCostume: { bool: false, str: 'Car\'s costume has been changed.'                 },
+            carStops:       { bool: false, str: 'Car stops at something other than the stop sign.' },
+            carTalks:       { bool: false, str: 'Car says something after it stops.'               },
+            changedSpeed:   { bool: false, str: 'Changed the speed of the car.'                    }
+        };
+        this.extensions =   {
+            otherSprites:   { bool: false, str: 'Added scripts to other sprites.'                  },
+            addedSound:     { bool: false, str: 'Car plays a sound.'                               }
+        };
+    }
 
-        var projInfo = json['targets'] //extract targets from JSON data
-        var allBlocks={};
-        var blocks={};
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i]['blocks'];
-            }
-        }
-        return [];
-    }, //done
-    
-    //retrieve a given sprite's info (not just blocks) from JSON
-    jsonToSprite: function(json, spriteName) { 
-        if (this.no(json)) return []; //make sure script exists
+    grade(json, user) {
+        this.init();
+        if (no(json)) return;
+        var project = new Project(json, this);
+        project.context.scriptCounts = [];
+        for (var sprite of project.sprites) {
+            project.context.scriptCounts.push(sprite.scripts.filter(
+                script => script.blocks.length > 1 && script.blocks[0].opcode.includes('event_when')).length);
+            for (var script of sprite.scripts.filter(script => script.blocks[0].opcode.includes('event_when'))) {
+                script.context.hasLooped = 0;
+                for (var block of script.blocks) {
 
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i];
-            }
-        }
-        return [];
-    }, //done
-    
-    //counts the number of non-background sprites in a project
-    countSprites: function(json){
-        if (this.no(json)) return false; //make sure script exists
-        
-        var numSprites = 0;
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['isStage'] == false){
-                numSprites ++;
-            }
-        }
-        return numSprites
-    },
-    
-    //looks through json to see if a sprite with a given name is present
-    //returns sprite
-    returnSprite: function(json, spriteName){ 
-        if (this.no(json)) return; //make sure script exists
+                    /// Look for the loop
+                    if (block.opcode === 'control_repeat_until' && is(block.subScripts())) {
 
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i];
-            }
-        }
-        return ;
-    }, //done
-    
-    //looks through json to see if a sprite with a given name is present
-    //returns true if sprite with given name found
-    findSprite: function(json, spriteName){ 
-        if (this.no(json)) return false; //make sure script exists
+                        /// Check loop body
+                        script.context.hasLooped = 1;
+                        block.context.includesMove = 0;
+                        block.context.includesWait = 0;
+                        for (var subBlock of block.subScripts()[0].blocks) {
+                            if (subBlock.opcode === 'motion_movesteps') {
+                                block.context.includesMove = 1;
+                                if (parseFloat(subBlock.inputs.STEPS[1][1]) !== 10) {
+                                    script.context.changedSpeed = 1;
+                                }
+                            }
+                            if (subBlock.opcode === 'control_wait') {
+                                block.context.includesWait = 1;
+                                if (parseFloat(subBlock.inputs.DURATION[1][1]) !== 0.1) {
+                                    script.context.changedSpeed = 1;
+                                }
+                            }
+                        }
+                        if (block.context.includesMove && !block.context.includesWait) {
+                            script.context.changedSpeed = 1;
+                        }
 
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return true;
-            }
-        }
-        return false;
-    }, //done
-    
-    //returns list of block ids given a set of blocks
-    findBlockIDs: function(blocks, opcode){
-        if(this.no(blocks) || blocks == {}) return [];
-        
-        var blockids = [];
-        
-        for(block in blocks){ 
-            if(blocks[block]['opcode'] == opcode){
-                blockids.push(block);
-            }
-        }
-        return blockids;
-    },
-    
-    //given particular key, returns list of block ids of a certain kind of key press given a set of blocks 
-    findKeyPressID: function(blocks, key){
-        if(this.no(blocks) || blocks == {}) return [];
-        
-        var blockids = [];
-        
-        for(block in blocks){ 
-            if(blocks[block]['opcode'] == 'event_whenkeypressed'){
-                if(blocks[block]['fields']['KEY_OPTION'][0] == key){
-                    blockids.push(block);
-                }
-            }
-        }
-        return blockids;
-    },
-    
-    opcodeBlocks: function(script, myOpcode) { //retrieve blocks with a certain opcode from a script list of blocks
-        if (this.no(script)) return [];
-        
-        var miniscript = [];
-
-        for(block in script){
-            if(script[block]['opcode'] == myOpcode){
-                miniscript.push(script[block]);
-            }
-        }
-        return miniscript;
-    }, 
-    
-    opcode: function(block) { //retrives opcode from a block object 
-        if (this.no(block)) return "";
-        return block['opcode'];
-    }, 
-    
-    countBlocks: function(blocks,opcode){ //counts number of blocks with a given opcode
-        var total = 0;
-		for(id in blocks){ 
-            if([blocks][id]['opcode'] == opcode){
-                total = total + 1;
-            }
-        }
-        return total;
-    }, //done
-    
-    //(recursive) helper function to extract blocks inside a given loop
-    //works like makeScript except it only goes down the linked list (rather than down & up)
-    loopExtract: function(blocks, blockID){
-        if (this.no(blocks) || this.no(blockID)) return [];
-        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
-        
-        var curBlockID = blockID;
-        var script = [];
-
-        //Find all blocks that come after
-        curBlockID = blockID //Initialize with blockID of interest
-        while(curBlockID != null){
-            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-            script.push(curBlockInfo); //Add the block itself to the script dictionary                
-
-            opcode = curBlockInfo['opcode'];
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.makeScript(blocks, innerloop)
-                    for(b in nested_blocks){
-                        script.push(nested_blocks[b])
+                        /// Check stop condition
+                        if (is(block.inputs.CONDITION)) {
+                            for (var anyBlock_ in sprite.blocks) {
+                                if (anyBlock_ === block.inputs.CONDITION[1]) {
+                                    var anyBlock = sprite.blocks[anyBlock_];
+                                    if (is(anyBlock.inputs.TOUCHINGOBJECTMENU)) {
+                                        var touchingObject = sprite.blocks[
+                                            anyBlock.inputs.TOUCHINGOBJECTMENU[1]].fields.TOUCHINGOBJECTMENU[0];
+                                        for (var anySprite of project.sprites) {
+                                            if (anySprite.name === touchingObject && !anySprite.name.includes('Stop')) {
+                                                script.context.carStops = 1;
+                                            }
+                                        }
+                                    }
+                                    else if (anyBlock.opcode === 'sensing_touchingcolor') {
+                                        script.context.carStops = 1;
+                                    }
+                                }
+                            }
+                        }
                     }
-                }
-            }
-            
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-		
-            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
-            if((nextID == null) && (event_opcodes.includes(opcode))){
-                return [];
-            }
-            //Iterate: Set next to curBlock
-            curBlockID = nextID;
-        }     
-        return script;        
-    },
-    
-    //given list of blocks and a keyID of a block, return a script
-    makeScript: function(blocks, blockID){
-        if (this.no(blocks) || this.no(blockID)) return [];
-        event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
-        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
-        
-        var curBlockID = blockID;
-        var script = [];
-    
-        //find all blocks that come before
-        while(curBlockID != null){
-            var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-            script.push(curBlockInfo); //Add the block itself to the script dictionary 
-        
-            //parentInfo = blocks[parentID]
-    		var opcode = curBlockInfo['opcode'];
 
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.loopExtract(blocks, innerloop)
-                    for(b in nested_blocks){
-                        script.push(nested_blocks[b])
+                    /// Check what happens outside the loop
+                    if (script.context.hasLooped &&
+                        (block.opcode.includes('looks_say') || block.opcode.includes('looks_think'))) {
+                        script.context.carTalks = 1;
                     }
-                }
-            }
-            //Get parent info out
-            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
-            
-            //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
-            if ((parentID == null) && !(event_opcodes.includes(opcode))){
-                return [];
-            }
-
-            //Iterate: set parent to curBlock
-            curBlockID = parentID
-        }
-
-        //find all blocks that come after
-        curBlockID = blocks[blockID]['next']
-        while(curBlockID != null){
-            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-
-            //nextInfo = blocks[nextID]
-            opcode = curBlockInfo['opcode'];
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.loopExtract(blocks, innerloop)
-                    for(b in nested_blocks){                            
-                        script.push(nested_blocks[b])
+                    if (block.opcode.includes('sound_play')) {
+                        script.context.addedSound = 1;
                     }
+                }    
+            }
+            var costumeNames = sprite.costumes.map(costume => costume.name);
+            var isCar = false;
+            for (var costumeName of costumeNames) {
+                if (['SUV', 'Cooper', 'Sedan', 'Bug'].includes(costumeName) || sprite.name === 'Car') {
+                    isCar = true;
                 }
             }
-            
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-		
-            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
-            if((nextID == null) && (event_opcodes.includes(opcode))){
-                return [];
+            if (isCar) {
+                var costumeName = sprite.costumes[sprite.currentCostume].name;
+                sprite.context.changedCostume = costumeName !== 'Sedan';
             }
-            script.push(curBlockInfo); //Add the block itself to the script dictionary                
-            //Iterate: Set next to curBlock
-            curBlockID = nextID;
+            sprite.context.pull(['carStops', 'carTalks', 'changedSpeed', 'addedSound'], 1, false);
         }
-        return script;
+        project.context.scriptCounts.sort((a, b) => a - b);
+        project.context.otherSprites = (
+            project.context.scriptCounts[0] > 0 ||
+            project.context.scriptCounts[1] > 1 ||
+            project.context.scriptCounts[2] > 1 ||
+            project.context.scriptCounts[3] > 2
+        )
+        project.context.pull(['changedCostume', 'carStops', 'carTalks', 'changedSpeed', 'addedSound'], 1, false);
+        project.context.makeGrade(this);
     }
-};
-
-class GradeCondLoops {
-
-    constructor() {
-        this.requirements = {}
-        this.extensions = {}
-    }
-
-    initReqs() {
-        this.requirements.newCostume    = 
-            {bool:false, str:'Chose a different car costume.'};
-        this.requirements.carStop       =
-            {bool:false, str:'Car stops at Libby, yellow line, white line, or purple line.'};
-        this.requirements.saySomething  = 
-            {bool:false, str:'Car says something after stopping.'};
-        this.requirements.changeSpeed   = 
-            {bool:false, str:'Changed car speed.'};
-        /* TODO
-        this.extensions.otherSprites    =   
-            {bool:false, str:'Other sprites perform actions when the car stops.'};*/
-        this.extensions.carSound        = 
-            {bool:false, str:'Car makes a sound.'};
-    }
-
-    grade(fileObj, user) {
-        this.initReqs()
-        
-        var car  = sb3.jsonToSpriteBlocks(fileObj, 'Car'); 
-        this.checkCostume(fileObj); 
-        this.checkStopandSay(car);
-        
-        this.checkSound(car);
-        var stop = sb3.jsonToSpriteBlocks(fileObj, 'Stop');
-        var darian = sb3.jsonToSpriteBlocks(fileObj, 'Darian');
-        var libby = sb3.jsonToSpriteBlocks(fileObj, 'Libby');
-        
-    }
-
-    /// Checks that a different costume was chosen for the Car sprite.
-    checkCostume(fileObj) {
-        var carinfo = sb3.returnSprite(fileObj, 'Car'); //find sprite object
-        if(!carinfo) return;
-        var curindex = carinfo['currentCostume']; //find index of current costume
-        if(carinfo['costumes'][curindex]['name'] != 'Sedan'){ //checks to see if current costume was changed
-            this.requirements.newCostume.bool = true;
-        }
-    }
-
-    /// Checks that speed was changed (requirement).
-    checkSpeed(car, currid) {
-        
-        var curr = car[currid]
-        
-        while(curr != null){
-            //check if wait time changed
-            if(curr['opcode'] == 'control_wait'){
-                if(curr['inputs']['DURATION'][1][1] != '0.1'){
-                        this.requirements.changeSpeed.bool = true;
-                }
-            }
-            //check if changed number of steps
-            else if(curr['opcode'] == 'motion_movesteps'){
-                if(curr['inputs']['STEPS'][1][1] != '10'){
-                        this.requirements.changeSpeed.bool = true;
-                } 
-            }
-            
-            //iterate through substack
-            curr = car[curr['next']]
-        }
-
-    }
-
-    /// Checks for car sound (extension).
-    checkSound(car) {
-        var sound1 = sb3.findBlockIDs(car, 'sound_play')
-        var sound2 = sb3.findBlockIDs(car, 'sound_playuntildone')
-        
-        if(sound1.length != 0 || sound2.length != 0){
-            this.extensions.carSound.bool = true;
-        }
-    }
-
-    /// Check for stop condition (requirement).
-    checkStopandSay(car) {
-        var events_list = ['control_whenflagclicked', 'event_whenkeypressed','event_whenbroadcastreceived'];
-        var speak_list = ['looks_say', 'looks_sayforsecs', 'looks_think', 'looks_thinkforsecs'];
-        
-        var repeats = sb3.findBlockIDs(car, 'control_repeat_until')
-        
-        for(i in repeats){
-            
-            //check stop
-            var condition = car[repeats[i]]['inputs']['CONDITION'][1] //extract repeat until condition
-            var condop = car[condition]['opcode'];
-            
-            //check whether speed was changed
-            this.checkSpeed(car, car[repeats[i]]['inputs']['SUBSTACK'][1]);
-            
-            if(condop == 'sensing_touchingobject'){
-                var objkey = car[condition]['inputs']['TOUCHINGOBJECTMENU'][1] //extract key of object
-                var obj = car[objkey]['fields']['TOUCHINGOBJECTMENU'][0] //extract name of object
-                if(obj == 'Libby'){
-                    this.requirements.carStop.bool = true;
-                }
-            }
-            else if(condop == 'sensing_touchingcolor'){
-                var color = car[condition]['inputs']['COLOR'][1][1] //extract key of object
-                if(color == '#ffd208' || color == '#a52cff' || color == '#ffffff'){ //purple, yellow, white line color
-                    this.requirements.carStop.bool = true;
-                } 
-            }
-            
-            //check say
-            var next = car[repeats[i]]['next'] //find next block after repeat_until block
-            if(next != null){
-                if(speak_list.includes(car[next]['opcode'])){
-                    this.requirements.saySomething.bool = true;
-                }
-            }
-        }
-
-    }
-
 }
-module.exports = GradeCondLoops;
-},{}],4:[function(require,module,exports){
+},{"./scratch3":10}],4:[function(require,module,exports){
 (function (global){
 /// Info layer template
 global.Context = class {
@@ -1277,8 +998,12 @@ global.Context = class {
 
     pull(keys, thresh, sum) {
         for (var key of keys) {
-            if (!sum) this[key] = this.sublayers.some(x => x[key] >= thresh);
-            else      this[key] = this.sublayers.reduce((acc = 0, x) => acc += x[key], 0) >= thresh;
+            if (!sum) {
+                this[key] = this.sublayers.some(x => x[key] >= thresh);
+            }
+            else {
+                this[key] = this.sublayers.reduce((acc = 0, x) => acc += x[key], 0) >= thresh;
+            }
         }
     }
 
@@ -2856,6 +2581,7 @@ global.no = function(x) {
 global.Block = class {
     constructor(target, block) {
         Object.assign(this, target.blocks[block]);
+        this.id = block;
         this.context = new Context(target.context, false);
         this.target = target;
     }
@@ -3343,7 +3069,7 @@ var graders = {
   animationL2:     { name: 'Animation L2',           file: require('./grading-scripts-s3/animation-L2')      },
   eventsL1:        { name: 'Events L1',              file: require('./grading-scripts-s3/events-L1')         },
   eventsL2:        { name: 'Events L2',              file: require('./grading-scripts-s3/events-L2')         },
-  condLoops:       { name: 'Conditional Loops L1',   file: require('./grading-scripts-s3/cond-loops')        },
+  condLoopsL1:     { name: 'Conditional Loops L1',   file: require('./grading-scripts-s3/cond-loops-L1')        },
   decompL1:        { name: 'Decomp. by Sequence L1', file: require('./grading-scripts-s3/decomp-L1')         },
   oneWaySyncL1:    { name: 'One-Way Sync L1',        file: require('./grading-scripts-s3/one-way-sync-L1')   },
   oneWaySyncL2:    { name: 'Two-Way Sync L2',        file: require('./grading-scripts-s3/two-way-sync-L2')   },
@@ -3706,4 +3432,4 @@ function noError() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-},{"./grading-scripts-s3/animation-L1":1,"./grading-scripts-s3/animation-L2":2,"./grading-scripts-s3/cond-loops":3,"./grading-scripts-s3/decomp-L1":5,"./grading-scripts-s3/events-L1":6,"./grading-scripts-s3/events-L2":7,"./grading-scripts-s3/one-way-sync-L1":8,"./grading-scripts-s3/scratch-basics-L1":9,"./grading-scripts-s3/two-way-sync-L2":11}]},{},[12]);
+},{"./grading-scripts-s3/animation-L1":1,"./grading-scripts-s3/animation-L2":2,"./grading-scripts-s3/cond-loops-L1":3,"./grading-scripts-s3/decomp-L1":5,"./grading-scripts-s3/events-L1":6,"./grading-scripts-s3/events-L2":7,"./grading-scripts-s3/one-way-sync-L1":8,"./grading-scripts-s3/scratch-basics-L1":9,"./grading-scripts-s3/two-way-sync-L2":11}]},{},[12]);

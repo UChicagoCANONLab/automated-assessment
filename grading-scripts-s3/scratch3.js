@@ -15,6 +15,7 @@ global.no = function(x) {
 global.Block = class {
     constructor(target, block) {
         Object.assign(this, target.blocks[block]);
+        this.id = block;
         this.context = new Context(target.context, false);
         this.target = target;
     }
