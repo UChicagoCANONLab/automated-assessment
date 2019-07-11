@@ -876,14 +876,14 @@ module.exports = class {
 
     init() {
         this.requirements = {
-            changedCostume: { bool: false, str: 'Car\'s costume has been changed.'                        },
-            carStops:       { bool: false, str: 'Car stops at Libby, the yellow line, or the white line.' },
-            carTalks:       { bool: false, str: 'Car says something after it stops.'                      },
-            changedSpeed:   { bool: false, str: 'Changed the speed of the car.'                           }
+            changedCostume: { bool: false, str: 'Car\'s costume has been changed.'                 },
+            carStops:       { bool: false, str: 'Car stops at something other than the stop sign.' },
+            carTalks:       { bool: false, str: 'Car says something after it stops.'               },
+            changedSpeed:   { bool: false, str: 'Changed the speed of the car.'                    }
         };
         this.extensions =   {
-            otherSprites:   { bool: false, str: 'Added scripts to other sprites.'                         },
-            addedSound:     { bool: false, str: 'Car plays a sound.'                                      }
+            otherSprites:   { bool: false, str: 'Added scripts to other sprites.'                  },
+            addedSound:     { bool: false, str: 'Car plays a sound.'                               }
         };
     }
 
@@ -3069,7 +3069,7 @@ var graders = {
   animationL2:     { name: 'Animation L2',           file: require('./grading-scripts-s3/animation-L2')      },
   eventsL1:        { name: 'Events L1',              file: require('./grading-scripts-s3/events-L1')         },
   eventsL2:        { name: 'Events L2',              file: require('./grading-scripts-s3/events-L2')         },
-  condLoops:       { name: 'Conditional Loops L1',   file: require('./grading-scripts-s3/cond-loops-L1')        },
+  condLoopsL1:     { name: 'Conditional Loops L1',   file: require('./grading-scripts-s3/cond-loops-L1')        },
   decompL1:        { name: 'Decomp. by Sequence L1', file: require('./grading-scripts-s3/decomp-L1')         },
   oneWaySyncL1:    { name: 'One-Way Sync L1',        file: require('./grading-scripts-s3/one-way-sync-L1')   },
   oneWaySyncL2:    { name: 'Two-Way Sync L2',        file: require('./grading-scripts-s3/two-way-sync-L2')   },

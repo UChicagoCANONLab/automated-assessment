@@ -4,14 +4,14 @@ module.exports = class {
 
     init() {
         this.requirements = {
-            changedCostume: { bool: false, str: 'Car\'s costume has been changed.'                        },
-            carStops:       { bool: false, str: 'Car stops at Libby, the yellow line, or the white line.' },
-            carTalks:       { bool: false, str: 'Car says something after it stops.'                      },
-            changedSpeed:   { bool: false, str: 'Changed the speed of the car.'                           }
+            changedCostume: { bool: false, str: 'Car\'s costume has been changed.'                 },
+            carStops:       { bool: false, str: 'Car stops at something other than the stop sign.' },
+            carTalks:       { bool: false, str: 'Car says something after it stops.'               },
+            changedSpeed:   { bool: false, str: 'Changed the speed of the car.'                    }
         };
         this.extensions =   {
-            otherSprites:   { bool: false, str: 'Added scripts to other sprites.'                         },
-            addedSound:     { bool: false, str: 'Car plays a sound.'                                      }
+            otherSprites:   { bool: false, str: 'Added scripts to other sprites.'                  },
+            addedSound:     { bool: false, str: 'Car plays a sound.'                               }
         };
     }
 
