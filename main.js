@@ -13,6 +13,26 @@ var graders = {
   oneWaySyncL2:    { name: 'Two-Way Sync L2',        file: require('./grading-scripts-s3/two-way-sync-L2')   },
 };
 
+// act 1 graders
+var actOneGraders = {
+  namePoem:       { name: 'Name Poem',               file: require('./act1-grading-scripts/name-poem')       },
+  ladybug:        { name: 'Ladybug Challenge',       file: require('./act1-grading-scripts/ladybug')         },
+  fiveBlockChallenge: { name: 'Five Block Challenge', file: require('./act1-grading-scripts/5-block-challenge')},
+  ofrenda:       { name: 'Ofrenda',                  file: require('./act1-grading-scripts/ofrenda')         },
+  aboutMe:        { name: 'About Me',                file: require('./act1-grading-scripts/aboutMe')          },
+  buildABand:     { name: 'Build A Band',            file: require('./act1-grading-scripts/build-a-band')     },
+  finalProject:   { name: 'Interactive Story',       file: require('./act1-grading-scripts/final-project')    },
+};
+
+var allGraders = {};
+for (var graderKeyList of [graders, actOneGraders]) {
+  for (var graderKey in graderKeyList) {
+    allGraders[graderKey] = graderKeyList[graderKey];
+  }
+}
+
+
+
 /// Globals
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -55,6 +75,22 @@ window.fillUnitsHTML = function() {
   document.getElementById("unitsHTML").innerHTML = HTMLString;
 }
 
+/////////////// grader function for act 1 ////////////////////
+window.fillUnitsHTMLAct1= function() {
+  var HTMLString = '';
+  for (var graderKey in actOneGraders) {
+    HTMLString += '<a onclick="drop_handler(\'' + graderKey + '\')" class = unitselector>'
+    HTMLString += '<label class = "unitlabel">';
+    HTMLString += '<img src="pictures/' + graderKey + '.png">';
+    HTMLString += actOneGraders[graderKey].name;
+    HTMLString += '</label> </a>';
+  }
+  document.getElementById("unitsHTML").innerHTML = HTMLString;
+}
+////////////// grader function for act 1 ////////////////////
+
+
+
 /* Initializes html and initiates crawler. */
 window.buttonHandler = async function() {
   if (IS_LOADING) return;
@@ -96,8 +132,8 @@ $(document).ready(function(){
 });
 
 window.drop_handler = function(graderKey) {
-  gradeObj = new graders[graderKey].file;
-  console.log("Selected " + graders[graderKey].name);
+  gradeObj = new allGraders[graderKey].file;
+  console.log("Selected " + allGraders[graderKey].name);
 }
 
 window.onclick = function(event) {
