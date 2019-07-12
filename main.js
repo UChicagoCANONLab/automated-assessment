@@ -13,6 +13,19 @@ var graders = {
   oneWaySyncL2:    { name: 'Two-Way Sync L2',        file: require('./grading-scripts-s3/two-way-sync-L2')   },
 };
 
+// act 1 graders
+var actOneGraders = {
+  namePoem:       { name: 'Name Poem',               file: require('./act1-grading-scripts/name-poem')       },
+  ladybug:        { name: 'Ladybug Challenge',       file: require('./act1-grading-scripts/ladybug')         },
+  fiveBlockChallenge: { name: 'Five Block Challenge', file: require('./act1-grading-scripts/5-block-challenge')},
+  eventsL1:       { name: 'Ofrenda',                  file: require('./act1-grading-scripts/ofrenda')         },
+  aboutMe:        { name: 'About Me',                file: require('./act1-grading-scripts/aboutMe')          },
+  buildABand:     { name: 'Build A Band',            file: require('./act1-grading-scripts/build-a-band')     },
+  finalProject:   { name: 'Interactive Story',       file: require('./act1-grading-scripts/final-project')    },
+};
+
+
+
 /// Globals
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -54,6 +67,20 @@ window.fillUnitsHTML = function() {
   }
   document.getElementById("unitsHTML").innerHTML = HTMLString;
 }
+
+/////////////// grader function for act 1 ////////////////////
+window.fillUnitsHTMLAct1= function() {
+  var HTMLString = '';
+  for (var graderKey in actOneGraders) {
+    HTMLString += '<a onclick="drop_handler(\'' + graderKey + '\')" class = unitselector>'
+    HTMLString += '<label class = "unitlabel">';
+    HTMLString += '<img src="pictures/' + graderKey + '.png">';
+    HTMLString += graders[graderKey].name;
+    HTMLString += '</label> </a>';
+  }
+  document.getElementById("unitsHTML").innerHTML = HTMLString;
+}
+////////////// grader function for act 1 ////////////////////
 
 /* Initializes html and initiates crawler. */
 window.buttonHandler = async function() {
