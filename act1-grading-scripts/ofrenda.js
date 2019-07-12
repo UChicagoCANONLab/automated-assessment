@@ -11,6 +11,15 @@ module.exports = class {
     }
 
     initReqs() {
+        // new requirements
+        // do all three sprites have different costumes
+        // do all three sprites use the say block
+        // are 2/3 sprites interactive 
+        // new extensions
+        // is there a play sound until block
+        // is there a go to xy block
+        // is there a when this key pressed block in script 
+
         this.requirements.leftSpriteSpeak = { bool: false, str: 'What the Left Sprite says has been changed' }; // done
         this.requirements.leftSpriteCostume = { bool: false, str: 'The costume of the Left Sprite has been changed' }; // done
         this.requirements.rightChanged = { bool: false, str: 'The costumes of the Right Sprite has been changed' }; // done
@@ -19,9 +28,9 @@ module.exports = class {
         this.requirements.usesClickMiddle = { bool: false, str: 'The Middle Sprite uses the "when this sprite clicked" block' }; // done
         this.requirements.usesSayRight = { bool: false, str: 'The Right Sprite uses a "say" block' }; // done
         this.requirements.usesSayMiddle = { bool: false, str: 'The Middle Sprite uses a "say" block' }; // done
-        this.extensions.usesPlaySoundUntilDone = {bool: true, str: 'The project uses the "Play Sound Until" block in a script'};
-        this.extensions.usesGotoXY = {bool: true, str: 'The project uses the "Go to XY" block in a script'};
-        this.extensions.keyCommand= {bool: true, str: 'The project uses a "when "key" pressed" block in a script'};
+        this.extensions.usesPlaySoundUntilDone = { bool: false, str: 'The project uses the "Play Sound Until" block in a script' };
+        this.extensions.usesGotoXY = { bool: false, str: 'The project uses the "Go to XY" block in a script' };
+        this.extensions.keyCommand = { bool: false, str: 'The project uses a "when "key" pressed" block in a script' };
     }
 
     grade(fileObj, user) {
@@ -68,28 +77,46 @@ module.exports = class {
         // new
         for (let target of project.targets) {
             if (target.name === 'Left') {
-               
+
                 newCostumeLeft = target.currentCostume;
                 for (let block in target.blocks) {
                     if (target.blocks[block].opcode === 'looks_sayforsecs') {
                         newWordsLeft = target.blocks[block].inputs.MESSAGE[1][1];
                     }
                     if (target.blocks[block].opcode === 'looks_changesizeby') {
-                        leftSizeChanges = true;
+
+                        // make sure that it is not the same as the original
+                        let nextTemp = target.blocks[block].next;
+                        if (nextTemp !== null) {
+                            if (target.blocks[nextTemp].inputs.MESSAGE[1][1] !== 'I am Grandpa John.') {
+                                leftSizeChanges = true;
+                            }
+                        }
                     }
+
                     if (target.blocks[block].opcode === 'sound_playuntildone') {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             this.extensions.usesPlaySoundUntilDone.bool = false;
+                        }
+                        else {
+                            this.extensions.usesPlaySoundUntilDone.bool = true;
                         }
                     }
                     if (target.blocks[block].opcode === 'motion_gotoxy') {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             this.extensions.usesGotoXY.bool = false;
                         }
+                        else {
+                            this.extensions.usesGotoXY.bool = true;
+                        }
                     }
                     if (target.blocks[block].opcode === 'event_whenkeypressed') {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             this.extensions.usesGotoXY.bool = false;
+                        }
+                        else {
+                            this.extensions.usesGotoXY.bool = true;
+
                         }
                     }
                 }
@@ -97,37 +124,46 @@ module.exports = class {
             if (target.name === 'Right') {
                 newCostumeRight = target.currentCostume;
                 for (let block in target.blocks) {
-                
+
                     if (target.blocks[block].opcode === 'event_whenthisspriteclicked') {
                         if (target.blocks[block].next !== null) {
                             rightUsesClick = true;
                         }
                     }
                     if ((target.blocks[block].opcode === 'looks_sayforsecs') ||
-                     (target.blocks[block].opcode === 'looks_say')) {
-                         if (target.blocks[block].parent !== null) {
-                             rightUsesSay = true;
-                         }
-                     }
-                     if (target.blocks[block].opcode === 'looks_changesizeby') {
+                        (target.blocks[block].opcode === 'looks_say')) {
+                        if (target.blocks[block].parent !== null) {
+                            rightUsesSay = true;
+                        }
+                    }
+                    if (target.blocks[block].opcode === 'looks_changesizeby') {
                         rightSizeChanges = true;
                     }
                     if (target.blocks[block].opcode === 'sound_playuntildone') {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             this.extensions.usesPlaySoundUntilDone.bool = false;
                         }
+                        else {
+                            this.extensions.usesPlaySoundUntilDone.bool = true;
+
+                        }
                     }
                     if (target.blocks[block].opcode === 'motion_gotoxy') {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             this.extensions.usesGotoXY.bool = false;
                         }
+                        else {
+                            this.extensions.usesGotoXY.bool = true;
+
+                        }
                     }
                     if (target.blocks[block].opcode === 'event_whenkeypressed') {
-                        console.log('in right when key is pressed') 
-                        console.log(target.blocks[block].next);
-                        console.log(target.blocks[block].parent)
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             this.extensions.usesGotoXY.bool = false;
+                        }
+                        else {
+                            this.extensions.usesGotoXY.bool = true;
+
                         }
                     }
 
@@ -137,45 +173,56 @@ module.exports = class {
             if (target.name === 'Middle') {
                 newCostumeMiddle = target.currentCostume;
                 for (let block in target.blocks) {
-            
+
                     if (target.blocks[block].opcode === 'event_whenthisspriteclicked') {
                         let nextBlock = target.blocks[block].next;
-                      
+
                         if (target.blocks[block].next !== null) {
-                           if (target.blocks[nextBlock].opcode !== "looks_gotofrontback") {
-                               let nextnextBlock = target.blocks[nextBlock].next;
-                               if (target.blocks[nextnextBlock].next !== null) {
-                                   middleUsesClick = true;
-                               }
-                           } 
-                           if(target.blocks[nextBlock].next !== null) {
-                               middleUsesClick = true;
-                           }
-                        
+                            if (target.blocks[nextBlock].opcode !== "looks_gotofrontback") {
+                                let nextnextBlock = target.blocks[nextBlock].next;
+                                if (target.blocks[nextnextBlock].next !== null) {
+                                    middleUsesClick = true;
+                                }
+                            }
+                            if (target.blocks[nextBlock].next !== null) {
+                                middleUsesClick = true;
+                            }
+
                         }
                     }
                     if ((target.blocks[block].opcode === 'looks_sayforsecs') ||
-                     (target.blocks[block].opcode === 'looks_say')) {
-                         if (target.blocks[block].parents !== null) {
-                             middleUsesSay = true;
-                         }
-                     }
-                     if (target.blocks[block].opcode === 'looks_changesizeby') {
+                        (target.blocks[block].opcode === 'looks_say')) {
+                        if (target.blocks[block].parents !== null) {
+                            middleUsesSay = true;
+                        }
+                    }
+                    if (target.blocks[block].opcode === 'looks_changesizeby') {
                         middleSizeChanges = true;
                     }
                     if (target.blocks[block].opcode === 'sound_playuntildone') {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             this.extensions.usesPlaySoundUntilDone.bool = false;
                         }
+                        else {
+                            this.extensions.usesPlaySoundUntilDone.bool = true;
+
+                        }
                     }
                     if (target.blocks[block].opcode === 'motion_gotoxy') {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             this.extensions.usesGotoXY.bool = false;
                         }
+                        else {
+                            this.extensions.usesGotoXY.bool = true;
+                        }
                     }
                     if (target.blocks[block].opcode === 'event_whenkeypressed') {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             this.extensions.usesGotoXY.bool = false;
+                        }
+                        else {
+                            this.extensions.usesGotoXY.bool = true;
+
                         }
                     }
                 }
@@ -197,7 +244,7 @@ module.exports = class {
         if (middleUsesSay) {
             this.requirements.usesSayMiddle.bool = true;
         }
-        
+
         if (origCostumeLeft !== newCostumeLeft || leftSizeChanges) {
             this.requirements.leftSpriteCostume.bool = true;
         }

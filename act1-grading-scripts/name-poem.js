@@ -119,7 +119,6 @@ module.exports = class {
                 v = util.inspect(v);
                 w = util.inspect(w);
 
-                //||(v.includes('{}'))
 
                 if (v === w) {
                     inDIANE = true;
