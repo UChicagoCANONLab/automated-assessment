@@ -72,6 +72,7 @@ module.exports = class {
                 }
                 this.requirements.backdrop.bool = newBackdrop;
             } else {
+                mapProject.set(target.name, target.blocks);
 
                 //checking scripts
                 for (let block in target.blocks) {
@@ -105,7 +106,6 @@ module.exports = class {
                     }
                 }
 
-                mapProject.set(target.name, target.blocks);
             }
         }
 
