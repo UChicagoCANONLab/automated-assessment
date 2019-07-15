@@ -11,23 +11,9 @@ module.exports = class {
     }
 
     initReqs() {
-        // new requirements
-        // do all three sprites have different costumes
-        // do all three sprites use the say block
-        // are 2/3 sprites interactive 
-        // new extensions
-        // is there a play sound until block
-        // is there a go to xy block
-        // is there a when this key pressed block in script 
-
-        this.requirements.leftSpriteSpeak = { bool: false, str: 'What the Left Sprite says has been changed' }; // done
-        this.requirements.leftSpriteCostume = { bool: false, str: 'The costume of the Left Sprite has been changed' }; // done
-        this.requirements.rightChanged = { bool: false, str: 'The costumes of the Right Sprite has been changed' }; // done
-        this.requirements.middleChanged = { bool: false, str: 'The costumes of the Middle Sprite has been changed' }; // done
-        this.requirements.usesClickRight = { bool: false, str: 'The Right Sprite uses the "when this sprite clicked" block' }; // done
-        this.requirements.usesClickMiddle = { bool: false, str: 'The Middle Sprite uses the "when this sprite clicked" block' }; // done
-        this.requirements.usesSayRight = { bool: false, str: 'The Right Sprite uses a "say" block' }; // done
-        this.requirements.usesSayMiddle = { bool: false, str: 'The Middle Sprite uses a "say" block' }; // done
+        this.requirements.newCostumes = {bool: false, str: 'All three sprites have new costumes'};
+        this.requirements.speaking = {bool: false, str: 'All three sprites use the say block'};
+        this.requirements.interactive = {bool: false, str: '2/3 sprites are interactive'};
         this.extensions.usesPlaySoundUntilDone = { bool: false, str: 'The project uses the "Play Sound Until" block in a script' };
         this.extensions.usesGotoXY = { bool: false, str: 'The project uses the "Go to XY" block in a script' };
         this.extensions.keyCommand = { bool: false, str: 'The project uses a "when "key" pressed" block in a script' };
@@ -56,15 +42,14 @@ module.exports = class {
         let rightSizeChanges = false;
         let middleSizeChanges = false;
 
-        // original
+        // gets the costumes from the original project 
+        var oldCostumes = [];
         for (let origTarget of original.targets) {
             if (origTarget.name === 'Left') {
+                
                 origCostumeLeft = origTarget.currentCostume;
-                for (let block in origTarget.blocks) {
-                    if (origTarget.blocks[block].opcode === 'looks_sayforsecs') {
-                        oldWordsLeft = origTarget.blocks[block].inputs.MESSAGE[1][1];
-                    }
-                }
+             
+               
             }
             if (origTarget.name === 'Right') {
                 origCostumeRight = origTarget.currentCostume;
@@ -76,6 +61,10 @@ module.exports = class {
 
         // new
         for (let target of project.targets) {
+            if (target.isStage) {continue;}
+            else {
+
+            }
             if (target.name === 'Left') {
 
                 newCostumeLeft = target.currentCostume;

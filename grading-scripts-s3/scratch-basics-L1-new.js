@@ -11,9 +11,9 @@ module.exports = class {
     }
 
     initReqs() {
-        this.requirements.changeFredSteps = {bool: false, str: 'The number of steps Fred takes is changed to 100.'};
-        this.requirements.addSayBlock = {bool: false, str: 'Fred the user tells the user to "Have fun!"'};
-        this.requirements.increaseWaitTime = {bool: false, str: 'The wait time between costume changes is increased'};
+        this.requirements.changeFredSteps = { bool: false, str: 'The number of steps Fred takes is changed to 100.' };
+        this.requirements.addSayBlock = { bool: false, str: 'Fred the user tells the user to "Have fun!"' };
+        this.requirements.increaseWaitTime = { bool: false, str: 'The wait time between costume changes is increased' };
     }
 
     grade(fileObj, user) {
@@ -40,25 +40,56 @@ module.exports = class {
             else {
                 for (let block in target.blocks) {
                     if (target.blocks[block].opcode === 'motion_movesteps') {
-                        let steps = target.blocks[block].inputs.STEPS[1][1];
+                        let steps = (target.blocks[block].inputs.STEPS[1][1]).toString();
                         if (steps === (100).toString()) {
                             this.requirements.changeFredSteps.bool = true;
                         }
                     }
-                    if (target.blocks[block].opcode === 'looks_sayforsecs') {
-                        let haveFun = target.blocks[block].inputs.MESSAGE[1][1];
-                        if (haveFun.toLowerCase() === 'have fun!') {
-                            this.requirements.addSayBlock.bool = true;
+                    if (target.blocks[block].opcode === 'looks_sayforsecs' || 
+                    target.blocks[block].opcode === 'looks_say') {
+                        let haveFun = target.blocks[block].inputs.MESSAGE[1][1].toLowerCase();
+                        console.log(haveFun);
+                        let haveFunArr = [];
+                        for (let i = 0; i < haveFun.length; i++) {
+                            haveFunArr[i] = haveFun.charAt(i);
+                        }
+                        let haveFunNewArr = [];
+                        for (let i = 0; i < haveFun.length; i++) {
+                            if (haveFunArr[i].charCodeAt() !== 32) {
+                                if (haveFunArr[i].charCodeAt() >= 97 && haveFunArr[i].charCodeAt() <= 122) {
+                                    haveFunNewArr[i] = haveFunArr[i];
+                                }
+                            }
+                        }
+                        haveFunNewArr = haveFunNewArr.filter(Boolean);
+
+                        var util = require('util');
+                        let correctArr = ['h', 'a', 'v', 'e', 'f', 'u', 'n'];
+                        correctArr = util.inspect(correctArr);
+                        haveFunNewArr = util.inspect(haveFunNewArr);
+
+                        var isSame = false;
+                        if (correctArr === haveFunNewArr) {
+                            isSame = true;
+                            if (isSame) {
+                                this.requirements.addSayBlock.bool = true;
+                            } else { continue;}
                         }
                     }
                     if (target.blocks[block].opcode === 'control_wait') {
-                        if (originalTime<target.blocks[block].inputs.DURATION[1][1]) {
-                            this.requirements.increaseWaitTime.bool = true;
+                        let nextBlock = target.blocks[block].next;
+                        if (nextBlock !== null) {
+                            if (target.blocks[nextBlock].opcode === 'looks_nextcostume') {
+                                if (originalTime < target.blocks[block].inputs.DURATION[1][1]) {
+                                    this.requirements.increaseWaitTime.bool = true;
+                                }
+                            }
                         }
+                        
                     }
-                    
                 }
             }
         }
+       
     }
 }
