@@ -5,6 +5,7 @@ Initial version and testing: Saranya Turimella and Zipporah Klain, 2019
 
 require('../grading-scripts-s3/scratch3')
 
+
 module.exports = class {
     constructor() {
         this.requirements = {};
@@ -54,7 +55,6 @@ module.exports = class {
         }
 
         for (let target of project.targets) {
-
             //checking backdrop
             if (target.isStage) {
                 for (let cost of target.costumes) {
@@ -65,39 +65,43 @@ module.exports = class {
                                 equal = true;
                             }
                         }
-                        if (!equal){
-                            newBackdrop=true;
+                        if (!equal) {
+                            newBackdrop = true;
                         }
                     }
                 }
                 this.requirements.backdrop.bool = newBackdrop;
             } else {
                 mapProject.set(target.name, target.blocks);
-
-                //checking scripts
+                let hasDialogue = false;
                 for (let block in target.blocks) {
-                    if (!target.blocks[block].parent && target.blocks[block].next) {
-                        if (this.eventOpcodes.includes(target.blocks[block].opcode)) {
-                            let nextBlock = target.blocks[block].next;
-                            if (this.otherOpcodes.includes(target.blocks[nextBlock].opcode)) {
-                                spritesWithScripts++;
+                    if (this.eventOpcodes.includes(target.blocks[block].opcode)) {
+                        console.log('here');
+                        let b = new Block(target, block);
+                        let childBlocks = b.childBlocks();
+                        console.log('this is child blocks');
+                        console.log(childBlocks);
+                        for (let i = 0; i < childBlocks.length; i++) {
+                            if (childBlocks[i].opcode === 'looks_sayforsecs') {
+                                let blockMessage = childBlocks[i].inputs.MESSAGE[1][1];
+
+                                if ((blockMessage !== 'Daring!!!') &&
+                                    (blockMessage !== 'Interesting!!!') &&
+                                    (blockMessage !== 'Artistic!!!') &&
+                                    (blockMessage !== 'Nice!!!') &&
+                                    (blockMessage !== 'Exciting!!!')) {
+                                    hasDialogue = true;
+                                }
                             }
                         }
-                    }
-
-                    //checking dialogue
-                    if (target.blocks[block].opcode === 'looks_sayforsecs') {
-                        let blockMessage = target.blocks[block].inputs.MESSAGE[1][1];
-                        if ((blockMessage !== 'Daring!!!') &&
-                            (blockMessage !== 'Interesting!!!') &&
-                            (blockMessage !== 'Artistic!!!') &&
-                            (blockMessage !== 'Nice!!!') &&
-                            (blockMessage !== 'Exciting!!!')) {
-                            spritesWithNewDialogue++;
+                        if (childBlocks.length >= 2) {
+                            spritesWithScripts++;
                         }
                     }
                 }
-
+                if (hasDialogue) {
+                    spritesWithNewDialogue++;
+                }
                 //checking costumes
                 for (let costume of target.costumes) {
                     if (!originalCostumes.includes(costume.assetId)) {
@@ -105,43 +109,55 @@ module.exports = class {
                         break;
                     }
                 }
-
             }
         }
 
-
-        //checking movement
-        let inDIANE = false;
-        for (let v of mapProject.values()) {
-            for (let w of mapOriginal.values()) {
-                
-                var util = require('util');
-                v = util.inspect(v);
-                w = util.inspect(w);
-
-
-                if (v === w) {
-                    inDIANE = true;
-                };
-            }
-            if (!inDIANE) {
-                spritesWithNewMovement++;
-            }
-        }
+          //checking movement
+          let inDIANE = false;
+          for (let v of mapProject.values()) {
+              for (let w of mapOriginal.values()) {
+                  var util = require('util');
+                  v = util.inspect(v);
+                  w = util.inspect(w);
+                  if (v === w) {
+                      inDIANE = true;
+                  };
+              }
+              if (!inDIANE) {
+                  spritesWithNewMovement++;
+              }
+          }
 
         // > 1/2 of sprites fulfill requirement?
+        console.log('sprites with scripts');
+        console.log(spritesWithScripts);
         if (spritesWithScripts >= project.sprites.length / 2) {
             this.requirements.scripts.bool = true;
         }
+
+        console.log('sprites with dialogue');
+        console.log(spritesWithNewDialogue)
         if (spritesWithNewDialogue >= project.sprites.length / 2) {
             this.requirements.dialogue.bool = true;
         }
+
+        console.log('sprite with new costumes');
+        console.log(spritesWithNewCostumes);
         if (spritesWithNewCostumes >= project.sprites.length / 2) {
             this.requirements.costumes.bool = true;
         }
+
+        console.log('sprites with new movement');
+        console.log(spritesWithNewMovement);
         if (spritesWithNewMovement >= project.sprites.length / 2) {
             this.requirements.movement.bool = true;
         }
     }
 }
+
+
+
+
+
+
 
