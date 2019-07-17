@@ -132,14 +132,17 @@ module.exports = class {
         // sprite most likely to be the chosen sprite
         var chosen = bestReport;
 
-        // Set lesson requirements to those of "chosen" sprite
-        this.requirements.Loop.bool = chosen.reqs.loop;
-        this.requirements.Move.bool = chosen.reqs.move;
-        this.requirements.Costume.bool = chosen.reqs.costume;
-        this.requirements.Wait.bool = chosen.reqs.wait;
         
-        // if previous 4 requirements are met, then the "chosen" sprite danced
-        this.requirements.Dance.bool = (chosen.danceScore === 4);
+        if (chosen) {
+            // Set lesson requirements to those of "chosen" sprite
+            this.requirements.Loop.bool = chosen.reqs.loop;
+            this.requirements.Move.bool = chosen.reqs.move;
+            this.requirements.Costume.bool = chosen.reqs.costume;
+            this.requirements.Wait.bool = chosen.reqs.wait;
+            // if previous 4 requirements are met, then the "chosen" sprite danced
+            this.requirements.Dance.bool = (chosen.danceScore === 4);
+        }
+        
         
         // checks if there are more than 1 and 2 animated sprites
         this.requirements.SecondAnimated.bool = (animatedSprites > 1);
