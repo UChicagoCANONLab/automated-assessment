@@ -1,812 +1,4 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-if (typeof Object.create === 'function') {
-  // implementation from standard node.js 'util' module
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-  };
-} else {
-  // old school shim for old browsers
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
-  }
-}
-
-},{}],2:[function(require,module,exports){
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-},{}],3:[function(require,module,exports){
-module.exports = function isBuffer(arg) {
-  return arg && typeof arg === 'object'
-    && typeof arg.copy === 'function'
-    && typeof arg.fill === 'function'
-    && typeof arg.readUInt8 === 'function';
-}
-},{}],4:[function(require,module,exports){
-(function (process,global){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-var formatRegExp = /%[sdj%]/g;
-exports.format = function(f) {
-  if (!isString(f)) {
-    var objects = [];
-    for (var i = 0; i < arguments.length; i++) {
-      objects.push(inspect(arguments[i]));
-    }
-    return objects.join(' ');
-  }
-
-  var i = 1;
-  var args = arguments;
-  var len = args.length;
-  var str = String(f).replace(formatRegExp, function(x) {
-    if (x === '%%') return '%';
-    if (i >= len) return x;
-    switch (x) {
-      case '%s': return String(args[i++]);
-      case '%d': return Number(args[i++]);
-      case '%j':
-        try {
-          return JSON.stringify(args[i++]);
-        } catch (_) {
-          return '[Circular]';
-        }
-      default:
-        return x;
-    }
-  });
-  for (var x = args[i]; i < len; x = args[++i]) {
-    if (isNull(x) || !isObject(x)) {
-      str += ' ' + x;
-    } else {
-      str += ' ' + inspect(x);
-    }
-  }
-  return str;
-};
-
-
-// Mark that a method should not be used.
-// Returns a modified function which warns once by default.
-// If --no-deprecation is set, then it is a no-op.
-exports.deprecate = function(fn, msg) {
-  // Allow for deprecating things in the process of starting up.
-  if (isUndefined(global.process)) {
-    return function() {
-      return exports.deprecate(fn, msg).apply(this, arguments);
-    };
-  }
-
-  if (process.noDeprecation === true) {
-    return fn;
-  }
-
-  var warned = false;
-  function deprecated() {
-    if (!warned) {
-      if (process.throwDeprecation) {
-        throw new Error(msg);
-      } else if (process.traceDeprecation) {
-        console.trace(msg);
-      } else {
-        console.error(msg);
-      }
-      warned = true;
-    }
-    return fn.apply(this, arguments);
-  }
-
-  return deprecated;
-};
-
-
-var debugs = {};
-var debugEnviron;
-exports.debuglog = function(set) {
-  if (isUndefined(debugEnviron))
-    debugEnviron = process.env.NODE_DEBUG || '';
-  set = set.toUpperCase();
-  if (!debugs[set]) {
-    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
-      var pid = process.pid;
-      debugs[set] = function() {
-        var msg = exports.format.apply(exports, arguments);
-        console.error('%s %d: %s', set, pid, msg);
-      };
-    } else {
-      debugs[set] = function() {};
-    }
-  }
-  return debugs[set];
-};
-
-
-/**
- * Echos the value of a value. Trys to print the value out
- * in the best way possible given the different types.
- *
- * @param {Object} obj The object to print out.
- * @param {Object} opts Optional options object that alters the output.
- */
-/* legacy: obj, showHidden, depth, colors*/
-function inspect(obj, opts) {
-  // default options
-  var ctx = {
-    seen: [],
-    stylize: stylizeNoColor
-  };
-  // legacy...
-  if (arguments.length >= 3) ctx.depth = arguments[2];
-  if (arguments.length >= 4) ctx.colors = arguments[3];
-  if (isBoolean(opts)) {
-    // legacy...
-    ctx.showHidden = opts;
-  } else if (opts) {
-    // got an "options" object
-    exports._extend(ctx, opts);
-  }
-  // set default options
-  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
-  if (isUndefined(ctx.depth)) ctx.depth = 2;
-  if (isUndefined(ctx.colors)) ctx.colors = false;
-  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
-  if (ctx.colors) ctx.stylize = stylizeWithColor;
-  return formatValue(ctx, obj, ctx.depth);
-}
-exports.inspect = inspect;
-
-
-// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-inspect.colors = {
-  'bold' : [1, 22],
-  'italic' : [3, 23],
-  'underline' : [4, 24],
-  'inverse' : [7, 27],
-  'white' : [37, 39],
-  'grey' : [90, 39],
-  'black' : [30, 39],
-  'blue' : [34, 39],
-  'cyan' : [36, 39],
-  'green' : [32, 39],
-  'magenta' : [35, 39],
-  'red' : [31, 39],
-  'yellow' : [33, 39]
-};
-
-// Don't use 'blue' not visible on cmd.exe
-inspect.styles = {
-  'special': 'cyan',
-  'number': 'yellow',
-  'boolean': 'yellow',
-  'undefined': 'grey',
-  'null': 'bold',
-  'string': 'green',
-  'date': 'magenta',
-  // "name": intentionally not styling
-  'regexp': 'red'
-};
-
-
-function stylizeWithColor(str, styleType) {
-  var style = inspect.styles[styleType];
-
-  if (style) {
-    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
-           '\u001b[' + inspect.colors[style][1] + 'm';
-  } else {
-    return str;
-  }
-}
-
-
-function stylizeNoColor(str, styleType) {
-  return str;
-}
-
-
-function arrayToHash(array) {
-  var hash = {};
-
-  array.forEach(function(val, idx) {
-    hash[val] = true;
-  });
-
-  return hash;
-}
-
-
-function formatValue(ctx, value, recurseTimes) {
-  // Provide a hook for user-specified inspect functions.
-  // Check that value is an object with an inspect function on it
-  if (ctx.customInspect &&
-      value &&
-      isFunction(value.inspect) &&
-      // Filter out the util module, it's inspect function is special
-      value.inspect !== exports.inspect &&
-      // Also filter out any prototype objects using the circular check.
-      !(value.constructor && value.constructor.prototype === value)) {
-    var ret = value.inspect(recurseTimes, ctx);
-    if (!isString(ret)) {
-      ret = formatValue(ctx, ret, recurseTimes);
-    }
-    return ret;
-  }
-
-  // Primitive types cannot have properties
-  var primitive = formatPrimitive(ctx, value);
-  if (primitive) {
-    return primitive;
-  }
-
-  // Look up the keys of the object.
-  var keys = Object.keys(value);
-  var visibleKeys = arrayToHash(keys);
-
-  if (ctx.showHidden) {
-    keys = Object.getOwnPropertyNames(value);
-  }
-
-  // IE doesn't make error fields non-enumerable
-  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
-  if (isError(value)
-      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
-    return formatError(value);
-  }
-
-  // Some type of object without properties can be shortcutted.
-  if (keys.length === 0) {
-    if (isFunction(value)) {
-      var name = value.name ? ': ' + value.name : '';
-      return ctx.stylize('[Function' + name + ']', 'special');
-    }
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    }
-    if (isDate(value)) {
-      return ctx.stylize(Date.prototype.toString.call(value), 'date');
-    }
-    if (isError(value)) {
-      return formatError(value);
-    }
-  }
-
-  var base = '', array = false, braces = ['{', '}'];
-
-  // Make Array say that they are Array
-  if (isArray(value)) {
-    array = true;
-    braces = ['[', ']'];
-  }
-
-  // Make functions say that they are functions
-  if (isFunction(value)) {
-    var n = value.name ? ': ' + value.name : '';
-    base = ' [Function' + n + ']';
-  }
-
-  // Make RegExps say that they are RegExps
-  if (isRegExp(value)) {
-    base = ' ' + RegExp.prototype.toString.call(value);
-  }
-
-  // Make dates with properties first say the date
-  if (isDate(value)) {
-    base = ' ' + Date.prototype.toUTCString.call(value);
-  }
-
-  // Make error with message first say the error
-  if (isError(value)) {
-    base = ' ' + formatError(value);
-  }
-
-  if (keys.length === 0 && (!array || value.length == 0)) {
-    return braces[0] + base + braces[1];
-  }
-
-  if (recurseTimes < 0) {
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    } else {
-      return ctx.stylize('[Object]', 'special');
-    }
-  }
-
-  ctx.seen.push(value);
-
-  var output;
-  if (array) {
-    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
-  } else {
-    output = keys.map(function(key) {
-      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
-    });
-  }
-
-  ctx.seen.pop();
-
-  return reduceToSingleString(output, base, braces);
-}
-
-
-function formatPrimitive(ctx, value) {
-  if (isUndefined(value))
-    return ctx.stylize('undefined', 'undefined');
-  if (isString(value)) {
-    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
-                                             .replace(/'/g, "\\'")
-                                             .replace(/\\"/g, '"') + '\'';
-    return ctx.stylize(simple, 'string');
-  }
-  if (isNumber(value))
-    return ctx.stylize('' + value, 'number');
-  if (isBoolean(value))
-    return ctx.stylize('' + value, 'boolean');
-  // For some reason typeof null is "object", so special case here.
-  if (isNull(value))
-    return ctx.stylize('null', 'null');
-}
-
-
-function formatError(value) {
-  return '[' + Error.prototype.toString.call(value) + ']';
-}
-
-
-function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
-  var output = [];
-  for (var i = 0, l = value.length; i < l; ++i) {
-    if (hasOwnProperty(value, String(i))) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          String(i), true));
-    } else {
-      output.push('');
-    }
-  }
-  keys.forEach(function(key) {
-    if (!key.match(/^\d+$/)) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          key, true));
-    }
-  });
-  return output;
-}
-
-
-function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
-  var name, str, desc;
-  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
-  if (desc.get) {
-    if (desc.set) {
-      str = ctx.stylize('[Getter/Setter]', 'special');
-    } else {
-      str = ctx.stylize('[Getter]', 'special');
-    }
-  } else {
-    if (desc.set) {
-      str = ctx.stylize('[Setter]', 'special');
-    }
-  }
-  if (!hasOwnProperty(visibleKeys, key)) {
-    name = '[' + key + ']';
-  }
-  if (!str) {
-    if (ctx.seen.indexOf(desc.value) < 0) {
-      if (isNull(recurseTimes)) {
-        str = formatValue(ctx, desc.value, null);
-      } else {
-        str = formatValue(ctx, desc.value, recurseTimes - 1);
-      }
-      if (str.indexOf('\n') > -1) {
-        if (array) {
-          str = str.split('\n').map(function(line) {
-            return '  ' + line;
-          }).join('\n').substr(2);
-        } else {
-          str = '\n' + str.split('\n').map(function(line) {
-            return '   ' + line;
-          }).join('\n');
-        }
-      }
-    } else {
-      str = ctx.stylize('[Circular]', 'special');
-    }
-  }
-  if (isUndefined(name)) {
-    if (array && key.match(/^\d+$/)) {
-      return str;
-    }
-    name = JSON.stringify('' + key);
-    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
-      name = name.substr(1, name.length - 2);
-      name = ctx.stylize(name, 'name');
-    } else {
-      name = name.replace(/'/g, "\\'")
-                 .replace(/\\"/g, '"')
-                 .replace(/(^"|"$)/g, "'");
-      name = ctx.stylize(name, 'string');
-    }
-  }
-
-  return name + ': ' + str;
-}
-
-
-function reduceToSingleString(output, base, braces) {
-  var numLinesEst = 0;
-  var length = output.reduce(function(prev, cur) {
-    numLinesEst++;
-    if (cur.indexOf('\n') >= 0) numLinesEst++;
-    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
-  }, 0);
-
-  if (length > 60) {
-    return braces[0] +
-           (base === '' ? '' : base + '\n ') +
-           ' ' +
-           output.join(',\n  ') +
-           ' ' +
-           braces[1];
-  }
-
-  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
-}
-
-
-// NOTE: These type checking functions intentionally don't use `instanceof`
-// because it is fragile and can be easily faked with `Object.create()`.
-function isArray(ar) {
-  return Array.isArray(ar);
-}
-exports.isArray = isArray;
-
-function isBoolean(arg) {
-  return typeof arg === 'boolean';
-}
-exports.isBoolean = isBoolean;
-
-function isNull(arg) {
-  return arg === null;
-}
-exports.isNull = isNull;
-
-function isNullOrUndefined(arg) {
-  return arg == null;
-}
-exports.isNullOrUndefined = isNullOrUndefined;
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-exports.isNumber = isNumber;
-
-function isString(arg) {
-  return typeof arg === 'string';
-}
-exports.isString = isString;
-
-function isSymbol(arg) {
-  return typeof arg === 'symbol';
-}
-exports.isSymbol = isSymbol;
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-exports.isUndefined = isUndefined;
-
-function isRegExp(re) {
-  return isObject(re) && objectToString(re) === '[object RegExp]';
-}
-exports.isRegExp = isRegExp;
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-exports.isObject = isObject;
-
-function isDate(d) {
-  return isObject(d) && objectToString(d) === '[object Date]';
-}
-exports.isDate = isDate;
-
-function isError(e) {
-  return isObject(e) &&
-      (objectToString(e) === '[object Error]' || e instanceof Error);
-}
-exports.isError = isError;
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-exports.isFunction = isFunction;
-
-function isPrimitive(arg) {
-  return arg === null ||
-         typeof arg === 'boolean' ||
-         typeof arg === 'number' ||
-         typeof arg === 'string' ||
-         typeof arg === 'symbol' ||  // ES6 symbol
-         typeof arg === 'undefined';
-}
-exports.isPrimitive = isPrimitive;
-
-exports.isBuffer = require('./support/isBuffer');
-
-function objectToString(o) {
-  return Object.prototype.toString.call(o);
-}
-
-
-function pad(n) {
-  return n < 10 ? '0' + n.toString(10) : n.toString(10);
-}
-
-
-var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
-              'Oct', 'Nov', 'Dec'];
-
-// 26 Feb 16:19:34
-function timestamp() {
-  var d = new Date();
-  var time = [pad(d.getHours()),
-              pad(d.getMinutes()),
-              pad(d.getSeconds())].join(':');
-  return [d.getDate(), months[d.getMonth()], time].join(' ');
-}
-
-
-// log is just a thin wrapper to console.log that prepends a timestamp
-exports.log = function() {
-  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
-};
-
-
-/**
- * Inherit the prototype methods from one constructor into another.
- *
- * The Function.prototype.inherits from lang.js rewritten as a standalone
- * function (not on Function.prototype). NOTE: If this file is to be loaded
- * during bootstrapping this function needs to be rewritten using some native
- * functions as prototype setup using normal JavaScript does not work as
- * expected during bootstrapping (see mirror.js in r114903).
- *
- * @param {function} ctor Constructor function which needs to inherit the
- *     prototype.
- * @param {function} superCtor Constructor function to inherit prototype from.
- */
-exports.inherits = require('inherits');
-
-exports._extend = function(origin, add) {
-  // Don't do anything if add isn't an object
-  if (!add || !isObject(add)) return origin;
-
-  var keys = Object.keys(add);
-  var i = keys.length;
-  while (i--) {
-    origin[keys[i]] = add[keys[i]];
-  }
-  return origin;
-};
-
-function hasOwnProperty(obj, prop) {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
-}
-
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":3,"_process":2,"inherits":1}],5:[function(require,module,exports){
 require('../grading-scripts-s3/scratch3')
 
 module.exports = class {
@@ -913,7 +105,7 @@ module.exports = class {
 
     }
 }
-},{"../grading-scripts-s3/scratch3":24}],6:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":21}],2:[function(require,module,exports){
 /*
 Act 1 About Me Grader
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -1004,7 +196,7 @@ module.exports = class {
     }
 }
 
-},{"../grading-scripts-s3/scratch3":24}],7:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":21}],3:[function(require,module,exports){
 /*
 Act 1 Build-a-Band Project Autograder
 Initial version and testing: Zipporah Klain
@@ -1096,7 +288,7 @@ module.exports = class {
 }
 
 
-},{"../grading-scripts-s3/scratch3":24}],8:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":21}],4:[function(require,module,exports){
 /*
 Act 1 Final Project Autograder
 Initial version and testing: Zipporah Klain
@@ -1172,7 +364,7 @@ module.exports = class {
     }
 
 }
-},{"../grading-scripts-s3/scratch3":24}],9:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":21}],5:[function(require,module,exports){
 /*
 Act 1 Ladybug Scramble Autograder
 Initial version and testing: Saranya Turimella and Zipporah Klain, 2019
@@ -1393,7 +585,7 @@ module.exports = class {
     }
 
 }
-},{"../act1-grading-scripts/original-ladybug":13,"../grading-scripts-s3/scratch3":24,"util":4}],10:[function(require,module,exports){
+},{"../act1-grading-scripts/original-ladybug":9,"../grading-scripts-s3/scratch3":21,"util":27}],6:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -2305,14 +1497,13 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Safari/605.1.15"
     }
 }
-},{}],11:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /* 
 Act 1 Name Poem Autograder
 Initial version and testing: Saranya Turimella and Zipporah Klain, 2019
 */
 
 require('../grading-scripts-s3/scratch3')
-
 
 module.exports = class {
     constructor() {
@@ -2363,6 +1554,7 @@ module.exports = class {
         }
 
         for (let target of project.targets) {
+
             //checking backdrop
             if (target.isStage) {
                 for (let cost of target.costumes) {
@@ -2373,43 +1565,39 @@ module.exports = class {
                                 equal = true;
                             }
                         }
-                        if (!equal) {
-                            newBackdrop = true;
+                        if (!equal){
+                            newBackdrop=true;
                         }
                     }
                 }
                 this.requirements.backdrop.bool = newBackdrop;
             } else {
                 mapProject.set(target.name, target.blocks);
-                let hasDialogue = false;
-                for (let block in target.blocks) {
-                    if (this.eventOpcodes.includes(target.blocks[block].opcode)) {
-                        console.log('here');
-                        let b = new Block(target, block);
-                        let childBlocks = b.childBlocks();
-                        console.log('this is child blocks');
-                        console.log(childBlocks);
-                        for (let i = 0; i < childBlocks.length; i++) {
-                            if (childBlocks[i].opcode === 'looks_sayforsecs') {
-                                let blockMessage = childBlocks[i].inputs.MESSAGE[1][1];
 
-                                if ((blockMessage !== 'Daring!!!') &&
-                                    (blockMessage !== 'Interesting!!!') &&
-                                    (blockMessage !== 'Artistic!!!') &&
-                                    (blockMessage !== 'Nice!!!') &&
-                                    (blockMessage !== 'Exciting!!!')) {
-                                    hasDialogue = true;
-                                }
+                //checking scripts
+                for (let block in target.blocks) {
+                    if (!target.blocks[block].parent && target.blocks[block].next) {
+                        if (this.eventOpcodes.includes(target.blocks[block].opcode)) {
+                            let nextBlock = target.blocks[block].next;
+                            if (this.otherOpcodes.includes(target.blocks[nextBlock].opcode)) {
+                                spritesWithScripts++;
                             }
                         }
-                        if (childBlocks.length >= 2) {
-                            spritesWithScripts++;
+                    }
+
+                    //checking dialogue
+                    if (target.blocks[block].opcode === 'looks_sayforsecs') {
+                        let blockMessage = target.blocks[block].inputs.MESSAGE[1][1];
+                        if ((blockMessage !== 'Daring!!!') &&
+                            (blockMessage !== 'Interesting!!!') &&
+                            (blockMessage !== 'Artistic!!!') &&
+                            (blockMessage !== 'Nice!!!') &&
+                            (blockMessage !== 'Exciting!!!')) {
+                            spritesWithNewDialogue++;
                         }
                     }
                 }
-                if (hasDialogue) {
-                    spritesWithNewDialogue++;
-                }
+
                 //checking costumes
                 for (let costume of target.costumes) {
                     if (!originalCostumes.includes(costume.assetId)) {
@@ -2417,46 +1605,40 @@ module.exports = class {
                         break;
                     }
                 }
+
             }
         }
 
-          //checking movement
-          let inDIANE = false;
-          for (let v of mapProject.values()) {
-              for (let w of mapOriginal.values()) {
-                  var util = require('util');
-                  v = util.inspect(v);
-                  w = util.inspect(w);
-                  if (v === w) {
-                      inDIANE = true;
-                  };
-              }
-              if (!inDIANE) {
-                  spritesWithNewMovement++;
-              }
-          }
+
+        //checking movement
+        let inDIANE = false;
+        for (let v of mapProject.values()) {
+            for (let w of mapOriginal.values()) {
+                
+                var util = require('util');
+                v = util.inspect(v);
+                w = util.inspect(w);
+
+
+                if (v === w) {
+                    inDIANE = true;
+                };
+            }
+            if (!inDIANE) {
+                spritesWithNewMovement++;
+            }
+        }
 
         // > 1/2 of sprites fulfill requirement?
-        console.log('sprites with scripts');
-        console.log(spritesWithScripts);
         if (spritesWithScripts >= project.sprites.length / 2) {
             this.requirements.scripts.bool = true;
         }
-
-        console.log('sprites with dialogue');
-        console.log(spritesWithNewDialogue)
         if (spritesWithNewDialogue >= project.sprites.length / 2) {
             this.requirements.dialogue.bool = true;
         }
-
-        console.log('sprite with new costumes');
-        console.log(spritesWithNewCostumes);
         if (spritesWithNewCostumes >= project.sprites.length / 2) {
             this.requirements.costumes.bool = true;
         }
-
-        console.log('sprites with new movement');
-        console.log(spritesWithNewMovement);
         if (spritesWithNewMovement >= project.sprites.length / 2) {
             this.requirements.movement.bool = true;
         }
@@ -2464,13 +1646,7 @@ module.exports = class {
 }
 
 
-
-
-
-
-
-
-},{"../act1-grading-scripts/name-poem-original-test":10,"../grading-scripts-s3/scratch3":24,"util":4}],12:[function(require,module,exports){
+},{"../act1-grading-scripts/name-poem-original-test":6,"../grading-scripts-s3/scratch3":21,"util":27}],8:[function(require,module,exports){
 /*
 Act 1 Events Ofrenda Autograder
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -2724,9 +1900,9 @@ module.exports = class {
         }
     }
 }
-},{"../act1-grading-scripts/originalOfrenda-test":14,"../grading-scripts-s3/scratch3":24}],13:[function(require,module,exports){
+},{"../act1-grading-scripts/originalOfrenda-test":10,"../grading-scripts-s3/scratch3":21}],9:[function(require,module,exports){
 module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{"broadcastMsgId-munch":"munch"},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"6bbe43392c0dbffe7d7c63cc5bd08aa3","name":"backdrop1","bitmapResolution":1,"md5ext":"6bbe43392c0dbffe7d7c63cc5bd08aa3.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Ladybug1","variables":{},"lists":{},"broadcasts":{},"blocks":{"U7gIJGYi2sEQ1R~Q#Y(x":{"opcode":"event_whenflagclicked","next":"F@9g]aRRb1sq*2qa!%ng","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":264,"y":24},"F@9g]aRRb1sq*2qa!%ng":{"opcode":"motion_gotoxy","next":"Sfc=i0}1cnoDpchs?.Uq","parent":"U7gIJGYi2sEQ1R~Q#Y(x","inputs":{"X":[1,[4,-175]],"Y":[1,[4,-24]]},"fields":{},"shadow":false,"topLevel":false},"Sfc=i0}1cnoDpchs?.Uq":{"opcode":"motion_pointindirection","next":"^)NnU+Yxi6BeEWyh3in`","parent":"F@9g]aRRb1sq*2qa!%ng","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},"^)NnU+Yxi6BeEWyh3in`":{"opcode":"control_wait","next":"{*nT,|Un;N}8m)P0wAVC","parent":"Sfc=i0}1cnoDpchs?.Uq","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"{*nT,|Un;N}8m)P0wAVC":{"opcode":"motion_movesteps","next":"Qjej.|{eUe=~o*uAuRF,","parent":"^)NnU+Yxi6BeEWyh3in`","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"Qjej.|{eUe=~o*uAuRF,":{"opcode":"control_wait","next":"lDrR0@W5G`|K9EW2^U=0","parent":"{*nT,|Un;N}8m)P0wAVC","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"lDrR0@W5G`|K9EW2^U=0":{"opcode":"motion_turnright","next":"R%7gnK]7!DF4`qpYfccd","parent":"Qjej.|{eUe=~o*uAuRF,","inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":false},"R%7gnK]7!DF4`qpYfccd":{"opcode":"control_wait","next":"1?YefC;{nn1p+6x[y7=p","parent":"lDrR0@W5G`|K9EW2^U=0","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"1?YefC;{nn1p+6x[y7=p":{"opcode":"motion_movesteps","next":null,"parent":"R%7gnK]7!DF4`qpYfccd","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"iQ]xjD_RSjVU39KKi+D+":{"opcode":"event_whenflagclicked","next":"03[Ml=XIME[mlM`[oI,{","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":1117,"y":41},"03[Ml=XIME[mlM`[oI,{":{"opcode":"control_forever","next":null,"parent":"iQ]xjD_RSjVU39KKi+D+","inputs":{"SUBSTACK":[2,"{eG]NNI}y+`9w8~P-Y@w"]},"fields":{},"shadow":false,"topLevel":false},"{eG]NNI}y+`9w8~P-Y@w":{"opcode":"control_if","next":null,"parent":"03[Ml=XIME[mlM`[oI,{","inputs":{"CONDITION":[2,"HJ?{4{KV1xCg#k7UhPC6"],"SUBSTACK":[2,"kQKB.w^V0`:QX38gKYzf"]},"fields":{},"shadow":false,"topLevel":false},"HJ?{4{KV1xCg#k7UhPC6":{"opcode":"sensing_touchingcolor","next":null,"parent":"{eG]NNI}y+`9w8~P-Y@w","inputs":{"COLOR":[1,[9,"#00ffff"]]},"fields":{},"shadow":false,"topLevel":false},"kQKB.w^V0`:QX38gKYzf":{"opcode":"control_stop","next":";Dm1;gL:ROwhL*^;y!zp","parent":"{eG]NNI}y+`9w8~P-Y@w","inputs":{},"fields":{"STOP_OPTION":["other scripts in sprite"]},"shadow":false,"topLevel":false,"mutation":{"tagName":"mutation","hasnext":"true","children":[]}},";Dm1;gL:ROwhL*^;y!zp":{"opcode":"looks_sayforsecs","next":"H#v_fC4p1{^Dy]J98),R","parent":"kQKB.w^V0`:QX38gKYzf","inputs":{"MESSAGE":[1,[10,"Aaaaah! I fell off the branch!!!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"H#v_fC4p1{^Dy]J98),R":{"opcode":"control_repeat","next":"eO]JO},91+03]-,-p.kW","parent":";Dm1;gL:ROwhL*^;y!zp","inputs":{"TIMES":[1,[6,3]],"SUBSTACK":[2,"Hfkes2)|!Awk/*Iir#]f"]},"fields":{},"shadow":false,"topLevel":false},"Hfkes2)|!Awk/*Iir#]f":{"opcode":"looks_hide","next":"NdsT}^o2UI(D_trv9KW9","parent":"H#v_fC4p1{^Dy]J98),R","inputs":{},"fields":{},"shadow":false,"topLevel":false},"NdsT}^o2UI(D_trv9KW9":{"opcode":"control_wait","next":"Rp7XGUXIMwRD^e4J2IZy","parent":"Hfkes2)|!Awk/*Iir#]f","inputs":{"DURATION":[1,[5,0.5]]},"fields":{},"shadow":false,"topLevel":false},"Rp7XGUXIMwRD^e4J2IZy":{"opcode":"looks_show","next":"k7:X0JW7;CDuX8ZM[`|-","parent":"NdsT}^o2UI(D_trv9KW9","inputs":{},"fields":{},"shadow":false,"topLevel":false},"k7:X0JW7;CDuX8ZM[`|-":{"opcode":"control_wait","next":null,"parent":"Rp7XGUXIMwRD^e4J2IZy","inputs":{"DURATION":[1,[5,0.5]]},"fields":{},"shadow":false,"topLevel":false},"eO]JO},91+03]-,-p.kW":{"opcode":"motion_gotoxy","next":"I3gZVQ)z)SV7w[OezvsL","parent":"H#v_fC4p1{^Dy]J98),R","inputs":{"X":[1,[4,-175]],"Y":[1,[4,-24]]},"fields":{},"shadow":false,"topLevel":false},"I3gZVQ)z)SV7w[OezvsL":{"opcode":"motion_pointindirection","next":null,"parent":"eO]JO},91+03]-,-p.kW","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},":g/E[3PXa}d6Cve2Swk2":{"opcode":"motion_movesteps","next":null,"parent":null,"inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":33},"M1gwhU_QVGXM)kQF*L`{":{"opcode":"procedures_definition","next":"@,~#(h4pJpg}jA2}_/R[","parent":null,"inputs":{"custom_block":[1,"+d7X?d`DBq2~x0}OHSC/"]},"fields":{},"shadow":false,"topLevel":true,"x":1136,"y":820},"+d7X?d`DBq2~x0}OHSC/":{"opcode":"procedures_prototype","next":null,"inputs":{},"fields":{},"shadow":true,"topLevel":false,"mutation":{"tagName":"mutation","proccode":"Eat Aphid","argumentnames":"[]","argumentids":"[]","argumentdefaults":"[]","warp":false,"children":[]}},"@,~#(h4pJpg}jA2}_/R[":{"opcode":"event_broadcast","next":null,"parent":"M1gwhU_QVGXM)kQF*L`{","inputs":{"BROADCAST_INPUT":[1,[11,"Munch","broadcastMsgId-munch"]]},"fields":{},"shadow":false,"topLevel":false},"%vAkoQPRX5(5~AohGy*u":{"opcode":"motion_turnright","next":null,"parent":null,"inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":109},"~)q`N2jinQ]:/zs,-.s1":{"opcode":"motion_turnleft","next":null,"parent":null,"inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":true,"x":7,"y":188},"nZ1!J1WTOAWy}Af(z1#c":{"opcode":"control_wait","next":null,"parent":null,"inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":268},"Yl_GU18WZdM(iSO=,FM~":{"opcode":"procedures_call","next":null,"parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":10,"y":366,"mutation":{"tagName":"mutation","children":[],"proccode":"Eat Aphid","argumentids":"[]"}}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"7501580fb154fde8192a931f6cab472b","name":"ladybug3","bitmapResolution":1,"md5ext":"7501580fb154fde8192a931f6cab472b.svg","dataFormat":"svg","rotationCenterX":41,"rotationCenterY":43},{"assetId":"169c0efa8c094fdedddf8c19c36f0229","name":"ladybug2","bitmapResolution":1,"md5ext":"169c0efa8c094fdedddf8c19c36f0229.svg","dataFormat":"svg","rotationCenterX":41,"rotationCenterY":43}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-175,"y":-24,"size":50,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Sprite1","variables":{},"lists":{},"broadcasts":{},"blocks":{"g{X}coEAM3Ta^+%(=s^s":{"opcode":"event_whenflagclicked","next":"3S,1y@;w+[,tG`(EZCAt","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":68,"y":35},"3S,1y@;w+[,tG`(EZCAt":{"opcode":"looks_show","next":"_LYbp}EcsXWoN1ppLxcv","parent":"g{X}coEAM3Ta^+%(=s^s","inputs":{},"fields":{},"shadow":false,"topLevel":false},"_LYbp}EcsXWoN1ppLxcv":{"opcode":"motion_pointindirection","next":"4Q5;gsz5+/bgWS(:Rag,","parent":"3S,1y@;w+[,tG`(EZCAt","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},"4Q5;gsz5+/bgWS(:Rag,":{"opcode":"motion_gotoxy","next":"4L~#s_w.KLA*F5Xc`{C`","parent":"_LYbp}EcsXWoN1ppLxcv","inputs":{"X":[1,[4,0]],"Y":[1,[4,-150]]},"fields":{},"shadow":false,"topLevel":false},"4L~#s_w.KLA*F5Xc`{C`":{"opcode":"control_repeat","next":"Vb38^m9i^P8Qx=K`.+Yh","parent":"4Q5;gsz5+/bgWS(:Rag,","inputs":{"TIMES":[1,[6,6]],"SUBSTACK":[2,"56{t%hej8N*pk`S3%Nrj"]},"fields":{},"shadow":false,"topLevel":false},"56{t%hej8N*pk`S3%Nrj":{"opcode":"pen_stamp","next":"UyBZkQkw+i|j3]/7K`[%","parent":"4L~#s_w.KLA*F5Xc`{C`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"UyBZkQkw+i|j3]/7K`[%":{"opcode":"motion_changeyby","next":null,"parent":"56{t%hej8N*pk`S3%Nrj","inputs":{"DY":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"Vb38^m9i^P8Qx=K`.+Yh":{"opcode":"pen_stamp","next":"#I:55@rxBustg@:0CNW,","parent":"4L~#s_w.KLA*F5Xc`{C`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"#I:55@rxBustg@:0CNW,":{"opcode":"motion_gotoxy","next":"c?Rcii^r7j{3zIKlPCY7","parent":"Vb38^m9i^P8Qx=K`.+Yh","inputs":{"X":[1,[4,-200]],"Y":[1,[4,0]]},"fields":{},"shadow":false,"topLevel":false},"c?Rcii^r7j{3zIKlPCY7":{"opcode":"motion_pointindirection","next":"Ev;g}Py1-pZ#SpwkoO~I","parent":"#I:55@rxBustg@:0CNW,","inputs":{"DIRECTION":[1,[8,0]]},"fields":{},"shadow":false,"topLevel":false},"Ev;g}Py1-pZ#SpwkoO~I":{"opcode":"control_repeat","next":"1R95jS-gQRcWy1!()qDX","parent":"c?Rcii^r7j{3zIKlPCY7","inputs":{"TIMES":[1,[6,8]],"SUBSTACK":[2,"C+]}-*OqPzGDND@[I`!`"]},"fields":{},"shadow":false,"topLevel":false},"C+]}-*OqPzGDND@[I`!`":{"opcode":"pen_stamp","next":"vf~MRj8GONdu)xTW+`sX","parent":"Ev;g}Py1-pZ#SpwkoO~I","inputs":{},"fields":{},"shadow":false,"topLevel":false},"vf~MRj8GONdu)xTW+`sX":{"opcode":"motion_changexby","next":null,"parent":"C+]}-*OqPzGDND@[I`!`","inputs":{"DX":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"1R95jS-gQRcWy1!()qDX":{"opcode":"pen_stamp","next":"!]hy8aHujpmLSmfwgk7+","parent":"Ev;g}Py1-pZ#SpwkoO~I","inputs":{},"fields":{},"shadow":false,"topLevel":false},"!]hy8aHujpmLSmfwgk7+":{"opcode":"looks_hide","next":null,"parent":"1R95jS-gQRcWy1!()qDX","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"098ac26af75d9b14546ba423f0376c78","name":"costume1","bitmapResolution":1,"md5ext":"098ac26af75d9b14546ba423f0376c78.svg","dataFormat":"svg","rotationCenterX":247,"rotationCenterY":2}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":false,"x":200,"y":0,"size":100,"direction":0,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Aphid","variables":{},"lists":{},"broadcasts":{},"blocks":{"Al/9-=x`PHo)+1K4Jsw2":{"opcode":"event_whenflagclicked","next":"|FY,izak`W47{j*=KnG5","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":37,"y":46},"|FY,izak`W47{j*=KnG5":{"opcode":"looks_show","next":null,"parent":"Al/9-=x`PHo)+1K4Jsw2","inputs":{},"fields":{},"shadow":false,"topLevel":false},"se5y3M`e{qYhvvplydn.":{"opcode":"event_whenbroadcastreceived","next":"?ec)oOeZLY5LfeL(D5QB","parent":null,"inputs":{},"fields":{"BROADCAST_OPTION":["Munch","broadcastMsgId-munch"]},"shadow":false,"topLevel":true,"x":45,"y":264},"?ec)oOeZLY5LfeL(D5QB":{"opcode":"control_if","next":null,"parent":"se5y3M`e{qYhvvplydn.","inputs":{"CONDITION":[2,".[;R|zxb)eHrP+bfg`JR"],"SUBSTACK":[2,"@:tiv_aA#I^^`0sQ%}O1"]},"fields":{},"shadow":false,"topLevel":false},".[;R|zxb)eHrP+bfg`JR":{"opcode":"sensing_touchingobject","next":null,"parent":"?ec)oOeZLY5LfeL(D5QB","inputs":{"TOUCHINGOBJECTMENU":[1,"cB1l?RjX4g=!:@^[I(X?"]},"fields":{},"shadow":false,"topLevel":false},"cB1l?RjX4g=!:@^[I(X?":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":".[;R|zxb)eHrP+bfg`JR","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Ladybug1"]},"shadow":true,"topLevel":false},"@:tiv_aA#I^^`0sQ%}O1":{"opcode":"looks_sayforsecs","next":"d4JFINYQk,`yV3Hd5Rz3","parent":"?ec)oOeZLY5LfeL(D5QB","inputs":{"MESSAGE":[1,[10,"Oh, no!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"d4JFINYQk,`yV3Hd5Rz3":{"opcode":"looks_hide","next":null,"parent":"@:tiv_aA#I^^`0sQ%}O1","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b3b7ab6b68e1d72f5f0246bd5246e35","name":"beetle","bitmapResolution":1,"md5ext":"2b3b7ab6b68e1d72f5f0246bd5246e35.svg","dataFormat":"svg","rotationCenterX":43,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-24,"y":77,"size":30,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Aphid2","variables":{},"lists":{},"broadcasts":{},"blocks":{"|*E4bHy6(tUyNr_FpiHL":{"opcode":"event_whenbroadcastreceived","next":"@I467Tz-PCo,~F~{tDEl","parent":null,"inputs":{},"fields":{"BROADCAST_OPTION":["Munch","broadcastMsgId-munch"]},"shadow":false,"topLevel":true,"x":31,"y":393},"@I467Tz-PCo,~F~{tDEl":{"opcode":"control_if","next":null,"parent":"|*E4bHy6(tUyNr_FpiHL","inputs":{"CONDITION":[2,"uT8k:bk6A^umen=_kL-m"],"SUBSTACK":[2,"LBQ7xhpD3hzBGz^u~MW`"]},"fields":{},"shadow":false,"topLevel":false},"uT8k:bk6A^umen=_kL-m":{"opcode":"sensing_touchingobject","next":null,"parent":"@I467Tz-PCo,~F~{tDEl","inputs":{"TOUCHINGOBJECTMENU":[1,"w.R6uBYuAjg(y#K#YJx*"]},"fields":{},"shadow":false,"topLevel":false},"w.R6uBYuAjg(y#K#YJx*":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"uT8k:bk6A^umen=_kL-m","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Ladybug1"]},"shadow":true,"topLevel":false},"LBQ7xhpD3hzBGz^u~MW`":{"opcode":"looks_sayforsecs","next":"XO!5H:??cO_M~G2fB;}l","parent":"@I467Tz-PCo,~F~{tDEl","inputs":{"MESSAGE":[1,[10,"Oh, no!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"XO!5H:??cO_M~G2fB;}l":{"opcode":"looks_hide","next":null,"parent":"LBQ7xhpD3hzBGz^u~MW`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"|pG9oKkH+F.OL|36O0Lp":{"opcode":"event_whenflagclicked","next":"t:(!q?g_}9!~)wm!FUIP","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":39,"y":50},"t:(!q?g_}9!~)wm!FUIP":{"opcode":"looks_show","next":null,"parent":"|pG9oKkH+F.OL|36O0Lp","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b3b7ab6b68e1d72f5f0246bd5246e35","name":"beetle","bitmapResolution":1,"md5ext":"2b3b7ab6b68e1d72f5f0246bd5246e35.svg","dataFormat":"svg","rotationCenterX":43,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":75,"y":-123,"size":30,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":["pen"],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190619042313","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"}}
-},{}],14:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -3572,7 +2748,7 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"
     }
 }
-},{}],15:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var sb3 = {
     no: function(x) { //null checker
         return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
@@ -4285,7 +3461,7 @@ class GradeAnimation {
     
 }
 module.exports = GradeAnimation;
-},{}],16:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /* Animation L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and minor bug fixes: Marco Anaya, Summer 2019
@@ -4420,17 +3596,14 @@ module.exports = class {
         // sprite most likely to be the chosen sprite
         var chosen = bestReport;
 
+        // Set lesson requirements to those of "chosen" sprite
+        this.requirements.Loop.bool = chosen.reqs.loop;
+        this.requirements.Move.bool = chosen.reqs.move;
+        this.requirements.Costume.bool = chosen.reqs.costume;
+        this.requirements.Wait.bool = chosen.reqs.wait;
         
-        if (chosen) {
-            // Set lesson requirements to those of "chosen" sprite
-            this.requirements.Loop.bool = chosen.reqs.loop;
-            this.requirements.Move.bool = chosen.reqs.move;
-            this.requirements.Costume.bool = chosen.reqs.costume;
-            this.requirements.Wait.bool = chosen.reqs.wait;
-            // if previous 4 requirements are met, then the "chosen" sprite danced
-            this.requirements.Dance.bool = (chosen.danceScore === 4);
-        }
-        
+        // if previous 4 requirements are met, then the "chosen" sprite danced
+        this.requirements.Dance.bool = (chosen.danceScore === 4);
         
         // checks if there are more than 1 and 2 animated sprites
         this.requirements.SecondAnimated.bool = (animatedSprites > 1);
@@ -4446,7 +3619,487 @@ module.exports = class {
         this.extensions.moreThanOneAnimation.bool = (this.animationTypes.length > 1)
     }
 }
-},{"./scratch3":24}],17:[function(require,module,exports){
+},{"./scratch3":21}],13:[function(require,module,exports){
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "e84e7d633c3914282219923ad8c28be1",
+                    "name": "underwater3",
+                    "bitmapResolution": 2,
+                    "md5ext": "e84e7d633c3914282219923ad8c28be1.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Fred",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "*bF;3|^5/zs4N0xR-o)Z": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "0*OA)5OE]%a]*%IA%B{6",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 18,
+                    "y": 46
+                },
+                "0*OA)5OE]%a]*%IA%B{6": {
+                    "opcode": "motion_gotoxy",
+                    "next": "`4;L4Q?o6CqFmdbH?:ms",
+                    "parent": "*bF;3|^5/zs4N0xR-o)Z",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                -158
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                80
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "`4;L4Q?o6CqFmdbH?:ms": {
+                    "opcode": "motion_movesteps",
+                    "next": "ksrg)n@E2SyN{;oWEX7E",
+                    "parent": "0*OA)5OE]%a]*%IA%B{6",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                50
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "ksrg)n@E2SyN{;oWEX7E": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "ahLTJjNBf`+1#.[qNZE4",
+                    "parent": "`4;L4Q?o6CqFmdbH?:ms",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Hello!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                2
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "ahLTJjNBf`+1#.[qNZE4": {
+                    "opcode": "motion_movesteps",
+                    "next": "d7d]Z%r*QDEp-ajssm0T",
+                    "parent": "ksrg)n@E2SyN{;oWEX7E",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                50
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "d7d]Z%r*QDEp-ajssm0T": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "=n_7]#{Cxj6pf!BUV,OP",
+                    "parent": "ahLTJjNBf`+1#.[qNZE4",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Welcome to Scratch!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                2
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "=n_7]#{Cxj6pf!BUV,OP": {
+                    "opcode": "motion_movesteps",
+                    "next": "8K5Ak(+XsZvwjx2V0~D)",
+                    "parent": "d7d]Z%r*QDEp-ajssm0T",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                50
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "8K5Ak(+XsZvwjx2V0~D)": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "=n_7]#{Cxj6pf!BUV,OP",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click the Space Bar to see Helen the Amazing Color Changing Crab"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                5
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "26e013bb06b573960361b2cf2234201d",
+                    "name": "Fred",
+                    "bitmapResolution": 1,
+                    "md5ext": "26e013bb06b573960361b2cf2234201d.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 75,
+                    "rotationCenterY": 75
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": -108,
+            "y": 80,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Helen",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "XYmoOsQpwwb~bRU[WtDb": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "NX*(%@1qK}o{lJ)1dp(L",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 56,
+                    "y": 66
+                },
+                "NX*(%@1qK}o{lJ)1dp(L": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": "A*?(6=CMw!5NQvy3GoJz",
+                    "parent": "XYmoOsQpwwb~bRU[WtDb",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "uxs{_T(3Fk%RETANj%^X"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "uxs{_T(3Fk%RETANj%^X": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "NX*(%@1qK}o{lJ)1dp(L",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "crab-red"
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "A*?(6=CMw!5NQvy3GoJz": {
+                    "opcode": "control_repeat",
+                    "next": null,
+                    "parent": "NX*(%@1qK}o{lJ)1dp(L",
+                    "inputs": {
+                        "TIMES": [
+                            1,
+                            [
+                                6,
+                                30
+                            ]
+                        ],
+                        "SUBSTACK": [
+                            2,
+                            "*i@~ROBKeTP[#l_7v/_-"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "*i@~ROBKeTP[#l_7v/_-": {
+                    "opcode": "control_wait",
+                    "next": "MkZ9YIg7M,WuN@FR]l:o",
+                    "parent": "A*?(6=CMw!5NQvy3GoJz",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                1
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "MkZ9YIg7M,WuN@FR]l:o": {
+                    "opcode": "looks_nextcostume",
+                    "next": null,
+                    "parent": "*i@~ROBKeTP[#l_7v/_-",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "3?,1QT}D[0#@^jvT!J*^": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "gPD.*ilWONI2U7F-SE[}",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 51,
+                    "y": 455
+                },
+                "gPD.*ilWONI2U7F-SE[}": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "3?,1QT}D[0#@^jvT!J*^",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Ouch!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                2
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "f7cdd2acbc6d7559d33be8675059c79e",
+                    "name": "crab-red",
+                    "bitmapResolution": 1,
+                    "md5ext": "f7cdd2acbc6d7559d33be8675059c79e.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 75,
+                    "rotationCenterY": 75
+                },
+                {
+                    "assetId": "35339814b40ff4db9a0b490dfea728c4",
+                    "name": "crab-orange",
+                    "bitmapResolution": 1,
+                    "md5ext": "35339814b40ff4db9a0b490dfea728c4.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 67,
+                    "rotationCenterY": 75
+                },
+                {
+                    "assetId": "6d714cfa14fff9b02bcb37a65f26ed2c",
+                    "name": "crab-yellow",
+                    "bitmapResolution": 1,
+                    "md5ext": "6d714cfa14fff9b02bcb37a65f26ed2c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 67,
+                    "rotationCenterY": 75
+                },
+                {
+                    "assetId": "c474dcf0231cc6d4513ab3790f389d53",
+                    "name": "crab-green",
+                    "bitmapResolution": 1,
+                    "md5ext": "c474dcf0231cc6d4513ab3790f389d53.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 67,
+                    "rotationCenterY": 75
+                },
+                {
+                    "assetId": "a66d0b6f9b6b5109545d9c1518330382",
+                    "name": "crab-blue",
+                    "bitmapResolution": 1,
+                    "md5ext": "a66d0b6f9b6b5109545d9c1518330382.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 67,
+                    "rotationCenterY": 75
+                },
+                {
+                    "assetId": "08c6aa022441ed14097ad6b3e03482f2",
+                    "name": "crab-purple",
+                    "bitmapResolution": 1,
+                    "md5ext": "08c6aa022441ed14097ad6b3e03482f2.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 67,
+                    "rotationCenterY": 75
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": 109,
+            "y": -139,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [
+        {
+            "id": "zocbQ,zId`mJQPqL}=-b_costumenumbername_number",
+            "mode": "default",
+            "opcode": "looks_costumenumbername",
+            "params": {
+                "NUMBER_NAME": "number"
+            },
+            "spriteName": "Helen",
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 5,
+            "y": 5,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        }
+    ],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190628161443",
+        "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"
+    }
+}
+},{}],14:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -4557,7 +4210,7 @@ module.exports = class {
         project.context.makeGrade(this);
     }
 }
-},{"./scratch3":24}],18:[function(require,module,exports){
+},{"./scratch3":21}],15:[function(require,module,exports){
 (function (global){
 /// Info layer template
 global.Context = class {
@@ -4592,7 +4245,7 @@ global.Context = class {
     }
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],19:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 /* Decomposition By Sequence L1 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -5084,7 +4737,7 @@ class GradeDecompBySeq{
 }
 
 module.exports = GradeDecompBySeq;
-},{}],20:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -5146,7 +4799,7 @@ module.exports = class {
         project.context.makeGrade(this);
     }
 }
-},{"./scratch3":24}],21:[function(require,module,exports){
+},{"./scratch3":21}],18:[function(require,module,exports){
 /* Events L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and bug fixes: Marco Anaya, Summer 2019
@@ -5265,7 +4918,7 @@ module.exports = class {
         this.requirements.hasThreeSprites.bool = (project.targets.length - 1 >= 3);
     }
 } 
-},{"./scratch3":24}],22:[function(require,module,exports){
+},{"./scratch3":21}],19:[function(require,module,exports){
 /* One Way Sync L1 Autograder
  * Marco Anaya, Spring 2019
  */
@@ -5804,342 +5457,103 @@ class GradeOneWaySyncL1 {
 }
 
 module.exports = GradeOneWaySyncL1;
-},{}],23:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 /* Scratch Basics L1 Autograder
-Scratch 2 (original) version: Max White, Summer 2018
-Scratch 3 updates: Elizabeth Crowdus, Spring 2019
+Updated Version: Saranya Turimella, Summer 2019
 */
 
-var sb3 = {
-    //null checker
-    no: function(x) { 
-        return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
-    },
+require('../grading-scripts-s3/scratch3')
 
-    //retrieve a given sprite's blocks from JSON
-    //note: doesn't check whether or not blocks are properly attached
-    jsonToSpriteBlocks: function(json, spriteName) { 
-        if (this.no(json)) return []; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        var allBlocks={};
-        var blocks={};
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i]['blocks'];
-            }
-        }
-        return [];
-    }, //done
-    
-    //retrieve a given sprite's info (not just blocks) from JSON
-    jsonToSprite: function(json, spriteName) { 
-        if (this.no(json)) return []; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i];
-            }
-        }
-        return [];
-    }, //done
-    
-    //counts the number of non-background sprites in a project
-    countSprites: function(json){
-        if (this.no(json)) return false; //make sure script exists
-        
-        var numSprites = 0;
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['isStage'] == false){
-                numSprites ++;
-            }
-        }
-        return numSprites
-    },
-    
-    //looks through json to see if a sprite with a given name is present
-    //returns true if sprite with given name found
-    findSprite: function(json, spriteName){ 
-        if (this.no(json)) return false; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return true;
-            }
-        }
-        return false;
-    }, //done
-    
-    //returns list of block ids given a set of blocks
-    findBlockIDs: function(blocks, opcode){
-        if(this.no(blocks) || blocks == {}) return [];
-        
-        var blockids = [];
-        
-        for(block in blocks){ 
-            if(blocks[block]['opcode'] == opcode){
-                blockids.push(block);
-            }
-        }
-        return blockids;
-    },
-    
-    //given particular key, returns list of block ids of a certain kind of key press given a set of blocks 
-    findKeyPressID: function(blocks, key){
-        if(this.no(blocks) || blocks == {}) return [];
-        
-        var blockids = [];
-        
-        for(block in blocks){ 
-            if(blocks[block]['opcode'] == 'event_whenkeypressed'){
-                if(blocks[block]['fields']['KEY_OPTION'][0] == key){
-                    blockids.push(block);
-                }
-            }
-        }
-        return blockids;
-    },
-    
-    opcodeBlocks: function(script, myOpcode) { //retrieve blocks with a certain opcode from a script list of blocks
-        if (this.no(script)) return [];
-        
-        var miniscript = [];
-
-        for(block in script){
-            if(script[block]['opcode'] == myOpcode){
-                miniscript.push(script[block]);
-            }
-        }
-        return miniscript;
-    }, 
-    
-    opcode: function(block) { //retrives opcode from a block object 
-        if (this.no(block)) return "";
-        return block['opcode'];
-    }, 
-    
-    countBlocks: function(blocks,opcode){ //counts number of blocks with a given opcode
-        var total = 0;
-		for(id in blocks){ 
-            if([blocks][id]['opcode'] == opcode){
-                total = total + 1;
-            }
-        }
-        return total;
-    }, //done
-    
-    //(recursive) helper function to extract blocks inside a given loop
-    //works like makeScript except it only goes down the linked list (rather than down & up)
-    loopExtract: function(blocks, blockID){
-        if (this.no(blocks) || this.no(blockID)) return [];
-        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
-        
-        var curBlockID = blockID;
-        var script = [];
-
-        //Find all blocks that come after
-        curBlockID = blockID //Initialize with blockID of interest
-        while(curBlockID != null){
-            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-            script.push(curBlockInfo); //Add the block itself to the script dictionary                
-
-            //nextInfo = blocks[nextID]
-            opcode = curBlockInfo['opcode'];
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.makeScript(blocks, innerloop)
-                    for(b in nested_blocks){
-                        script.push(nested_blocks[b])
-                    }
-                }
-            }
-            
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-		
-            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
-            if((nextID == null) && (event_opcodes.includes(opcode))){
-                return [];
-            }
-            //Iterate: Set next to curBlock
-            curBlockID = nextID;
-        }     
-        return script;        
-    },
-    
-    //given list of blocks and a keyID of a block, return a script
-    makeScript: function(blocks, blockID){
-        if (this.no(blocks) || this.no(blockID)) return [];
-        event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
-        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
-        
-        var curBlockID = blockID;
-        var script = [];
-    
-        //find all blocks that come before
-        while(curBlockID != null){
-            var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-            script.push(curBlockInfo); //Add the block itself to the script dictionary 
-            
-            //parentInfo = blocks[parentID]
-    		var opcode = curBlockInfo['opcode'];
-
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.loopExtract(blocks, innerloop)
-                    for(b in nested_blocks){
-                        script.push(nested_blocks[b])
-                    }
-                }
-            }
-            
-            //Get parent info out
-            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
-            
-            //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
-            if ((parentID == null) && !(event_opcodes.includes(opcode))){
-                return [];
-            }
-
-            //Iterate: set parent to curBlock
-            curBlockID = parentID
-        }
-
-        //find all blocks that come after
-        curBlockID = blocks[blockID]['next']
-        while(curBlockID != null){
-            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-
-            //nextInfo = blocks[nextID]
-            opcode = curBlockInfo['opcode'];
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.loopExtract(blocks, innerloop)
-                    for(b in nested_blocks){                            
-                        script.push(nested_blocks[b])
-                    }
-                }
-            }
-            
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-		
-            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
-            if((nextID == null) && (event_opcodes.includes(opcode))){
-                return [];
-            }
-            script.push(curBlockInfo); //Add the block itself to the script dictionary                
-            //Iterate: Set next to curBlock
-            curBlockID = nextID;
-        }
-        return script;
-    }
-};
-
-class GradeScratchBasicsL1 {
-
+module.exports = class {
     constructor() {
         this.requirements = {};
+        this.extensions = {};
     }
 
-    grade(fileObj, user) { //call to grade project //fileobj is 
-        this.initMetrics();
-        
-        var fred  = sb3.jsonToSpriteBlocks(fileObj, 'Fred'); 
-        var helen = sb3.jsonToSpriteBlocks(fileObj, 'Helen');
-        this.checkFred(fred);
-        this.checkHelen(helen);  
+    initReqs() {
+        this.requirements.changeFredSteps = { bool: false, str: 'The number of steps Fred takes is changed to 100.' };
+        this.requirements.addSayBlock = { bool: false, str: 'Fred the user tells the user to "Have fun!"' };
+        this.requirements.increaseWaitTime = { bool: false, str: 'The wait time between costume changes is increased' };
     }
 
-    initMetrics() { //initialize all metrics to false
-        this.requirements = {
-            changedSteps: {
-                bool: false, str: 'Fred takes 100 steps each time he talks instead of 50.'
-            },
-            fredTalks: {
-                bool: false, str: 'Fred uses a new block to say "Have fun!" to the user.'
-            },
-            timeChanged: {
-                bool: false, str: 'Changed time between Helen\'s costume changes.'
+    grade(fileObj, user) {
+        var project = new Project(fileObj, null);
+        var original = new Project(require('../grading-scripts-s3/basicsOriginal'), null);
+
+        this.initReqs();
+
+        let originalTime = 0;
+        for (let origTarget of original.targets) {
+            if (origTarget.name === 'Helen') {
+                for (let block in origTarget.blocks) {
+                    if (origTarget.blocks[block].opcode === 'control_wait') {
+                        originalTime = origTarget.blocks[block].inputs.DURATION[1][1];
+                    }
+                }
             }
-        };
+        }
 
-    }
-
-    checkFred(fred) {
-        if (!fred) return;
-        
-        var stepcount = 0;
-        var speakcount = 0;
-        var havefun = false;
-        var funs = ['Have fun!', 'have fun!', 'have Fun!', 'HAVE FUN', 'HAVE FUN!', 'have fun', 'Have fun', 'have Fun', 'Have Fun', 'Have Fun!']
-        
-        var blockids = sb3.findBlockIDs(fred, 'event_whenflagclicked');
-        
-        if(blockids != null){
-            for(var block of blockids){
-                var script = sb3.makeScript(fred, block)
-                for(var sblock of script){
-                    if(sblock['opcode'] == 'motion_movesteps' && sblock['inputs']['STEPS'][1][1] == 100){
-                        stepcount++;
-                        if(stepcount >= 3){
-                            this.requirements.changedSteps.bool = true;
+        for (let target of project.targets) {
+            if (target.isStage) {
+                continue;
+            }
+            else {
+                for (let block in target.blocks) {
+                    if (target.blocks[block].opcode === 'motion_movesteps') {
+                        let steps = (target.blocks[block].inputs.STEPS[1][1]).toString();
+                        if (steps === (100).toString()) {
+                            this.requirements.changeFredSteps.bool = true;
                         }
                     }
-                    if (sblock['opcode'] == 'looks_sayforsecs'){ 
-                        speakcount++;
-                        if(funs.includes(sblock['inputs']['MESSAGE'][1][1])){ //check for have fun message
-                            havefun = true;
+                    if (target.blocks[block].opcode === 'looks_sayforsecs' || 
+                    target.blocks[block].opcode === 'looks_say') {
+                        let haveFun = target.blocks[block].inputs.MESSAGE[1][1].toLowerCase();
+                        console.log(haveFun);
+                        let haveFunArr = [];
+                        for (let i = 0; i < haveFun.length; i++) {
+                            haveFunArr[i] = haveFun.charAt(i);
                         }
-                        if(havefun && speakcount >= 4){ //check that new block was added
-                            this.requirements.fredTalks.bool = true;
+                        let haveFunNewArr = [];
+                        for (let i = 0; i < haveFun.length; i++) {
+                            if (haveFunArr[i].charCodeAt() !== 32) {
+                                if (haveFunArr[i].charCodeAt() >= 97 && haveFunArr[i].charCodeAt() <= 122) {
+                                    haveFunNewArr[i] = haveFunArr[i];
+                                }
+                            }
                         }
-                    }  
-                }
-            }  
-        }
-    }
+                        haveFunNewArr = haveFunNewArr.filter(Boolean);
 
-    checkHelen(helen) {
-        if (!helen) return;
-        
-        var blockids = sb3.findBlockIDs(helen, 'event_whenkeypressed');
-        
-        for(var block of blockids){
-            var script = sb3.makeScript(helen, block)
+                        var util = require('util');
+                        let correctArr = ['h', 'a', 'v', 'e', 'f', 'u', 'n'];
+                        correctArr = util.inspect(correctArr);
+                        haveFunNewArr = util.inspect(haveFunNewArr);
 
-            for(var sblock of script){
-                if(sblock['opcode'] == 'control_wait' && sblock['inputs']['DURATION'][1][1] > 1){
-                    this.requirements.timeChanged.bool = true
-                    return
+                        var isSame = false;
+                        if (correctArr === haveFunNewArr) {
+                            isSame = true;
+                            if (isSame) {
+                                this.requirements.addSayBlock.bool = true;
+                            } else { continue;}
+                        }
+                    }
+                    if (target.blocks[block].opcode === 'control_wait') {
+                        let nextBlock = target.blocks[block].next;
+                        if (nextBlock !== null) {
+                            if (target.blocks[nextBlock].opcode === 'looks_nextcostume') {
+                                if (originalTime < target.blocks[block].inputs.DURATION[1][1]) {
+                                    this.requirements.increaseWaitTime.bool = true;
+                                }
+                            }
+                        }
+                        
+                    }
                 }
             }
-        }  
+        }
+       
     }
 }
-
-
-module.exports = GradeScratchBasicsL1;
-},{}],24:[function(require,module,exports){
+},{"../grading-scripts-s3/basicsOriginal":13,"../grading-scripts-s3/scratch3":21,"util":27}],21:[function(require,module,exports){
 (function (global){
 /// Scratch 3 helper functions
 require('./context');
@@ -6252,7 +5666,6 @@ global.Project = class {
         this.context = new Context(items, false);
         this.targets = [];
         this.sprites = [];
-        if (no(json.targets)) return;
         for (var target_ of json.targets) {
             var target = new Target(target_, this);
             this.targets.push(target);
@@ -6264,7 +5677,7 @@ global.Project = class {
     }
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./context":18}],25:[function(require,module,exports){
+},{"./context":15}],22:[function(require,module,exports){
 var sb3 = {
     //null checker
     no: function(x) { 
@@ -6637,31 +6050,32 @@ class GradeTwoWaySyncL1 {
 }
 
 module.exports = GradeTwoWaySyncL1;
-},{}],26:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 /// Provides necessary scripts for index.html.
 
 /// Requirements (scripts)
 var graders = {
-  scratchBasicsL1:    { name: 'Scratch Basics L1',      file: require('./grading-scripts-s3/scratch-basics-L1')   },
-  animationL1:        { name: 'Animation L1',           file: require('./grading-scripts-s3/animation-L1')        },
-  animationL2:        { name: 'Animation L2',           file: require('./grading-scripts-s3/animation-L2')        },
-  eventsL1:           { name: 'Events L1',              file: require('./grading-scripts-s3/events-L1')           },
-  eventsL2:           { name: 'Events L2',              file: require('./grading-scripts-s3/events-L2')           },
-  condLoopsL1:        { name: 'Conditional Loops L1',   file: require('./grading-scripts-s3/cond-loops-L1')       },
-  decompL1:           { name: 'Decomp. by Sequence L1', file: require('./grading-scripts-s3/decomp-L1')           },
-  oneWaySyncL1:       { name: 'One-Way Sync L1',        file: require('./grading-scripts-s3/one-way-sync-L1')     },
-  oneWaySyncL2:       { name: 'Two-Way Sync L2',        file: require('./grading-scripts-s3/two-way-sync-L2')     },
+  // scratchBasicsL1: { name: 'Scratch Basics L1',      file: require('./grading-scripts-s3/scratch-basics-L1') },
+  scratchBasicsL1: { name: 'Scratch Basics L1',      file: require('./grading-scripts-s3/scratch-basics-L1-new') },
+  animationL1:     { name: 'Animation L1',           file: require('./grading-scripts-s3/animation-L1')      },
+  animationL2:     { name: 'Animation L2',           file: require('./grading-scripts-s3/animation-L2')      },
+  eventsL1:        { name: 'Events L1',              file: require('./grading-scripts-s3/events-L1')         },
+  eventsL2:        { name: 'Events L2',              file: require('./grading-scripts-s3/events-L2')         },
+  condLoopsL1:     { name: 'Conditional Loops L1',   file: require('./grading-scripts-s3/cond-loops-L1')        },
+  decompL1:        { name: 'Decomp. by Sequence L1', file: require('./grading-scripts-s3/decomp-L1')         },
+  oneWaySyncL1:    { name: 'One-Way Sync L1',        file: require('./grading-scripts-s3/one-way-sync-L1')   },
+  oneWaySyncL2:    { name: 'Two-Way Sync L2',        file: require('./grading-scripts-s3/two-way-sync-L2')   },
 };
 
 // act 1 graders
 var actOneGraders = {
-  namePoem:           { name: 'Name Poem',              file: require('./act1-grading-scripts/name-poem')         },
-  ladybug:            { name: 'Ladybug Challenge',      file: require('./act1-grading-scripts/ladybug')           },
-  fiveBlockChallenge: { name: 'Five Block Challenge',   file: require('./act1-grading-scripts/5-block-challenge') },
-  ofrenda:            { name: 'Ofrenda',                file: require('./act1-grading-scripts/ofrenda')           },
-  aboutMe:            { name: 'About Me',               file: require('./act1-grading-scripts/aboutMe')           },
-  buildABand:         { name: 'Build A Band',           file: require('./act1-grading-scripts/build-a-band')      },
-  finalProject:       { name: 'Interactive Story',      file: require('./act1-grading-scripts/final-project')     },
+  namePoem:       { name: 'Name Poem',               file: require('./act1-grading-scripts/name-poem')       },
+  ladybug:        { name: 'Ladybug Challenge',       file: require('./act1-grading-scripts/ladybug')         },
+  fiveBlockChallenge: { name: 'Five Block Challenge', file: require('./act1-grading-scripts/5-block-challenge')},
+  ofrenda:       { name: 'Ofrenda',                  file: require('./act1-grading-scripts/ofrenda')         },
+  aboutMe:        { name: 'About Me',                file: require('./act1-grading-scripts/aboutMe')          },
+  buildABand:     { name: 'Build A Band',            file: require('./act1-grading-scripts/build-a-band')     },
+  finalProject:   { name: 'Interactive Story',       file: require('./act1-grading-scripts/final-project')    },
 };
 
 var allGraders = {};
@@ -7046,4 +6460,812 @@ function noError() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-},{"./act1-grading-scripts/5-block-challenge":5,"./act1-grading-scripts/aboutMe":6,"./act1-grading-scripts/build-a-band":7,"./act1-grading-scripts/final-project":8,"./act1-grading-scripts/ladybug":9,"./act1-grading-scripts/name-poem":11,"./act1-grading-scripts/ofrenda":12,"./grading-scripts-s3/animation-L1":15,"./grading-scripts-s3/animation-L2":16,"./grading-scripts-s3/cond-loops-L1":17,"./grading-scripts-s3/decomp-L1":19,"./grading-scripts-s3/events-L1":20,"./grading-scripts-s3/events-L2":21,"./grading-scripts-s3/one-way-sync-L1":22,"./grading-scripts-s3/scratch-basics-L1":23,"./grading-scripts-s3/two-way-sync-L2":25}]},{},[26]);
+},{"./act1-grading-scripts/5-block-challenge":1,"./act1-grading-scripts/aboutMe":2,"./act1-grading-scripts/build-a-band":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/ladybug":5,"./act1-grading-scripts/name-poem":7,"./act1-grading-scripts/ofrenda":8,"./grading-scripts-s3/animation-L1":11,"./grading-scripts-s3/animation-L2":12,"./grading-scripts-s3/cond-loops-L1":14,"./grading-scripts-s3/decomp-L1":16,"./grading-scripts-s3/events-L1":17,"./grading-scripts-s3/events-L2":18,"./grading-scripts-s3/one-way-sync-L1":19,"./grading-scripts-s3/scratch-basics-L1-new":20,"./grading-scripts-s3/two-way-sync-L2":22}],24:[function(require,module,exports){
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],25:[function(require,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+},{}],26:[function(require,module,exports){
+module.exports = function isBuffer(arg) {
+  return arg && typeof arg === 'object'
+    && typeof arg.copy === 'function'
+    && typeof arg.fill === 'function'
+    && typeof arg.readUInt8 === 'function';
+}
+},{}],27:[function(require,module,exports){
+(function (process,global){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+var formatRegExp = /%[sdj%]/g;
+exports.format = function(f) {
+  if (!isString(f)) {
+    var objects = [];
+    for (var i = 0; i < arguments.length; i++) {
+      objects.push(inspect(arguments[i]));
+    }
+    return objects.join(' ');
+  }
+
+  var i = 1;
+  var args = arguments;
+  var len = args.length;
+  var str = String(f).replace(formatRegExp, function(x) {
+    if (x === '%%') return '%';
+    if (i >= len) return x;
+    switch (x) {
+      case '%s': return String(args[i++]);
+      case '%d': return Number(args[i++]);
+      case '%j':
+        try {
+          return JSON.stringify(args[i++]);
+        } catch (_) {
+          return '[Circular]';
+        }
+      default:
+        return x;
+    }
+  });
+  for (var x = args[i]; i < len; x = args[++i]) {
+    if (isNull(x) || !isObject(x)) {
+      str += ' ' + x;
+    } else {
+      str += ' ' + inspect(x);
+    }
+  }
+  return str;
+};
+
+
+// Mark that a method should not be used.
+// Returns a modified function which warns once by default.
+// If --no-deprecation is set, then it is a no-op.
+exports.deprecate = function(fn, msg) {
+  // Allow for deprecating things in the process of starting up.
+  if (isUndefined(global.process)) {
+    return function() {
+      return exports.deprecate(fn, msg).apply(this, arguments);
+    };
+  }
+
+  if (process.noDeprecation === true) {
+    return fn;
+  }
+
+  var warned = false;
+  function deprecated() {
+    if (!warned) {
+      if (process.throwDeprecation) {
+        throw new Error(msg);
+      } else if (process.traceDeprecation) {
+        console.trace(msg);
+      } else {
+        console.error(msg);
+      }
+      warned = true;
+    }
+    return fn.apply(this, arguments);
+  }
+
+  return deprecated;
+};
+
+
+var debugs = {};
+var debugEnviron;
+exports.debuglog = function(set) {
+  if (isUndefined(debugEnviron))
+    debugEnviron = process.env.NODE_DEBUG || '';
+  set = set.toUpperCase();
+  if (!debugs[set]) {
+    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
+      var pid = process.pid;
+      debugs[set] = function() {
+        var msg = exports.format.apply(exports, arguments);
+        console.error('%s %d: %s', set, pid, msg);
+      };
+    } else {
+      debugs[set] = function() {};
+    }
+  }
+  return debugs[set];
+};
+
+
+/**
+ * Echos the value of a value. Trys to print the value out
+ * in the best way possible given the different types.
+ *
+ * @param {Object} obj The object to print out.
+ * @param {Object} opts Optional options object that alters the output.
+ */
+/* legacy: obj, showHidden, depth, colors*/
+function inspect(obj, opts) {
+  // default options
+  var ctx = {
+    seen: [],
+    stylize: stylizeNoColor
+  };
+  // legacy...
+  if (arguments.length >= 3) ctx.depth = arguments[2];
+  if (arguments.length >= 4) ctx.colors = arguments[3];
+  if (isBoolean(opts)) {
+    // legacy...
+    ctx.showHidden = opts;
+  } else if (opts) {
+    // got an "options" object
+    exports._extend(ctx, opts);
+  }
+  // set default options
+  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
+  if (isUndefined(ctx.depth)) ctx.depth = 2;
+  if (isUndefined(ctx.colors)) ctx.colors = false;
+  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
+  if (ctx.colors) ctx.stylize = stylizeWithColor;
+  return formatValue(ctx, obj, ctx.depth);
+}
+exports.inspect = inspect;
+
+
+// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
+inspect.colors = {
+  'bold' : [1, 22],
+  'italic' : [3, 23],
+  'underline' : [4, 24],
+  'inverse' : [7, 27],
+  'white' : [37, 39],
+  'grey' : [90, 39],
+  'black' : [30, 39],
+  'blue' : [34, 39],
+  'cyan' : [36, 39],
+  'green' : [32, 39],
+  'magenta' : [35, 39],
+  'red' : [31, 39],
+  'yellow' : [33, 39]
+};
+
+// Don't use 'blue' not visible on cmd.exe
+inspect.styles = {
+  'special': 'cyan',
+  'number': 'yellow',
+  'boolean': 'yellow',
+  'undefined': 'grey',
+  'null': 'bold',
+  'string': 'green',
+  'date': 'magenta',
+  // "name": intentionally not styling
+  'regexp': 'red'
+};
+
+
+function stylizeWithColor(str, styleType) {
+  var style = inspect.styles[styleType];
+
+  if (style) {
+    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
+           '\u001b[' + inspect.colors[style][1] + 'm';
+  } else {
+    return str;
+  }
+}
+
+
+function stylizeNoColor(str, styleType) {
+  return str;
+}
+
+
+function arrayToHash(array) {
+  var hash = {};
+
+  array.forEach(function(val, idx) {
+    hash[val] = true;
+  });
+
+  return hash;
+}
+
+
+function formatValue(ctx, value, recurseTimes) {
+  // Provide a hook for user-specified inspect functions.
+  // Check that value is an object with an inspect function on it
+  if (ctx.customInspect &&
+      value &&
+      isFunction(value.inspect) &&
+      // Filter out the util module, it's inspect function is special
+      value.inspect !== exports.inspect &&
+      // Also filter out any prototype objects using the circular check.
+      !(value.constructor && value.constructor.prototype === value)) {
+    var ret = value.inspect(recurseTimes, ctx);
+    if (!isString(ret)) {
+      ret = formatValue(ctx, ret, recurseTimes);
+    }
+    return ret;
+  }
+
+  // Primitive types cannot have properties
+  var primitive = formatPrimitive(ctx, value);
+  if (primitive) {
+    return primitive;
+  }
+
+  // Look up the keys of the object.
+  var keys = Object.keys(value);
+  var visibleKeys = arrayToHash(keys);
+
+  if (ctx.showHidden) {
+    keys = Object.getOwnPropertyNames(value);
+  }
+
+  // IE doesn't make error fields non-enumerable
+  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
+  if (isError(value)
+      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
+    return formatError(value);
+  }
+
+  // Some type of object without properties can be shortcutted.
+  if (keys.length === 0) {
+    if (isFunction(value)) {
+      var name = value.name ? ': ' + value.name : '';
+      return ctx.stylize('[Function' + name + ']', 'special');
+    }
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    }
+    if (isDate(value)) {
+      return ctx.stylize(Date.prototype.toString.call(value), 'date');
+    }
+    if (isError(value)) {
+      return formatError(value);
+    }
+  }
+
+  var base = '', array = false, braces = ['{', '}'];
+
+  // Make Array say that they are Array
+  if (isArray(value)) {
+    array = true;
+    braces = ['[', ']'];
+  }
+
+  // Make functions say that they are functions
+  if (isFunction(value)) {
+    var n = value.name ? ': ' + value.name : '';
+    base = ' [Function' + n + ']';
+  }
+
+  // Make RegExps say that they are RegExps
+  if (isRegExp(value)) {
+    base = ' ' + RegExp.prototype.toString.call(value);
+  }
+
+  // Make dates with properties first say the date
+  if (isDate(value)) {
+    base = ' ' + Date.prototype.toUTCString.call(value);
+  }
+
+  // Make error with message first say the error
+  if (isError(value)) {
+    base = ' ' + formatError(value);
+  }
+
+  if (keys.length === 0 && (!array || value.length == 0)) {
+    return braces[0] + base + braces[1];
+  }
+
+  if (recurseTimes < 0) {
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    } else {
+      return ctx.stylize('[Object]', 'special');
+    }
+  }
+
+  ctx.seen.push(value);
+
+  var output;
+  if (array) {
+    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
+  } else {
+    output = keys.map(function(key) {
+      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
+    });
+  }
+
+  ctx.seen.pop();
+
+  return reduceToSingleString(output, base, braces);
+}
+
+
+function formatPrimitive(ctx, value) {
+  if (isUndefined(value))
+    return ctx.stylize('undefined', 'undefined');
+  if (isString(value)) {
+    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
+                                             .replace(/'/g, "\\'")
+                                             .replace(/\\"/g, '"') + '\'';
+    return ctx.stylize(simple, 'string');
+  }
+  if (isNumber(value))
+    return ctx.stylize('' + value, 'number');
+  if (isBoolean(value))
+    return ctx.stylize('' + value, 'boolean');
+  // For some reason typeof null is "object", so special case here.
+  if (isNull(value))
+    return ctx.stylize('null', 'null');
+}
+
+
+function formatError(value) {
+  return '[' + Error.prototype.toString.call(value) + ']';
+}
+
+
+function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
+  var output = [];
+  for (var i = 0, l = value.length; i < l; ++i) {
+    if (hasOwnProperty(value, String(i))) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          String(i), true));
+    } else {
+      output.push('');
+    }
+  }
+  keys.forEach(function(key) {
+    if (!key.match(/^\d+$/)) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          key, true));
+    }
+  });
+  return output;
+}
+
+
+function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
+  var name, str, desc;
+  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
+  if (desc.get) {
+    if (desc.set) {
+      str = ctx.stylize('[Getter/Setter]', 'special');
+    } else {
+      str = ctx.stylize('[Getter]', 'special');
+    }
+  } else {
+    if (desc.set) {
+      str = ctx.stylize('[Setter]', 'special');
+    }
+  }
+  if (!hasOwnProperty(visibleKeys, key)) {
+    name = '[' + key + ']';
+  }
+  if (!str) {
+    if (ctx.seen.indexOf(desc.value) < 0) {
+      if (isNull(recurseTimes)) {
+        str = formatValue(ctx, desc.value, null);
+      } else {
+        str = formatValue(ctx, desc.value, recurseTimes - 1);
+      }
+      if (str.indexOf('\n') > -1) {
+        if (array) {
+          str = str.split('\n').map(function(line) {
+            return '  ' + line;
+          }).join('\n').substr(2);
+        } else {
+          str = '\n' + str.split('\n').map(function(line) {
+            return '   ' + line;
+          }).join('\n');
+        }
+      }
+    } else {
+      str = ctx.stylize('[Circular]', 'special');
+    }
+  }
+  if (isUndefined(name)) {
+    if (array && key.match(/^\d+$/)) {
+      return str;
+    }
+    name = JSON.stringify('' + key);
+    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+      name = name.substr(1, name.length - 2);
+      name = ctx.stylize(name, 'name');
+    } else {
+      name = name.replace(/'/g, "\\'")
+                 .replace(/\\"/g, '"')
+                 .replace(/(^"|"$)/g, "'");
+      name = ctx.stylize(name, 'string');
+    }
+  }
+
+  return name + ': ' + str;
+}
+
+
+function reduceToSingleString(output, base, braces) {
+  var numLinesEst = 0;
+  var length = output.reduce(function(prev, cur) {
+    numLinesEst++;
+    if (cur.indexOf('\n') >= 0) numLinesEst++;
+    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
+  }, 0);
+
+  if (length > 60) {
+    return braces[0] +
+           (base === '' ? '' : base + '\n ') +
+           ' ' +
+           output.join(',\n  ') +
+           ' ' +
+           braces[1];
+  }
+
+  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
+}
+
+
+// NOTE: These type checking functions intentionally don't use `instanceof`
+// because it is fragile and can be easily faked with `Object.create()`.
+function isArray(ar) {
+  return Array.isArray(ar);
+}
+exports.isArray = isArray;
+
+function isBoolean(arg) {
+  return typeof arg === 'boolean';
+}
+exports.isBoolean = isBoolean;
+
+function isNull(arg) {
+  return arg === null;
+}
+exports.isNull = isNull;
+
+function isNullOrUndefined(arg) {
+  return arg == null;
+}
+exports.isNullOrUndefined = isNullOrUndefined;
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+exports.isNumber = isNumber;
+
+function isString(arg) {
+  return typeof arg === 'string';
+}
+exports.isString = isString;
+
+function isSymbol(arg) {
+  return typeof arg === 'symbol';
+}
+exports.isSymbol = isSymbol;
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+exports.isUndefined = isUndefined;
+
+function isRegExp(re) {
+  return isObject(re) && objectToString(re) === '[object RegExp]';
+}
+exports.isRegExp = isRegExp;
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+exports.isObject = isObject;
+
+function isDate(d) {
+  return isObject(d) && objectToString(d) === '[object Date]';
+}
+exports.isDate = isDate;
+
+function isError(e) {
+  return isObject(e) &&
+      (objectToString(e) === '[object Error]' || e instanceof Error);
+}
+exports.isError = isError;
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+exports.isFunction = isFunction;
+
+function isPrimitive(arg) {
+  return arg === null ||
+         typeof arg === 'boolean' ||
+         typeof arg === 'number' ||
+         typeof arg === 'string' ||
+         typeof arg === 'symbol' ||  // ES6 symbol
+         typeof arg === 'undefined';
+}
+exports.isPrimitive = isPrimitive;
+
+exports.isBuffer = require('./support/isBuffer');
+
+function objectToString(o) {
+  return Object.prototype.toString.call(o);
+}
+
+
+function pad(n) {
+  return n < 10 ? '0' + n.toString(10) : n.toString(10);
+}
+
+
+var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+              'Oct', 'Nov', 'Dec'];
+
+// 26 Feb 16:19:34
+function timestamp() {
+  var d = new Date();
+  var time = [pad(d.getHours()),
+              pad(d.getMinutes()),
+              pad(d.getSeconds())].join(':');
+  return [d.getDate(), months[d.getMonth()], time].join(' ');
+}
+
+
+// log is just a thin wrapper to console.log that prepends a timestamp
+exports.log = function() {
+  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
+};
+
+
+/**
+ * Inherit the prototype methods from one constructor into another.
+ *
+ * The Function.prototype.inherits from lang.js rewritten as a standalone
+ * function (not on Function.prototype). NOTE: If this file is to be loaded
+ * during bootstrapping this function needs to be rewritten using some native
+ * functions as prototype setup using normal JavaScript does not work as
+ * expected during bootstrapping (see mirror.js in r114903).
+ *
+ * @param {function} ctor Constructor function which needs to inherit the
+ *     prototype.
+ * @param {function} superCtor Constructor function to inherit prototype from.
+ */
+exports.inherits = require('inherits');
+
+exports._extend = function(origin, add) {
+  // Don't do anything if add isn't an object
+  if (!add || !isObject(add)) return origin;
+
+  var keys = Object.keys(add);
+  var i = keys.length;
+  while (i--) {
+    origin[keys[i]] = add[keys[i]];
+  }
+  return origin;
+};
+
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./support/isBuffer":26,"_process":24,"inherits":25}]},{},[23]);

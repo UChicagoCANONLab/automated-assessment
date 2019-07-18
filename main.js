@@ -2,26 +2,26 @@
 
 /// Requirements (scripts)
 var graders = {
-  scratchBasicsL1:    { name: 'Scratch Basics L1',      file: require('./grading-scripts-s3/scratch-basics-L1')   },
-  animationL1:        { name: 'Animation L1',           file: require('./grading-scripts-s3/animation-L1')        },
-  animationL2:        { name: 'Animation L2',           file: require('./grading-scripts-s3/animation-L2')        },
-  eventsL1:           { name: 'Events L1',              file: require('./grading-scripts-s3/events-L1')           },
-  eventsL2:           { name: 'Events L2',              file: require('./grading-scripts-s3/events-L2')           },
-  condLoopsL1:        { name: 'Conditional Loops L1',   file: require('./grading-scripts-s3/cond-loops-L1')       },
-  decompL1:           { name: 'Decomp. by Sequence L1', file: require('./grading-scripts-s3/decomp-L1')           },
-  oneWaySyncL1:       { name: 'One-Way Sync L1',        file: require('./grading-scripts-s3/one-way-sync-L1')     },
-  oneWaySyncL2:       { name: 'Two-Way Sync L2',        file: require('./grading-scripts-s3/two-way-sync-L2')     },
+  scratchBasicsL1: { name: 'Scratch Basics L1',      file: require('./grading-scripts-s3/scratch-basics-L1') },
+  animationL1:     { name: 'Animation L1',           file: require('./grading-scripts-s3/animation-L1')      },
+  animationL2:     { name: 'Animation L2',           file: require('./grading-scripts-s3/animation-L2')      },
+  eventsL1:        { name: 'Events L1',              file: require('./grading-scripts-s3/events-L1')         },
+  eventsL2:        { name: 'Events L2',              file: require('./grading-scripts-s3/events-L2')         },
+  condLoopsL1:     { name: 'Conditional Loops L1',   file: require('./grading-scripts-s3/cond-loops-L1')        },
+  decompL1:        { name: 'Decomp. by Sequence L1', file: require('./grading-scripts-s3/decomp-L1')         },
+  oneWaySyncL1:    { name: 'One-Way Sync L1',        file: require('./grading-scripts-s3/one-way-sync-L1')   },
+  oneWaySyncL2:    { name: 'Two-Way Sync L2',        file: require('./grading-scripts-s3/two-way-sync-L2')   },
 };
 
 // act 1 graders
 var actOneGraders = {
-  namePoem:           { name: 'Name Poem',              file: require('./act1-grading-scripts/name-poem')         },
-  ladybug:            { name: 'Ladybug Challenge',      file: require('./act1-grading-scripts/ladybug')           },
-  fiveBlockChallenge: { name: 'Five Block Challenge',   file: require('./act1-grading-scripts/5-block-challenge') },
-  ofrenda:            { name: 'Ofrenda',                file: require('./act1-grading-scripts/ofrenda')           },
-  aboutMe:            { name: 'About Me',               file: require('./act1-grading-scripts/aboutMe')           },
-  buildABand:         { name: 'Build A Band',           file: require('./act1-grading-scripts/build-a-band')      },
-  finalProject:       { name: 'Interactive Story',      file: require('./act1-grading-scripts/final-project')     },
+  namePoem:       { name: 'Name Poem',               file: require('./act1-grading-scripts/name-poem')       },
+  ladybug:        { name: 'Ladybug Challenge',       file: require('./act1-grading-scripts/ladybug')         },
+  fiveBlockChallenge: { name: 'Five Block Challenge', file: require('./act1-grading-scripts/5-block-challenge')},
+  ofrenda:       { name: 'Ofrenda',                  file: require('./act1-grading-scripts/ofrenda')         },
+  aboutMe:        { name: 'About Me',                file: require('./act1-grading-scripts/aboutMe')          },
+  buildABand:     { name: 'Build A Band',            file: require('./act1-grading-scripts/build-a-band')     },
+  finalProject:   { name: 'Interactive Story',       file: require('./act1-grading-scripts/final-project')    },
 };
 
 var allGraders = {};

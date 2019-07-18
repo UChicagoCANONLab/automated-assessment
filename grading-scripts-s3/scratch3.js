@@ -109,7 +109,6 @@ global.Project = class {
         this.context = new Context(items, false);
         this.targets = [];
         this.sprites = [];
-        if (no(json.targets)) return;
         for (var target_ of json.targets) {
             var target = new Target(target_, this);
             this.targets.push(target);
