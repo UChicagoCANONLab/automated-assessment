@@ -48,12 +48,14 @@ module.exports = class {
         let mapProject = new Map();
         for (let target of original.targets) {
             if (target.isStage) { continue; }
+
             for (let costume of target.costumes) {
                 originalCostumes.push(costume.assetId);
             }
             mapOriginal.set(target.name, target.blocks);
         }
 
+        var allTargetBlocks = [];
         for (let target of project.targets) {
             //checking backdrop
             if (target.isStage) {
@@ -72,15 +74,15 @@ module.exports = class {
                 }
                 this.requirements.backdrop.bool = newBackdrop;
             } else {
-                mapProject.set(target.name, target.blocks);
+                
                 let hasDialogue = false;
+                let movementOrSound = false;
                 for (let block in target.blocks) {
                     if (this.eventOpcodes.includes(target.blocks[block].opcode)) {
-                        console.log('here');
                         let b = new Block(target, block);
                         let childBlocks = b.childBlocks();
-                        console.log('this is child blocks');
-                        console.log(childBlocks);
+
+                        mapProject.set(target.name, childBlocks);
                         for (let i = 0; i < childBlocks.length; i++) {
                             if (childBlocks[i].opcode === 'looks_sayforsecs') {
                                 let blockMessage = childBlocks[i].inputs.MESSAGE[1][1];
@@ -92,13 +94,18 @@ module.exports = class {
                                     (blockMessage !== 'Exciting!!!')) {
                                     hasDialogue = true;
                                 }
+                            }else{
+                              ////////
                             }
                         }
                         if (childBlocks.length >= 2) {
                             spritesWithScripts++;
                         }
                     }
+
                 }
+
+
                 if (hasDialogue) {
                     spritesWithNewDialogue++;
                 }
