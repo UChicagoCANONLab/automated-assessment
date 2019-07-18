@@ -1,37 +1,4 @@
-Full Static Analysis Toolchain (Summer 2019)
-
-The toolchain created by Zach Crenshaw in Spring 2019 has been reduced to:
-    running run.py for a module (i.e. events-L1) to turn the raw data to CSV format
-    runniing plotGrade.py to transform the data to usable graphs
-
-Given that there exists a directory for a module with the following path structure:
-/[module]
-.    /csv
-.    .   /4     (a folder only for each grade present in the metadata CSV)
-.    .   /5
-.    .   /6
-.    .   /7
-.    .   /8
-.    .   /aggregated
-.    /graphs
-.    .   /pngs
-.    /json_files_by_studio
-.   metadata-[module].csv
-
-and the required python3 modules are installed, the following example should work when typed into the command line
-
-run.py ./[module]/metadata-[module].csv
-plotGrade.py ./[module]
-
-If you were to do it with an actual module (i.e. copying and pasting the following lines), it would look like:
-
-run.py ./events-L1/metadata-events-L1.csv
-plotGrade.py ./events-L1
-
-
-_______________________________________
-
-(6/6/19)
+Full Static Analysis Toolchain (6/6/19)
 
 # Link to Google Doc with this information: https://docs.google.com/document/d/1ya0KAzGwF_zaIjrqUfPIy7dB147JGXIgK_MWa0LBaR0/edit?usp=sharing
 
@@ -41,29 +8,29 @@ _______________________________________
 
 # Grade projects
 # Take out “-noWeb” to scrape from web
-python3 batch.py ./events-L1/metadata-events-L1-noWeb.csv
+python3 batch.py ./animation-L1/metadata-animation-L1-noWeb.csv
 
 # append all the graded csvs to each other
-python3 mergeCSVs.py ./events-L1/csv/3/ ./events-L1/csv/aggregated/3.csv
-python3 mergeCSVs.py ./events-L1/csv/4/ ./events-L1/csv/aggregated/4.csv
-python3 mergeCSVs.py ./events-L1/csv/5/ ./events-L1/csv/aggregated/5.csv
-python3 mergeCSVs.py ./events-L1/csv/6/ ./events-L1/csv/aggregated/6.csv
-python3 mergeCSVs.py ./events-L1/csv/7/ ./events-L1/csv/aggregated/7.csv
-python3 mergeCSVs.py ./events-L1/csv/8/ ./events-L1/csv/aggregated/8.csv
+python3 mergeCSVs.py ./animation-L1/csv/3/ ./animation-L1/csv/aggregated/3.csv
+python3 mergeCSVs.py ./animation-L1/csv/4/ ./animation-L1/csv/aggregated/4.csv
+python3 mergeCSVs.py ./animation-L1/csv/5/ ./animation-L1/csv/aggregated/5.csv
+python3 mergeCSVs.py ./animation-L1/csv/6/ ./animation-L1/csv/aggregated/6.csv
+python3 mergeCSVs.py ./animation-L1/csv/7/ ./animation-L1/csv/aggregated/7.csv
+python3 mergeCSVs.py ./animation-L1/csv/8/ ./animation-L1/csv/aggregated/8.csv
 
 # create count for each grade
-python3 countCSV.py ./events-L1/csv/aggregated/3.csv ./events-L1/csv/aggregated/counted/3-counted.csv
-python3 countCSV.py ./events-L1/csv/aggregated/4.csv ./events-L1/csv/aggregated/counted/4-counted.csv
-python3 countCSV.py ./events-L1/csv/aggregated/5.csv ./events-L1/csv/aggregated/counted/5-counted.csv
-python3 countCSV.py ./events-L1/csv/aggregated/6.csv ./events-L1/csv/aggregated/counted/6-counted.csv
-python3 countCSV.py ./events-L1/csv/aggregated/7.csv ./events-L1/csv/aggregated/counted/7-counted.csv
-python3 countCSV.py ./events-L1/csv/aggregated/8.csv ./events-L1/csv/aggregated/counted/8-counted.csv
+python3 countCSV.py ./animation-L1/csv/aggregated/3.csv ./animation-L1/csv/aggregated/counted/3-counted.csv
+python3 countCSV.py ./animation-L1/csv/aggregated/4.csv ./animation-L1/csv/aggregated/counted/4-counted.csv
+python3 countCSV.py ./animation-L1/csv/aggregated/5.csv ./animation-L1/csv/aggregated/counted/5-counted.csv
+python3 countCSV.py ./animation-L1/csv/aggregated/6.csv ./animation-L1/csv/aggregated/counted/6-counted.csv
+python3 countCSV.py ./animation-L1/csv/aggregated/7.csv ./animation-L1/csv/aggregated/counted/7-counted.csv
+python3 countCSV.py ./animation-L1/csv/aggregated/8.csv ./animation-L1/csv/aggregated/counted/8-counted.csv
 
 # append the grade-wide counts to each other
-python3 mergeCSVs.py ./events-L1/csv/aggregated/counted ./events-L1/csv/aggregated/aggregated.csv
+python3 mergeCSVs.py ./animation-L1/csv/aggregated/counted ./animation-L1/csv/aggregated/aggregated.csv
 
 # add letter heading to a copy of the aggregated csv
-python3 addLetterHeading.py ./events-L1/csv/aggregated/aggregated.csv copy 4
+python3 addLetterHeading.py ./animation-L1/csv/aggregated/aggregated.csv copy 4
 
 # make a grouped bar graph
-python3 groupedBarGraph.py ./events-L1/
+python3 groupedBarGraph.py ./animation-L1/
