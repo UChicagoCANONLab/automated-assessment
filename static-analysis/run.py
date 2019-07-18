@@ -1,48 +1,37 @@
-#Zack Crenshaw
-#Runs static analysis
+# Zack Crenshaw
+# Code simplified by Marco Anaya, Summer 2019
+# A combination of what was batch.py and run.py
+
+# Structure of line of command file: (studio URL/ID),(grading script),(grade level), [--verbose]
 
 import sys
-from subprocess import call
-from Naked.toolshed.shell import execute_js, muterun_js
-import csv
 import os
+import csv
+from subprocess import call
+from Naked.toolshed.shell import execute_js
 
-# Order of operations:
-# Scrape Web
+def grade_and_save(studioURL, teacherID, module, grade, verbose=""):
 
-# Get the grading script
+    studioScrape = studioURL.strip('1234567890 ')  # Check for a bare number
 
-# Create grade for this studio
+    studioID = studioURL.strip('htps:/cra.mieduo')  # Takes off "https://scratch.mit.edu/studios/"
 
-#Save grade to CSV
-
-#COMMAND LINE: python3 run.py (studio URL) (module folder) (grade level) [--verbose]
-#if do not need to call from the web again (local files saved), put just the studio number
-
-def main():
-    #Get studio URL
-    studioURL = sys.argv[1]
-
-    studioScrape = studioURL.strip('1234567890 ') #Check for a bare number
-
-    studioID = studioURL.strip('htps:/cra.mieduo') #Takes off "https://scratch.mit.edu/studios/"
-
-    teacherID = sys.argv[2]
-
-    #Get folder for a module
-    module = sys.argv[3].strip()
+    # Get folder for a module
+    module = module.strip()
     if module[-1] == '/':
         module = module[:-1]
-    #Get grade level
-    grade = int(sys.argv[4])
+    # Get grade level
+    grade = int(grade)
+
+    project = module + "/json_files_by_studio/" + studioID+"/"
 
     # Get data from web
-    if studioScrape != "":
-        print("Scraping " + studioID+ " data from web...")
-        call(["python3", "webScrape.py",studioURL,module])
+    if not os.path.isdir(project):
+        print("Studio " + studioID + " not found locally, scraping data from web...")
+        call(["python3", "webScrape.py", studioURL, module])
         print("Scraped.\n")
     else:
-        print("No request to scrape...moving on to grading " + studioID + ".\n")
+        print("Studio " + studioID + " found locally.")
 
     # Prepare inputs for grading script
 
@@ -50,13 +39,12 @@ def main():
 
     # looks for script in higher directory
     script = "../grading-scripts-s3/"+modname+".js"
-    project = module + "/json_files_by_studio/" + studioID+"/"
-    folder = module + "/csv/" +str(grade)+'/'
+    folder = module + "/csv/" + str(grade)+'/'
     results = folder + teacherID + '-' + studioID + ".csv"
 
     # Check for verbose tag
-    verbose = ""
-    if len(sys.argv) > 4 and "verbose" in sys.argv[4]:
+
+    if "verbose" in verbose:
         verbose = " --verbose"
         print("Verbose grading active.")
 
@@ -66,5 +54,41 @@ def main():
     print("Finished grading.\n")
 
 
+def main():
+
+    file = sys.argv[1].strip()
+
+    print("Start of grading: \n")
+    grades = []
+
+    # iterate through folder
+    with open(file, 'r') as f:
+        reader = csv.reader(f)
+        csv_to_list = list(reader)
+        for row in csv_to_list:
+        
+            if row[3] not in grades:
+                grades.append(row[3])
+            # run the command
+            if len(row) > 4:  # if there is a verbose flag
+                grade_and_save(row[0], row[1], row[2], row[3], row[4])
+            else:  # if no verbose flag
+                grade_and_save(row[0], row[1], row[2], row[3])
+            
+    print("Grading completed.")
+    module = file.split('/')[1] + '/'
+
+    # for grade in grades:
+    #     call(['python3','mergeCSVs.py', './' + module + 'csv/' + grade + '/', './' + module + 'csv/aggregated/' + grade + '.csv'])
+    #     call(['python3', 'countCSV.py', './' + module + 'csv/aggregated/' + grade + '.csv', './' + module + 'csv/aggregated/counted/' + grade + '-counted.csv'])
+
+    # call(['python3', 'mergeCSVs.py', './' + module + 'csv/aggregated/counted', './' + module + 'csv/aggregated/aggregated.csv'])
+
+    # call(['python3', 'addLetterHeading.py', './' + module + 'csv/aggregated/aggregated.csv', 'copy', '4'])
+    print("\nStart of graphing:")
+    call(['python3', 'plotGrades.py', './' + module])
+    print("Finished graphing.")
+
+
 if __name__ == '__main__':
-        main()
+    main()
