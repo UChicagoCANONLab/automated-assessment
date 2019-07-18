@@ -77,7 +77,6 @@ module.exports = class {
             if (!(['event_whenflagclicked', 'event_whenthisspriteclicked'].includes(event.opcode) || event.opcode.includes('event_whenkeypressed')) ||
                     (event.opcode.includes('event_whenkeypressed') && !events.includes(event.opcode))) {
                 this.extensions.moreScripts.bool = true;
-                console.log(event.opcode);
             }
         } 
 
