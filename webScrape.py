@@ -51,7 +51,7 @@ def main():
             apiURL = sa.create_API_URL(proj_id)
             json_stream = requests.get(apiURL, allow_redirects=True)
             user_directory = module + "/json_files_by_studio/" + studioID+ "/"
-            json_filename = user_directory + scratch_username + ".json"
+            json_filename = user_directory + proj_id + ".json"
             try:
                 os.makedirs(user_directory)
             except:
