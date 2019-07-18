@@ -4,7 +4,6 @@
 # python3 plotGrades.py (module)
 
 import sys
-import random
 import os
 import math
 import string
@@ -24,6 +23,7 @@ colors = dict(zip(string.ascii_uppercase,
 
 by_tID_data = {}
 by_cID_data = []
+grade_teacher_data = []
 
 def plot_grade(module, grade_dir):
 
@@ -34,9 +34,10 @@ def plot_grade(module, grade_dir):
     by_reqs_data = pd.DataFrame()
     totals_data = pd.Series()
     distr_data = []
+    
 
     class_ids = []
-    # data manipulation for each csv in folder
+    # initial data manipulation for each csv (studio) in grade folder
     for filename in os.listdir(grade_dir):
         if not filename.endswith(".csv"):
             continue
@@ -47,7 +48,7 @@ def plot_grade(module, grade_dir):
         class_data = pd.read_csv(path).drop(['ID', 'Error grading project'], axis=1)
         # make sure class size is of a certain size
         if len(class_data.index) < 5:
-            print(class_id, "not enough")
+            print("  not enough students")
             continue
 
         class_id = path.split('/')[-1].split('.')[0] + ' (n=' + str(len(class_data.index)) + ')'
@@ -75,7 +76,12 @@ def plot_grade(module, grade_dir):
             by_tID_data[tID] = by_tID_data[tID].append(class_data)
         else:
             by_tID_data[tID] = class_data
+        
+        grade_teacher_data.append({"Grade": grade, "Teacher ID": tID, "Studio ID": class_id.split('-')[1], "Class Completion": totals_aggr})
 
+
+        
+    # additional data manipulation for data across a whole grade
     by_reqs_data = by_reqs_data.transpose()
     by_reqs_data.columns = class_ids
     by_reqs_data.index.name = 'Requirement'
@@ -106,6 +112,7 @@ def plot_grade(module, grade_dir):
                 zorder=3
             )
     plt.xlabel('Requirements')
+    plt.xticks([p + (width * .9 * len(class_ids) / 2)  for p in pos], labels=[p+1 for p in pos])
     plt.ylabel('Percent Complete')
     plt.ylim([0, 100])
     plt.grid(axis='y', zorder=0, which='both')
@@ -185,6 +192,14 @@ def main():
 
         grades.append(entry)
     
+    # final data manipulation across a whole module
+    pd.DataFrame(grade_teacher_data).to_csv(module + 'csv/aggregated/' + modname + '-completion_by_teacher_and_grade.csv', index=False, columns=["Grade", "Teacher ID", "Studio ID", "Class Completion"])
+
+    data5 = pd.Series()
+    for tID, df in by_tID_data.items():
+        aggr = df.sum(axis=0).sum() * 100 / (len(df.columns) * len(df.index))
+        data5 = data5.append(pd.Series(aggr, index=[tID]))
+
     pdf = PdfPages(module + 'graphs/' + modname + '-teacher-analysis.pdf')
 
     # construct graph measuring performance by classroom and grade
@@ -211,11 +226,6 @@ def main():
     pdf.savefig(bbox_inches='tight')
 
     # construct graph measuring performance by teacher
-    data5 = pd.Series()
-    for tID, df in by_tID_data.items():
-        aggr = df.sum(axis=0).sum() * 100 / (len(df.columns) * len(df.index))
-        data5 = data5.append(pd.Series(aggr, index=[tID]))
-    
     plt.subplots(figsize=(10, 6))
     plt.title((modname + ' Requirement Completion by Teacher').title())
     plt.bar(
