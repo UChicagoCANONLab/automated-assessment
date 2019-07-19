@@ -1,5 +1,54 @@
 #Static Analysis 
 
+Summer 2019 Update/Use:
+
+The use of these files relies on the following directory structure for each module:
+
+/*MODULE*
++ /csv
+  * /4     (a folder only for each grade present in the metadata CSV)
+  * /5
+  * /6
+  * /7
+  * /8
+  * /aggregated
++ /graphs
+  * /pngs
++ /json_files_by_studio
++ metadata-*MODULE*.csv
+
+
+run.py: python3 run.py (path to CSV file of commands, each referencing a Scratch Studio)
+* For each line in the CSV metadata file, reads 4 columns, which should include:
+  * StudioURL, Teacher ID, module folder, grade leve, and verbose (optional)
+* Searches for Studio locally, if not present, uses url to retrieve it, using webScrape.py
+* Grades each project in Studio using grade.js
+
+plotGrade.py: python3 plotGrade.py (module directory)
+* Manipulates the data outputted by run.py and creates graphs. 
+* Current (and very much changing) graphs include:
+  * Per grade:
+    * Distribution, classroom completion per requirement, and classroom completion totals
+  * Overall:
+    * Classroom completion by grade and teacher/classroom
+    * Classroom completion by teacher
+* Graphs are grouped as PDFs in the graphs folder and saved individually as PNGs within graphs/pngs
+* *This file is currently undergoing modifications. A more complete description of this file will be added here once*
+
+webScrape.py (helper for run.py):
+* Scrapes the web for a scratch project, adding it to the folder json_files_by_studio and within the folder of its corresponding Studio
+
+grade.js (helper for run.py):
+* Grades each json in a Studio directory (within json_files_by_studio)
+* Adds results from each project as rows of a CSV
+* CSVs, for each classroom (Studio), are placed in folders by their corresponding grade
+
+
+
+Only the files mentioned above have been used for static analysis for Scratch Encore during Summer 2019
+_________________________________________________________________________________________
+
+
 Created by Zack Crenshaw, in part based on code from Max White and Jean Salac (as marked)
 
 batch.py: python3 batch.py (text file with commands)
