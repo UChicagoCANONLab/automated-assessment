@@ -3620,486 +3620,6 @@ module.exports = class {
     }
 }
 },{"./scratch3":21}],13:[function(require,module,exports){
-module.exports={
-    "targets": [
-        {
-            "isStage": true,
-            "name": "Stage",
-            "variables": {},
-            "lists": {},
-            "broadcasts": {},
-            "blocks": {},
-            "comments": {},
-            "currentCostume": 0,
-            "costumes": [
-                {
-                    "assetId": "e84e7d633c3914282219923ad8c28be1",
-                    "name": "underwater3",
-                    "bitmapResolution": 2,
-                    "md5ext": "e84e7d633c3914282219923ad8c28be1.png",
-                    "dataFormat": "png",
-                    "rotationCenterX": 480,
-                    "rotationCenterY": 360
-                }
-            ],
-            "sounds": [
-                {
-                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
-                    "name": "pop",
-                    "dataFormat": "wav",
-                    "format": "",
-                    "rate": 44100,
-                    "sampleCount": 1032,
-                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
-                }
-            ],
-            "volume": 100,
-            "layerOrder": 0,
-            "tempo": 60,
-            "videoTransparency": 50,
-            "videoState": "off",
-            "textToSpeechLanguage": null
-        },
-        {
-            "isStage": false,
-            "name": "Fred",
-            "variables": {},
-            "lists": {},
-            "broadcasts": {},
-            "blocks": {
-                "*bF;3|^5/zs4N0xR-o)Z": {
-                    "opcode": "event_whenflagclicked",
-                    "next": "0*OA)5OE]%a]*%IA%B{6",
-                    "parent": null,
-                    "inputs": {},
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": true,
-                    "x": 18,
-                    "y": 46
-                },
-                "0*OA)5OE]%a]*%IA%B{6": {
-                    "opcode": "motion_gotoxy",
-                    "next": "`4;L4Q?o6CqFmdbH?:ms",
-                    "parent": "*bF;3|^5/zs4N0xR-o)Z",
-                    "inputs": {
-                        "X": [
-                            1,
-                            [
-                                4,
-                                -158
-                            ]
-                        ],
-                        "Y": [
-                            1,
-                            [
-                                4,
-                                80
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "`4;L4Q?o6CqFmdbH?:ms": {
-                    "opcode": "motion_movesteps",
-                    "next": "ksrg)n@E2SyN{;oWEX7E",
-                    "parent": "0*OA)5OE]%a]*%IA%B{6",
-                    "inputs": {
-                        "STEPS": [
-                            1,
-                            [
-                                4,
-                                50
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "ksrg)n@E2SyN{;oWEX7E": {
-                    "opcode": "looks_sayforsecs",
-                    "next": "ahLTJjNBf`+1#.[qNZE4",
-                    "parent": "`4;L4Q?o6CqFmdbH?:ms",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Hello!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                2
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "ahLTJjNBf`+1#.[qNZE4": {
-                    "opcode": "motion_movesteps",
-                    "next": "d7d]Z%r*QDEp-ajssm0T",
-                    "parent": "ksrg)n@E2SyN{;oWEX7E",
-                    "inputs": {
-                        "STEPS": [
-                            1,
-                            [
-                                4,
-                                50
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "d7d]Z%r*QDEp-ajssm0T": {
-                    "opcode": "looks_sayforsecs",
-                    "next": "=n_7]#{Cxj6pf!BUV,OP",
-                    "parent": "ahLTJjNBf`+1#.[qNZE4",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Welcome to Scratch!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                2
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "=n_7]#{Cxj6pf!BUV,OP": {
-                    "opcode": "motion_movesteps",
-                    "next": "8K5Ak(+XsZvwjx2V0~D)",
-                    "parent": "d7d]Z%r*QDEp-ajssm0T",
-                    "inputs": {
-                        "STEPS": [
-                            1,
-                            [
-                                4,
-                                50
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "8K5Ak(+XsZvwjx2V0~D)": {
-                    "opcode": "looks_sayforsecs",
-                    "next": null,
-                    "parent": "=n_7]#{Cxj6pf!BUV,OP",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Click the Space Bar to see Helen the Amazing Color Changing Crab"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                5
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                }
-            },
-            "comments": {},
-            "currentCostume": 0,
-            "costumes": [
-                {
-                    "assetId": "26e013bb06b573960361b2cf2234201d",
-                    "name": "Fred",
-                    "bitmapResolution": 1,
-                    "md5ext": "26e013bb06b573960361b2cf2234201d.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 75,
-                    "rotationCenterY": 75
-                }
-            ],
-            "sounds": [
-                {
-                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
-                    "name": "pop",
-                    "dataFormat": "wav",
-                    "format": "",
-                    "rate": 44100,
-                    "sampleCount": 1032,
-                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
-                }
-            ],
-            "volume": 100,
-            "layerOrder": 1,
-            "visible": true,
-            "x": -108,
-            "y": 80,
-            "size": 100,
-            "direction": 90,
-            "draggable": false,
-            "rotationStyle": "all around"
-        },
-        {
-            "isStage": false,
-            "name": "Helen",
-            "variables": {},
-            "lists": {},
-            "broadcasts": {},
-            "blocks": {
-                "XYmoOsQpwwb~bRU[WtDb": {
-                    "opcode": "event_whenkeypressed",
-                    "next": "NX*(%@1qK}o{lJ)1dp(L",
-                    "parent": null,
-                    "inputs": {},
-                    "fields": {
-                        "KEY_OPTION": [
-                            "space"
-                        ]
-                    },
-                    "shadow": false,
-                    "topLevel": true,
-                    "x": 56,
-                    "y": 66
-                },
-                "NX*(%@1qK}o{lJ)1dp(L": {
-                    "opcode": "looks_switchcostumeto",
-                    "next": "A*?(6=CMw!5NQvy3GoJz",
-                    "parent": "XYmoOsQpwwb~bRU[WtDb",
-                    "inputs": {
-                        "COSTUME": [
-                            1,
-                            "uxs{_T(3Fk%RETANj%^X"
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "uxs{_T(3Fk%RETANj%^X": {
-                    "opcode": "looks_costume",
-                    "next": null,
-                    "parent": "NX*(%@1qK}o{lJ)1dp(L",
-                    "inputs": {},
-                    "fields": {
-                        "COSTUME": [
-                            "crab-red"
-                        ]
-                    },
-                    "shadow": true,
-                    "topLevel": false
-                },
-                "A*?(6=CMw!5NQvy3GoJz": {
-                    "opcode": "control_repeat",
-                    "next": null,
-                    "parent": "NX*(%@1qK}o{lJ)1dp(L",
-                    "inputs": {
-                        "TIMES": [
-                            1,
-                            [
-                                6,
-                                30
-                            ]
-                        ],
-                        "SUBSTACK": [
-                            2,
-                            "*i@~ROBKeTP[#l_7v/_-"
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "*i@~ROBKeTP[#l_7v/_-": {
-                    "opcode": "control_wait",
-                    "next": "MkZ9YIg7M,WuN@FR]l:o",
-                    "parent": "A*?(6=CMw!5NQvy3GoJz",
-                    "inputs": {
-                        "DURATION": [
-                            1,
-                            [
-                                5,
-                                1
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "MkZ9YIg7M,WuN@FR]l:o": {
-                    "opcode": "looks_nextcostume",
-                    "next": null,
-                    "parent": "*i@~ROBKeTP[#l_7v/_-",
-                    "inputs": {},
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "3?,1QT}D[0#@^jvT!J*^": {
-                    "opcode": "event_whenthisspriteclicked",
-                    "next": "gPD.*ilWONI2U7F-SE[}",
-                    "parent": null,
-                    "inputs": {},
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": true,
-                    "x": 51,
-                    "y": 455
-                },
-                "gPD.*ilWONI2U7F-SE[}": {
-                    "opcode": "looks_sayforsecs",
-                    "next": null,
-                    "parent": "3?,1QT}D[0#@^jvT!J*^",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Ouch!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                2
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                }
-            },
-            "comments": {},
-            "currentCostume": 0,
-            "costumes": [
-                {
-                    "assetId": "f7cdd2acbc6d7559d33be8675059c79e",
-                    "name": "crab-red",
-                    "bitmapResolution": 1,
-                    "md5ext": "f7cdd2acbc6d7559d33be8675059c79e.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 75,
-                    "rotationCenterY": 75
-                },
-                {
-                    "assetId": "35339814b40ff4db9a0b490dfea728c4",
-                    "name": "crab-orange",
-                    "bitmapResolution": 1,
-                    "md5ext": "35339814b40ff4db9a0b490dfea728c4.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 67,
-                    "rotationCenterY": 75
-                },
-                {
-                    "assetId": "6d714cfa14fff9b02bcb37a65f26ed2c",
-                    "name": "crab-yellow",
-                    "bitmapResolution": 1,
-                    "md5ext": "6d714cfa14fff9b02bcb37a65f26ed2c.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 67,
-                    "rotationCenterY": 75
-                },
-                {
-                    "assetId": "c474dcf0231cc6d4513ab3790f389d53",
-                    "name": "crab-green",
-                    "bitmapResolution": 1,
-                    "md5ext": "c474dcf0231cc6d4513ab3790f389d53.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 67,
-                    "rotationCenterY": 75
-                },
-                {
-                    "assetId": "a66d0b6f9b6b5109545d9c1518330382",
-                    "name": "crab-blue",
-                    "bitmapResolution": 1,
-                    "md5ext": "a66d0b6f9b6b5109545d9c1518330382.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 67,
-                    "rotationCenterY": 75
-                },
-                {
-                    "assetId": "08c6aa022441ed14097ad6b3e03482f2",
-                    "name": "crab-purple",
-                    "bitmapResolution": 1,
-                    "md5ext": "08c6aa022441ed14097ad6b3e03482f2.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 67,
-                    "rotationCenterY": 75
-                }
-            ],
-            "sounds": [
-                {
-                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
-                    "name": "pop",
-                    "dataFormat": "wav",
-                    "format": "",
-                    "rate": 44100,
-                    "sampleCount": 1032,
-                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
-                }
-            ],
-            "volume": 100,
-            "layerOrder": 2,
-            "visible": true,
-            "x": 109,
-            "y": -139,
-            "size": 100,
-            "direction": 90,
-            "draggable": false,
-            "rotationStyle": "all around"
-        }
-    ],
-    "monitors": [
-        {
-            "id": "zocbQ,zId`mJQPqL}=-b_costumenumbername_number",
-            "mode": "default",
-            "opcode": "looks_costumenumbername",
-            "params": {
-                "NUMBER_NAME": "number"
-            },
-            "spriteName": "Helen",
-            "value": "",
-            "width": 0,
-            "height": 0,
-            "x": 5,
-            "y": 5,
-            "visible": false,
-            "sliderMin": 0,
-            "sliderMax": 100,
-            "isDiscrete": true
-        }
-    ],
-    "extensions": [],
-    "meta": {
-        "semver": "3.0.0",
-        "vm": "0.2.0-prerelease.20190628161443",
-        "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"
-    }
-}
-},{}],14:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -4210,7 +3730,7 @@ module.exports = class {
         project.context.makeGrade(this);
     }
 }
-},{"./scratch3":21}],15:[function(require,module,exports){
+},{"./scratch3":21}],14:[function(require,module,exports){
 (function (global){
 /// Info layer template
 global.Context = class {
@@ -4245,7 +3765,7 @@ global.Context = class {
     }
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /* Decomposition By Sequence L1 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -4737,7 +4257,7 @@ class GradeDecompBySeq{
 }
 
 module.exports = GradeDecompBySeq;
-},{}],17:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -4799,7 +4319,7 @@ module.exports = class {
         project.context.makeGrade(this);
     }
 }
-},{"./scratch3":21}],18:[function(require,module,exports){
+},{"./scratch3":21}],17:[function(require,module,exports){
 /* Events L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and bug fixes: Marco Anaya, Summer 2019
@@ -4918,7 +4438,7 @@ module.exports = class {
         this.requirements.hasThreeSprites.bool = (project.targets.length - 1 >= 3);
     }
 } 
-},{"./scratch3":21}],19:[function(require,module,exports){
+},{"./scratch3":21}],18:[function(require,module,exports){
 /* One Way Sync L1 Autograder
  * Marco Anaya, Spring 2019
  */
@@ -5457,103 +4977,537 @@ class GradeOneWaySyncL1 {
 }
 
 module.exports = GradeOneWaySyncL1;
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 /* Scratch Basics L1 Autograder
-Updated Version: Saranya Turimella, Summer 2019
+Scratch 2 (original) version: Max White, Summer 2018
+Scratch 3 updates: Elizabeth Crowdus, Spring 2019
 */
 
-require('../grading-scripts-s3/scratch3')
+var sb3 = {
+    //null checker
+    no: function(x) { 
+        return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
+    },
 
-module.exports = class {
+    //retrieve a given sprite's blocks from JSON
+    //note: doesn't check whether or not blocks are properly attached
+    jsonToSpriteBlocks: function(json, spriteName) { 
+        if (this.no(json)) return []; //make sure script exists
+
+        var projInfo = json['targets'] //extract targets from JSON data
+        var allBlocks={};
+        var blocks={};
+        
+        //find sprite
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['name'] == spriteName){
+                return projInfo[i]['blocks'];
+            }
+        }
+        return [];
+    }, //done
+    
+    //retrieve a given sprite's info (not just blocks) from JSON
+    jsonToSprite: function(json, spriteName) { 
+        if (this.no(json)) return []; //make sure script exists
+
+        var projInfo = json['targets'] //extract targets from JSON data
+        
+        //find sprite
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['name'] == spriteName){
+                return projInfo[i];
+            }
+        }
+        return [];
+    }, //done
+    
+    //counts the number of non-background sprites in a project
+    countSprites: function(json){
+        if (this.no(json)) return false; //make sure script exists
+        
+        var numSprites = 0;
+        var projInfo = json['targets'] //extract targets from JSON data
+        
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['isStage'] == false){
+                numSprites ++;
+            }
+        }
+        return numSprites
+    },
+    
+    //looks through json to see if a sprite with a given name is present
+    //returns true if sprite with given name found
+    findSprite: function(json, spriteName){ 
+        if (this.no(json)) return false; //make sure script exists
+
+        var projInfo = json['targets'] //extract targets from JSON data
+        
+        //find sprite
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['name'] == spriteName){
+                return true;
+            }
+        }
+        return false;
+    }, //done
+    
+    //returns list of block ids given a set of blocks
+    findBlockIDs: function(blocks, opcode){
+        if(this.no(blocks) || blocks == {}) return [];
+        
+        var blockids = [];
+        
+        for(block in blocks){ 
+            if(blocks[block]['opcode'] == opcode){
+                blockids.push(block);
+            }
+        }
+        return blockids;
+    },
+    
+    //given particular key, returns list of block ids of a certain kind of key press given a set of blocks 
+    findKeyPressID: function(blocks, key){
+        if(this.no(blocks) || blocks == {}) return [];
+        
+        var blockids = [];
+        
+        for(block in blocks){ 
+            if(blocks[block]['opcode'] == 'event_whenkeypressed'){
+                if(blocks[block]['fields']['KEY_OPTION'][0] == key){
+                    blockids.push(block);
+                }
+            }
+        }
+        return blockids;
+    },
+    
+    opcodeBlocks: function(script, myOpcode) { //retrieve blocks with a certain opcode from a script list of blocks
+        if (this.no(script)) return [];
+        
+        var miniscript = [];
+
+        for(block in script){
+            if(script[block]['opcode'] == myOpcode){
+                miniscript.push(script[block]);
+            }
+        }
+        return miniscript;
+    }, 
+    
+    opcode: function(block) { //retrives opcode from a block object 
+        if (this.no(block)) return "";
+        return block['opcode'];
+    }, 
+    
+    countBlocks: function(blocks,opcode){ //counts number of blocks with a given opcode
+        var total = 0;
+		for(id in blocks){ 
+            if([blocks][id]['opcode'] == opcode){
+                total = total + 1;
+            }
+        }
+        return total;
+    }, //done
+    
+    //(recursive) helper function to extract blocks inside a given loop
+    //works like makeScript except it only goes down the linked list (rather than down & up)
+    loopExtract: function(blocks, blockID){
+        if (this.no(blocks) || this.no(blockID)) return [];
+        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
+        
+        var curBlockID = blockID;
+        var script = [];
+
+        //Find all blocks that come after
+        curBlockID = blockID //Initialize with blockID of interest
+        while(curBlockID != null){
+            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+            script.push(curBlockInfo); //Add the block itself to the script dictionary                
+
+            //nextInfo = blocks[nextID]
+            opcode = curBlockInfo['opcode'];
+            
+            //extract nested children if loop block
+            if(loop_opcodes.includes(opcode)){
+                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+                if(innerloop != undefined){
+                    var nested_blocks = this.makeScript(blocks, innerloop)
+                    for(b in nested_blocks){
+                        script.push(nested_blocks[b])
+                    }
+                }
+            }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+		
+            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
+            if((nextID == null) && (event_opcodes.includes(opcode))){
+                return [];
+            }
+            //Iterate: Set next to curBlock
+            curBlockID = nextID;
+        }     
+        return script;        
+    },
+    
+    //given list of blocks and a keyID of a block, return a script
+    makeScript: function(blocks, blockID){
+        if (this.no(blocks) || this.no(blockID)) return [];
+        event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
+        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
+        
+        var curBlockID = blockID;
+        var script = [];
+    
+        //find all blocks that come before
+        while(curBlockID != null){
+            var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+            script.push(curBlockInfo); //Add the block itself to the script dictionary 
+            
+            //parentInfo = blocks[parentID]
+    		var opcode = curBlockInfo['opcode'];
+
+            
+            //extract nested children if loop block
+            if(loop_opcodes.includes(opcode)){
+                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+                if(innerloop != undefined){
+                    var nested_blocks = this.loopExtract(blocks, innerloop)
+                    for(b in nested_blocks){
+                        script.push(nested_blocks[b])
+                    }
+                }
+            }
+            
+            //Get parent info out
+            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
+            
+            //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
+            if ((parentID == null) && !(event_opcodes.includes(opcode))){
+                return [];
+            }
+
+            //Iterate: set parent to curBlock
+            curBlockID = parentID
+        }
+
+        //find all blocks that come after
+        curBlockID = blocks[blockID]['next']
+        while(curBlockID != null){
+            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+
+            //nextInfo = blocks[nextID]
+            opcode = curBlockInfo['opcode'];
+            
+            //extract nested children if loop block
+            if(loop_opcodes.includes(opcode)){
+                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+                if(innerloop != undefined){
+                    var nested_blocks = this.loopExtract(blocks, innerloop)
+                    for(b in nested_blocks){                            
+                        script.push(nested_blocks[b])
+                    }
+                }
+            }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+		
+            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
+            if((nextID == null) && (event_opcodes.includes(opcode))){
+                return [];
+            }
+            script.push(curBlockInfo); //Add the block itself to the script dictionary                
+            //Iterate: Set next to curBlock
+            curBlockID = nextID;
+        }
+        return script;
+    }
+};
+
+class GradeScratchBasicsL1 {
+
     constructor() {
         this.requirements = {};
-        this.extensions = {};
     }
 
-    initReqs() {
-        this.requirements.changeFredSteps = { bool: false, str: 'The number of steps Fred takes is changed to 100.' };
-        this.requirements.addSayBlock = { bool: false, str: 'Fred the user tells the user to "Have fun!"' };
-        this.requirements.increaseWaitTime = { bool: false, str: 'The wait time between costume changes is increased' };
+    grade(fileObj, user) { //call to grade project //fileobj is 
+        this.initMetrics();
+        
+        var fred  = sb3.jsonToSpriteBlocks(fileObj, 'Fred'); 
+        var helen = sb3.jsonToSpriteBlocks(fileObj, 'Helen');
+        this.checkFred(fred);
+        this.checkHelen(helen);  
     }
 
-    grade(fileObj, user) {
-        var project = new Project(fileObj, null);
-        var original = new Project(require('../grading-scripts-s3/basicsOriginal'), null);
+    initMetrics() { //initialize all metrics to false
+        this.requirements = {
+            changedSteps: {
+                bool: false, str: 'Fred takes 100 steps each time he talks instead of 50.'
+            },
+            fredTalks: {
+                bool: false, str: 'Fred uses a new block to say "Have fun!" to the user.'
+            },
+            timeChanged: {
+                bool: false, str: 'Changed time between Helen\'s costume changes.'
+            }
+        };
 
-        this.initReqs();
+    }
 
-        let originalTime = 0;
-        for (let origTarget of original.targets) {
-            if (origTarget.name === 'Helen') {
-                for (let block in origTarget.blocks) {
-                    if (origTarget.blocks[block].opcode === 'control_wait') {
-                        originalTime = origTarget.blocks[block].inputs.DURATION[1][1];
+    checkFred(fred) {
+        if (!fred) return;
+        
+        var stepcount = 0;
+        var speakcount = 0;
+        var havefun = false;
+        var funs = ['Have fun!', 'have fun!', 'have Fun!', 'HAVE FUN', 'HAVE FUN!', 'have fun', 'Have fun', 'have Fun', 'Have Fun', 'Have Fun!']
+        
+        var blockids = sb3.findBlockIDs(fred, 'event_whenflagclicked');
+        
+        if(blockids != null){
+            for(var block of blockids){
+                var script = sb3.makeScript(fred, block)
+                for(var sblock of script){
+                    if(sblock['opcode'] == 'motion_movesteps' && sblock['inputs']['STEPS'][1][1] == 100){
+                        stepcount++;
+                        if(stepcount >= 3){
+                            this.requirements.changedSteps.bool = true;
+                        }
                     }
+                    if (sblock['opcode'] == 'looks_sayforsecs'){ 
+                        speakcount++;
+                        if(funs.includes(sblock['inputs']['MESSAGE'][1][1])){ //check for have fun message
+                            havefun = true;
+                        }
+                        if(havefun && speakcount >= 4){ //check that new block was added
+                            this.requirements.fredTalks.bool = true;
+                        }
+                    }  
+                }
+            }  
+        }
+    }
+
+    checkHelen(helen) {
+        if (!helen) return;
+        
+        var blockids = sb3.findBlockIDs(helen, 'event_whenkeypressed');
+        
+        for(var block of blockids){
+            var script = sb3.makeScript(helen, block)
+
+            for(var sblock of script){
+                if(sblock['opcode'] == 'control_wait' && sblock['inputs']['DURATION'][1][1] > 1){
+                    this.requirements.timeChanged.bool = true
+                    return
                 }
             }
-        }
-
-        for (let target of project.targets) {
-            if (target.isStage) {
-                continue;
-            }
-            else {
-                for (let block in target.blocks) {
-                    if (target.blocks[block].opcode === 'motion_movesteps') {
-                        let steps = (target.blocks[block].inputs.STEPS[1][1]).toString();
-                        if (steps === (100).toString()) {
-                            this.requirements.changeFredSteps.bool = true;
-                        }
-                    }
-                    if (target.blocks[block].opcode === 'looks_sayforsecs' || 
-                    target.blocks[block].opcode === 'looks_say') {
-                        let haveFun = target.blocks[block].inputs.MESSAGE[1][1].toLowerCase();
-                        console.log(haveFun);
-                        let haveFunArr = [];
-                        for (let i = 0; i < haveFun.length; i++) {
-                            haveFunArr[i] = haveFun.charAt(i);
-                        }
-                        let haveFunNewArr = [];
-                        for (let i = 0; i < haveFun.length; i++) {
-                            if (haveFunArr[i].charCodeAt() !== 32) {
-                                if (haveFunArr[i].charCodeAt() >= 97 && haveFunArr[i].charCodeAt() <= 122) {
-                                    haveFunNewArr[i] = haveFunArr[i];
-                                }
-                            }
-                        }
-                        haveFunNewArr = haveFunNewArr.filter(Boolean);
-
-                        var util = require('util');
-                        let correctArr = ['h', 'a', 'v', 'e', 'f', 'u', 'n'];
-                        correctArr = util.inspect(correctArr);
-                        haveFunNewArr = util.inspect(haveFunNewArr);
-
-                        var isSame = false;
-                        if (correctArr === haveFunNewArr) {
-                            isSame = true;
-                            if (isSame) {
-                                this.requirements.addSayBlock.bool = true;
-                            } else { continue;}
-                        }
-                    }
-                    if (target.blocks[block].opcode === 'control_wait') {
-                        let nextBlock = target.blocks[block].next;
-                        if (nextBlock !== null) {
-                            if (target.blocks[nextBlock].opcode === 'looks_nextcostume') {
-                                if (originalTime < target.blocks[block].inputs.DURATION[1][1]) {
-                                    this.requirements.increaseWaitTime.bool = true;
-                                }
-                            }
-                        }
-                        
-                    }
-                }
-            }
-        }
-       
+        }  
     }
 }
-},{"../grading-scripts-s3/basicsOriginal":13,"../grading-scripts-s3/scratch3":21,"util":27}],21:[function(require,module,exports){
+
+
+module.exports = GradeScratchBasicsL1;
+},{}],20:[function(require,module,exports){
+/* Scratch Basics L2 Autograder
+Updated Version: Anna Zipp, Summer 2019
+*/
+
+require('./scratch3');
+
+// recursive function that searches a script and any subscripts (those within loops)
+function iterateBlocks(script, func) {
+    function recursive(scripts, func, level) {
+        if (!is(scripts) || scripts === [[]]) return;
+        for (var script of scripts) {
+            for(var block of script.blocks) {
+                func(block, level);
+                recursive(block.subScripts(), func, level + 1);
+            }
+        }
+    }
+    recursive([script], func, 1);
+}
+
+module.exports = class {
+    // initialize the requirement and extension objects to be graded 
+    init() {
+        this.requirements = {
+            addBackdrop: {bool: false, str: 'Added a new backdrop.'},  
+            addSprite: {bool: false, str: 'Added a new sprite.'},
+            greenFlagBlock: {bool: false, str: 'The main sprite has a script with the "when green flag clicked" block.'},
+            goToBlock: {bool: false, str: 'The main sprite starts in the same place every time.'},
+            sayBlock: {bool: false, str: 'The main sprite says something.'},
+            moveBlock: {bool: false, str: 'The main sprite moves.'},
+        }
+        this.extensions = {
+            secondEvent: {bool: false, str: 'Added another script with the "when sprite clicked" or "when key pressed" event.'},
+            newBlocks: {bool: false, str: "Project uses new blocks you haven't seen before."},
+            //TODO: spreadsheet doesn't have the newBlocks extension???
+            secondSprite: {bool: false, str: 'Added a second sprite.'},
+            secondSpriteMoves: {bool: false, str: 'Second sprite moves or does tricks.'},
+            //TODO: should the second sprite requirements be combined
+        }
+    }
+
+    // helper function that reports all possible requirements met by a sprite
+    gradeSprite(sprite) {
+        var knownBlocks = [
+            'event_whenflagclicked',
+            'motion_gotoxy', 
+            'motion_movesteps',
+            "looks_say",
+            'looks_sayforsecs', 
+            'event_whenkeypressed',
+            "looks_costume", 
+            'looks_switchcostumeto', 
+            'control_repeat', 
+            'event_whenthisspriteclicked' 
+        ];
+
+        var highestScriptStats = {
+            flag: false,
+            goTo: false,
+            move: false,
+            say: false  
+        }
+        var highestScriptScore = 0;
+        var newEvent = false; 
+        var tricks = false;
+        var unknownBlock = false; 
+
+        // iterate through the sprite's scripts that start with an event block 
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) {
+            var scriptStats = {flag: false, goTo: false, move: false, say: false};
+            var eventBlock = script.blocks[0];
+
+            if (eventBlock.opcode.includes('event_whenflagclicked')) {
+                if (eventBlock.next !== null) {
+                    scriptStats.flag = true; 
+
+                    iterateBlocks(script, (block, level) => {
+                        var opcode = block.opcode; 
+        
+                        if (opcode.includes("motion_")) {
+                            tricks = true; 
+                            scriptStats.goTo = scriptStats.goTo || opcode.includes("motion_gotoxy");
+                            scriptStats.move = scriptStats.move || opcode.includes("motion_movesteps");
+                        }
+                        scriptStats.say = scriptStats.say || ["looks_say", "looks_sayforsecs"].includes(opcode);
+                        if (!(knownBlocks.includes(opcode))) {
+                            unknownBlock = true;
+                        }
+                    });
+                }
+            } else {
+                if (['event_whenthisspriteclicked', 'event_whenkeypressed'].includes(eventBlock.opcode)) {
+                    if (eventBlock.next !== null) {
+                        newEvent = true; 
+                    }
+                }
+                if (tricks === false) {    // check remaining event scripts for tricks, if still false 
+                    iterateBlocks(script, (block, level) => {
+                        var opcode = block.opcode;
+                        if (opcode.includes("motion_"))
+                            tricks = true; 
+                    });
+                }
+                if (unknownBlock === false) {    // check for unknown blocks, if still false
+                    iterateBlocks(script, (block, level) => {
+                        var opcode = block.opcode;
+                        if (!(knownBlocks.includes(opcode))) {
+                            unknownBlock = true;
+                        }
+                    });
+                }
+            }
+
+            var scriptScore = Object.values(scriptStats).reduce((sum,val) => sum + val, 0);
+            // find highest script score
+            if (scriptScore >= highestScriptScore) {
+                highestScriptStats = scriptStats;
+                highestScriptScore = scriptScore; 
+            }
+        }
+
+        return {
+            name: sprite.name,
+            stats: highestScriptStats,
+            statsScore: highestScriptScore,
+            doesTricks: tricks,
+            hasSecondEvent: newEvent,
+            usedNewBlocks: unknownBlock
+        }
+    }
+
+    // main grading function
+    grade(fileObj, user) {
+        var project = new Project(fileObj);
+
+        this.init();
+        // if project doesn't exist, return
+        if (!is(fileObj)) return;
+
+        var numSprites = 0;
+        var numMovingSprites = 0;
+        var mainSprite = null;
+
+        for(var target of project.targets) {
+            if (target.isStage) {
+                //TODO: if you paint over the blank backdrop, it doesn't count as a new backdrop
+                // if student changed backdrop from the default blank one
+                if (target.costumes[0].name !== 'backdrop1' || target.costumes.length > 1) {
+                    this.requirements.addBackdrop.bool = true; 
+                }
+                continue; 
+            } else {    // if not a stage, then it's a sprite
+                numSprites++; 
+
+                // if they change from using the default cat sprite 
+                if (target.name !== 'Sprite1' || target.costumes.length > 2) {  
+                    this.requirements.addSprite.bool = true;
+                }
+
+                var currSprite = this.gradeSprite(target);
+                // find main sprite
+                if (!(mainSprite) || (currSprite.statsScore > mainSprite.statsScore)) {
+                    mainSprite = currSprite; 
+                } 
+                if ((currSprite.statsScore === mainSprite.statsScore) && currSprite.hasSecondEvent) {
+                    mainSprite = currSprite; 
+                }
+                // increase counter for every sprite that moves
+                if (currSprite.doesTricks) numMovingSprites++;
+                
+                //TODO: is the Second Event extension only for the main sprite?
+                if (currSprite.hasSecondEvent) {
+                    this.extensions.secondEvent.bool = true; 
+                }
+                //TODO: this extension wasnt in the spreadsheet?
+                if (currSprite.usedNewBlocks) {
+                    this.extensions.newBlocks.bool = true;
+                }
+            }
+        }   
+
+        if (numSprites > 1) {
+            this.extensions.secondSprite.bool = true; 
+        }
+        if (numMovingSprites > 1) {
+            this.extensions.secondSpriteMoves.bool = true; 
+        }
+
+        this.requirements.greenFlagBlock.bool = mainSprite.stats.flag;
+        this.requirements.goToBlock.bool = mainSprite.stats.goTo;
+        this.requirements.moveBlock.bool = mainSprite.stats.move;
+        this.requirements.sayBlock.bool = mainSprite.stats.say;
+    }
+}
+},{"./scratch3":21}],21:[function(require,module,exports){
 (function (global){
 /// Scratch 3 helper functions
 require('./context');
@@ -5677,7 +5631,7 @@ global.Project = class {
     }
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./context":15}],22:[function(require,module,exports){
+},{"./context":14}],22:[function(require,module,exports){
 var sb3 = {
     //null checker
     no: function(x) { 
@@ -6055,8 +6009,8 @@ module.exports = GradeTwoWaySyncL1;
 
 /// Requirements (scripts)
 var graders = {
-  // scratchBasicsL1: { name: 'Scratch Basics L1',      file: require('./grading-scripts-s3/scratch-basics-L1') },
-  scratchBasicsL1: { name: 'Scratch Basics L1',      file: require('./grading-scripts-s3/scratch-basics-L1-new') },
+  scratchBasicsL1: { name: 'Scratch Basics L1',      file: require('./grading-scripts-s3/scratch-basics-L1') },
+  scratchBasicsL2: { name: 'Scratch Basics L2',      file: require('./grading-scripts-s3/scratch-basics-L2') },
   animationL1:     { name: 'Animation L1',           file: require('./grading-scripts-s3/animation-L1')      },
   animationL2:     { name: 'Animation L2',           file: require('./grading-scripts-s3/animation-L2')      },
   eventsL1:        { name: 'Events L1',              file: require('./grading-scripts-s3/events-L1')         },
@@ -6460,7 +6414,7 @@ function noError() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-},{"./act1-grading-scripts/5-block-challenge":1,"./act1-grading-scripts/aboutMe":2,"./act1-grading-scripts/build-a-band":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/ladybug":5,"./act1-grading-scripts/name-poem":7,"./act1-grading-scripts/ofrenda":8,"./grading-scripts-s3/animation-L1":11,"./grading-scripts-s3/animation-L2":12,"./grading-scripts-s3/cond-loops-L1":14,"./grading-scripts-s3/decomp-L1":16,"./grading-scripts-s3/events-L1":17,"./grading-scripts-s3/events-L2":18,"./grading-scripts-s3/one-way-sync-L1":19,"./grading-scripts-s3/scratch-basics-L1-new":20,"./grading-scripts-s3/two-way-sync-L2":22}],24:[function(require,module,exports){
+},{"./act1-grading-scripts/5-block-challenge":1,"./act1-grading-scripts/aboutMe":2,"./act1-grading-scripts/build-a-band":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/ladybug":5,"./act1-grading-scripts/name-poem":7,"./act1-grading-scripts/ofrenda":8,"./grading-scripts-s3/animation-L1":11,"./grading-scripts-s3/animation-L2":12,"./grading-scripts-s3/cond-loops-L1":13,"./grading-scripts-s3/decomp-L1":15,"./grading-scripts-s3/events-L1":16,"./grading-scripts-s3/events-L2":17,"./grading-scripts-s3/one-way-sync-L1":18,"./grading-scripts-s3/scratch-basics-L1":19,"./grading-scripts-s3/scratch-basics-L2":20,"./grading-scripts-s3/two-way-sync-L2":22}],24:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 

@@ -3,6 +3,7 @@
 /// Requirements (scripts)
 var graders = {
   scratchBasicsL1: { name: 'Scratch Basics L1',      file: require('./grading-scripts-s3/scratch-basics-L1') },
+  scratchBasicsL2: { name: 'Scratch Basics L2',      file: require('./grading-scripts-s3/scratch-basics-L2') },
   animationL1:     { name: 'Animation L1',           file: require('./grading-scripts-s3/animation-L1')      },
   animationL2:     { name: 'Animation L2',           file: require('./grading-scripts-s3/animation-L2')      },
   eventsL1:        { name: 'Events L1',              file: require('./grading-scripts-s3/events-L1')         },
