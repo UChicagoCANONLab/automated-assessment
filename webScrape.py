@@ -17,7 +17,6 @@ def main():
 
     studioID = studioURL.strip('https://scratch.mit.edu/studios/')
 
-
     # Get module
     module = sys.argv[2]
 
@@ -58,8 +57,6 @@ def main():
                 pass
             with open(json_filename, 'wb') as json:
                 json.write(json_stream.content)
-
-
 
         pageNum += 1
         studio_api_url = sa.studio_to_API(studioURL, pageNum)
