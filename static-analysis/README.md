@@ -2,20 +2,9 @@
 
 Summer 2019 Update/Use:
 
-The use of these files relies on the following directory structure for each module:
+The use of these files relies on a directory structure that can be found in toolchain.txt.
 
-/*MODULE*
-+ /csv
-  * /4     (a folder only for each grade present in the metadata CSV)
-  * /5
-  * /6
-  * /7
-  * /8
-  * /aggregated
-+ /graphs
-  * /pngs
-+ /json_files_by_studio
-+ metadata-*MODULE*.csv
+Additionally, python3, pip3, and the supporting modules must be installed. The required modules can be found in `requirements.txt`. All modules in this file can be installed by running `pip3 install -r requirements.txt`.
 
 
 run.py: python3 run.py (path to CSV file of commands, each referencing a Scratch Studio)
