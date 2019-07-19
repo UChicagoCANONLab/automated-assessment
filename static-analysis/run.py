@@ -25,6 +25,8 @@ def grade_and_save(studioURL, teacherID, module, grade, verbose=""):
 
     project = module + "/json_files_by_studio/" + studioID+"/"
 
+    project = module + "/json_files_by_studio/" + studioID+"/"
+    print(project)
     # Get data from web
     if not os.path.isdir(project):
         print("Studio " + studioID + " not found locally, scraping data from web...")

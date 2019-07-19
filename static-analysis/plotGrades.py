@@ -75,7 +75,6 @@ def plot_grade(module, grade_dir):
             by_tID_data[tID] = by_tID_data[tID].append(class_data)
         else:
             by_tID_data[tID] = class_data
-
     by_reqs_data = by_reqs_data.transpose()
     by_reqs_data.columns = class_ids
     by_reqs_data.index.name = 'Requirement'
