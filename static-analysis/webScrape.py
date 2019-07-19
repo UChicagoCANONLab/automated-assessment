@@ -17,7 +17,6 @@ def main():
 
     studioID = studioURL.strip('https://scratch.mit.edu/studios/')
 
-
     # Get module
     module = sys.argv[2]
 
@@ -51,15 +50,13 @@ def main():
             apiURL = sa.create_API_URL(proj_id)
             json_stream = requests.get(apiURL, allow_redirects=True)
             user_directory = module + "/json_files_by_studio/" + studioID+ "/"
-            json_filename = user_directory + scratch_username + ".json"
+            json_filename = user_directory + proj_id + ".json"
             try:
                 os.makedirs(user_directory)
             except:
                 pass
             with open(json_filename, 'wb') as json:
                 json.write(json_stream.content)
-
-
 
         pageNum += 1
         studio_api_url = sa.studio_to_API(studioURL, pageNum)

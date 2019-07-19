@@ -1,47 +1,39 @@
-#Zack Crenshaw
-#Runs static analysis
+# Zack Crenshaw
+# Code simplified by Marco Anaya, Summer 2019
+# A combination of what was batch.py and run.py
+
+# Structure of line of command file: (studio URL/ID),(grading script),(grade level), [--verbose]
 
 import sys
-from subprocess import call
-from Naked.toolshed.shell import execute_js, muterun_js
-import csv
 import os
+import csv
+from subprocess import call
+from Naked.toolshed.shell import execute_js
 
-# Order of operations:
-# Scrape Web
+def grade_and_save(studioURL, teacherID, module, grade, verbose=""):
 
-# Get the grading script
+    studioScrape = studioURL.strip('1234567890 ')  # Check for a bare number
 
-# Create grade for this studio
+    studioID = studioURL.strip('htps:/cra.mieduo')  # Takes off "https://scratch.mit.edu/studios/"
 
-#Save grade to CSV
-
-#COMMAND LINE: python3 run.py (studio URL) (module folder) (grade level) [--verbose]
-#if do not need to call from the web again (local files saved), put just the studio number
-
-def main():
-    #Get studio URL
-    studioURL = sys.argv[1]
-
-    studioScrape = studioURL.strip('1234567890 ') #Check for a bare number
-
-    studioID = studioURL.strip('htps:/cra.mieduo') #Takes off "https://scratch.mit.edu/studios/"
-
-
-    #Get folder for a module
-    module = sys.argv[2].strip()
+    # Get folder for a module
+    module = module.strip()
     if module[-1] == '/':
         module = module[:-1]
-    #Get grade level
-    grade = int(sys.argv[3])
+    # Get grade level
+    grade = int(grade)
 
+    project = module + "/json_files_by_studio/" + studioID+"/"
+
+    project = module + "/json_files_by_studio/" + studioID+"/"
+    print(project)
     # Get data from web
-    if studioScrape != "":
-        print("Scraping " + studioID+ " data from web...")
-        call(["python3", "webScrape.py",studioURL,module])
+    if not os.path.isdir(project):
+        print("Studio " + studioID + " not found locally, scraping data from web...")
+        call(["python3", "webScrape.py", studioURL, module])
         print("Scraped.\n")
     else:
-        print("No request to scrape...moving on to grading " + studioID + ".\n")
+        print("Studio " + studioID + " found locally.")
 
     # Prepare inputs for grading script
 
@@ -49,94 +41,56 @@ def main():
 
     # looks for script in higher directory
     script = "../grading-scripts-s3/"+modname+".js"
-    project = module+"/json_files_by_studio/"+studioID+"/"
-    results = module+"/grades/"+studioID+".txt"
+    folder = module + "/csv/" + str(grade)+'/'
+    results = folder + teacherID + '-' + studioID + ".csv"
 
     # Check for verbose tag
-    verbose = ""
-    if len(sys.argv) > 4 and "verbose" in sys.argv[4]:
+
+    if "verbose" in verbose:
         verbose = " --verbose"
         print("Verbose grading active.")
 
     # Run grading script on studio
     print("Running grading script...")
-    jsReturn = execute_js('grade.js', script + " " + project + " " + results + verbose)
+    execute_js('grade.js', script + " " + project + " " + results + verbose)
     print("Finished grading.\n")
 
 
-    # Get CSV data from text file
-    print("Loading grades data...")
+def main():
 
-    with open(results,'r') as grades:
-        data = []
-        headers = []
-        headers.append("ID")
-        headers.append("Error grading project")
+    file = sys.argv[1].strip()
 
+    print("Start of grading: \n")
+    grades = []
 
-        data.append([])
-        seek = True
-        next = grades.readline().strip('\n')
+    # iterate through folder
+    with open(file, 'r') as f:
+        reader = csv.reader(f)
+        csv_to_list = list(reader)
+        for row in csv_to_list:
+        
+            if row[3] not in grades:
+                grades.append(row[3])
+            # run the command
+            if len(row) > 4:  # if there is a verbose flag
+                grade_and_save(row[0], row[1], row[2], row[3], row[4])
+            else:  # if no verbose flag
+                grade_and_save(row[0], row[1], row[2], row[3])
+            
+    print("Grading completed.")
+    module = file.split('/')[1] + '/'
 
+    # for grade in grades:
+    #     call(['python3','mergeCSVs.py', './' + module + 'csv/' + grade + '/', './' + module + 'csv/aggregated/' + grade + '.csv'])
+    #     call(['python3', 'countCSV.py', './' + module + 'csv/aggregated/' + grade + '.csv', './' + module + 'csv/aggregated/counted/' + grade + '-counted.csv'])
 
-        # Get user data
-        while (next != ''): #read until EOF
-            line = []
-            while (next != "|"):
-                if next == '': #check for EOF
-                    break
-                if "Extension" in next or "ScratchEncore" in next: #ignore extensions or ScratchEncore user
-                    while (next != "|"):
-                        next = grades.readline().strip('\n')
-                    continue
-                if "Requirements:" not in next:
-                    stripped = next.split(',')
-                    if len(line) == 1 and len(stripped) > 1: #if no error grading project
-                        line.append(0)
-                    try: #if not error grading project, attempt to add the field
-                        line.append(stripped[1])
-                        if seek:
-                            headers.append(stripped[0])
-                    except:
-                        # if not enough places, it is either an ID or an error message
-                        #if error message, record it and zero out other values
-                        if "Error" in stripped[0]:
-                            line.append(1)
-                            for i in range(2,len(headers)):
-                                line.append(0)
-                        #if not, log ID
-                        else:
-                            line.append(stripped[0])
-                next = grades.readline().strip('\n')
-            if len(headers) > 2:
-                seek = False
-            data.append(line)
-            next = grades.readline().strip('\n')
+    # call(['python3', 'mergeCSVs.py', './' + module + 'csv/aggregated/counted', './' + module + 'csv/aggregated/aggregated.csv'])
 
-        data[0] = headers
-
-    print("Loaded.\n")
-
-    # Adds grades to CSV
-    print("Pushing data to CSV...")
-    folder = module+"/csv/"+str(grade)+'/'
-
-    # Create target Directory if doesn't exist
-    if not os.path.exists(folder):
-        os.mkdir(folder)
-    with open(folder+studioID+'.csv', 'w+') as csvfile:
-        filewriter = csv.writer(csvfile, delimiter=',',
-                                quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        for i in range(len(data)):
-            filewriter.writerow(data[i])
-
-    print("Pushed.\n")
-
-
-
-
-
+    # call(['python3', 'addLetterHeading.py', './' + module + 'csv/aggregated/aggregated.csv', 'copy', '4'])
+    print("\nStart of graphing:")
+    call(['python3', 'plotGrades.py', './' + module])
+    print("Finished graphing.")
 
 
 if __name__ == '__main__':
-        main()
+    main()

@@ -13,7 +13,7 @@ module.exports = class {
     initReqs() {
         this.requirements.hasOneSprite = { bool: false, str: 'Project has at least one sprite' };
         this.requirements.interactiveSprite = { bool: false, str: 'Project has at least one interactive sprite with a multi-block script attached' };
-        this.requirements.nonInteractiveSprite = { bool: false, str: 'Proejct has at least one non-interactive sprite with a multi-block script attached to it' };
+        //this.requirements.nonInteractiveSprite = { bool: false, str: 'Proejct has at least one non-interactive sprite with a multi-block script attached to it' };
         this.extensions.multipleSprites = { bool: false, str: 'This project uses more than one sprite' }; // done
         this.extensions.additionalBackdrop = { bool: false, str: 'This project has an additional backdrop' };
         this.extensions.movingSprites = { bool: false, str: 'This project has a moving sprite' };
@@ -53,16 +53,6 @@ module.exports = class {
                         }
                     }
 
-                    else if (target.blocks[block].opcode === 'event_whenflagclicked') {
-                        for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
-                            scriptLengthNotInteractive++;
-                        }
-                        if (scriptLengthNotInteractive > 1) {
-                            this.requirements.nonInteractiveSprite.bool = true;
-                            
-                        }
-                    }
-
                     else if ((target.blocks[block].opcode === 'motion_gotoxy') ||
                     target.blocks[block].opcode === 'motion_glidesecstoxy' ||
                     target.blocks[block].opcode === 'motion_movesteps') {
@@ -77,6 +67,10 @@ module.exports = class {
             }
         }
 
+        if (this.requirements.interactiveSprite.bool === true) {
+            this.requirements.nonInteractiveSprite.bool = true;
+        }
+        
         if (numSprites >= 1) {
             this.requirements.hasOneSprite.bool = true;
         }
