@@ -4264,8 +4264,7 @@ module.exports = class {
             if (target.isStage) {
                 continue;
             }
-            else {
-                
+            else {        
                 for (let block in target.blocks) {
                     
                     // script starting with the when green flag clicked block
@@ -4293,7 +4292,10 @@ module.exports = class {
                                 }
                                 
                                 // checks to see if it stops when it is touching a color
-                                if (target.blocks[condition].opcode === 'sensing_touchingcolor') {
+                                console.log(target.blocks[condition].opcode);
+                                if ((target.blocks[condition].opcode === 'sensing_touchingcolor') ||
+                                (target.blocks[condition].opcode === 'sensing_coloristouchingcolor')) {
+                                    console.log('here');
                                     this.requirements.stop.bool = true;
                                 }
                                 
