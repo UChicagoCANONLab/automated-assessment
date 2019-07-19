@@ -11,9 +11,17 @@ module.exports = class {
     }
 
     initReqs() {
-        this.requirements.newCostumes = {bool: false, str: 'At least three sprites have new costumes'}; // done
-        this.requirements.speaking = {bool: false, str: 'All three sprites use the say block'}; // done
-        this.requirements.interactive = {bool: false, str: '2/3 sprites are interactive'}; // done
+        this.requirements.newCostumes1 = {bool: false, str: 'At least one sprite has a new costumes'};
+        this.requirements.newCostumes2= {bool: false, str: 'At least two sprites have new costumes'};
+        this.requirements.newCostumes3 = {bool: false, str: 'At least three sprites have new costumes'}; // done
+
+        this.requirements.speaking3 = {bool: false, str: 'All three sprites use the say block'}; // done
+        this.requirements.speaking2 = {bool: false, str: 'Two sprites use the say block'}; // done
+        this.requirements.speaking1 = {bool: false, str: 'A sprite uses the say block'}; // done
+
+        this.requirements.interactive2 = {bool: false, str: '2/3 sprites are interactive'}; // done
+        this.requirements.interactive1 = {bool: false, str: '1/3 sprites are interactive'}; // done
+
         this.extensions.usesPlaySoundUntilDone = { bool: false, str: 'The project uses the "Play Sound Until" block in a script' }; 
         this.extensions.usesGotoXY = { bool: false, str: 'The project uses the "Go to XY" block in a script' };
         this.extensions.keyCommand = { bool: false, str: 'The project uses a "when "key" pressed" block in a script' };
@@ -49,7 +57,7 @@ module.exports = class {
 
         // new
         var newCostumes = [];
-        var soundOptions = ['sound_playuntildone', 'sound_play', 'looks_say', 'looks_sayforsecs'];
+        var soundOptions = ['looks_say', 'looks_sayforsecs'];
         
         var spritesWithSound = 0;
         
@@ -57,6 +65,9 @@ module.exports = class {
     
         for (let target of project.targets) {
             if (target.isStage) {continue;}
+            else if(target.name === 'Catrina') {
+                continue;
+            }
             else {
                 // pushes the assetid of the new costume to an array
                 let currentCostume = target.currentCostume;
@@ -72,6 +83,7 @@ module.exports = class {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             continue;
                         } else {
+                            
                             hasSound = true;
                         }
                     }
@@ -80,11 +92,13 @@ module.exports = class {
                             continue;
                         } else {
                             if (target.blocks[block].next === "}VBgCH{K:oDh6pV0h.pi" && target.blocks[block].parent === null) {
+                                console.log('in original');
                                 continue;
                             } else {
                                 hasInteraction = true;
                             }
                             if (target.blocks[block].next === "/f[ltBij)7]5Jtg|W(1%" && target.blocks[block].parent === null) {
+                                console.log('in original');
                                 continue;
                             } else {
                                 hasInteraction = true;
@@ -128,18 +142,33 @@ module.exports = class {
                 }
             }
         }
-        console.log(spritesWithInteraction);
         if (spritesWithInteraction >= 2) {
-            this.requirements.interactive.bool = true;
+            this.requirements.interactive2.bool = true;
+        }
+        if (spritesWithInteraction === 1) {
+            this.requirements.interactive1.bool = true;
         }
 
         if (numChanged >= 3) {
-            this.requirements.newCostumes.bool = true;
+            this.requirements.newCostumes3.bool = true;
+        }
+        if (numChanged == 2) {
+            this.requirements.newCostumes2.bool = true;
+        }
+        if (numChanged === 1) {
+            this.requirements.newCostumes1.bool = true;
+        }
+        
+        if (spritesWithSound >= 3) {
+            this.requirements.speaking3.bool = true;
+        }
+        if (spritesWithSound === 2) {
+            this.requirements.speaking2.bool = true;
+        }
+        if (spritesWithSound === 1) {
+            this.requirements.speaking1.bool = true;
         }
 
-        if (spritesWithSound >= 3) {
-            this.requirements.speaking.bool = true;
-        }
 
         this.extensions.usesPlaySoundUntilDone.bool = usesPlaySound;
         this.extensions.usesGotoXY.bool = usesMotion;
