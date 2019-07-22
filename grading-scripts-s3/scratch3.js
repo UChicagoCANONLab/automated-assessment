@@ -2,7 +2,7 @@
 require('./context');
 
 /// Returns false for null, undefined, and zero-length values.
-global.is = function(x) { 
+global.is = function(x) {
     return !(x == null || x === {} || x === []);
 }
 
@@ -20,33 +20,33 @@ global.Block = class {
         this.target = target;
     }
 
-/// Internal function that converts a block to a Block.
+    /// Internal function that converts a block to a Block.
     toBlock(x) {
         return new Block(this.target, x);
     }
 
-/// Returns the next block in the script.
+    /// Returns the next block in the script.
     nextBlock() {
         if (no(this.next)) return null;
-        
+
         return this.toBlock(this.next);
     }
 
-/// Returns the previous block in the script.
+    /// Returns the previous block in the script.
     prevBlock() {
         if (no(this.parent)) return null;
 
         return this.toBlock(this.parent);
     }
 
-/// Returns the conditional statement of the block, if it exists.
+    /// Returns the conditional statement of the block, if it exists.
     conditionBlock() {
         if (no(this.inputs.CONDITION)) return null;
         return this.toBlock(this.inputs.CONDITION[1]);
     }
 
-/// Returns an array representing the script that contains the block.
-    childBlocks() {     
+    /// Returns an array representing the script that contains the block.
+    childBlocks() {
         var array = [];
         var x = this;
         while (x) {
@@ -56,7 +56,7 @@ global.Block = class {
         return array;
     }
 
-/// Returns an array of Scripts representing the subscripts of the block.
+    /// Returns an array of Scripts representing the subscripts of the block.
     subScripts() {
         if (no(this.inputs)) return [];
         var array = [];
@@ -112,7 +112,7 @@ global.Project = class {
         for (var target_ of json.targets) {
             var target = new Target(target_, this);
             this.targets.push(target);
-            if (!target_.isStage) this.sprites.push(target); 
+            if (!target_.isStage) this.sprites.push(target);
         }
         for (var target of this.targets) {
             this.context.sublayers.push(target.context);
