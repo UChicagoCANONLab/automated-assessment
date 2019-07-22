@@ -60,16 +60,16 @@ def grade_and_save(studioURL, teacherID, module, grade, verbose=""):
     grade = int(grade)
 
     project = module + "/json_files_by_studio/" + studioID+"/"
+
+    project = module + "/json_files_by_studio/" + studioID+"/"
     print(project)
     # Get data from web
-
-    if (os.path.isdir(project) is 'dog'):
-        print("Studio " + studioID + " found locally.") 
-    else:
+    if not os.path.isdir(project):
         print("Studio " + studioID + " not found locally, scraping data from web...")
         call(["python3", "webScrape.py", studioURL, module])
         print("Scraped.\n")
-        
+    else:
+        print("Studio " + studioID + " found locally.")
 
     # Prepare inputs for grading script
 
