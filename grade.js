@@ -52,12 +52,16 @@ else {
 var largestRowIndex = data.map(row => Object.keys(row).length)
                           .reduce((a, b, i) => a[0] < b? [b, i] : a, [Number.MIN_VALUE, -1])[1];
 var tmp = data[0];
+
 data[0] = data[largestRowIndex];
 
 data[largestRowIndex] = tmp;
-
-new ObjectsToCsv(data).toDisk(resultsFile);
-
+try {
+    new ObjectsToCsv(data).toDisk(resultsFile);
+}
+catch(err) {
+    console.log(data);
+}
 
 
 /// Helpers
@@ -98,15 +102,16 @@ function gradeProjectWithGrader(projectPath, graderPath,isVerbose,resultsFile,st
     //If there was an error, report it
     catch(err) {
         row['Error grading project'] = 1;
-        console.log(studentID)
+
+        console.log('Error grading project:', studentID)
         console.log(err);
     }
 
     if (isVerbose) { //if verbose flag, output the results to the console
         console.log(row)
     }
-
-    data.push(row)
+    
+    data.push(row);
     //write the output to the file
     //fs.appendFileSync(resultsFile,output)
 
