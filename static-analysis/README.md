@@ -2,9 +2,11 @@
 
 Summer 2019 Update/Use:
 
-The use of these files relies on a directory structure that can be found in toolchain.txt.
+The use of these files relies on a directory structure that can be found in toolchain.txt, which should be read after this.
 
-Additionally, python3, pip3, and the supporting modules must be installed. The required modules can be found in `requirements.txt`. All modules in this file can be installed by running `pip3 install -r requirements.txt`.
+Additionally, `python3`, `pip3`, and the supporting modules must be installed. The required modules can be found in `requirements.txt`. All modules in this file can be installed by running `pip3 install -r requirements.txt`. 
+
+If additional modules are required later on, it is recommended to set up a virtual environment, installing `virtualenv`, so that `requirements.txt` can be updated with only modules specific to this project.
 
 
 run.py: python3 run.py (path to CSV file of commands, each referencing a Scratch Studio)
