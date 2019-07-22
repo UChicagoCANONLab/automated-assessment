@@ -10,6 +10,42 @@ import csv
 from subprocess import call
 from Naked.toolshed.shell import execute_js
 
+
+def main():
+
+    file = sys.argv[1].strip()
+
+    print("Start of grading: \n")
+    grades = []
+
+    # iterate through folder
+    with open(file, 'r') as f:
+        reader = csv.reader(f)
+        csv_to_list = list(reader)
+        for row in csv_to_list:
+            if row[3] not in grades:
+                grades.append(row[3])
+            # run the command
+            if len(row) > 4:  # if there is a verbose flag
+                grade_and_save(row[0], row[1], row[2], row[3], row[4])
+            else:  # if no verbose flag
+                grade_and_save(row[0], row[1], row[2], row[3])
+            
+    print("Grading completed.")
+    module = file.split('/')[1] + '/'
+
+    # for grade in grades:
+    #     call(['python3','mergeCSVs.py', './' + module + 'csv/' + grade + '/', './' + module + 'csv/aggregated/' + grade + '.csv'])
+    #     call(['python3', 'countCSV.py', './' + module + 'csv/aggregated/' + grade + '.csv', './' + module + 'csv/aggregated/counted/' + grade + '-counted.csv'])
+
+    # call(['python3', 'mergeCSVs.py', './' + module + 'csv/aggregated/counted', './' + module + 'csv/aggregated/aggregated.csv'])
+
+    # call(['python3', 'addLetterHeading.py', './' + module + 'csv/aggregated/aggregated.csv', 'copy', '4'])
+    print("\nStart of graphing:")
+    call(['python3', 'plotGrades.py', './' + module])
+    print("Finished graphing.")
+
+
 def grade_and_save(studioURL, teacherID, module, grade, verbose=""):
 
     studioScrape = studioURL.strip('1234567890 ')  # Check for a bare number
@@ -26,11 +62,9 @@ def grade_and_save(studioURL, teacherID, module, grade, verbose=""):
     project = module + "/json_files_by_studio/" + studioID+"/"
     print(project)
     # Get data from web
-    print(os.path.isdir(project))
-    print(os.path.isdir(project))
+
     if (os.path.isdir(project) is 'dog'):
-        print("Studio " + studioID + " found locally.")
-        
+        print("Studio " + studioID + " found locally.") 
     else:
         print("Studio " + studioID + " not found locally, scraping data from web...")
         call(["python3", "webScrape.py", studioURL, module])
@@ -56,42 +90,6 @@ def grade_and_save(studioURL, teacherID, module, grade, verbose=""):
     print("Running grading script...")
     execute_js('grade.js', script + " " + project + " " + results + verbose)
     print("Finished grading.\n")
-
-
-def main():
-
-    file = sys.argv[1].strip()
-
-    print("Start of grading: \n")
-    grades = []
-
-    # iterate through folder
-    with open(file, 'r') as f:
-        reader = csv.reader(f)
-        csv_to_list = list(reader)
-        for row in csv_to_list:
-        
-            if row[3] not in grades:
-                grades.append(row[3])
-            # run the command
-            if len(row) > 4:  # if there is a verbose flag
-                grade_and_save(row[0], row[1], row[2], row[3], row[4])
-            else:  # if no verbose flag
-                grade_and_save(row[0], row[1], row[2], row[3])
-            
-    print("Grading completed.")
-    module = file.split('/')[1] + '/'
-
-    # for grade in grades:
-    #     call(['python3','mergeCSVs.py', './' + module + 'csv/' + grade + '/', './' + module + 'csv/aggregated/' + grade + '.csv'])
-    #     call(['python3', 'countCSV.py', './' + module + 'csv/aggregated/' + grade + '.csv', './' + module + 'csv/aggregated/counted/' + grade + '-counted.csv'])
-
-    # call(['python3', 'mergeCSVs.py', './' + module + 'csv/aggregated/counted', './' + module + 'csv/aggregated/aggregated.csv'])
-
-    # call(['python3', 'addLetterHeading.py', './' + module + 'csv/aggregated/aggregated.csv', 'copy', '4'])
-    print("\nStart of graphing:")
-    call(['python3', 'plotGrades.py', './' + module])
-    print("Finished graphing.")
 
 
 if __name__ == '__main__':
