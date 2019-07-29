@@ -1,5 +1,7 @@
 /* Scratch Basics L2 Autograder
-Updated Version: Anna Zipp, Summer 2019
+ * Scratch 2 (original) version: Max White, Summer 2018
+ * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
+ * Reformatting, bug fixes, and updates: Anna Zipp, Summer 2019
 */
 
 require('./scratch3');
@@ -185,10 +187,12 @@ module.exports = class {
         if (numMovingSprites > 1) {
             this.extensions.secondSpriteMoves.bool = true; 
         }
-
-        this.requirements.greenFlagBlock.bool = mainSprite.stats.flag;
-        this.requirements.goToBlock.bool = mainSprite.stats.goTo;
-        this.requirements.moveBlock.bool = mainSprite.stats.move;
-        this.requirements.sayBlock.bool = mainSprite.stats.say;
+        if (mainSprite) {
+            this.requirements.greenFlagBlock.bool = mainSprite.stats.flag;
+            this.requirements.goToBlock.bool = mainSprite.stats.goTo;
+            this.requirements.moveBlock.bool = mainSprite.stats.move;
+            this.requirements.sayBlock.bool = mainSprite.stats.say;
+        }
+        
     }
 }

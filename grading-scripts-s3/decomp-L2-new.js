@@ -60,8 +60,7 @@ module.exports = class {
         var actionBlocks = [
             'motion_movesteps', 
             'looks_costume', 
-            'looks_switchcostumeto', 
-            'looks_nextcostume', 
+            'looks_switchcostumeto',  
             'control_wait',
         ];
 
@@ -83,7 +82,7 @@ module.exports = class {
 
                     // if sprite uses wait until touching or repeat until touching blocks
                     if (["control_wait_until", "control_repeat_until"].includes(opcode)) {
-                        var inputCond = block.conditionBlock();  // the input condition block
+                        var inputCond = conditionBlock();  // the input condition block
                         if (inputCond !== null) {
                             if (["sensing_touchingcolor", "sensing_touchingobject", "sensing_touchingobjectmenu", "sensing_coloristouchingcolor"].includes(inputCond.opcode)) 
                                 touching = true;
@@ -103,14 +102,14 @@ module.exports = class {
                     // search for sequential action blocks (wait, move, change costume) in any order
                     if (actionBlocks.includes(opcode) && (seqAction === false)) {
                         var currBlock = block;
-                        var nextBlock = block.nextBlock();
-                        if ((nextBlock !== null) && (nextBlock.next !== null)) {  // if a group of 3 blocks exist
-                            var thirdBlock = nextBlock.nextBlock();
+                        var nextBlock = block.next;
+                        if (nextBlock && nextBlock.next) {  // if a group of 3 blocks exist
+                            var thirdBlock = nextBlock.next;
                             // only check groups of three sequential blocks that are all potential seqAction blocks 
-                            if ((actionBlocks.includes(nextBlock.opcode)) && (actionBlocks.includes(thirdBlock.opcode))) { 
+                            if (actionBlocks.includes(nextBlock.opcode) && actionBlocks.includes(thirdBlock.opcode)) { 
                                 if (currBlock.opcode.includes("motion_movesteps")) {
                                     foundMove = true; 
-                                } else if (['looks_costume','looks_switchcostumeto','looks_nextcostume'].includes(currBlock.opcode)) {
+                                } else if (['looks_costume','looks_switchcostumeto'].includes(currBlock.opcode)) {
                                     foundCostume = true; 
                                 } else if (currBlock.opcode.includes("control_wait")) { 
                                     foundWait = true; 
@@ -118,7 +117,7 @@ module.exports = class {
 
                                 if (nextBlock.opcode.includes("motion_movesteps")) {
                                     foundMove = true; 
-                                } else if (['looks_costume','looks_switchcostumeto','looks_nextcostume'].includes(nextBlock.opcode)) {
+                                } else if (['looks_costume','looks_switchcostumeto'].includes(nextBlock.opcode)) {
                                     foundCostume = true; 
                                 } else if (nextBlock.opcode.includes("control_wait")) { 
                                     foundWait = true; 
@@ -126,22 +125,27 @@ module.exports = class {
 
                                 if (thirdBlock.opcode.includes("motion_movesteps")) {
                                     foundMove = true; 
-                                } else if (['looks_costume','looks_switchcostumeto','looks_nextcostume'].includes(thirdBlock.opcode)) {
+                                } else if (['looks_costume','looks_switchcostumeto'].includes(thirdBlock.opcode)) {
                                     foundCostume = true; 
                                 } else if (thirdBlock.opcode.includes("control_wait")) {
                                     foundWait = true; 
                                 }
-                
+
                                 // if one of each kind of seqAction blocks is found in the sequence of three given blocks
-                                seqAction = seqAction || (foundMove && foundCostume && foundWait);
-                                    
-                                // reset the flags
-                                foundMove = false;
-                                foundCostume = false;
-                                foundWait = false;                                
+                                if (foundMove && foundCostume && foundWait) {
+                                    seqAction = true; 
+                                } else {  // if not, reset the flags
+                                    foundMove = false;
+                                    foundCostume = false;
+                                    foundWait = false;
+                                }
                             }
                         }                         
-                    }                  
+                    }
+                    
+                    
+                    
+                    
                 });
             }
         }        
@@ -204,5 +208,9 @@ module.exports = class {
             // TODO: test for edge cases, probs doesnt cover everything
             // if sprites w events >=3 and sprites w diff actions >=1
         }
+
+ 
     }
+
+
 }
