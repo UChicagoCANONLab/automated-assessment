@@ -18,6 +18,7 @@ global.Block = class {
         this.id = block;
         this.context = new Context(target.context, false);
         this.target = target;
+        this.subscripts = this.subScripts();
     }
 
     /// Internal function that converts a block to a Block.
@@ -79,8 +80,27 @@ global.Script = class {
         this.target  = target;
         this.context = new Context(target.context, false);
         for (var block of this.blocks) {
+
+        }
+        this.subscripts = [];
+        for (var block of this.blocks) {
+            for (var subscript of block.subscripts) {
+                if (subscript.blocks.length) {
+                    this.subscripts.push(subscript);
+                }
+            }
             this.context.sublayers.push(block.context);
         }
+        this.allSubscripts = this.allSubscripts_();
+    }
+
+    allSubscripts_() {
+        var allSubscripts = [];
+        for (var subscript of this.subscripts) {
+            allSubscripts.push(subscript);
+            allSubscripts = allSubscripts.concat(subscript.allSubscripts_());
+        }
+        return allSubscripts;
     }
 }
 
@@ -109,12 +129,14 @@ global.Project = class {
         this.context = new Context(items, false);
         this.targets = [];
         this.sprites = [];
+        this.scripts = [];
         for (var target_ of json.targets) {
             var target = new Target(target_, this);
             this.targets.push(target);
             if (!target_.isStage) this.sprites.push(target);
         }
         for (var target of this.targets) {
+            this.scripts = this.scripts.concat(target.scripts);
             this.context.sublayers.push(target.context);
         }
     }
