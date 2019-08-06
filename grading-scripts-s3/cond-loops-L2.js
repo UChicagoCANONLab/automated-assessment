@@ -41,7 +41,6 @@ module.exports = class {
                                 if (nextBlock === null) {
                                     this.requirements.speak.bool = false;
                                 } else if (soundOptions.includes(target.blocks[nextBlock].opcode)) {
-                            
                                     this.requirements.speak.bool = true;
                                 }
                                 if (childBlocks[i].inputs.CONDITION) {
