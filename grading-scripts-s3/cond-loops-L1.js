@@ -34,17 +34,19 @@ module.exports = class {
                         script.context.hasLooped = 1;
                         block.context.includesMove = 0;
                         block.context.includesWait = 0;
-                        for (var subBlock of block.subScripts()[0].blocks) {
-                            if (subBlock.opcode === 'motion_movesteps') {
-                                block.context.includesMove = 1;
-                                if (parseFloat(subBlock.inputs.STEPS[1][1]) !== 10) {
-                                    script.context.changedSpeed = 1;
+                        if (block.subscripts.length) {
+                            for (var subBlock of block.subscripts[0].blocks) {
+                                if (subBlock.opcode === 'motion_movesteps') {
+                                    block.context.includesMove = 1;
+                                    if (parseFloat(subBlock.inputs.STEPS[1][1]) !== 10) {
+                                        script.context.changedSpeed = 1;
+                                    }
                                 }
-                            }
-                            if (subBlock.opcode === 'control_wait') {
-                                block.context.includesWait = 1;
-                                if (parseFloat(subBlock.inputs.DURATION[1][1]) !== 0.1) {
-                                    script.context.changedSpeed = 1;
+                                if (subBlock.opcode === 'control_wait') {
+                                    block.context.includesWait = 1;
+                                    if (parseFloat(subBlock.inputs.DURATION[1][1]) !== 0.1) {
+                                        script.context.changedSpeed = 1;
+                                    }
                                 }
                             }
                         }
@@ -82,7 +84,7 @@ module.exports = class {
                     if (block.opcode.includes('sound_play')) {
                         script.context.addedSound = 1;
                     }
-                }    
+                }
             }
             var costumeNames = sprite.costumes.map(costume => costume.name);
             var isCar = false;

@@ -6,8 +6,8 @@ module.exports = class {
         this.requirements = {
             reactToClick: { bool: false, str: 'Three sprites react to being clicked.'                          },
             getBigger:    { bool: false, str: 'Three sprites get bigger when clicked.'                         },
-            talkTwice:    { bool: false, str: 'After getting bigger, the sprites talk twice.'                  },
-            resetSize:    { bool: false, str: 'After talking twice, the sprites reset to their original size.' }
+            talkTwice:    { bool: false, str: 'After getting bigger the sprites talk twice.'                  },
+            resetSize:    { bool: false, str: 'After talking twice the sprites reset to their original size.' }
         };
         this.extensions = {
             changedName:  { bool: false, str: 'At least one sprite\'s name has been changed.'                  },

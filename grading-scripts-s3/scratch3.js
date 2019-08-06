@@ -2,7 +2,7 @@
 require('./context');
 
 /// Returns false for null, undefined, and zero-length values.
-global.is = function(x) { 
+global.is = function(x) {
     return !(x == null || x === {} || x === []);
 }
 
@@ -18,35 +18,36 @@ global.Block = class {
         this.id = block;
         this.context = new Context(target.context, false);
         this.target = target;
+        this.subscripts = this.subScripts();
     }
 
-/// Internal function that converts a block to a Block.
+    /// Internal function that converts a block to a Block.
     toBlock(x) {
         return new Block(this.target, x);
     }
 
-/// Returns the next block in the script.
+    /// Returns the next block in the script.
     nextBlock() {
         if (no(this.next)) return null;
-        
+
         return this.toBlock(this.next);
     }
 
-/// Returns the previous block in the script.
+    /// Returns the previous block in the script.
     prevBlock() {
         if (no(this.parent)) return null;
 
         return this.toBlock(this.parent);
     }
 
-/// Returns the conditional statement of the block, if it exists.
+    /// Returns the conditional statement of the block, if it exists.
     conditionBlock() {
         if (no(this.inputs.CONDITION)) return null;
         return this.toBlock(this.inputs.CONDITION[1]);
     }
 
-/// Returns an array representing the script that contains the block.
-    childBlocks() {     
+    /// Returns an array representing the script that contains the block.
+    childBlocks() {
         var array = [];
         var x = this;
         while (x) {
@@ -56,7 +57,7 @@ global.Block = class {
         return array;
     }
 
-/// Returns an array of Scripts representing the subscripts of the block.
+    /// Returns an array of Scripts representing the subscripts of the block.
     subScripts() {
         if (no(this.inputs)) return [];
         var array = [];
@@ -79,8 +80,27 @@ global.Script = class {
         this.target  = target;
         this.context = new Context(target.context, false);
         for (var block of this.blocks) {
+
+        }
+        this.subscripts = [];
+        for (var block of this.blocks) {
+            for (var subscript of block.subscripts) {
+                if (subscript.blocks.length) {
+                    this.subscripts.push(subscript);
+                }
+            }
             this.context.sublayers.push(block.context);
         }
+        this.allSubscripts = this.allSubscripts_();
+    }
+
+    allSubscripts_() {
+        var allSubscripts = [];
+        for (var subscript of this.subscripts) {
+            allSubscripts.push(subscript);
+            allSubscripts = allSubscripts.concat(subscript.allSubscripts_());
+        }
+        return allSubscripts;
     }
 }
 
@@ -109,12 +129,14 @@ global.Project = class {
         this.context = new Context(items, false);
         this.targets = [];
         this.sprites = [];
+        this.scripts = [];
         for (var target_ of json.targets) {
             var target = new Target(target_, this);
             this.targets.push(target);
-            if (!target_.isStage) this.sprites.push(target); 
+            if (!target_.isStage) this.sprites.push(target);
         }
         for (var target of this.targets) {
+            this.scripts = this.scripts.concat(target.scripts);
             this.context.sublayers.push(target.context);
         }
     }

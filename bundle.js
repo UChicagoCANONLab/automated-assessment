@@ -7859,6 +7859,14 @@
             for (var script of this.scripts) {
                 this.context.sublayers.push(script.context);
             }
+        }        
+
+        return {
+            name: sprite.name,
+            usesGoTo: goTo,
+            usesTouching: touching,
+            hasSeqAction: seqAction,
+            hasDiffActions: diffActions,
         }
     }
     

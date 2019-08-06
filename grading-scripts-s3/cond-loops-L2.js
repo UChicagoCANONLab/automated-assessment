@@ -43,26 +43,25 @@ module.exports = class {
                                 } else if (soundOptions.includes(target.blocks[nextBlock].opcode)) {
                                     this.requirements.speak.bool = true;
                                 }
+                                if (childBlocks[i].inputs.CONDITION) {
+                                    let condition = childBlocks[i].inputs.CONDITION[1];
 
-                                let condition = childBlocks[i].inputs.CONDITION[1];
-
-                                if (target.blocks[condition].opcode === 'sensing_touchingobject') {
-                                    let touching = target.blocks[condition].inputs.TOUCHINGOBJECTMENU[1];
-                                    var objectTouching = target.blocks[touching].fields.TOUCHINGOBJECTMENU[0];
-                                }
-                                
-                                // checks to see if it stops when it is touching a color
-                                console.log(target.blocks[condition].opcode);
-                                if ((target.blocks[condition].opcode === 'sensing_touchingcolor') ||
-                                (target.blocks[condition].opcode === 'sensing_coloristouchingcolor')) {
-                                    console.log('here');
-                                    this.requirements.stop.bool = true;
-                                }
-                                
-                                let substack = childBlocks[i].inputs.SUBSTACK[1];
-                                var moveOptions = ['motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy', 'motion_glideto', 'motion_goto', 'motion_gotoxy']
-                                if (moveOptions.includes(target.blocks[substack].opcode)) {
-                                    this.requirements.moves.bool = true;
+                                    if (target.blocks[condition].opcode === 'sensing_touchingobject') {
+                                        let touching = target.blocks[condition].inputs.TOUCHINGOBJECTMENU[1];
+                                        var objectTouching = target.blocks[touching].fields.TOUCHINGOBJECTMENU[0];
+                                    }
+                                    
+                                    // checks to see if it stops when it is touching a color
+                                    if ((target.blocks[condition].opcode === 'sensing_touchingcolor') ||
+                                        (target.blocks[condition].opcode === 'sensing_coloristouchingcolor')) {
+                                        this.requirements.stop.bool = true;
+                                    }
+                                    
+                                    let substack = childBlocks[i].inputs.SUBSTACK[1];
+                                    var moveOptions = ['motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy', 'motion_glideto', 'motion_goto', 'motion_gotoxy']
+                                    if (moveOptions.includes(target.blocks[substack].opcode)) {
+                                        this.requirements.moves.bool = true;
+                                    }
                                 }
                             }
                         }
