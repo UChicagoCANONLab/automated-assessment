@@ -18,11 +18,11 @@ module.exports = class {
         //this.requirements.hasOneSprite = { bool: false, str: 'Project has at least one sprite' };//done
         //this.requirements.scripts = { bool: false, str: 'At least half of the sprites have a script using the 11 blocks given (with at least one event block and at least one other block)' };//done
         this.requirements.costumes1 = {bool: false, str: 'At least one sprite has a new costume'};
-        this.requirements.costumes = { bool: false, str: 'At least half of the sprites have costumes other than the ones originally set' };//done
+        this.requirements.costumes = { bool: false, str: 'At least half of the sprites have new costumes' };//done
         this.requirements.dialogue1 = { bool: false, str: 'At least one sprite has new dialogue' };
-        this.requirements.dialogue = { bool: false, str: 'At least half of the sprites have dialogue other than that originally given' };//done
+        this.requirements.dialogue = { bool: false, str: 'At least half of the sprites have new dialogue using blocks specified' };//done
         this.requirements.movement1 = { bool: false, str: 'At least one sprite has new movement'};
-        this.requirements.movement = { bool: false, str: 'At least half of the sprites have movement other than that already given' };//to fix
+        this.requirements.movement = { bool: false, str: 'At least half of the sprites have new movement using blocks specified' };//to fix
         this.requirements.backdrop = { bool: false, str: 'The background has been changed' };//done
         //     this.extensions.allReqs = { bool: false, str: 'All requirements are fulfilled' };
         //     this.extensions.oneSprite = { bool: false, str: 'At least one sprite has a new costume, dialogue, and movement using 11 blocks given (fulfills spirit)' };
@@ -57,7 +57,6 @@ module.exports = class {
             for (let costume of target.costumes) {
                 originalCostumes.push(costume.assetId);
             }
-
             for (let block in target.blocks) {
                 if (target.blocks[block].opcode.includes('motion_') || target.blocks[block].opcode.includes('looks_')) {
                     if ((!target.blocks[block].opcode.includes('say')) && (!target.blocks[block].opcode.includes('think'))) {
@@ -221,8 +220,8 @@ module.exports = class {
                             }
                             if (bool) {
                                 hasMovement = true;
-                                console.log('Sprite with new movement:');
-                                console.log(target.name);
+                           //     console.log('Sprite with new movement:');
+                             //   console.log(target.name);
                             }
                         }
                     }
@@ -234,18 +233,24 @@ module.exports = class {
                 let hasDialogue = false;
                 for (let block in target.blocks) {
 
+                    if (target.blocks[block].opcode==='looks_say'){
+                       // console.log('ere');
+                        this.requirements.dialogue1.bool=true;
+                    }
+                    let opcode = target.blocks[block].opcode;
+                    if ((opcode.includes('motion_') || opcode.includes('looks_'))
+                        && (!this.eventOpcodes.includes(opcode) && !this.otherOpcodes.includes(opcode))){
+                            this.requirements.movement1.bool=true;
+                        }
+
                     if (target.blocks[block].opcode.includes('motion_') || target.blocks[block].opcode.includes('looks_')) {
                         if ((!target.blocks[block].opcode.includes('say')) && (!target.blocks[block].opcode.includes('think'))) {
 
                         }
                     }
 
-                    if (this.eventOpcodes.includes(target.blocks[block].opcode)) {
-                        //  console.log('here');
-                        let b = new Block(target, block);
+                    if (this.eventOpcodes.includes(target.blocks[block].opcode)) {                        let b = new Block(target, block);
                         let childBlocks = b.childBlocks();
-                        // console.log('this is child blocks');
-                        // console.log(childBlocks);
                         for (let i = 0; i < childBlocks.length; i++) {
                             if (childBlocks[i].opcode === 'looks_sayforsecs') {
                                 let blockMessage = childBlocks[i].inputs.MESSAGE[1][1];
@@ -300,8 +305,9 @@ module.exports = class {
         //     this.requirements.scripts.bool = true;
         // }
 
-        //  console.log('sprites with dialogue');
-        //  console.log(spritesWithNewDialogue)
+        //   console.log('sprites with dialogue');
+        //   console.log(spritesWithNewDialogue);
+        //   console.log(this.requirements.dialogue1.bool);
         if (spritesWithNewDialogue) {this.requirements.dialogue1.bool=true;}
         if (spritesWithNewDialogue >= project.sprites.length / 2) {
             this.requirements.dialogue.bool = true;
