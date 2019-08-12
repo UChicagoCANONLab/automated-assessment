@@ -1842,7 +1842,7 @@ module.exports = class {
 
 
 
-},{"../act1-grading-scripts/name-poem-original-test":6,"../grading-scripts-s3/scratch3":23,"util":29}],8:[function(require,module,exports){
+},{"../act1-grading-scripts/name-poem-original-test":6,"../grading-scripts-s3/scratch3":23}],8:[function(require,module,exports){
 /*
 Act 1 Events Ofrenda Autograder
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -3801,6 +3801,7 @@ module.exports = class {
         }
     }    
 }
+
 },{"./scratch3":23}],17:[function(require,module,exports){
 /* Decomposition by Sequence L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
@@ -3905,14 +3906,6 @@ module.exports = class {
         var seqAction = false;
         var diffActions = false; 
 
-        var actionBlocks = [
-            'motion_movesteps', 
-            'looks_costume', 
-            'looks_switchcostumeto', 
-            'looks_nextcostume', 
-            'control_wait',
-        ];
-
         // iterate through the sprite's scripts that start with an event block 
         for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) {
             
@@ -3952,49 +3945,7 @@ module.exports = class {
                     // search a loop for sequential action blocks (wait, move, costume)
                     if (opcode.includes("control_repeat")) { 
                         seqAction = seqAction || this.findSequentialAction(block);
-                    }
-                    
-               /*     if (actionBlocks.includes(opcode) && (seqAction === false)) {
-                        var currBlock = block;
-                        var nextBlock = block.nextBlock();
-                        if ((nextBlock !== null) && (nextBlock.next !== null)) {  // if a group of 3 blocks exist
-                            var thirdBlock = nextBlock.nextBlock();
-                            // only check groups of three sequential blocks that are all potential seqAction blocks 
-                            if ((actionBlocks.includes(nextBlock.opcode)) && (actionBlocks.includes(thirdBlock.opcode))) { 
-                                if (currBlock.opcode.includes("motion_movesteps")) {
-                                    foundMove = true; 
-                                } else if (['looks_costume','looks_switchcostumeto','looks_nextcostume'].includes(currBlock.opcode)) {
-                                    foundCostume = true; 
-                                } else if (currBlock.opcode.includes("control_wait")) { 
-                                    foundWait = true; 
-                                }
-
-                                if (nextBlock.opcode.includes("motion_movesteps")) {
-                                    foundMove = true; 
-                                } else if (['looks_costume','looks_switchcostumeto','looks_nextcostume'].includes(nextBlock.opcode)) {
-                                    foundCostume = true; 
-                                } else if (nextBlock.opcode.includes("control_wait")) { 
-                                    foundWait = true; 
-                                }
-
-                                if (thirdBlock.opcode.includes("motion_movesteps")) {
-                                    foundMove = true; 
-                                } else if (['looks_costume','looks_switchcostumeto','looks_nextcostume'].includes(thirdBlock.opcode)) {
-                                    foundCostume = true; 
-                                } else if (thirdBlock.opcode.includes("control_wait")) {
-                                    foundWait = true; 
-                                }
-                
-                                // if one of each kind of seqAction blocks is found in the sequence of three given blocks
-                                seqAction = seqAction || (foundMove && foundCostume && foundWait);
-                                    
-                                // reset the flags
-                                foundMove = false;
-                                foundCostume = false;
-                                foundWait = false;                                
-                            }
-                        }                         
-                    } */                  
+                    }              
                 });
             }
         }        
