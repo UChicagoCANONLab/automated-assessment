@@ -11,20 +11,32 @@ module.exports = class {
     }
 
     initReqs() {
-        this.requirements.newCostumes1 = {bool: false, str: 'At least one sprite has a new costumes'};
-        this.requirements.newCostumes2= {bool: false, str: 'At least two sprites have new costumes'};
-        this.requirements.newCostumes3 = {bool: false, str: 'At least three sprites have new costumes'}; // done
+        // strict completion metrics
+        this.requirements.leftChanged = { bool: false, str: 'The left sprite has new dialogue' }; // done
+        this.requirements.leftCostume = { bool: false, str: 'The left costume has been changed' }; // done
+        this.requirements.rightCostume = { bool: false, str: 'The right costume has been changed' }; // done
+        this.requirements.midCostume = {bool: false, str: 'The middle costume has been changed'};
+        this.requirements.interactiveRight = { bool: false, str: 'Right sprite uses the "when this sprite clicked" block' };
+        this.requirements.interactiveMiddle = { bool: false, str: 'Middle sprite uses the "when this sprite clicked" block'};
+        this.requirements.speakingRight = { bool: false, str: 'Right sprite has a script with a say block in it' }; // done
+        this.requirements.speakingMiddle = { bool: false, str: 'Middle sprite has a script with a say block in it' }; // done
 
-        this.requirements.speaking3 = {bool: false, str: 'All three sprites use the say block'}; // done
-        this.requirements.speaking2 = {bool: false, str: 'Two sprites use the say block'}; // done
-        this.requirements.speaking1 = {bool: false, str: 'A sprite uses the say block'}; // done
+        // demonstrated understanding metrics under extensions
+        this.extensions.newCostumes1 = { bool: false, str: 'At least one sprite has a new costumes' };
+        //this.requirements.newCostumes2= {bool: false, str: 'At least two sprites have new costumes'};
+        //this.requirements.newCostumes3 = {bool: false, str: 'At least three sprites have new costumes'}; 
 
-        this.requirements.interactive2 = {bool: false, str: '2/3 sprites are interactive'}; // done
-        this.requirements.interactive1 = {bool: false, str: '1/3 sprites are interactive'}; // done
+        //this.extensions.speaking3 = {bool: false, str: 'All three sprites use the say block'}; 
+        //this.extensions.speaking2 = {bool: false, str: 'Two sprites use the say block'}; 
+        this.extensions.speaking1 = { bool: false, str: 'A sprite uses the say block' };
 
-        this.extensions.usesPlaySoundUntilDone = { bool: false, str: 'The project uses the "Play Sound Until" block in a script' }; 
-        this.extensions.usesGotoXY = { bool: false, str: 'The project uses the "Go to XY" block in a script' };
-        this.extensions.keyCommand = { bool: false, str: 'The project uses a "when "key" pressed" block in a script' };
+        //this.extensions.interactive2 = {bool: false, str: '2/3 sprites are interactive'}; 
+        this.extensions.interactive1 = { bool: false, str: '1/3 sprites are interactive' };
+
+        // extensions
+        // this.extensions.usesPlaySoundUntilDone = { bool: false, str: 'The project uses the "Play Sound Until" block in a script' }; 
+        // this.extensions.usesGotoXY = { bool: false, str: 'The project uses the "Go to XY" block in a script' };
+        // this.extensions.keyCommand = { bool: false, str: 'The project uses a "when "key" pressed" block in a script' };
     }
 
     grade(fileObj, user) {
@@ -37,6 +49,7 @@ module.exports = class {
         let origCostumeLeft = 0;
         let origCostumeRight = 0;
         let origCostumeMiddle = 0;
+        let origLeftDialogue = '';
 
         // gets the costumes from the original project 
         var oldCostumes = [];
@@ -44,135 +57,167 @@ module.exports = class {
             if (origTarget.name === 'Left') {
                 let currCost1 = origTarget.currentCostume;
                 origCostumeLeft = origTarget.costumes[currCost1].assetId;
+                oldCostumes.push(origCostumeLeft);
+                for (let block in origTarget.blocks) {
+                    if (origTarget.blocks[block].opcode === 'looks_sayforsecs') {
+                        origLeftDialogue = origTarget.blocks[block].inputs.MESSAGE[1][1];
+                    }
+                }
             }
             if (origTarget.name === 'Right') {
                 let currCost2 = origTarget.currentCostume;
                 origCostumeRight = origTarget.costumes[currCost2].assetId;
+                oldCostumes.push(origCostumeRight);
             }
             if (origTarget.name === 'Middle') {
                 let currCost3 = origTarget.currentCostume;
                 origCostumeMiddle = origTarget.costumes[currCost3].assetId;
+                oldCostumes.push(origCostumeMiddle);
             }
         }
 
-        // new
-        var newCostumes = [];
+        let leftCost = 0;
+        let midCost = 0;
+        let rightCost = 0;
+        let leftDialogue = '';
+        let rightDialogue = '';
+        let midDialogue = '';
+        let midInteraction = false;
+        let rightInteraction = false;
         var soundOptions = ['looks_say', 'looks_sayforsecs'];
-        
-        var spritesWithSound = 0;
-        
-        var spritesWithInteraction =0;
-    
+        var newCostumes = [];
+
+        // strict requirements
         for (let target of project.targets) {
-            if (target.isStage) {continue;}
-            else if(target.name === 'Catrina') {
-                continue;
-            }
-            else {
-                // pushes the assetid of the new costume to an array
-                let currentCostume = target.currentCostume;
-                newCostumes.push(target.costumes[currentCostume].assetId);
-                var usesPlaySound = false;
-                var usesMotion = false;
-                var usesKeyPress = false;
-                var hasSound= false;
-                var hasInteraction = false;
+            if (target.name === 'Left') {
+                let cost1 = target.currentCostume;
+                leftCost = target.costumes[cost1].assetId;
+                newCostumes.push(leftCost);
                 for (let block in target.blocks) {
-                    
                     if (soundOptions.includes(target.blocks[block].opcode)) {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             continue;
                         } else {
-                            
-                            hasSound = true;
+                            leftDialogue = target.blocks[block].inputs.MESSAGE[1][1];
                         }
+
                     }
+                }
+            }
+            if (target.name === 'Middle') {
+                let cost2 = target.currentCostume;
+                midCost = target.costumes[cost2].assetId;
+                newCostumes.push(midCost);
+                for (let block in target.blocks) {
                     if (target.blocks[block].opcode === 'event_whenthisspriteclicked') {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             continue;
+                        }
+                        else {
+                            midInteraction = true;
+                        }
+                    }
+                    if (soundOptions.includes(target.blocks[block].opcode)) {
+                        if (target.blocks[block].next === null && target.blocks[block].parent === null) {
+                            continue;
                         } else {
-                            if (target.blocks[block].next === "}VBgCH{K:oDh6pV0h.pi" && target.blocks[block].parent === null) {
-                                console.log('in original');
-                                continue;
-                            } else {
-                                hasInteraction = true;
-                            }
-                            if (target.blocks[block].next === "/f[ltBij)7]5Jtg|W(1%" && target.blocks[block].parent === null) {
-                                console.log('in original');
-                                continue;
-                            } else {
-                                hasInteraction = true;
-                            }
-                        }
-                    }
-                    
-                    var eventOpcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked', 'event_whenkeypressed'];
-                    if (eventOpcodes.includes(target.blocks[block].opcode)) {
-                        let b = new Block(target, block);
-                        let childBlocks = b.childBlocks();
-                        for (let i= 0; i < childBlocks.length; i ++) {
-                            if (childBlocks[i].opcode === 'sound_playsounduntildone') {
-                                usesPlaySound = true;
-                            }
-                            if (childBlocks[i].opcode === 'motion_gotoxy') {
-                                usesMotion = true;
-                            }
-                            if (childBlocks[i].opcode === 'event_whenkeypressed') {
-                                usesKeyPress = true;
-                            }
+                            midDialogue = target.blocks[block].inputs.MESSAGE[1][1];
                         }
                     }
                 }
-                if (hasSound) {
-                    spritesWithSound ++;
+            }
+            if (target.name === 'Right') {
+                let cost3 = target.currentCostume;
+                rightCost = target.costumes[cost3].assetId;
+                newCostumes.push(rightCost);
+                for (let block in target.blocks) {
+                    if (target.blocks[block].opcode === 'event_whenthisspriteclicked') {
+                        if (target.blocks[block].next === null && target.blocks[block].parent === null) {
+                            continue;
+                        }
+                        else {
+                            rightInteraction = true;
+                        }
+                    }
+                    if (soundOptions.includes(target.blocks[block].opcode)) {
+                        if (target.blocks[block].next === null && target.blocks[block].parent === null) {
+                            continue;
+                        } else {
+                            rightDialogue = target.blocks[block].inputs.MESSAGE[1][1];
+                        }
+                    }
                 }
-                if (hasInteraction) {
-                    spritesWithInteraction ++;
-                }
-
             }
         }
 
-        // compares the assetid of one of the new costumes to the assetids of all of the old ones
-        let numChanged = 0;
-        for (let i = 0; i < newCostumes.length; i ++) {
-            for (let j = 0; j < oldCostumes.length; j ++) {
-                if (newCostumes[i] !== oldCostumes[i]) {
-                    numChanged ++;
-                }
-            }
+        if (midInteraction) {
+            this.requirements.interactiveMiddle.bool = true;
+        } 
+        if (rightInteraction) {
+            this.requirements.interactiveRight.bool = true;
         }
-        if (spritesWithInteraction >= 2) {
-            this.requirements.interactive2.bool = true;
+        if (midDialogue !== '') {
+            this.requirements.speakingMiddle.bool = true;
         }
-        if (spritesWithInteraction === 1) {
-            this.requirements.interactive1.bool = true;
-        }
-
-        if (numChanged >= 3) {
-            this.requirements.newCostumes3.bool = true;
-        }
-        if (numChanged == 2) {
-            this.requirements.newCostumes2.bool = true;
-        }
-        if (numChanged === 1) {
-            this.requirements.newCostumes1.bool = true;
+        if (rightDialogue !== '') {
+            this.requirements.speakingRight.bool = true;
         }
         
-        if (spritesWithSound >= 3) {
-            this.requirements.speaking3.bool = true;
+        if (leftDialogue !== origLeftDialogue) {
+            this.requirements.leftChanged.bool = true;
         }
-        if (spritesWithSound === 2) {
-            this.requirements.speaking2.bool = true;
+        if (leftCost !== origCostumeLeft) {
+            this.requirements.leftCostume.bool = true;
         }
-        if (spritesWithSound === 1) {
-            this.requirements.speaking1.bool = true;
+        if (rightCost !== origCostumeRight) {
+            this.requirements.rightCostume.bool = true;
         }
+        if (midCost !== origCostumeMiddle) {
+            this.requirements.midCostume.bool = true;
+        }
+        // --------------------------------------------------------------------------------------------------------- //
 
 
-        this.extensions.usesPlaySoundUntilDone.bool = usesPlaySound;
-        this.extensions.usesGotoXY.bool = usesMotion;
-        this.extensions.keyCommand.bool = usesKeyPress;
-    
+        // at least one sprite has a new costume - make an array of the old costumes lmr and then 
+        // an array of the new costumes lmr and then if they are not equal then the requirement is fulfilled
+        // new cost is left middle right 
+
+        // if the elements are not the same or they are not in the same order
+        if (JSON.stringify(oldCostumes) !== JSON.stringify(newCostumes)) {
+            this.extensions.newCostumes1.bool = true;
+        }
+
+        // if there is a say block in a sprite that is not named catrina, and that say block is not used in the same 
+        // context as the original project (same parent and next block)
+        for (let target of project.targets) {
+            if (target.name === 'Catrina') {
+                continue;
+            } else {
+                for (let script in target.scripts) {
+                    for (let block in target.scripts[script].blocks) {
+                        if (soundOptions.includes(target.scripts[script].blocks[block].opcode)) {
+                            if (target.scripts[script].blocks[block].next === "Q.gGFO#r}[Z@fzClmRq-" && target.scripts[script].blocks[block].parent === "taz8m.4x_rVweL9%J@(3") {
+                                continue;
+                            } else if (target.scripts[script].blocks[block].next === "sPl?mFlNaaD_l]+QJ.CW" && target.scripts[script].blocks[block].parent === "Y5!LLf.Gqemqe/6!)t=e") {
+                                continue;
+                            }
+                            else {
+                                this.extensions.speaking1.bool = true;
+                            }
+                        }
+                        
+                        if (target.scripts[script].blocks[block].opcode === 'event_whenthisspriteclicked') {
+                            if (target.scripts[script].blocks[block].next === "}VBgCH{K:oDh6pV0h.pi" && target.scripts[script].blocks[block].parent === null) {
+                                continue;
+                            } else if (target.scripts[script].blocks[block].next === "/f[ltBij)7]5Jtg|W(1%" && target.scripts[script].blocks[block].parent === null) {
+                                continue;
+                            } else {
+                                this.extensions.interactive1.bool = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 } 
