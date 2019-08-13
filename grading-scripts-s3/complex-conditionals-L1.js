@@ -1,4 +1,4 @@
-/* Complex Conditionals L1 Autograder
+/* Complex Conditionals L1(TIPP&SEE Modify) Autograder
  * Scratch 3 (original) version: Anna Zipp, Summer 2019
  */
 
