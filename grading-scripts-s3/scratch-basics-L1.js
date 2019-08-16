@@ -11,84 +11,53 @@ module.exports = class {
     }
 
     initReqs() {
-        this.requirements.changeFredSteps = { bool: false, str: 'The number of steps Fred takes is changed to 100.' };
-        this.requirements.addSayBlock = { bool: false, str: 'Fred the user tells the user to "Have fun!"' };
-        this.requirements.increaseWaitTime = { bool: false, str: 'The wait time between costume changes is increased' };
+        this.requirements.addSay = { bool: false, str: 'A say block is added after a sprite says “Click the Space Bar.”' }
+        this.extensions.addedHelenSpeech = { bool: false, str: 'The sprite that is changing costumes says something else' };
+        this.extensions.carlMoves10Steps = { bool: false, str: "A sprite moves 10 steps when it is finished talking" };
     }
 
     grade(fileObj, user) {
         var project = new Project(fileObj, null);
-        var original = new Project(require('../grading-scripts-s3/basicsOriginal'), null);
 
         this.initReqs();
 
-        let originalTime = 0;
-        for (let origTarget of original.targets) {
-            if (origTarget.name === 'Helen') {
-                for (let block in origTarget.blocks) {
-                    if (origTarget.blocks[block].opcode === 'control_wait') {
-                        originalTime = origTarget.blocks[block].inputs.DURATION[1][1];
-                    }
-                }
-            }
-        }
-
+        var numSayBlocks = 0;
         for (let target of project.targets) {
-            if (target.isStage) {
-                continue;
-            }
+            if (target.isStage) { continue; }
             else {
-                for (let block in target.blocks) {
-                    if (target.blocks[block].opcode === 'motion_movesteps') {
-                        let steps = (target.blocks[block].inputs.STEPS[1][1]).toString();
-                        if (steps === (100).toString()) {
-                            this.requirements.changeFredSteps.bool = true;
-                        }
-                    }
-                    if (target.blocks[block].opcode === 'looks_sayforsecs' || 
-                    target.blocks[block].opcode === 'looks_say') {
-                        let haveFun = target.blocks[block].inputs.MESSAGE[1][1].toLowerCase();
-                        let haveFunArr = [];
-                        for (let i = 0; i < haveFun.length; i++) {
-                            haveFunArr[i] = haveFun.charAt(i);
-                        }
-                        let haveFunNewArr = [];
-                        for (let i = 0; i < haveFun.length; i++) {
-                            if (haveFunArr[i].charCodeAt() !== 32) {
-                                if (haveFunArr[i].charCodeAt() >= 97 && haveFunArr[i].charCodeAt() <= 122) {
-                                    haveFunNewArr[i] = haveFunArr[i];
-                                }
-                            }
-                        }
-                        haveFunNewArr = haveFunNewArr.filter(Boolean);
-
-                        var util = require('util');
-                        let correctArr = ['h', 'a', 'v', 'e', 'f', 'u', 'n'];
-                        correctArr = util.inspect(correctArr);
-                        haveFunNewArr = util.inspect(haveFunNewArr);
-
-                        var isSame = false;
-                        if (correctArr === haveFunNewArr) {
-                            isSame = true;
-                            if (isSame) {
-                                this.requirements.addSayBlock.bool = true;
-                            } else { continue;}
-                        }
-                    }
-                    if (target.blocks[block].opcode === 'control_wait') {
-                        let nextBlock = target.blocks[block].next;
-                        if (nextBlock !== null) {
-                            if (target.blocks[nextBlock].opcode === 'looks_nextcostume') {
-                                if (originalTime < target.blocks[block].inputs.DURATION[1][1]) {
-                                    this.requirements.increaseWaitTime.bool = true;
-                                }
+                for (let script of target.scripts) {
+                    for (let i = 0; i < script.blocks.length; i++) {
+                        // checks to see if there is a say block after the one where Carl the Cloud says to click on the sapce bar to see helen
+                        // change color
+                        if (script.blocks[i].opcode === 'looks_sayforsecs') {
+                            if (script.blocks[i].parent === "8K5Ak(+XsZvwjx2V0~D)") {
+                                this.requirements.addSay.bool = true;
                             }
                         }
                         
+                        // if there is a say block in a script that has a sprite moving 10 steps, the requirement is met
+                        if (script.blocks[i].opcode === 'motion_movesteps') {
+                            {
+                                if (script.blocks[i].inputs.STEPS[1][1] == 10) {
+                                    this.extensions.carlMoves10Steps.bool = true;
+                                }
+                            }
+                        }
+                        // if the block is not one of the original say blocks, and it is not the say block that has been added after 
+                        // carl the cloud says to click to see the changing colors
+                        if (script.blocks[i].opcode === 'looks_sayforsecs') {
+                            if (script.blocks[i].next === "ahLTJjNBf`+1#.[qNZE4" && script.blocks[i].parent === "`4;L4Q?o6CqFmdbH?:ms") { continue; }
+                            else if (script.blocks[i].next === "=n_7]#{Cxj6pf!BUV,OP" && script.blocks[i].parent === "ahLTJjNBf`+1#.[qNZE4") { continue; }
+                            else if (script.blocks[i].next === null && script.blocks[i].parent === "=n_7]#{Cxj6pf!BUV,OP") { continue; }
+                            else if (script.blocks[i].next === null && script.blocks[i].parent === "3?,1QT}D[0#@^jvT!J*^") { continue; }
+                            else if (script.blocks[i].next === null && script.blocks[i].parent === "8K5Ak(+XsZvwjx2V0~D)") { continue; }
+                            else {
+                                this.extensions.addedHelenSpeech.bool = true;
+                            }
+                        }
                     }
                 }
             }
         }
-       
     }
 }
