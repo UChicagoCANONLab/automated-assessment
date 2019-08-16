@@ -102,6 +102,20 @@ global.Script = class {
         }
         return allSubscripts;
     }
+    /// Recursively visits each block in a scrip and its subscripts, 
+    ///  noting at which level of nestedness it is in within control blocks of ones choosing.
+    traverseBlocks(func, parentBlocks=['control_forever', 'control_if', 'control_if_else', 'control_repeat', 'control_repeat_until']) {
+        const traverse = (scripts, level) => {
+            if (!is(scripts) || scripts === [[]]) return;
+            for (let script of scripts) {
+                for (let block of script.blocks) {
+                    func(block, level);
+                    traverse(block.subScripts(), level + parentBlocks.includes(block.opcode));
+                }
+            }
+        }
+        traverse([this], 1);
+    }
 }
 
 /// Container class for Scratch targets (stages & sprites).
