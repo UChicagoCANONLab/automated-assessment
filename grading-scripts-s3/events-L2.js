@@ -3,19 +3,6 @@ Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and bug fixes: Marco Anaya, Summer 2019
 */
 require('./scratch3');
-// recursive function that searches a script and any subscripts (those within loops)
-function iterateBlocks(script, func) {
-    function recursive(scripts, func, level) {
-        if (!is(scripts) || scripts === [[]]) return;
-        for (var script of scripts) {
-            for(var block of script.blocks) {
-                func(block, level);
-                recursive(block.subScripts(), func, level + 1);
-            }
-        }
-    }
-    recursive([script], func, 1);
-}
 
 module.exports = class {
     init() {
@@ -44,10 +31,6 @@ module.exports = class {
             holiday: null,
             guidingUser: false,
             blockTypes: new Set([]),
-            
-
-            
-
         }
     }
     
@@ -62,7 +45,7 @@ module.exports = class {
             //look for extension requirements throughout each block
             var blink = {hide: false, wait: false, show: false};
             var spin = {wait: false, turn: false};
-            iterateBlocks(script, (block, level) => {
+            script.traverseBlocks((block, level) => {
                 var opcode = block.opcode;
                 if (opcode in this.info.blockTypes) {
                     
