@@ -1,812 +1,4 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-if (typeof Object.create === 'function') {
-  // implementation from standard node.js 'util' module
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-  };
-} else {
-  // old school shim for old browsers
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
-  }
-}
-
-},{}],2:[function(require,module,exports){
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-},{}],3:[function(require,module,exports){
-module.exports = function isBuffer(arg) {
-  return arg && typeof arg === 'object'
-    && typeof arg.copy === 'function'
-    && typeof arg.fill === 'function'
-    && typeof arg.readUInt8 === 'function';
-}
-},{}],4:[function(require,module,exports){
-(function (process,global){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-var formatRegExp = /%[sdj%]/g;
-exports.format = function(f) {
-  if (!isString(f)) {
-    var objects = [];
-    for (var i = 0; i < arguments.length; i++) {
-      objects.push(inspect(arguments[i]));
-    }
-    return objects.join(' ');
-  }
-
-  var i = 1;
-  var args = arguments;
-  var len = args.length;
-  var str = String(f).replace(formatRegExp, function(x) {
-    if (x === '%%') return '%';
-    if (i >= len) return x;
-    switch (x) {
-      case '%s': return String(args[i++]);
-      case '%d': return Number(args[i++]);
-      case '%j':
-        try {
-          return JSON.stringify(args[i++]);
-        } catch (_) {
-          return '[Circular]';
-        }
-      default:
-        return x;
-    }
-  });
-  for (var x = args[i]; i < len; x = args[++i]) {
-    if (isNull(x) || !isObject(x)) {
-      str += ' ' + x;
-    } else {
-      str += ' ' + inspect(x);
-    }
-  }
-  return str;
-};
-
-
-// Mark that a method should not be used.
-// Returns a modified function which warns once by default.
-// If --no-deprecation is set, then it is a no-op.
-exports.deprecate = function(fn, msg) {
-  // Allow for deprecating things in the process of starting up.
-  if (isUndefined(global.process)) {
-    return function() {
-      return exports.deprecate(fn, msg).apply(this, arguments);
-    };
-  }
-
-  if (process.noDeprecation === true) {
-    return fn;
-  }
-
-  var warned = false;
-  function deprecated() {
-    if (!warned) {
-      if (process.throwDeprecation) {
-        throw new Error(msg);
-      } else if (process.traceDeprecation) {
-        console.trace(msg);
-      } else {
-        console.error(msg);
-      }
-      warned = true;
-    }
-    return fn.apply(this, arguments);
-  }
-
-  return deprecated;
-};
-
-
-var debugs = {};
-var debugEnviron;
-exports.debuglog = function(set) {
-  if (isUndefined(debugEnviron))
-    debugEnviron = process.env.NODE_DEBUG || '';
-  set = set.toUpperCase();
-  if (!debugs[set]) {
-    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
-      var pid = process.pid;
-      debugs[set] = function() {
-        var msg = exports.format.apply(exports, arguments);
-        console.error('%s %d: %s', set, pid, msg);
-      };
-    } else {
-      debugs[set] = function() {};
-    }
-  }
-  return debugs[set];
-};
-
-
-/**
- * Echos the value of a value. Trys to print the value out
- * in the best way possible given the different types.
- *
- * @param {Object} obj The object to print out.
- * @param {Object} opts Optional options object that alters the output.
- */
-/* legacy: obj, showHidden, depth, colors*/
-function inspect(obj, opts) {
-  // default options
-  var ctx = {
-    seen: [],
-    stylize: stylizeNoColor
-  };
-  // legacy...
-  if (arguments.length >= 3) ctx.depth = arguments[2];
-  if (arguments.length >= 4) ctx.colors = arguments[3];
-  if (isBoolean(opts)) {
-    // legacy...
-    ctx.showHidden = opts;
-  } else if (opts) {
-    // got an "options" object
-    exports._extend(ctx, opts);
-  }
-  // set default options
-  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
-  if (isUndefined(ctx.depth)) ctx.depth = 2;
-  if (isUndefined(ctx.colors)) ctx.colors = false;
-  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
-  if (ctx.colors) ctx.stylize = stylizeWithColor;
-  return formatValue(ctx, obj, ctx.depth);
-}
-exports.inspect = inspect;
-
-
-// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-inspect.colors = {
-  'bold' : [1, 22],
-  'italic' : [3, 23],
-  'underline' : [4, 24],
-  'inverse' : [7, 27],
-  'white' : [37, 39],
-  'grey' : [90, 39],
-  'black' : [30, 39],
-  'blue' : [34, 39],
-  'cyan' : [36, 39],
-  'green' : [32, 39],
-  'magenta' : [35, 39],
-  'red' : [31, 39],
-  'yellow' : [33, 39]
-};
-
-// Don't use 'blue' not visible on cmd.exe
-inspect.styles = {
-  'special': 'cyan',
-  'number': 'yellow',
-  'boolean': 'yellow',
-  'undefined': 'grey',
-  'null': 'bold',
-  'string': 'green',
-  'date': 'magenta',
-  // "name": intentionally not styling
-  'regexp': 'red'
-};
-
-
-function stylizeWithColor(str, styleType) {
-  var style = inspect.styles[styleType];
-
-  if (style) {
-    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
-           '\u001b[' + inspect.colors[style][1] + 'm';
-  } else {
-    return str;
-  }
-}
-
-
-function stylizeNoColor(str, styleType) {
-  return str;
-}
-
-
-function arrayToHash(array) {
-  var hash = {};
-
-  array.forEach(function(val, idx) {
-    hash[val] = true;
-  });
-
-  return hash;
-}
-
-
-function formatValue(ctx, value, recurseTimes) {
-  // Provide a hook for user-specified inspect functions.
-  // Check that value is an object with an inspect function on it
-  if (ctx.customInspect &&
-      value &&
-      isFunction(value.inspect) &&
-      // Filter out the util module, it's inspect function is special
-      value.inspect !== exports.inspect &&
-      // Also filter out any prototype objects using the circular check.
-      !(value.constructor && value.constructor.prototype === value)) {
-    var ret = value.inspect(recurseTimes, ctx);
-    if (!isString(ret)) {
-      ret = formatValue(ctx, ret, recurseTimes);
-    }
-    return ret;
-  }
-
-  // Primitive types cannot have properties
-  var primitive = formatPrimitive(ctx, value);
-  if (primitive) {
-    return primitive;
-  }
-
-  // Look up the keys of the object.
-  var keys = Object.keys(value);
-  var visibleKeys = arrayToHash(keys);
-
-  if (ctx.showHidden) {
-    keys = Object.getOwnPropertyNames(value);
-  }
-
-  // IE doesn't make error fields non-enumerable
-  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
-  if (isError(value)
-      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
-    return formatError(value);
-  }
-
-  // Some type of object without properties can be shortcutted.
-  if (keys.length === 0) {
-    if (isFunction(value)) {
-      var name = value.name ? ': ' + value.name : '';
-      return ctx.stylize('[Function' + name + ']', 'special');
-    }
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    }
-    if (isDate(value)) {
-      return ctx.stylize(Date.prototype.toString.call(value), 'date');
-    }
-    if (isError(value)) {
-      return formatError(value);
-    }
-  }
-
-  var base = '', array = false, braces = ['{', '}'];
-
-  // Make Array say that they are Array
-  if (isArray(value)) {
-    array = true;
-    braces = ['[', ']'];
-  }
-
-  // Make functions say that they are functions
-  if (isFunction(value)) {
-    var n = value.name ? ': ' + value.name : '';
-    base = ' [Function' + n + ']';
-  }
-
-  // Make RegExps say that they are RegExps
-  if (isRegExp(value)) {
-    base = ' ' + RegExp.prototype.toString.call(value);
-  }
-
-  // Make dates with properties first say the date
-  if (isDate(value)) {
-    base = ' ' + Date.prototype.toUTCString.call(value);
-  }
-
-  // Make error with message first say the error
-  if (isError(value)) {
-    base = ' ' + formatError(value);
-  }
-
-  if (keys.length === 0 && (!array || value.length == 0)) {
-    return braces[0] + base + braces[1];
-  }
-
-  if (recurseTimes < 0) {
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    } else {
-      return ctx.stylize('[Object]', 'special');
-    }
-  }
-
-  ctx.seen.push(value);
-
-  var output;
-  if (array) {
-    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
-  } else {
-    output = keys.map(function(key) {
-      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
-    });
-  }
-
-  ctx.seen.pop();
-
-  return reduceToSingleString(output, base, braces);
-}
-
-
-function formatPrimitive(ctx, value) {
-  if (isUndefined(value))
-    return ctx.stylize('undefined', 'undefined');
-  if (isString(value)) {
-    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
-                                             .replace(/'/g, "\\'")
-                                             .replace(/\\"/g, '"') + '\'';
-    return ctx.stylize(simple, 'string');
-  }
-  if (isNumber(value))
-    return ctx.stylize('' + value, 'number');
-  if (isBoolean(value))
-    return ctx.stylize('' + value, 'boolean');
-  // For some reason typeof null is "object", so special case here.
-  if (isNull(value))
-    return ctx.stylize('null', 'null');
-}
-
-
-function formatError(value) {
-  return '[' + Error.prototype.toString.call(value) + ']';
-}
-
-
-function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
-  var output = [];
-  for (var i = 0, l = value.length; i < l; ++i) {
-    if (hasOwnProperty(value, String(i))) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          String(i), true));
-    } else {
-      output.push('');
-    }
-  }
-  keys.forEach(function(key) {
-    if (!key.match(/^\d+$/)) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          key, true));
-    }
-  });
-  return output;
-}
-
-
-function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
-  var name, str, desc;
-  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
-  if (desc.get) {
-    if (desc.set) {
-      str = ctx.stylize('[Getter/Setter]', 'special');
-    } else {
-      str = ctx.stylize('[Getter]', 'special');
-    }
-  } else {
-    if (desc.set) {
-      str = ctx.stylize('[Setter]', 'special');
-    }
-  }
-  if (!hasOwnProperty(visibleKeys, key)) {
-    name = '[' + key + ']';
-  }
-  if (!str) {
-    if (ctx.seen.indexOf(desc.value) < 0) {
-      if (isNull(recurseTimes)) {
-        str = formatValue(ctx, desc.value, null);
-      } else {
-        str = formatValue(ctx, desc.value, recurseTimes - 1);
-      }
-      if (str.indexOf('\n') > -1) {
-        if (array) {
-          str = str.split('\n').map(function(line) {
-            return '  ' + line;
-          }).join('\n').substr(2);
-        } else {
-          str = '\n' + str.split('\n').map(function(line) {
-            return '   ' + line;
-          }).join('\n');
-        }
-      }
-    } else {
-      str = ctx.stylize('[Circular]', 'special');
-    }
-  }
-  if (isUndefined(name)) {
-    if (array && key.match(/^\d+$/)) {
-      return str;
-    }
-    name = JSON.stringify('' + key);
-    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
-      name = name.substr(1, name.length - 2);
-      name = ctx.stylize(name, 'name');
-    } else {
-      name = name.replace(/'/g, "\\'")
-                 .replace(/\\"/g, '"')
-                 .replace(/(^"|"$)/g, "'");
-      name = ctx.stylize(name, 'string');
-    }
-  }
-
-  return name + ': ' + str;
-}
-
-
-function reduceToSingleString(output, base, braces) {
-  var numLinesEst = 0;
-  var length = output.reduce(function(prev, cur) {
-    numLinesEst++;
-    if (cur.indexOf('\n') >= 0) numLinesEst++;
-    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
-  }, 0);
-
-  if (length > 60) {
-    return braces[0] +
-           (base === '' ? '' : base + '\n ') +
-           ' ' +
-           output.join(',\n  ') +
-           ' ' +
-           braces[1];
-  }
-
-  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
-}
-
-
-// NOTE: These type checking functions intentionally don't use `instanceof`
-// because it is fragile and can be easily faked with `Object.create()`.
-function isArray(ar) {
-  return Array.isArray(ar);
-}
-exports.isArray = isArray;
-
-function isBoolean(arg) {
-  return typeof arg === 'boolean';
-}
-exports.isBoolean = isBoolean;
-
-function isNull(arg) {
-  return arg === null;
-}
-exports.isNull = isNull;
-
-function isNullOrUndefined(arg) {
-  return arg == null;
-}
-exports.isNullOrUndefined = isNullOrUndefined;
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-exports.isNumber = isNumber;
-
-function isString(arg) {
-  return typeof arg === 'string';
-}
-exports.isString = isString;
-
-function isSymbol(arg) {
-  return typeof arg === 'symbol';
-}
-exports.isSymbol = isSymbol;
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-exports.isUndefined = isUndefined;
-
-function isRegExp(re) {
-  return isObject(re) && objectToString(re) === '[object RegExp]';
-}
-exports.isRegExp = isRegExp;
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-exports.isObject = isObject;
-
-function isDate(d) {
-  return isObject(d) && objectToString(d) === '[object Date]';
-}
-exports.isDate = isDate;
-
-function isError(e) {
-  return isObject(e) &&
-      (objectToString(e) === '[object Error]' || e instanceof Error);
-}
-exports.isError = isError;
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-exports.isFunction = isFunction;
-
-function isPrimitive(arg) {
-  return arg === null ||
-         typeof arg === 'boolean' ||
-         typeof arg === 'number' ||
-         typeof arg === 'string' ||
-         typeof arg === 'symbol' ||  // ES6 symbol
-         typeof arg === 'undefined';
-}
-exports.isPrimitive = isPrimitive;
-
-exports.isBuffer = require('./support/isBuffer');
-
-function objectToString(o) {
-  return Object.prototype.toString.call(o);
-}
-
-
-function pad(n) {
-  return n < 10 ? '0' + n.toString(10) : n.toString(10);
-}
-
-
-var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
-              'Oct', 'Nov', 'Dec'];
-
-// 26 Feb 16:19:34
-function timestamp() {
-  var d = new Date();
-  var time = [pad(d.getHours()),
-              pad(d.getMinutes()),
-              pad(d.getSeconds())].join(':');
-  return [d.getDate(), months[d.getMonth()], time].join(' ');
-}
-
-
-// log is just a thin wrapper to console.log that prepends a timestamp
-exports.log = function() {
-  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
-};
-
-
-/**
- * Inherit the prototype methods from one constructor into another.
- *
- * The Function.prototype.inherits from lang.js rewritten as a standalone
- * function (not on Function.prototype). NOTE: If this file is to be loaded
- * during bootstrapping this function needs to be rewritten using some native
- * functions as prototype setup using normal JavaScript does not work as
- * expected during bootstrapping (see mirror.js in r114903).
- *
- * @param {function} ctor Constructor function which needs to inherit the
- *     prototype.
- * @param {function} superCtor Constructor function to inherit prototype from.
- */
-exports.inherits = require('inherits');
-
-exports._extend = function(origin, add) {
-  // Don't do anything if add isn't an object
-  if (!add || !isObject(add)) return origin;
-
-  var keys = Object.keys(add);
-  var i = keys.length;
-  while (i--) {
-    origin[keys[i]] = add[keys[i]];
-  }
-  return origin;
-};
-
-function hasOwnProperty(obj, prop) {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
-}
-
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":3,"_process":2,"inherits":1}],5:[function(require,module,exports){
 require('../grading-scripts-s3/scratch3')
 
 module.exports = class {
@@ -913,7 +105,7 @@ module.exports = class {
 
     }
 }
-},{"../grading-scripts-s3/scratch3":29}],6:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":23}],2:[function(require,module,exports){
 /*
 Act 1 About Me Grader
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -998,7 +190,7 @@ module.exports = class {
     }
 }
 
-},{"../grading-scripts-s3/scratch3":29}],7:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":23}],3:[function(require,module,exports){
 /*
 Act 1 Build-a-Band Project Autograder
 Initial version and testing: Zipporah Klain
@@ -1090,7 +282,7 @@ module.exports = class {
 }
 
 
-},{"../grading-scripts-s3/scratch3":29}],8:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":23}],4:[function(require,module,exports){
 /*
 Act 1 Final Project Autograder
 Initial version and testing: Zipporah Klain
@@ -1166,7 +358,7 @@ module.exports = class {
     }
 
 }
-},{"../grading-scripts-s3/scratch3":29}],9:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":23}],5:[function(require,module,exports){
 /*
 Act 1 Ladybug Scramble Autograder
 Initial version and testing: Saranya Turimella and Zipporah Klain, 2019
@@ -1387,7 +579,7 @@ module.exports = class {
     }
 
 }
-},{"../act1-grading-scripts/original-ladybug":13,"../grading-scripts-s3/scratch3":29,"util":4}],10:[function(require,module,exports){
+},{"../act1-grading-scripts/original-ladybug":9,"../grading-scripts-s3/scratch3":23,"util":29}],6:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -2299,7 +1491,7 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Safari/605.1.15"
     }
 }
-},{}],11:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /* 
 Act 1 Name Poem Autograder
 Initial version and testing: Saranya Turimella and Zipporah Klain, 2019
@@ -2317,17 +1509,12 @@ module.exports = class {
     }
 
     initReqs() {
-        //this.requirements.hasOneSprite = { bool: false, str: 'Project has at least one sprite' };//done
-        //this.requirements.scripts = { bool: false, str: 'At least half of the sprites have a script using the 11 blocks given (with at least one event block and at least one other block)' };//done
-        this.requirements.costumes1 = {bool: false, str: 'At least one sprite has a new costume'};
-        this.requirements.costumes = { bool: false, str: 'At least half of the sprites have new costumes' };//done
-        this.requirements.dialogue1 = { bool: false, str: 'At least one sprite has new dialogue' };
-        this.requirements.dialogue = { bool: false, str: 'At least half of the sprites have new dialogue using blocks specified' };//done
-        this.requirements.movement1 = { bool: false, str: 'At least one sprite has new movement'};
-        this.requirements.movement = { bool: false, str: 'At least half of the sprites have new movement using blocks specified' };//to fix
+        this.requirements.hasOneSprite = { bool: false, str: 'Project has at least one sprite' };//done
+        this.requirements.scripts = { bool: false, str: 'At least half of the sprites have a script using the 11 blocks given (with at least one event block and at least one other block)' };//done
+        this.requirements.costumes = { bool: false, str: 'At least half of the sprites have costumes other than the ones originally set' };//done
+        this.requirements.dialogue = { bool: false, str: 'At least half of the sprites have dialogue other than that originally given' };//done
+        this.requirements.movement = { bool: false, str: 'At least half of the sprites have movement other than that already given' };//to fix
         this.requirements.backdrop = { bool: false, str: 'The background has been changed' };//done
-        //     this.extensions.allReqs = { bool: false, str: 'All requirements are fulfilled' };
-        //     this.extensions.oneSprite = { bool: false, str: 'At least one sprite has a new costume, dialogue, and movement using 11 blocks given (fulfills spirit)' };
     }
 
     grade(fileObj, user) {
@@ -2337,9 +1524,9 @@ module.exports = class {
         if (!is(fileObj)) return;
 
         //checks if there's at least one sprite
-        // if (project.sprites.length > 0) {
-        //     this.requirements.hasOneSprite.bool = true;
-        // }
+        if (project.sprites.length > 0) {
+            this.requirements.hasOneSprite.bool = true;
+        }
 
         //instantiate counters for requirements
         let spritesWithScripts = 0;
@@ -2351,7 +1538,6 @@ module.exports = class {
         //make list of original costumes
         //make map of original blocks for movement
         let originalCostumes = [];
-        let ogMovementBlocks = []; //array of arrays each containing a movement block's opcode, next, and previous
         let mapOriginal = new Map();
         let mapProject = new Map();
         for (let target of original.targets) {
@@ -2359,18 +1545,6 @@ module.exports = class {
             for (let costume of target.costumes) {
                 originalCostumes.push(costume.assetId);
             }
-            for (let block in target.blocks) {
-                if (target.blocks[block].opcode.includes('motion_') || target.blocks[block].opcode.includes('looks_')) {
-                    if ((!target.blocks[block].opcode.includes('say')) && (!target.blocks[block].opcode.includes('think'))) {
-                        let blockArray = [];
-                        blockArray.push(target.blocks[block].opcode);
-                        blockArray.push(target.blocks[block].next);
-                        blockArray.push(target.blocks[block].previous);
-                        ogMovementBlocks.push(blockArray);
-                    }
-                }
-            }
-
             mapOriginal.set(target.name, target.blocks);
         }
 
@@ -2392,167 +1566,15 @@ module.exports = class {
                 }
                 this.requirements.backdrop.bool = newBackdrop;
             } else {
-
-                let hasMovement = false;
-
-                        // console.log('before');
-                for (let script in target.scripts) {
-                    for (let block in target.scripts[script].blocks) {
-                        let opc = target.scripts[script].blocks[block].opcode;
-                        let bool = true;
-                        if (this.otherOpcodes.includes(opc) && opc !== 'looks_sayforsecs') {
-                            //                  console.log(opc);
-                            if (opc === 'sound_playuntildone') {
-                                let soundMenu = target.scripts[script].blocks[block].inputs.SOUND_MENU[1];
-                                if (target.name === 'D-Glow') {
-                                    if (target.blocks[soundMenu].fields.SOUND_MENU[0] === 'pop'
-                                        && target.scripts[script].blocks[block].next === 'yBp{F@0b%qE?_?uRuv=P'
-                                        && target.scripts[script].blocks[block].parent === ';7:di3O.oGwRy7Y-Zkyl') {
-                                        bool = false;
-                                    }
-                                    if (target.blocks[soundMenu].fields.SOUND_MENU[0] === 'pop'
-                                        && target.scripts[script].blocks[block].next === null
-                                        && target.scripts[script].blocks[block].parent === 'yBp{F@0b%qE?_?uRuv=P') {
-                                        bool = false;
-                                    }
-                                }
-                                if (target.name === 'A-Glow2') {
-                                    if (target.blocks[soundMenu].fields.SOUND_MENU[0] === 'Crash Cymbal'
-                                        && target.scripts[script].blocks[block].next === 'SKyz]Pt/{=Ot`i6(41E;'
-                                        && target.scripts[script].blocks[block].parent === '?LAjCC]|@!Vp6k;A1Zv{') {
-                                        bool = false;
-                                    }
-                                    if (target.blocks[soundMenu].fields.SOUND_MENU[0] === 'Crash Cymbal'
-                                        && target.scripts[script].blocks[block].next === null
-                                        && target.scripts[script].blocks[block].parent === 'SKyz]Pt/{=Ot`i6(41E;') {
-                                        bool = false;
-                                    }
-                                }
-                            }
-                            if (opc === 'looks_changesizeby' && target.name === 'I-Glow') {
-                                let param = target.scripts[script].blocks[block].inputs.CHANGE[1][1];
-                                if (param === '30'
-                                    && target.scripts[script].blocks[block].next === 'Hth-}qjG)rsWgUgOcm@?'
-                                    && target.scripts[script].blocks[block].parent === 'ZstZjnd:|xmPpd|aG8zA') {
-                                    bool = false;
-                                }
-                                if (param === '-30'
-                                    && target.scripts[script].blocks[block].next === null
-                                    && target.scripts[script].blocks[block].parent === 'Hth-}qjG)rsWgUgOcm@?') {
-                                    bool = false;
-                                }
-                            }
-                            // if (opc === 'motion_glidesecstoxy' && target.name === 'A-Glow') {
-                            //     let paramSecs = target.scripts[script].blocks[block].inputs.SECS[1][1];
-                            //     let paramX = target.scripts[script].blocks[block].inputs.X[1][1];
-                            //     let paramY = target.scripts[script].blocks[block].inputs.Y[1][1];
-                            //     if (paramSecs === '1' && paramX === '55' && paramY === '25'
-                            //         && target.scripts[script].blocks[block].next === '^6iWa|d-|jw!SQI#e(Jr'
-                            //         && target.scripts[script].blocks[block].parent === 'n]cy4r^o3t_m{{lMaGoY') {
-                            //         bool = false;
-                            //     }
-                            //     if (paramSecs === '1' && paramX === '-204' && paramY === '14'
-                            //         && target.scripts[script].blocks[block].next === null
-                            //         && target.scripts[script].blocks[block].parent === '^6iWa|d-|jw!SQI#e(Jr') {
-                            //         bool = false;
-                            //     }
-                            //     if (paramSecs === '1' && paramX === '-204' && paramY === '14'
-                            //         && target.scripts[script].blocks[block].next === null
-                            //         && target.scripts[script].blocks[block].parent === 'i[0P|D4q:tdG3Q{3hR`N') {
-                            //         bool = false;
-                            //     }
-                            // }
-                            if (opc === 'motion_glidesecstoxy') {
-                                let paramSecs = target.scripts[script].blocks[block].inputs.SECS[1][1];
-                                let paramX = target.scripts[script].blocks[block].inputs.X[1][1];
-                                let paramY = target.scripts[script].blocks[block].inputs.Y[1][1];
-                                let next = target.scripts[script].blocks[block].next;
-                                let parent = target.scripts[script].blocks[block].parent;
-                                if (target.name === 'D-Glow') {
-                                    if (paramSecs === '1' && paramX === '-205' && paramY === '148'
-                                        && next === null && parent === 'Fw}ev{0up#68XMVDC]5V') {
-                                        bool = false;
-                                    }
-                                }
-                                if (target.name === 'I-Glow') {
-                                    if (paramSecs === '1' && paramX === '-210' && paramY === '80'
-                                        && next === null && parent === 'em!(S`b]+MB2h8((R434') {
-                                        bool = false;
-                                    }
-                                }
-                                if (target.name === 'A-Glow') {
-                                    if (paramSecs === '1' && paramX === '55' && paramY === '25'
-                                        && next === '^6iWa|d-|jw!SQI#e(Jr' && parent === 'n]cy4r^o3t_m{{lMaGoY') {
-                                        bool = false;
-                                    }
-                                    if (paramSecs === '1' && paramX === '-204' && paramY === '14'
-                                        && next === null && parent === '^6iWa|d-|jw!SQI#e(Jr') {
-                                        bool = false;
-                                    }
-                                    if (paramSecs === '1' && paramX === '-204' && paramY === '14'
-                                        && next === null && parent === 'i[0P|D4q:tdG3Q{3hR`N') {
-                                        bool = false;
-                                    }
-                                }
-                                if (target.name === 'N-Glow') {
-                                    if (paramSecs === '1' && paramX === '-202' && paramY === '-52'
-                                        && next === null && parent === '{nR@2|=S?G3-4ukMhO4n') {
-                                        bool = false;
-                                    }
-                                }
-                                if (target.name === 'A-Glow2') {
-                                    if (paramSecs === '1' && paramX === '-200' && paramY === '-120'
-                                        && next === null && parent === 'ojhZT:%|m?wFvLSVqRoH') {
-                                        bool = false;
-                                    }
-                                }
-                            }
-                            if (opc === 'motion_pointindirection' && target.name === 'N-Glow') {
-                                let param = target.scripts[script].blocks[block].inputs.CHANGE[1][1];
-                                if (param === '90'
-                                    && target.scripts[script].blocks[block].next === 'i4C7qLY,7Dc:@{}d`:nV'
-                                    && target.scripts[script].blocks[block].parent === 'GN6a/]#X1pYt~+7OZ{Rc') {
-                                    bool = false;
-                                }
-                                if (param === '-90'
-                                    && target.scripts[script].blocks[block].next === null
-                                    && target.scripts[script].blocks[block].parent === 'i4C7qLY,7Dc:@{}d`:nV') {
-                                    bool = false;
-                                }
-                            }
-                            if (bool) {
-                                hasMovement = true;
-                           //     console.log('Sprite with new movement:');
-                             //   console.log(target.name);
-                            }
-                        }
-                    }
-                }
-                if (hasMovement) { spritesWithNewMovement++; }
-                // console.log('after');
-
                 mapProject.set(target.name, target.blocks);
                 let hasDialogue = false;
                 for (let block in target.blocks) {
-
-                    if (target.blocks[block].opcode==='looks_say'){
-                       // console.log('ere');
-                        this.requirements.dialogue1.bool=true;
-                    }
-                    let opcode = target.blocks[block].opcode;
-                    if ((opcode.includes('motion_') || opcode.includes('looks_'))
-                        && (!this.eventOpcodes.includes(opcode) && !this.otherOpcodes.includes(opcode))){
-                            this.requirements.movement1.bool=true;
-                        }
-
-                    if (target.blocks[block].opcode.includes('motion_') || target.blocks[block].opcode.includes('looks_')) {
-                        if ((!target.blocks[block].opcode.includes('say')) && (!target.blocks[block].opcode.includes('think'))) {
-
-                        }
-                    }
-
-                    if (this.eventOpcodes.includes(target.blocks[block].opcode)) {                        let b = new Block(target, block);
+                    if (this.eventOpcodes.includes(target.blocks[block].opcode)) {
+                        console.log('here');
+                        let b = new Block(target, block);
                         let childBlocks = b.childBlocks();
+                        console.log('this is child blocks');
+                        console.log(childBlocks);
                         for (let i = 0; i < childBlocks.length; i++) {
                             if (childBlocks[i].opcode === 'looks_sayforsecs') {
                                 let blockMessage = childBlocks[i].inputs.MESSAGE[1][1];
@@ -2584,62 +1606,46 @@ module.exports = class {
             }
         }
 
-        //checking movement
-        //   let inDIANE = false;
-        //   for (let v of mapProject.values()) {
-        //       for (let w of mapOriginal.values()) {
-        //           var util = require('util');
-        //           v = util.inspect(v);
-        //           w = util.inspect(w);
-        //           if (v === w) {
-        //               inDIANE = true;
-        //           };
-        //       }
-        //       if (!inDIANE) {
-        //           spritesWithNewMovement++;
-        //       }
-        //   }
+          //checking movement
+          let inDIANE = false;
+          for (let v of mapProject.values()) {
+              for (let w of mapOriginal.values()) {
+                  var util = require('util');
+                  v = util.inspect(v);
+                  w = util.inspect(w);
+                  if (v === w) {
+                      inDIANE = true;
+                  };
+              }
+              if (!inDIANE) {
+                  spritesWithNewMovement++;
+              }
+          }
 
-        // > 1/2 of sprites fulfill requirement + TESTING
-        //  console.log('sprites with scripts');
-        //console.log(spritesWithScripts);
-        // if (spritesWithScripts >= project.sprites.length / 2) {
-        //     this.requirements.scripts.bool = true;
-        // }
+        // > 1/2 of sprites fulfill requirement?
+        console.log('sprites with scripts');
+        console.log(spritesWithScripts);
+        if (spritesWithScripts >= project.sprites.length / 2) {
+            this.requirements.scripts.bool = true;
+        }
 
-        //   console.log('sprites with dialogue');
-        //   console.log(spritesWithNewDialogue);
-        //   console.log(this.requirements.dialogue1.bool);
-        if (spritesWithNewDialogue) {this.requirements.dialogue1.bool=true;}
+        console.log('sprites with dialogue');
+        console.log(spritesWithNewDialogue)
         if (spritesWithNewDialogue >= project.sprites.length / 2) {
             this.requirements.dialogue.bool = true;
         }
 
-        //  console.log('sprite with new costumes');
-        //  console.log(spritesWithNewCostumes);
-        if (spritesWithNewCostumes) {this.requirements.costumes1.bool=true;}
+        console.log('sprite with new costumes');
+        console.log(spritesWithNewCostumes);
         if (spritesWithNewCostumes >= project.sprites.length / 2) {
             this.requirements.costumes.bool = true;
         }
 
-        // console.log('sprites with new movement');
-        // console.log(spritesWithNewMovement);
-        if (spritesWithNewMovement) {this.requirements.movement1.bool=true;}
+        console.log('sprites with new movement');
+        console.log(spritesWithNewMovement);
         if (spritesWithNewMovement >= project.sprites.length / 2) {
             this.requirements.movement.bool = true;
         }
-
-        // if (spritesWithNewCostumes && spritesWithNewDialogue && spritesWithNewMovement) {
-        //     this.extensions.oneSprite = true;
-        // }
-        // if (this.requirements.movement.bool &&
-        //     this.requirements.dialogue.bool &&
-        //     this.requirements.backdrop.bool &&
-        //     this.requirements.costumes.bool &&
-        //     this.requirements.scripts.bool &&
-        //     this.requirements.hasOneSprite.bool) {
-        //     this.extensions.allReqs.bool = true;
-        // }
     }
 }
 
@@ -2650,7 +1656,7 @@ module.exports = class {
 
 
 
-},{"../act1-grading-scripts/name-poem-original-test":10,"../grading-scripts-s3/scratch3":29}],12:[function(require,module,exports){
+},{"../act1-grading-scripts/name-poem-original-test":6,"../grading-scripts-s3/scratch3":23,"util":29}],8:[function(require,module,exports){
 /*
 Act 1 Events Ofrenda Autograder
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -2830,11 +1836,6 @@ module.exports = class {
         }
         // --------------------------------------------------------------------------------------------------------- //
 
-
-        // at least one sprite has a new costume - make an array of the old costumes lmr and then 
-        // an array of the new costumes lmr and then if they are not equal then the requirement is fulfilled
-        // new cost is left middle right 
-
         // if the elements are not the same or they are not in the same order
         if (JSON.stringify(oldCostumes) !== JSON.stringify(newCostumes)) {
             this.extensions.newCostumes1.bool = true;
@@ -2869,14 +1870,38 @@ module.exports = class {
                             }
                         }
                     }
+
+                    //checks if 'Eat Aphid' block is connected to a script
+                    if (target.blocks[block].opcode === 'procedures_call') {
+                        if (target.blocks[block].mutation.proccode === 'Eat Aphid') {
+                            if (target.blocks[block].parent !== null) {
+                                this.requirements.eatAphidBlock.bool = true;
+                            }
+                        }
+                    }
+
+                    //checks if a new "move steps" block has been connected
+                    if (target.blocks[block].opcode === 'motion_movesteps') {
+                        if (target.blocks[block].parent !== null) {
+                            moveStepsBlocks++;
+                        }
+                    }
+                    if ((target.blocks[block].opcode === 'motion_turnright') ||
+                        (target.blocks[block].opcode === 'motion_turnleft')) {
+                        if (target.blocks[block].parent !== null) {
+                            turnBlocks++;
+                        }
+                    }
                 }
+                break;
             }
+
         }
     }
 } 
-},{"../act1-grading-scripts/originalOfrenda-test":14,"../grading-scripts-s3/scratch3":29}],13:[function(require,module,exports){
+},{"../act1-grading-scripts/originalOfrenda-test":10,"../grading-scripts-s3/scratch3":23}],9:[function(require,module,exports){
 module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{"broadcastMsgId-munch":"munch"},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"6bbe43392c0dbffe7d7c63cc5bd08aa3","name":"backdrop1","bitmapResolution":1,"md5ext":"6bbe43392c0dbffe7d7c63cc5bd08aa3.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Ladybug1","variables":{},"lists":{},"broadcasts":{},"blocks":{"U7gIJGYi2sEQ1R~Q#Y(x":{"opcode":"event_whenflagclicked","next":"F@9g]aRRb1sq*2qa!%ng","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":264,"y":24},"F@9g]aRRb1sq*2qa!%ng":{"opcode":"motion_gotoxy","next":"Sfc=i0}1cnoDpchs?.Uq","parent":"U7gIJGYi2sEQ1R~Q#Y(x","inputs":{"X":[1,[4,-175]],"Y":[1,[4,-24]]},"fields":{},"shadow":false,"topLevel":false},"Sfc=i0}1cnoDpchs?.Uq":{"opcode":"motion_pointindirection","next":"^)NnU+Yxi6BeEWyh3in`","parent":"F@9g]aRRb1sq*2qa!%ng","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},"^)NnU+Yxi6BeEWyh3in`":{"opcode":"control_wait","next":"{*nT,|Un;N}8m)P0wAVC","parent":"Sfc=i0}1cnoDpchs?.Uq","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"{*nT,|Un;N}8m)P0wAVC":{"opcode":"motion_movesteps","next":"Qjej.|{eUe=~o*uAuRF,","parent":"^)NnU+Yxi6BeEWyh3in`","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"Qjej.|{eUe=~o*uAuRF,":{"opcode":"control_wait","next":"lDrR0@W5G`|K9EW2^U=0","parent":"{*nT,|Un;N}8m)P0wAVC","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"lDrR0@W5G`|K9EW2^U=0":{"opcode":"motion_turnright","next":"R%7gnK]7!DF4`qpYfccd","parent":"Qjej.|{eUe=~o*uAuRF,","inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":false},"R%7gnK]7!DF4`qpYfccd":{"opcode":"control_wait","next":"1?YefC;{nn1p+6x[y7=p","parent":"lDrR0@W5G`|K9EW2^U=0","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"1?YefC;{nn1p+6x[y7=p":{"opcode":"motion_movesteps","next":null,"parent":"R%7gnK]7!DF4`qpYfccd","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"iQ]xjD_RSjVU39KKi+D+":{"opcode":"event_whenflagclicked","next":"03[Ml=XIME[mlM`[oI,{","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":1117,"y":41},"03[Ml=XIME[mlM`[oI,{":{"opcode":"control_forever","next":null,"parent":"iQ]xjD_RSjVU39KKi+D+","inputs":{"SUBSTACK":[2,"{eG]NNI}y+`9w8~P-Y@w"]},"fields":{},"shadow":false,"topLevel":false},"{eG]NNI}y+`9w8~P-Y@w":{"opcode":"control_if","next":null,"parent":"03[Ml=XIME[mlM`[oI,{","inputs":{"CONDITION":[2,"HJ?{4{KV1xCg#k7UhPC6"],"SUBSTACK":[2,"kQKB.w^V0`:QX38gKYzf"]},"fields":{},"shadow":false,"topLevel":false},"HJ?{4{KV1xCg#k7UhPC6":{"opcode":"sensing_touchingcolor","next":null,"parent":"{eG]NNI}y+`9w8~P-Y@w","inputs":{"COLOR":[1,[9,"#00ffff"]]},"fields":{},"shadow":false,"topLevel":false},"kQKB.w^V0`:QX38gKYzf":{"opcode":"control_stop","next":";Dm1;gL:ROwhL*^;y!zp","parent":"{eG]NNI}y+`9w8~P-Y@w","inputs":{},"fields":{"STOP_OPTION":["other scripts in sprite"]},"shadow":false,"topLevel":false,"mutation":{"tagName":"mutation","hasnext":"true","children":[]}},";Dm1;gL:ROwhL*^;y!zp":{"opcode":"looks_sayforsecs","next":"H#v_fC4p1{^Dy]J98),R","parent":"kQKB.w^V0`:QX38gKYzf","inputs":{"MESSAGE":[1,[10,"Aaaaah! I fell off the branch!!!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"H#v_fC4p1{^Dy]J98),R":{"opcode":"control_repeat","next":"eO]JO},91+03]-,-p.kW","parent":";Dm1;gL:ROwhL*^;y!zp","inputs":{"TIMES":[1,[6,3]],"SUBSTACK":[2,"Hfkes2)|!Awk/*Iir#]f"]},"fields":{},"shadow":false,"topLevel":false},"Hfkes2)|!Awk/*Iir#]f":{"opcode":"looks_hide","next":"NdsT}^o2UI(D_trv9KW9","parent":"H#v_fC4p1{^Dy]J98),R","inputs":{},"fields":{},"shadow":false,"topLevel":false},"NdsT}^o2UI(D_trv9KW9":{"opcode":"control_wait","next":"Rp7XGUXIMwRD^e4J2IZy","parent":"Hfkes2)|!Awk/*Iir#]f","inputs":{"DURATION":[1,[5,0.5]]},"fields":{},"shadow":false,"topLevel":false},"Rp7XGUXIMwRD^e4J2IZy":{"opcode":"looks_show","next":"k7:X0JW7;CDuX8ZM[`|-","parent":"NdsT}^o2UI(D_trv9KW9","inputs":{},"fields":{},"shadow":false,"topLevel":false},"k7:X0JW7;CDuX8ZM[`|-":{"opcode":"control_wait","next":null,"parent":"Rp7XGUXIMwRD^e4J2IZy","inputs":{"DURATION":[1,[5,0.5]]},"fields":{},"shadow":false,"topLevel":false},"eO]JO},91+03]-,-p.kW":{"opcode":"motion_gotoxy","next":"I3gZVQ)z)SV7w[OezvsL","parent":"H#v_fC4p1{^Dy]J98),R","inputs":{"X":[1,[4,-175]],"Y":[1,[4,-24]]},"fields":{},"shadow":false,"topLevel":false},"I3gZVQ)z)SV7w[OezvsL":{"opcode":"motion_pointindirection","next":null,"parent":"eO]JO},91+03]-,-p.kW","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},":g/E[3PXa}d6Cve2Swk2":{"opcode":"motion_movesteps","next":null,"parent":null,"inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":33},"M1gwhU_QVGXM)kQF*L`{":{"opcode":"procedures_definition","next":"@,~#(h4pJpg}jA2}_/R[","parent":null,"inputs":{"custom_block":[1,"+d7X?d`DBq2~x0}OHSC/"]},"fields":{},"shadow":false,"topLevel":true,"x":1136,"y":820},"+d7X?d`DBq2~x0}OHSC/":{"opcode":"procedures_prototype","next":null,"inputs":{},"fields":{},"shadow":true,"topLevel":false,"mutation":{"tagName":"mutation","proccode":"Eat Aphid","argumentnames":"[]","argumentids":"[]","argumentdefaults":"[]","warp":false,"children":[]}},"@,~#(h4pJpg}jA2}_/R[":{"opcode":"event_broadcast","next":null,"parent":"M1gwhU_QVGXM)kQF*L`{","inputs":{"BROADCAST_INPUT":[1,[11,"Munch","broadcastMsgId-munch"]]},"fields":{},"shadow":false,"topLevel":false},"%vAkoQPRX5(5~AohGy*u":{"opcode":"motion_turnright","next":null,"parent":null,"inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":109},"~)q`N2jinQ]:/zs,-.s1":{"opcode":"motion_turnleft","next":null,"parent":null,"inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":true,"x":7,"y":188},"nZ1!J1WTOAWy}Af(z1#c":{"opcode":"control_wait","next":null,"parent":null,"inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":268},"Yl_GU18WZdM(iSO=,FM~":{"opcode":"procedures_call","next":null,"parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":10,"y":366,"mutation":{"tagName":"mutation","children":[],"proccode":"Eat Aphid","argumentids":"[]"}}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"7501580fb154fde8192a931f6cab472b","name":"ladybug3","bitmapResolution":1,"md5ext":"7501580fb154fde8192a931f6cab472b.svg","dataFormat":"svg","rotationCenterX":41,"rotationCenterY":43},{"assetId":"169c0efa8c094fdedddf8c19c36f0229","name":"ladybug2","bitmapResolution":1,"md5ext":"169c0efa8c094fdedddf8c19c36f0229.svg","dataFormat":"svg","rotationCenterX":41,"rotationCenterY":43}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-175,"y":-24,"size":50,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Sprite1","variables":{},"lists":{},"broadcasts":{},"blocks":{"g{X}coEAM3Ta^+%(=s^s":{"opcode":"event_whenflagclicked","next":"3S,1y@;w+[,tG`(EZCAt","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":68,"y":35},"3S,1y@;w+[,tG`(EZCAt":{"opcode":"looks_show","next":"_LYbp}EcsXWoN1ppLxcv","parent":"g{X}coEAM3Ta^+%(=s^s","inputs":{},"fields":{},"shadow":false,"topLevel":false},"_LYbp}EcsXWoN1ppLxcv":{"opcode":"motion_pointindirection","next":"4Q5;gsz5+/bgWS(:Rag,","parent":"3S,1y@;w+[,tG`(EZCAt","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},"4Q5;gsz5+/bgWS(:Rag,":{"opcode":"motion_gotoxy","next":"4L~#s_w.KLA*F5Xc`{C`","parent":"_LYbp}EcsXWoN1ppLxcv","inputs":{"X":[1,[4,0]],"Y":[1,[4,-150]]},"fields":{},"shadow":false,"topLevel":false},"4L~#s_w.KLA*F5Xc`{C`":{"opcode":"control_repeat","next":"Vb38^m9i^P8Qx=K`.+Yh","parent":"4Q5;gsz5+/bgWS(:Rag,","inputs":{"TIMES":[1,[6,6]],"SUBSTACK":[2,"56{t%hej8N*pk`S3%Nrj"]},"fields":{},"shadow":false,"topLevel":false},"56{t%hej8N*pk`S3%Nrj":{"opcode":"pen_stamp","next":"UyBZkQkw+i|j3]/7K`[%","parent":"4L~#s_w.KLA*F5Xc`{C`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"UyBZkQkw+i|j3]/7K`[%":{"opcode":"motion_changeyby","next":null,"parent":"56{t%hej8N*pk`S3%Nrj","inputs":{"DY":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"Vb38^m9i^P8Qx=K`.+Yh":{"opcode":"pen_stamp","next":"#I:55@rxBustg@:0CNW,","parent":"4L~#s_w.KLA*F5Xc`{C`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"#I:55@rxBustg@:0CNW,":{"opcode":"motion_gotoxy","next":"c?Rcii^r7j{3zIKlPCY7","parent":"Vb38^m9i^P8Qx=K`.+Yh","inputs":{"X":[1,[4,-200]],"Y":[1,[4,0]]},"fields":{},"shadow":false,"topLevel":false},"c?Rcii^r7j{3zIKlPCY7":{"opcode":"motion_pointindirection","next":"Ev;g}Py1-pZ#SpwkoO~I","parent":"#I:55@rxBustg@:0CNW,","inputs":{"DIRECTION":[1,[8,0]]},"fields":{},"shadow":false,"topLevel":false},"Ev;g}Py1-pZ#SpwkoO~I":{"opcode":"control_repeat","next":"1R95jS-gQRcWy1!()qDX","parent":"c?Rcii^r7j{3zIKlPCY7","inputs":{"TIMES":[1,[6,8]],"SUBSTACK":[2,"C+]}-*OqPzGDND@[I`!`"]},"fields":{},"shadow":false,"topLevel":false},"C+]}-*OqPzGDND@[I`!`":{"opcode":"pen_stamp","next":"vf~MRj8GONdu)xTW+`sX","parent":"Ev;g}Py1-pZ#SpwkoO~I","inputs":{},"fields":{},"shadow":false,"topLevel":false},"vf~MRj8GONdu)xTW+`sX":{"opcode":"motion_changexby","next":null,"parent":"C+]}-*OqPzGDND@[I`!`","inputs":{"DX":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"1R95jS-gQRcWy1!()qDX":{"opcode":"pen_stamp","next":"!]hy8aHujpmLSmfwgk7+","parent":"Ev;g}Py1-pZ#SpwkoO~I","inputs":{},"fields":{},"shadow":false,"topLevel":false},"!]hy8aHujpmLSmfwgk7+":{"opcode":"looks_hide","next":null,"parent":"1R95jS-gQRcWy1!()qDX","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"098ac26af75d9b14546ba423f0376c78","name":"costume1","bitmapResolution":1,"md5ext":"098ac26af75d9b14546ba423f0376c78.svg","dataFormat":"svg","rotationCenterX":247,"rotationCenterY":2}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":false,"x":200,"y":0,"size":100,"direction":0,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Aphid","variables":{},"lists":{},"broadcasts":{},"blocks":{"Al/9-=x`PHo)+1K4Jsw2":{"opcode":"event_whenflagclicked","next":"|FY,izak`W47{j*=KnG5","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":37,"y":46},"|FY,izak`W47{j*=KnG5":{"opcode":"looks_show","next":null,"parent":"Al/9-=x`PHo)+1K4Jsw2","inputs":{},"fields":{},"shadow":false,"topLevel":false},"se5y3M`e{qYhvvplydn.":{"opcode":"event_whenbroadcastreceived","next":"?ec)oOeZLY5LfeL(D5QB","parent":null,"inputs":{},"fields":{"BROADCAST_OPTION":["Munch","broadcastMsgId-munch"]},"shadow":false,"topLevel":true,"x":45,"y":264},"?ec)oOeZLY5LfeL(D5QB":{"opcode":"control_if","next":null,"parent":"se5y3M`e{qYhvvplydn.","inputs":{"CONDITION":[2,".[;R|zxb)eHrP+bfg`JR"],"SUBSTACK":[2,"@:tiv_aA#I^^`0sQ%}O1"]},"fields":{},"shadow":false,"topLevel":false},".[;R|zxb)eHrP+bfg`JR":{"opcode":"sensing_touchingobject","next":null,"parent":"?ec)oOeZLY5LfeL(D5QB","inputs":{"TOUCHINGOBJECTMENU":[1,"cB1l?RjX4g=!:@^[I(X?"]},"fields":{},"shadow":false,"topLevel":false},"cB1l?RjX4g=!:@^[I(X?":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":".[;R|zxb)eHrP+bfg`JR","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Ladybug1"]},"shadow":true,"topLevel":false},"@:tiv_aA#I^^`0sQ%}O1":{"opcode":"looks_sayforsecs","next":"d4JFINYQk,`yV3Hd5Rz3","parent":"?ec)oOeZLY5LfeL(D5QB","inputs":{"MESSAGE":[1,[10,"Oh, no!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"d4JFINYQk,`yV3Hd5Rz3":{"opcode":"looks_hide","next":null,"parent":"@:tiv_aA#I^^`0sQ%}O1","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b3b7ab6b68e1d72f5f0246bd5246e35","name":"beetle","bitmapResolution":1,"md5ext":"2b3b7ab6b68e1d72f5f0246bd5246e35.svg","dataFormat":"svg","rotationCenterX":43,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-24,"y":77,"size":30,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Aphid2","variables":{},"lists":{},"broadcasts":{},"blocks":{"|*E4bHy6(tUyNr_FpiHL":{"opcode":"event_whenbroadcastreceived","next":"@I467Tz-PCo,~F~{tDEl","parent":null,"inputs":{},"fields":{"BROADCAST_OPTION":["Munch","broadcastMsgId-munch"]},"shadow":false,"topLevel":true,"x":31,"y":393},"@I467Tz-PCo,~F~{tDEl":{"opcode":"control_if","next":null,"parent":"|*E4bHy6(tUyNr_FpiHL","inputs":{"CONDITION":[2,"uT8k:bk6A^umen=_kL-m"],"SUBSTACK":[2,"LBQ7xhpD3hzBGz^u~MW`"]},"fields":{},"shadow":false,"topLevel":false},"uT8k:bk6A^umen=_kL-m":{"opcode":"sensing_touchingobject","next":null,"parent":"@I467Tz-PCo,~F~{tDEl","inputs":{"TOUCHINGOBJECTMENU":[1,"w.R6uBYuAjg(y#K#YJx*"]},"fields":{},"shadow":false,"topLevel":false},"w.R6uBYuAjg(y#K#YJx*":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"uT8k:bk6A^umen=_kL-m","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Ladybug1"]},"shadow":true,"topLevel":false},"LBQ7xhpD3hzBGz^u~MW`":{"opcode":"looks_sayforsecs","next":"XO!5H:??cO_M~G2fB;}l","parent":"@I467Tz-PCo,~F~{tDEl","inputs":{"MESSAGE":[1,[10,"Oh, no!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"XO!5H:??cO_M~G2fB;}l":{"opcode":"looks_hide","next":null,"parent":"LBQ7xhpD3hzBGz^u~MW`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"|pG9oKkH+F.OL|36O0Lp":{"opcode":"event_whenflagclicked","next":"t:(!q?g_}9!~)wm!FUIP","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":39,"y":50},"t:(!q?g_}9!~)wm!FUIP":{"opcode":"looks_show","next":null,"parent":"|pG9oKkH+F.OL|36O0Lp","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b3b7ab6b68e1d72f5f0246bd5246e35","name":"beetle","bitmapResolution":1,"md5ext":"2b3b7ab6b68e1d72f5f0246bd5246e35.svg","dataFormat":"svg","rotationCenterX":43,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":75,"y":-123,"size":30,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":["pen"],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190619042313","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"}}
-},{}],14:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -3722,7 +2747,7 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"
     }
 }
-},{}],15:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 require('./scratch3');
 
 let control = ['control_forever', 'control_if', 'control_if_else', 'control_repeat', 'control_stop', 'control_repeat_until', 'control_wait_until'];
@@ -3909,7 +2934,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":29}],16:[function(require,module,exports){
+},{"./scratch3":23}],12:[function(require,module,exports){
 /* Animation L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and minor bug fixes: Marco Anaya, Summer 2019
@@ -4070,729 +3095,7 @@ module.exports = class {
         this.extensions.moreThanOneAnimation.bool = (this.animationTypes.length > 1)
     }
 }
-},{"./scratch3":29}],17:[function(require,module,exports){
-module.exports={
-    "targets": [
-        {
-            "isStage": true,
-            "name": "Stage",
-            "variables": {},
-            "lists": {},
-            "broadcasts": {},
-            "blocks": {},
-            "comments": {},
-            "currentCostume": 0,
-            "costumes": [
-                {
-                    "assetId": "e84e7d633c3914282219923ad8c28be1",
-                    "name": "underwater3",
-                    "bitmapResolution": 2,
-                    "md5ext": "e84e7d633c3914282219923ad8c28be1.png",
-                    "dataFormat": "png",
-                    "rotationCenterX": 480,
-                    "rotationCenterY": 360
-                }
-            ],
-            "sounds": [
-                {
-                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
-                    "name": "pop",
-                    "dataFormat": "wav",
-                    "format": "",
-                    "rate": 44100,
-                    "sampleCount": 1032,
-                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
-                }
-            ],
-            "volume": 100,
-            "layerOrder": 0,
-            "tempo": 60,
-            "videoTransparency": 50,
-            "videoState": "off",
-            "textToSpeechLanguage": null
-        },
-        {
-            "isStage": false,
-            "name": "Fred",
-            "variables": {},
-            "lists": {},
-            "broadcasts": {},
-            "blocks": {
-                "*bF;3|^5/zs4N0xR-o)Z": {
-                    "opcode": "event_whenflagclicked",
-                    "next": "0*OA)5OE]%a]*%IA%B{6",
-                    "parent": null,
-                    "inputs": {},
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": true,
-                    "x": 18,
-                    "y": 46
-                },
-                "0*OA)5OE]%a]*%IA%B{6": {
-                    "opcode": "motion_gotoxy",
-                    "next": "`4;L4Q?o6CqFmdbH?:ms",
-                    "parent": "*bF;3|^5/zs4N0xR-o)Z",
-                    "inputs": {
-                        "X": [
-                            1,
-                            [
-                                4,
-                                -158
-                            ]
-                        ],
-                        "Y": [
-                            1,
-                            [
-                                4,
-                                80
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "`4;L4Q?o6CqFmdbH?:ms": {
-                    "opcode": "motion_movesteps",
-                    "next": "ksrg)n@E2SyN{;oWEX7E",
-                    "parent": "0*OA)5OE]%a]*%IA%B{6",
-                    "inputs": {
-                        "STEPS": [
-                            1,
-                            [
-                                4,
-                                50
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "ksrg)n@E2SyN{;oWEX7E": {
-                    "opcode": "looks_sayforsecs",
-                    "next": "ahLTJjNBf`+1#.[qNZE4",
-                    "parent": "`4;L4Q?o6CqFmdbH?:ms",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Hello!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                2
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "ahLTJjNBf`+1#.[qNZE4": {
-                    "opcode": "motion_movesteps",
-                    "next": "d7d]Z%r*QDEp-ajssm0T",
-                    "parent": "ksrg)n@E2SyN{;oWEX7E",
-                    "inputs": {
-                        "STEPS": [
-                            1,
-                            [
-                                4,
-                                50
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "d7d]Z%r*QDEp-ajssm0T": {
-                    "opcode": "looks_sayforsecs",
-                    "next": "=n_7]#{Cxj6pf!BUV,OP",
-                    "parent": "ahLTJjNBf`+1#.[qNZE4",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Welcome to Scratch!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                2
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "=n_7]#{Cxj6pf!BUV,OP": {
-                    "opcode": "motion_movesteps",
-                    "next": "8K5Ak(+XsZvwjx2V0~D)",
-                    "parent": "d7d]Z%r*QDEp-ajssm0T",
-                    "inputs": {
-                        "STEPS": [
-                            1,
-                            [
-                                4,
-                                50
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "8K5Ak(+XsZvwjx2V0~D)": {
-                    "opcode": "looks_sayforsecs",
-                    "next": null,
-                    "parent": "=n_7]#{Cxj6pf!BUV,OP",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Click the Space Bar to see Helen the Amazing Color Changing Crab"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                5
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                }
-            },
-            "comments": {},
-            "currentCostume": 0,
-            "costumes": [
-                {
-                    "assetId": "26e013bb06b573960361b2cf2234201d",
-                    "name": "Fred",
-                    "bitmapResolution": 1,
-                    "md5ext": "26e013bb06b573960361b2cf2234201d.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 75,
-                    "rotationCenterY": 75
-                }
-            ],
-            "sounds": [
-                {
-                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
-                    "name": "pop",
-                    "dataFormat": "wav",
-                    "format": "",
-                    "rate": 44100,
-                    "sampleCount": 1032,
-                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
-                }
-            ],
-            "volume": 100,
-            "layerOrder": 1,
-            "visible": true,
-            "x": -108,
-            "y": 80,
-            "size": 100,
-            "direction": 90,
-            "draggable": false,
-            "rotationStyle": "all around"
-        },
-        {
-            "isStage": false,
-            "name": "Helen",
-            "variables": {},
-            "lists": {},
-            "broadcasts": {},
-            "blocks": {
-                "XYmoOsQpwwb~bRU[WtDb": {
-                    "opcode": "event_whenkeypressed",
-                    "next": "NX*(%@1qK}o{lJ)1dp(L",
-                    "parent": null,
-                    "inputs": {},
-                    "fields": {
-                        "KEY_OPTION": [
-                            "space"
-                        ]
-                    },
-                    "shadow": false,
-                    "topLevel": true,
-                    "x": 56,
-                    "y": 66
-                },
-                "NX*(%@1qK}o{lJ)1dp(L": {
-                    "opcode": "looks_switchcostumeto",
-                    "next": "A*?(6=CMw!5NQvy3GoJz",
-                    "parent": "XYmoOsQpwwb~bRU[WtDb",
-                    "inputs": {
-                        "COSTUME": [
-                            1,
-                            "uxs{_T(3Fk%RETANj%^X"
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "uxs{_T(3Fk%RETANj%^X": {
-                    "opcode": "looks_costume",
-                    "next": null,
-                    "parent": "NX*(%@1qK}o{lJ)1dp(L",
-                    "inputs": {},
-                    "fields": {
-                        "COSTUME": [
-                            "crab-red"
-                        ]
-                    },
-                    "shadow": true,
-                    "topLevel": false
-                },
-                "A*?(6=CMw!5NQvy3GoJz": {
-                    "opcode": "control_repeat",
-                    "next": null,
-                    "parent": "NX*(%@1qK}o{lJ)1dp(L",
-                    "inputs": {
-                        "TIMES": [
-                            1,
-                            [
-                                6,
-                                30
-                            ]
-                        ],
-                        "SUBSTACK": [
-                            2,
-                            "*i@~ROBKeTP[#l_7v/_-"
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "*i@~ROBKeTP[#l_7v/_-": {
-                    "opcode": "control_wait",
-                    "next": "MkZ9YIg7M,WuN@FR]l:o",
-                    "parent": "A*?(6=CMw!5NQvy3GoJz",
-                    "inputs": {
-                        "DURATION": [
-                            1,
-                            [
-                                5,
-                                1
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "MkZ9YIg7M,WuN@FR]l:o": {
-                    "opcode": "looks_nextcostume",
-                    "next": null,
-                    "parent": "*i@~ROBKeTP[#l_7v/_-",
-                    "inputs": {},
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "3?,1QT}D[0#@^jvT!J*^": {
-                    "opcode": "event_whenthisspriteclicked",
-                    "next": "gPD.*ilWONI2U7F-SE[}",
-                    "parent": null,
-                    "inputs": {},
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": true,
-                    "x": 51,
-                    "y": 455
-                },
-                "gPD.*ilWONI2U7F-SE[}": {
-                    "opcode": "looks_sayforsecs",
-                    "next": null,
-                    "parent": "3?,1QT}D[0#@^jvT!J*^",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Ouch!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                2
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                }
-            },
-            "comments": {},
-            "currentCostume": 0,
-            "costumes": [
-                {
-                    "assetId": "f7cdd2acbc6d7559d33be8675059c79e",
-                    "name": "crab-red",
-                    "bitmapResolution": 1,
-                    "md5ext": "f7cdd2acbc6d7559d33be8675059c79e.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 75,
-                    "rotationCenterY": 75
-                },
-                {
-                    "assetId": "35339814b40ff4db9a0b490dfea728c4",
-                    "name": "crab-orange",
-                    "bitmapResolution": 1,
-                    "md5ext": "35339814b40ff4db9a0b490dfea728c4.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 67,
-                    "rotationCenterY": 75
-                },
-                {
-                    "assetId": "6d714cfa14fff9b02bcb37a65f26ed2c",
-                    "name": "crab-yellow",
-                    "bitmapResolution": 1,
-                    "md5ext": "6d714cfa14fff9b02bcb37a65f26ed2c.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 67,
-                    "rotationCenterY": 75
-                },
-                {
-                    "assetId": "c474dcf0231cc6d4513ab3790f389d53",
-                    "name": "crab-green",
-                    "bitmapResolution": 1,
-                    "md5ext": "c474dcf0231cc6d4513ab3790f389d53.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 67,
-                    "rotationCenterY": 75
-                },
-                {
-                    "assetId": "a66d0b6f9b6b5109545d9c1518330382",
-                    "name": "crab-blue",
-                    "bitmapResolution": 1,
-                    "md5ext": "a66d0b6f9b6b5109545d9c1518330382.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 67,
-                    "rotationCenterY": 75
-                },
-                {
-                    "assetId": "08c6aa022441ed14097ad6b3e03482f2",
-                    "name": "crab-purple",
-                    "bitmapResolution": 1,
-                    "md5ext": "08c6aa022441ed14097ad6b3e03482f2.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 67,
-                    "rotationCenterY": 75
-                }
-            ],
-            "sounds": [
-                {
-                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
-                    "name": "pop",
-                    "dataFormat": "wav",
-                    "format": "",
-                    "rate": 44100,
-                    "sampleCount": 1032,
-                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
-                }
-            ],
-            "volume": 100,
-            "layerOrder": 2,
-            "visible": true,
-            "x": 109,
-            "y": -139,
-            "size": 100,
-            "direction": 90,
-            "draggable": false,
-            "rotationStyle": "all around"
-        }
-    ],
-    "monitors": [
-        {
-            "id": "zocbQ,zId`mJQPqL}=-b_costumenumbername_number",
-            "mode": "default",
-            "opcode": "looks_costumenumbername",
-            "params": {
-                "NUMBER_NAME": "number"
-            },
-            "spriteName": "Helen",
-            "value": "",
-            "width": 0,
-            "height": 0,
-            "x": 5,
-            "y": 5,
-            "visible": false,
-            "sliderMin": 0,
-            "sliderMax": 100,
-            "isDiscrete": true
-        }
-    ],
-    "extensions": [],
-    "meta": {
-        "semver": "3.0.0",
-        "vm": "0.2.0-prerelease.20190628161443",
-        "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"
-    }
-}
-},{}],18:[function(require,module,exports){
-/* Complex Conditionals L1(TIPP&SEE Modify) Autograder
- * Scratch 3 (original) version: Anna Zipp, Summer 2019
- */
-
-require('./scratch3');
-
-// recursive function that searches a script and any subscripts (those within loops)
-function iterateBlocks(script, func) {
-    function recursive(scripts, func, level) {
-        if (!is(scripts) || scripts === [[]]) return;
-        for (var script of scripts) {
-            for(var block of script.blocks) {
-                func(block, level);
-                recursive(block.subScripts(), func, level + 1);
-            }
-        }
-    }
-    recursive([script], func, 1);
-}
-
-module.exports = class {
-    // initialize the requirement and extension objects to be graded
-    init() {
-        this.requirements = {
-            bluePainted: {bool: false, str: 'Switches Paint Mix costume to "Blue Paint Mix" when Blue is selected.'},  
-            yellowPainted: {bool: false, str: 'Switches Paint Mix sprite to "Yellow Paint Mix" when Yellow is selected.'},
-            purpleMixed: {bool: false, str: 'Paint Mix switches to "Purple Paint Mix" and broadcasts "purple" if Blue & Red selected.'},
-            greenMixed: {bool: false, str: 'Paint Mix switches to "Green Paint Mix" and broadcasts "green" if Blue & Yellow selected.'},
-        }
-        this.extensions = {
-            brownMixed: {bool: false, str: 'Paint Mix switches to "Brown Paint Mix" and broadcasts "brown" if Red & Blue & Yellow selected.'},
-            spriteCustomized: {bool: false, str: 'The Sprite is customized with different hair and skin color.'},
-            soundAdded: {bool: false, str: 'A sound effect plays when a painting is completed.'},
-        }
-    }
-
-    // given an "operator_equals" block, check that one side is set to "1" and return the other side
-    getColor(block) {
-        let input1 = block.inputs.OPERAND1[1][1];
-        let input2 = block.inputs.OPERAND2[1][1];
-
-        if (input1 === "1") {
-            return input2;
-        } else if (input2 === "1") {
-            return input1;
-        } else {  // if neither side is set to "1", return null
-            return null;
-        }
-    }
-
-    // given an "If/Then" block that has an input conditon, find colors selected (color = 1)
-    checkColors(block) {
-        let colorReqs = {
-            red: false,
-            yellow: false,
-            blue: false,
-        };
-
-        let ifCondition = block.conditionBlock();  // the operator block       
-        if (ifCondition !== null) {
-            if ("operator_equals" === ifCondition.opcode) {
-                let colorSelected = this.getColor(ifCondition);
-                if (colorSelected === "Red") {
-                    colorReqs.red = true;
-                } else if (colorSelected === "Yellow") {
-                    colorReqs.yellow = true;
-                } else if (colorSelected === "Blue") {
-                    colorReqs.blue = true;
-                }
-            } else if ("operator_and" === ifCondition.opcode) {
-                let operand1 = ifCondition.toBlock(ifCondition.inputs.OPERAND1[1]);
-                let operand2 = ifCondition.toBlock(ifCondition.inputs.OPERAND2[1]);
-                let color1 = null;
-                let color2 = null;
-                let color3 = null;
-
-                // check first side of "and"
-                if (operand1.opcode === "operator_and") {  // if left side of "and" is also an "and" block
-                    color1 = this.getColor(operand1.toBlock(operand1.inputs.OPERAND1[1]));
-                    color2 = this.getColor(operand1.toBlock(operand1.inputs.OPERAND2[1]));
-                    // if left side of "and" is also an "and", then right side will have the third color
-                    color3 = this.getColor(operand2);
-                } else {  // if left side of "and" is NOT also an "and" block
-                    color1 = this.getColor(operand1);
-                } 
-
-                // check second side of "and"
-                if (operand2.opcode === "operator_and") {  // if right side of "and" is also an "and" block
-                    color2 = this.getColor(operand2.toBlock(operand2.inputs.OPERAND1[1]));
-                    color3 = this.getColor(operand2.toBlock(operand2.inputs.OPERAND2[1]));
-                    // color 1 will have already been set above 
-                } else {  // if right side of "and" is NOT also an "and" block
-                    color2 = this.getColor(operand2);
-                } 
-
-                if (color1 === "Red") {
-                    colorReqs.red = true;
-                } else if (color1 === "Yellow") {
-                    colorReqs.yellow = true;
-                } else if (color1 === "Blue") {
-                    colorReqs.blue = true;
-                }
-                
-                if (color2 === "Red") {
-                    colorReqs.red = true;
-                } else if (color2 === "Yellow") {
-                    colorReqs.yellow = true;
-                } else if (color2 === "Blue") {
-                    colorReqs.blue = true;
-                }
-
-                if (color3 === "Red") {
-                    colorReqs.red = true;
-                } else if (color3 === "Yellow") {
-                    colorReqs.yellow = true;
-                } else if (color3 === "Blue") {
-                    colorReqs.blue = true;
-                }
-            }
-        }
-        return colorReqs;
-    }
-
-    // given an array of subscripts, check for existence of "switch costume to" and broadcast block
-    checkSubscript(array) {
-        let subScriptReqs = {
-            costumeTo: "",
-            broadcastStr: "",
-        };
-
-        let i = 0;
-
-        // iterate through the blocks in each subscript in the array 
-        for (i; i < array.length; i++) {
-            iterateBlocks(array[i], (block, level) => {
-                let opcode = block.opcode;
-
-                if (opcode === "looks_switchcostumeto") {
-                    let costumeBlock = block.toBlock(block.inputs.COSTUME[1]);
-                    if ((costumeBlock != null) && (costumeBlock.opcode === "looks_costume")) {
-                        subScriptReqs.costumeTo = costumeBlock.fields.COSTUME[0];
-                    }
-                } else if (opcode === "event_broadcast") {
-                    subScriptReqs.broadcastStr = block.inputs.BROADCAST_INPUT[1][1];
-                }
-            });
-        }
-        return subScriptReqs;
-    }
-
-    gradePaintMix(sprite) {
-        // iterate through each of the sprite's scripts that start with the event 'When I Receive' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenbroadcastreceived"))) {  
-            let eventBlock = script.blocks[0];
-            if (eventBlock.fields.BROADCAST_OPTION[0] === "mix paint") {
-                iterateBlocks(script, (block, level) => {
-                    let opcode = block.opcode;
-
-                    if (opcode === "control_if") {
-                        let colors = this.checkColors(block);
-                        let subBlocks = block.subScripts();
-                        let subReqs = this.checkSubscript(subBlocks);
-                        
-                        // if only one color is selected
-                        if (!colors.red && !colors.yellow && colors.blue) { 
-                            if (subReqs.costumeTo === "Blue Paint Mix") {
-                                this.requirements.bluePainted.bool = true;
-                            }
-                        } else if (!colors.red && colors.yellow && !colors.blue) {  
-                            if (subReqs.costumeTo === "Yellow Paint Mix") {
-                                this.requirements.yellowPainted.bool = true;
-                            }
-                        }
-                        // if two colors are selected
-                        if (colors.red && !colors.yellow && colors.blue) {
-                            if ((subReqs.costumeTo === "Purple Paint Mix") && (subReqs.broadcastStr === "purple")) {
-                                this.requirements.purpleMixed.bool = true;
-                            }
-                        } else if (!colors.red && colors.yellow && colors.blue) {
-                            if ((subReqs.costumeTo === "Green Paint Mix") && (subReqs.broadcastStr === "green")) {
-                                this.requirements.greenMixed.bool = true;
-                            }
-                        }
-                        // if all three colors are selected
-                        if (colors.red && colors.yellow && colors.blue) {
-                            if ((subReqs.costumeTo === "Brown Paint Mix") && (subReqs.broadcastStr === "brown")) {
-                                this.extensions.brownMixed.bool = true;
-                            }
-                        }
-                    }
-                });
-            }
-        }
-    }
-
-    // check Artist Sprite's "When I Receive" scripts for a sound block
-    checkSound(sprite) {
-        let sound = false;
-        // iterate through each of the sprite's scripts that start with the event 'When I Receive' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenbroadcastreceived"))) {  
-            iterateBlocks(script, (block, level) => {
-                let opcode = block.opcode;
-                if (["sound_playuntildone","sound_play"].includes(opcode)) {
-                    sound = true;           
-                }
-            });
-        }
-        return sound;         
-    }
-
-    // main grading function
-    grade(fileObj, user) {
-        var project = new Project(fileObj);
-
-        this.init();
-        // if project doesn't exist, return
-        if (!is(fileObj)) return;
-
-        for(var target of project.targets) {
-            if (!(target.isStage)) {
-                if (target.name.includes("Artist")) {
-                    // check if sprite has been changed or customized
-                    // default sprite is at index 4, "Artist 3", assetId: 7896f4313a525c551b95b745024b1b17
-                    let costumeIndex = target.currentCostume;
-                    let currAssetID = target.costumes[costumeIndex].assetId;
-                    if (currAssetID != "7896f4313a525c551b95b745024b1b17") {
-                        this.extensions.spriteCustomized.bool = true;
-                    }
-
-                    // check if sound blocks were added after a broadcast is received
-                    let sound = this.checkSound(target);
-                    if (sound) {
-                        this.extensions.soundAdded.bool = true;
-                    }
-                } else if (target.name === "Paint Mix") {
-                    this.gradePaintMix(target);
-                }
-            }
-        }
-    }    
-}
-},{"./scratch3":29}],19:[function(require,module,exports){
+},{"./scratch3":23}],13:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -4867,6 +3170,56 @@ module.exports = class {
                                         script.context.carStops = 1;
                                     }
                                 }
+                                if (target.name === 'I-Glow') {
+                                    if (paramSecs === '1' && paramX === '-210' && paramY === '80'
+                                        && next === null && parent === 'em!(S`b]+MB2h8((R434') {
+                                        bool = false;
+                                    }
+                                }
+                                if (target.name === 'A-Glow') {
+                                    if (paramSecs === '1' && paramX === '55' && paramY === '25'
+                                        && next === '^6iWa|d-|jw!SQI#e(Jr' && parent === 'n]cy4r^o3t_m{{lMaGoY') {
+                                        bool = false;
+                                    }
+                                    if (paramSecs === '1' && paramX === '-204' && paramY === '14'
+                                        && next === null && parent === '^6iWa|d-|jw!SQI#e(Jr') {
+                                        bool = false;
+                                    }
+                                    if (paramSecs === '1' && paramX === '-204' && paramY === '14'
+                                        && next === null && parent === 'i[0P|D4q:tdG3Q{3hR`N') {
+                                        bool = false;
+                                    }
+                                }
+                                if (target.name === 'N-Glow') {
+                                    if (paramSecs === '1' && paramX === '-202' && paramY === '-52'
+                                        && next === null && parent === '{nR@2|=S?G3-4ukMhO4n') {
+                                        bool = false;
+                                    }
+                                }
+                                if (target.name === 'A-Glow2') {
+                                    if (paramSecs === '1' && paramX === '-200' && paramY === '-120'
+                                        && next === null && parent === 'ojhZT:%|m?wFvLSVqRoH') {
+                                        bool = false;
+                                    }
+                                }
+                            }
+                            if (opc === 'motion_pointindirection' && target.name === 'N-Glow') {
+                                let param = target.scripts[script].blocks[block].inputs.CHANGE[1][1];
+                                if (param === '90'
+                                    && target.scripts[script].blocks[block].next === 'i4C7qLY,7Dc:@{}d`:nV'
+                                    && target.scripts[script].blocks[block].parent === 'GN6a/]#X1pYt~+7OZ{Rc') {
+                                    bool = false;
+                                }
+                                if (param === '-90'
+                                    && target.scripts[script].blocks[block].next === null
+                                    && target.scripts[script].blocks[block].parent === 'i4C7qLY,7Dc:@{}d`:nV') {
+                                    bool = false;
+                                }
+                            }
+                            if (bool) {
+                                hasMovement = true;
+                           //     console.log('Sprite with new movement:');
+                             //   console.log(target.name);
                             }
                         }
                     }
@@ -4906,7 +3259,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":29}],20:[function(require,module,exports){
+},{"./scratch3":23}],14:[function(require,module,exports){
 /* Conditional Loops L2 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -4986,7 +3339,7 @@ module.exports = class {
 }
 
 
-},{"../grading-scripts-s3/scratch3":29}],21:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":23}],15:[function(require,module,exports){
 (function (global){
 /// Info layer template
 global.Context = class {
@@ -5021,318 +3374,499 @@ global.Context = class {
     }
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],22:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 /* Decomposition By Sequence L1 Autograder
- * Scratch 2 (original) version: Max White, Summer 2018
- * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
- * Reformatting, bug fixes, and updates: Anna Zipp, Summer 2019
- */
+Scratch 2 (original) version: Max White, Summer 2018
+Scratch 3 updates: Elizabeth Crowdus, Spring 2019
+*/
 
-require('./scratch3');
+var sb3 = {
+    //null checker
+    no: function(x) { 
+        return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
+    },
 
-// recursive function that searches a script and any subscripts (those within loops)
-function iterateBlocks(script, func) {
-    function recursive(scripts, func, level) {
-        if (!is(scripts) || scripts === [[]]) return;
-        for (var script of scripts) {
-            for(var block of script.blocks) {
-                func(block, level);
-                recursive(block.subScripts(), func, level + 1);
+    //retrieve a given sprite's blocks from JSON
+    //note: doesn't check whether or not blocks are properly attached
+    jsonToSpriteBlocks: function(json, spriteName) { 
+        if (this.no(json)) return []; //make sure script exists
+
+        var projInfo = json['targets'] //extract targets from JSON data
+        var allBlocks={};
+        var blocks={};
+        
+        //find sprite
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['name'] == spriteName){
+                return projInfo[i]['blocks'];
             }
         }
-    }
-    recursive([script], func, 1);
-}
+        return [];
+    }, //done
+    
+    //retrieve a given sprite's info (not just blocks) from JSON
+    jsonToSprite: function(json, spriteName) { 
+        if (this.no(json)) return []; //make sure script exists
 
-module.exports = class {
-    // initialize the requirement and extension objects to be graded
+        var projInfo = json['targets'] //extract targets from JSON data
+        
+        //find sprite
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['name'] == spriteName){
+                return projInfo[i];
+            }
+        }
+        return [];
+    }, //done
+    
+    //counts the number of non-background sprites in a project
+    countSprites: function(json){
+        if (this.no(json)) return false; //make sure script exists
+        
+        var numSprites = 0;
+        var projInfo = json['targets'] //extract targets from JSON data
+        
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['isStage'] == false){
+                numSprites ++;
+            }
+        }
+        return numSprites
+    },
+    
+    //looks through json to see if a sprite with a given name is present
+    //returns sprite
+    returnSprite: function(json, spriteName){ 
+        if (this.no(json)) return; //make sure script exists
+
+        var projInfo = json['targets'] //extract targets from JSON data
+        
+        //find sprite
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['name'] == spriteName){
+                return projInfo[i];
+            }
+        }
+        return ;
+    }, //done
+    
+    //looks through json to see if a sprite with a given name is present
+    //returns true if sprite with given name found
+    findSprite: function(json, spriteName){ 
+        if (this.no(json)) return false; //make sure script exists
+
+        var projInfo = json['targets'] //extract targets from JSON data
+        
+        //find sprite
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['name'] == spriteName){
+                return true;
+            }
+        }
+        return false;
+    }, //done
+    
+    //returns list of block ids given a set of blocks
+    findBlockIDs: function(blocks, opcode){
+        if(this.no(blocks) || blocks == {}) return [];
+        
+        var blockids = [];
+        
+        for(block in blocks){ 
+            if(blocks[block]['opcode'] == opcode){
+                blockids.push(block);
+            }
+        }
+        return blockids;
+    },
+    
+    //given particular key, returns list of block ids of a certain kind of key press given a set of blocks 
+    findKeyPressIDs: function(blocks, key){
+        if(this.no(blocks) || blocks == {}) return [];
+        
+        var blockids = [];
+        
+        for(block in blocks){ 
+            if(blocks[block]['opcode'] == 'event_whenkeypressed'){
+                if(blocks[block]['fields']['KEY_OPTION'][0] == key){
+                    blockids.push(block);
+                }
+            }
+        }
+        return blockids;
+    },
+    
+    opcodeBlocks: function(script, myOpcode) { //retrieve blocks with a certain opcode from a script list of blocks
+        if (this.no(script)) return [];
+        
+        var miniscript = [];
+
+        for(block in script){
+            if(script[block]['opcode'] == myOpcode){
+                miniscript.push(script[block]);
+            }
+        }
+        return miniscript;
+    }, 
+    
+    opcode: function(block) { //retrives opcode from a block object 
+        if (this.no(block)) return "";
+        return block['opcode'];
+    }, 
+    
+    countBlocks: function(blocks,opcode){ //counts number of blocks with a given opcode
+        var total = 0;
+		for(id in blocks){ 
+            if([blocks][id]['opcode'] == opcode){
+                total = total + 1;
+            }
+        }
+        return total;
+    }, //done
+    
+    //(recursive) helper function to extract blocks inside a given loop
+    //works like makeScript except it only goes down the linked list (rather than down & up)
+    loopExtract: function(blocks, blockID){
+        if (this.no(blocks) || this.no(blockID)) return [];
+        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
+        
+        var curBlockID = blockID;
+        var script = [];
+
+        //Find all blocks that come after
+        curBlockID = blockID //Initialize with blockID of interest
+        while(curBlockID != null){
+            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+            script.push(curBlockInfo); //Add the block itself to the script dictionary                
+
+            //nextInfo = blocks[nextID]
+            opcode = curBlockInfo['opcode'];
+            
+            //extract nested children if loop block
+            if(loop_opcodes.includes(opcode)){
+                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+                if(innerloop != undefined){
+                    var nested_blocks = this.makeScript(blocks, innerloop)
+                    for(b in nested_blocks){
+                        script.push(nested_blocks[b])
+                    }
+                }
+            }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+		
+            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
+            if((nextID == null) && (event_opcodes.includes(opcode))){
+                return [];
+            }
+            //Iterate: Set next to curBlock
+            curBlockID = nextID;
+        }     
+        return script;        
+    },
+    
+    //given list of blocks and a keyID of a block, return a script
+    makeScript: function(blocks, blockID){
+        if (this.no(blocks) || this.no(blockID)) return [];
+        event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
+        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
+        
+        var curBlockID = blockID;
+        var script = [];
+    
+        //find all blocks that come before
+        while(curBlockID != null){
+            var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+            script.push(curBlockInfo); //Add the block itself to the script dictionary 
+            
+            //Get parent info out
+            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
+            //parentInfo = blocks[parentID]
+    		var opcode = curBlockInfo['opcode'];
+            
+            //extract nested children if loop block
+            if(loop_opcodes.includes(opcode)){
+                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+                if(innerloop != undefined){
+                    var nested_blocks = this.loopExtract(blocks, innerloop)
+                    for(b in nested_blocks){
+                        script.push(nested_blocks[b])
+                    }
+                }
+            }
+            
+            //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
+            if ((parentID == null) && !(event_opcodes.includes(opcode))){
+                return [];
+            }
+
+            //Iterate: set parent to curBlock
+            curBlockID = parentID
+        }
+
+        //find all blocks that come after
+        curBlockID = blocks[blockID]['next']
+        while(curBlockID != null){
+            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+
+            //nextInfo = blocks[nextID]
+            opcode = curBlockInfo['opcode'];
+
+            //extract nested children if loop block
+            if(loop_opcodes.includes(opcode)){
+                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+                if(innerloop != undefined){
+                    var nested_blocks = this.loopExtract(blocks, innerloop)
+                    for(b in nested_blocks){   
+                        script.push(nested_blocks[b])
+                    }
+                }
+            }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+		
+            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
+            if((nextID == null) && (event_opcodes.includes(opcode))){
+                return [];
+            }
+            script.push(curBlockInfo); //Add the block itself to the script dictionary                
+            //Iterate: Set next to curBlock
+            curBlockID = nextID;
+        }
+        return script;
+    }
+};
+
+class GradeDecompBySeq{
+    
+    constructor() {
+        this.requirements = {}
+    }
+    
     init() {
         this.requirements = {
-            jaimeRepeats: {bool: false, str: 'Jaime has a "Repeat Until Touching Soccer Ball" script under "When Green Flag Clicked".'},
-            jaimeMoves: {bool: false, str: 'Jaime has a "Move" block within his "Repeat Until" loop.'},
-            ballWaitsUntil: {bool: false, str: 'Soccer Ball has a "Wait Until Touching Jaime" block under "When Green Flag Clicked".'},
-            ballRepeats: {bool: false, str: 'Soccer Ball has a "Repeat Until Touching Goal" script under "When Green Flag Clicked".'},
-            ballMoves: {bool: false, str: 'Soccer Ball has a "Move" block within its "Repeat Until" loop.'},
-        }
-
+      JaimeToBall:
+        {bool:false, str:'Jaime uses the "repeat until" block to do an action until it touches the Soccer Ball.'},
+      JaimeAnimated:
+        {bool:false, str:'Jaime is animated correctly to move towards the Soccer Ball.'},
+      ballStayStill:
+        {bool:false, str:'Soccer Ball uses the "wait until" to wait until Jaime touches it.'},
+      ballToGoal:
+        {bool:false, str:'Soccer Ball uses the "repeat until" block to do an action until it touches the Goal.'},
+      ballAnimated: 
+        {bool:false, str:'Soccer Ball is animated correctly to move towards the Goal.'},
+    }
         this.extensions = {
-            cheerSounds: {bool: false, str: 'Cheer sound plays when ball is touching the goal.'},
-            ballBounces: {bool: false, str: 'Ball bounces off the goal.'},
-            //kickAgain: {bool: false, str: 'Jaime kicks the ball again if it bounces off the goal.'},
-            //TODO: should bounce and kick again be combined? Is kickAgain too complicated to look for?
-            jaimeJumps: {bool: false, str: 'Jaime jumps up and down to celebrate a goal.'},
-            goalieAdded: {bool: false, str: 'Added a goalie sprite.'},
-            goalieBlocks: {bool: false, str: 'Ball bounces away if it hits the goalie.'},
-            goalieMovesLeft: {bool: false, str: 'Goalie moves to the left when Left Arrow Key is pressed.'},
-            goalieMovesRight: {bool: false, str: 'Goalie moves to the right when Right Arrow Key is pressed.'},
-            jaimeWaitBlock: {bool: false, str: 'Jaime uses a "Wait" block in his "Repeat Until" loop.'},
-            jaimeNextCostume: {bool: false, str: 'Jaime is animated by a "Next Costume" block in the "Repeat Until" loop.'},
-            ballWaitBlock: {bool: false, str: 'Soccer Ball uses a "Wait" block in its "Repeat Until" loop.'},
+            cheer:
+                {bool: false, str: 'Cheer sound when ball enters goal'},
+            bounce:
+                {bool: false, str: 'Ball bounces off goal'},
+            jump:
+                {bool: false, str: 'Jaime jumps up and down to celebrate goal'},
+            goalie: 
+                {bool: false, str: 'Added a goalie sprite.'},
+            goaliebounce:
+                {bool: false, str: 'Ball bounces off the goalie.'},
+            goaliemoves:
+                {bool: false, str: 'Goalie can move left and right with the arrow keys.'}
+            
         }
     }
-
-    // given a block that has an input conditon, check if it is a Touching condition
-    // and return the opcode of what its touching target conditon is
-    getCondOpcode(block) {
-        let targetCond;
-        let inputCond = block.conditionBlock();  // the input condition block       
-        if ((inputCond !== null) && ("sensing_touchingobject" === inputCond.opcode)) {
-            // find the specific field entered into the input condition block
-            let condSelected = inputCond.toBlock(inputCond.inputs.TOUCHINGOBJECTMENU[1]);                          
-            if ((condSelected !== null) && (condSelected.opcode === "sensing_touchingobjectmenu")) {
-                targetCond = condSelected.fields.TOUCHINGOBJECTMENU[0];
-            }
-        }
-        return targetCond;
-    }
-
-    // Check the blocks/scripts only inside a conditional loop 
-    gradeCondLoop(block, targetCondition) {
-        let condLoopReqs = {
-            repeatLoop: false,
-            moveBlock: false,
-            waitBlock: false,
-            costumeBlock: false,
-        };
-
-        // check block's condition input
-        let blockCond = this.getCondOpcode(block);            
-
-        // if the correct targetCondition is selected ("Soccer Ball" if sprite is Jaime, or vice versa)
-        if (blockCond === targetCondition) {
-            condLoopReqs.repeatLoop = true;
-
-            // check for other required blocks inside the Repeat Until loop
-            var repeatUntilSubs = block.subScripts();
-            for (var subScript of repeatUntilSubs) {
-                iterateBlocks(subScript, (block, level) => {
-                    let subop = block.opcode; 
-
-                    if (subop === 'motion_movesteps') {
-                        condLoopReqs.moveBlock = true; 
-                    }
-                    if (subop === 'control_wait') {
-                        condLoopReqs.waitBlock = true;
-                    }
-                    if (['looks_nextcostume', 'looks_switchcostumeto'].includes(subop)) {
-                        condLoopReqs.costumeBlock = true;
-                    }
-                });
-            }                                   
-        }
-        return condLoopReqs;
-    }
-
-    // Check remaining blocks outside of/after a condition (either after loops or inside ifs) for sound and movement
-    // must be given a Wait Until, Repeat Until, If, or If/Then block
-    // here, any sound counts as a cheer, but code to restrict the sound to cheers only is there, but commented out
-    checkAfter(block) {
-        let extns = {
-            soundPlays: false,
-            movement: false,
-            repeatedMovement: false,
-        };
-        let opcode = block.opcode;
-        let remainingBlocks;
-
-        if ((opcode === "control_wait_until") || (opcode === "control_repeat_until")) {
-            remainingBlocks = block.childBlocks();
-        } else if (opcode.includes("control_if")) { 
-            // restrict remainingBlocks to the blocks within the If
-            let nextIf = block.toBlock(block.inputs.SUBSTACK[1]);
-            remainingBlocks = nextIf.childBlocks();
-        }
-        
-        for (let rBlock of remainingBlocks) {
-            let rCode = rBlock.opcode;
-
-            // check for sound block
-            if (["sound_playuntildone","sound_play"].includes(rCode)) {             
-                // check if sound block plays a sound
-                let soundBlock = rBlock.toBlock(rBlock.inputs.SOUND_MENU[1]);
-                if (soundBlock !== null) {
-                    let soundSelected = soundBlock.fields.SOUND_MENU[0];
-                    if (soundSelected !== null) {
-                        extns.soundPlays = true;
-                        /* if you want to restrict the sound to only "cheer", "Cheer", or "Goal Cheer"
-                        commented out for now, bc some students may want to use different sounds   
-                        if ((soundSelected.includes("cheer")) || soundSelected.includes("Cheer")) {
-                            cheerSelected = true;
-                        }
-                        */
-                    }
-                }
-            // check for movement after condition is met    
-            } else if (rCode.includes("motion_move") || rCode.includes("motion_goto") || rCode.includes("motion_glide")) {
-                extns.movement = true;
-            }
-        }
-        return extns;
-    }
-
-    gradeJaime(sprite) {
-        let condLoopReqs;
-        // iterating through each of the sprite's scripts that start with the event 'When Green Flag Clicked' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenflagclicked"))) {  
-            iterateBlocks(script, (block, level) => {
-                let opcode = block.opcode;
-                
-                if (opcode.includes("control_repeat_until")) {
-                    condLoopReqs = this.gradeCondLoop(block, "Soccer Ball");
-                    if (condLoopReqs.repeatLoop) this.requirements.jaimeRepeats.bool = true;
-                    if (condLoopReqs.moveBlock) this.requirements.jaimeMoves.bool = true;
-                    if (condLoopReqs.waitBlock) this.extensions.jaimeWaitBlock.bool = true;
-                    if (condLoopReqs.costumeBlock) this.extensions.jaimeNextCostume.bool = true;
-                }
-
-                // TODO: this just checks if Jaime has a "change/set y" block in his scripts
-                // more rigorous evaluation should check WHEN he uses those blocks, and also check other types of motion
-                // however, most kids didn't seem to implement this extension anyways
-                if (["motion_changeyby", "motion_sety"].includes(opcode)) {
-                    this.extensions.jaimeJumps.bool = true;
-                }
-            });
-        }
-    }
-
-    gradeBall(sprite) {
-        let condLoopReqs;
-        let afterCondReqs;
-
-        // iterating through each of the sprite's scripts that start with the event 'When Green Flag Clicked' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenflagclicked"))) { 
-            iterateBlocks(script, (block, level) => {
-                let opcode = block.opcode;
-                let targetCond = this.getCondOpcode(block);
-                
-                if (opcode.includes("control_wait_until")) {
-                    // If Ball has "Wait Until Touching _" block
-                    if (targetCond === "Jaime ") {
-                        this.requirements.ballWaitsUntil.bool = true;
-                    } else if (targetCond === "Goal") {
-                        afterCondReqs = this.checkAfter(block); 
-                        if (afterCondReqs.soundPlays) this.extensions.cheerSounds.bool = true;
-                    }
-                } else if (opcode.includes("control_repeat_until")) {
-                    condLoopReqs = this.gradeCondLoop(block, "Goal");
-                    if (condLoopReqs.repeatLoop) this.requirements.ballRepeats.bool = true;
-                    if (condLoopReqs.moveBlock) this.requirements.ballMoves.bool = true;
-                    if (condLoopReqs.waitBlock) this.extensions.ballWaitBlock.bool = true;
-
-                    afterCondReqs = this.checkAfter(block);
-                    if (afterCondReqs.movement) this.extensions.ballBounces.bool = true;
-                    if (afterCondReqs.soundPlays) this.extensions.cheerSounds.bool = true;
-                } else if (opcode.includes("control_if")) {
-                    afterCondReqs = this.checkAfter(block);
-
-                    if (targetCond === "Goal") {
-                        if (afterCondReqs.soundPlays) this.extensions.cheerSounds.bool = true;
-                    } else if (!(["Goal", "Jaime "].includes(targetCond))) {//&& totnumSprites > 3? ) {
-                        // if ball moves after "If touching goalie", goalieBlocks req fulfilled
-                        // TODO: probably need to check this req more rigorously 
-                        if (afterCondReqs.movement) this.extensions.goalieBlocks.bool = true; 
-                    } 
-                }
-            });
-        }
-    }
-
-    gradeGoal(sprite) {
-        // iterating through each of the sprite's scripts that start with the event 'When Green Flag Clicked' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenflagclicked"))) {  
-            iterateBlocks(script, (block, level) => {
-                let opcode = block.opcode;
-                
-                if (["control_wait_until","control_if"].includes(opcode)) {
-                    let targetCond = this.getCondOpcode(block);
-                    if (targetCond === "Soccer Ball") {
-                        let afterCond = this.checkAfter(block);
-                        if (afterCondReqs.soundPlays) this.extensions.cheerSounds.bool = true;
-                    }
-                }
-            });
-        } 
-    }
-
-    gradeGoalie(sprite) {
-        // iterating through each of the sprite's scripts that start with the event 'When _ Key Pressed' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenkeypressed"))) { 
-            let eventBlock = script.blocks[0];
-            let keyOption = eventBlock.fields.KEY_OPTION[0];
- 
-            if (keyOption === "left arrow") {
-                let pointedLeft = false;
-                let negSteps = false;
-                iterateBlocks(script, (block, level) => {
-                    let opcode = block.opcode; 
-                    if (opcode.includes("motion_pointindirection")) {
-                        if (block.inputs.DIRECTION[1][1][0] === "-") {  // if first character is - (negative)
-                            pointedLeft = true;
-                        }
-                    }
-                    if (["motion_movesteps", "motion_glide"].includes(opcode)) {
-                        if (block.inputs.STEPS[1][1][0] === "-") {  // if first character is - (negative)
-                            negSteps = true;
-                        }
-                    }
-                });
-
-                if ((pointedLeft && !negSteps) || (!pointedLeft && negSteps)) {
-                    this.extensions.goalieMovesLeft.bool = true;
-                }
-            } else if (keyOption === "right arrow") {
-                let pointedRight = true;
-                let negSteps = false;
-                iterateBlocks(script, (block, level) => {
-                    let opcode = block.opcode; 
-                    if (opcode.includes("motion_pointindirection")) {
-                        if (block.inputs.DIRECTION[1][1][0] === "-") {  // if first character is - (negative)
-                            pointedRight = false;
-                        }
-                    }
-                    if (["motion_movesteps", "motion_glide"].includes(opcode)) {
-                        if (block.inputs.STEPS[1][1][0] === "-") {  // if first character is - (negative)
-                            negSteps = true;
-                        }
-                    }
-                });  
-                
-                if ((pointedRight && !negSteps) || (!pointedRight && negSteps)){
-                    this.extensions.goalieMovesRight.bool = true; 
-                }
-            }
-        }
-    }
-
-    // main grading function
-    grade(fileObj, user) {
-        var project = new Project(fileObj);
-
+    
+    
+    
+    grade(fileObj, user){
         this.init();
-        // if project doesn't exist, return
-        if (!is(fileObj)) return;
-
-        for(var target of project.targets) {
-            if (!(target.isStage)) {
-
-                if (target.name === "Jaime ") {
-                    this.gradeJaime(target);
-                } else if (target.name === "Soccer Ball") {
-                    this.gradeBall(target);
-                } else if (target.name === "Goal") {
-                    if (!(this.extensions.cheerSounds.bool)) {
-                        this.gradeGoal(target);
-                    } 
-                } else {   // if not Jaime, Ball, or Goal, sprite must be added goalie
-                    this.extensions.goalieAdded.bool = true;
-                    this.gradeGoalie(target);
+        
+        for(var i in fileObj['targets']){ //find sprite
+            var sprite = fileObj['targets'][i]
+            if(sprite['name'] == 'Jaime '){
+                var jaime = sprite;
+                this.checkJaime(jaime);
+            }
+            else if(sprite['name'] == 'Soccer Ball'){
+                var ball = sprite;
+                this.checkBall(ball);
+            }
+            else if(sprite['name'] == 'Goal'){
+                var goal = sprite;
+                this.checkGoal(goal);
+            }
+            else if(goal != undefined && ball != undefined && goal != undefined){ //
+                var goalie = sprite;
+                this.extensions.goalie.bool = true;
+                this.checkGoalie(goalie);
+            }
+        }
+    }
+    
+    checkJaime(jaime){
+        var jaimeids = sb3.findBlockIDs(jaime['blocks'], 'event_whenflagclicked');
+        for(var j in jaimeids){
+            var jaimeScript = sb3.makeScript(jaime['blocks'], jaimeids[j]);
+            for(var i in jaimeScript){
+                if(jaimeScript[i]['opcode'] == 'control_repeat_until'){
+                    var condblock = jaimeScript[i]['inputs']['CONDITION'][1];
+                    var cond = jaime['blocks'][condblock];
+                    if(cond['opcode'] == 'sensing_touchingobject'){
+                        var objectID = cond['inputs']['TOUCHINGOBJECTMENU'][1];
+                        var object = jaime['blocks'][objectID]['fields']['TOUCHINGOBJECTMENU'][0]
+                        if(object == 'Soccer Ball'){
+                            this.requirements.JaimeToBall.bool = true;
+                            var curID = jaimeScript[i]['inputs']['SUBSTACK'][1]
+                            while(curID != null){ //check if Jaime is moving towards the ball
+                                if(jaime['blocks'][curID]['opcode'] == 'motion_movesteps'){
+                                   this.requirements.JaimeAnimated.bool = true;
+                                }
+                                curID = jaime['blocks'][curID]['next']
+                            }
+                        }
+                    }
                 }
             }
         }
-    }    
+    }
+    
+    checkBall(ball){
+        var ballids = sb3.findBlockIDs(ball['blocks'], 'event_whenflagclicked');
+        for(var j in ballids){
+            var ballScript = sb3.makeScript(ball['blocks'], ballids[j]);
+            for(var i in ballScript){
+                if(ballScript[i]['opcode'] == 'control_wait_until'){
+                    var condid = ballScript[i]['inputs']['CONDITION'][1] //find key of condition block
+                    if(condid != null){ //handles case where no condition is nested in the block
+                        var cond = ball['blocks'][condid]
+                        var nameid = cond['inputs']['TOUCHINGOBJECTMENU'][1] //find key of block with nested object of the condition
+                        if(nameid != null){
+                            var name = ball['blocks'][nameid]['fields']['TOUCHINGOBJECTMENU'][0]
+                            if(name == 'Jaime '){
+                                this.requirements.ballStayStill.bool = true;
+                            }
+                            if(name == 'Goal'){
+                            
+                                var curID = ballScript[i]
+                                while(curID != null){ 
+                                    if(ball['blocks'][curID]['opcode'] == 'control_repeat_until'){
+                                        var condid = ballScript[i]['inputs']['CONDITION'][1]
+                                        var condition = ball['blocks'][condid]['opcode']
+                                        if(condition == 'sensing_touchingobject'){
+                                            var object = ball['blocks'][condid]['inputs']['TOUCHINGOBJECTMENU'][1] //find key of condition block
+                                            if(object != null){
+                                                var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0] //find key of block with nested object
+                                                if(objname == 'Jaime '){
+                                                    this.extensions.bounce.bool = true;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    curID = ball['blocks'][curID]['next'] //iterate
+                                }
+                                
+                            }
+                        }
+                    }
+                }
+                if(ballScript[i]['opcode'] == 'control_repeat_until' ){
+                    var condid = ballScript[i]['inputs']['CONDITION'][1]
+                    var condition = ball['blocks'][condid]['opcode']
+                    if(condition == 'sensing_touchingobject'){
+                        var object = ball['blocks'][condid]['inputs']['TOUCHINGOBJECTMENU'][1] //find key of condition block
+                        if(object != null){
+                            var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0] //find key of block with nested object
+                            if(objname == 'Goal'){
+                                this.requirements.ballToGoal.bool = true;
+                            
+                                var curID = ballScript[i]['inputs']['SUBSTACK'][1]
+                                while(curID != null){ 
+                                    if(ball['blocks'][curID]['opcode'] == 'motion_movesteps'){
+                                        this.requirements.ballAnimated.bool = true;
+                                    }
+                                    curID = ball['blocks'][curID]['next']
+                                }
+                            }
+                            if(objname == 'Jaime '){
+                                var curID = ballScript[i]['inputs']['SUBSTACK'][1]
+                                while(curID != null){ 
+                                    if(ball['blocks'][curID]['opcode'] == 'motion_movesteps'){
+                                        this.extensions.bounce.bool = true;
+                                    }
+                                    curID = ball['blocks'][curID]['next']
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    checkGoal(goal){
+        var flags = sb3.findBlockIDs(goal['blocks'], 'event_whenflagclicked');
+        for(var j in flags){
+            var goalScript = sb3.makeScript(goal['blocks'], flags[j]);
+            for(var i in goalScript){
+                if(goalScript[i]['opcode'] == 'control_wait_until'){
+                    var condid = goalScript[i]['inputs']['CONDITION'][1] //find key of condition block
+                    if(condid != null){ //handles case where no condition is nested in the block
+                        var cond = goal['blocks'][condid]
+                        var nameid = cond['inputs']['TOUCHINGOBJECTMENU'][1] //find key of block with nested object of the condition
+                        if(nameid != null){
+                            var name = goal['blocks'][nameid]['fields']['TOUCHINGOBJECTMENU'][0]
+                            if(name == 'Soccer Ball'){
+                                var curid = goalScript[i]['next']
+                                while(curid != null){
+                                    if(goal['blocks'][curid]['opcode'] == 'sound_playuntildone' || goal['blocks'][curid]['opcode'] == 'sound_play'){
+                                        this.extensions.cheer.bool = true;
+                                    }
+                                    curid = goal['blocks'][curid]['next'] //iterate
+                                }
+                            }
+                            
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    checkGoalie(goalie){
+        var movement = ['motion_changexby', 'motion_glidesecstoxy', 'motion_glideto', 'motion_goto', 'motion_gotoxy']
+        
+        var arrows = sb3.findBlockIDs(goalie['blocks'], 'event_whenkeypressed');
+        var left = false;
+        var right = false;
+        for(var i in arrows){ 
+            var blockid = arrows[i]
+            if(goalie['blocks'][arrows[i]]['fields']['KEY_OPTION'][0] == 'left arrow'){
+                var leftscript = sb3.makeScript(goalie['blocks'], blockid)
+                for(var j in leftscript){
+                    if(movement.includes(leftscript[j]['opcode'])){
+                        left = true
+                    }
+                }
+                
+            }
+            if(goalie['blocks'][arrows[i]]['fields']['KEY_OPTION'][0] == 'right arrow'){
+                var rightscript = sb3.makeScript(goalie['blocks'], blockid)
+                for(var j in rightscript){
+                    if(movement.includes(rightscript[j]['opcode'])){
+                        right = true
+                    }
+                }
+            }
+            if(left == true && right == true){
+                this.extensions.goaliemoves.bool = true
+            }
+        }
+    }
+    
+    
 }
 
-},{"./scratch3":29}],23:[function(require,module,exports){
+module.exports = GradeDecompBySeq;
+},{}],17:[function(require,module,exports){
 /* Decomposition by Sequence L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -5362,55 +3896,14 @@ module.exports = class {
             addBackdrop: {bool: false, str: 'Added a new backdrop.'},  
             addThreeSprites: {bool: false, str: 'Added at least three sprites.'},
             twoSpritesGoTo: {bool: false, str: 'Two sprites use the "goto x:_ y:_" block.'},
-            sequentialAction: {bool: false, str: 'Two sprites have sequential action in a loop that animates them.'},
-            touchingBlock: {bool: false, str: 'Has Two sprites (A and B) where A uses "wait (or repeat) until touching B" and B uses "repeat (or wait) until touching A".'},
-            //TODO: the L2 Student sheet does not specify the "wait/repeat until touching" requirement very well
+            touchingBlock: {bool: false, str: 'Two sprites use "wait until touching" and/or "repeat until touching".'},
+            sequentialAction: {bool: false, str: 'Two sprites have sequential action.'},
+            //TODO: do the touching and sequentialaction reqs have to be under the same event block?
         }
         this.extensions = {
             thirdSprite: {bool: false, str: 'The third sprite has a new event with different actions.'},
             soundBlock: {bool: false, str: 'The project uses a sound block.'},
         }
-    }
-
-    // given a block that has an input conditon, check if it is a Touching condition
-    // and return the opcode of what its touching target conditon is
-    getCondOpcode(block) {
-        let targetCond = null;
-        let inputCond = block.conditionBlock();  // the input condition block       
-        if ((inputCond !== null) && ("sensing_touchingobject" === inputCond.opcode)) {
-            // find the specific field entered into the input condition block
-            let condSelected = inputCond.toBlock(inputCond.inputs.TOUCHINGOBJECTMENU[1]);                          
-            if ((condSelected !== null) && (condSelected.opcode === "sensing_touchingobjectmenu")) {
-                targetCond = condSelected.fields.TOUCHINGOBJECTMENU[0];
-            }
-        }
-        return targetCond;
-    }
-
-    // given a loop block, look for a move, wait, and costume block for sequential action/animation 
-    findSequentialAction(block) {
-        let foundMove = false;
-        let foundWait = false; 
-        let foundCostume = false;
-
-        let subBlocks = block.subScripts();
-
-        for (var subScript of subBlocks) {
-            iterateBlocks(subScript, (block, level) => {
-                let subop = block.opcode; 
-
-                if (subop === 'motion_movesteps') {
-                    foundMove = true; 
-                }
-                if (subop === 'control_wait') {
-                    foundWait = true;
-                }
-                if (['looks_nextcostume', 'looks_switchcostumeto'].includes(subop)) {
-                    foundCostume = true;
-                }
-            });
-        }   
-        return (foundMove && foundCostume && foundWait);
     }
 
     gradeSprite(sprite) {
@@ -5425,16 +3918,25 @@ module.exports = class {
             'control_repeat',
             'control_repeat_until',
             'sound_play',
-            'sound_playuntildone',
-            "motion_pointtowards",
-            "motion_pointtowards_menu",
+            'sound_playuntildone'
         ];
 
         var goTo = false;
-        var waitingUntil = [];
-        var repeatingUntil = [];
+        var touching = false;
         var seqAction = false;
         var diffActions = false; 
+
+        var actionBlocks = [
+            'motion_movesteps', 
+            'looks_costume', 
+            'looks_switchcostumeto', 
+            'looks_nextcostume', 
+            'control_wait',
+        ];
+
+        var foundMove = false;
+        var foundCostume = false;
+        var foundWait = false; 
 
         // iterate through the sprite's scripts that start with an event block 
         for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) {
@@ -5449,18 +3951,13 @@ module.exports = class {
                     goTo = goTo || opcode.includes("motion_gotoxy");
 
                     // if sprite uses wait until touching or repeat until touching blocks
-                    // create an array of the targets it uses in these blocks
-                    if (opcode.includes("control_wait_until")) {
-                        let targetSprite = this.getCondOpcode(block);
-                        if (targetSprite != null) {
-                            waitingUntil.push(targetSprite);
+                    if (["control_wait_until", "control_repeat_until"].includes(opcode)) {
+                        var inputCond = block.conditionBlock();  // the input condition block
+                        if (inputCond !== null) {
+                            if (["sensing_touchingcolor", "sensing_touchingobject", "sensing_touchingobjectmenu", "sensing_coloristouchingcolor"].includes(inputCond.opcode)) 
+                                touching = true;
                         }
-                    } else if (opcode.includes("control_repeat_until")) {
-                        let targetSprite = this.getCondOpcode(block);
-                        if (targetSprite != null) {
-                            repeatingUntil.push(targetSprite);
-                        }
-                    } 
+                    }
 
                     // if sprite uses new action blocks
                     if (!(knownBlocks.includes(opcode)) && (opcode.includes("motion_") || opcode.includes("looks_"))) {
@@ -5472,10 +3969,48 @@ module.exports = class {
                         this.extensions.soundBlock.bool = true;
                     } 
 
-                    // search a loop for sequential action blocks (wait, move, costume)
-                    if (opcode.includes("control_repeat")) { 
-                        seqAction = seqAction || this.findSequentialAction(block);
-                    }              
+                    // search for sequential action blocks (wait, move, change costume) in any order
+                    if (actionBlocks.includes(opcode) && (seqAction === false)) {
+                        var currBlock = block;
+                        var nextBlock = block.nextBlock();
+                        if ((nextBlock !== null) && (nextBlock.next !== null)) {  // if a group of 3 blocks exist
+                            var thirdBlock = nextBlock.nextBlock();
+                            // only check groups of three sequential blocks that are all potential seqAction blocks 
+                            if ((actionBlocks.includes(nextBlock.opcode)) && (actionBlocks.includes(thirdBlock.opcode))) { 
+                                if (currBlock.opcode.includes("motion_movesteps")) {
+                                    foundMove = true; 
+                                } else if (['looks_costume','looks_switchcostumeto','looks_nextcostume'].includes(currBlock.opcode)) {
+                                    foundCostume = true; 
+                                } else if (currBlock.opcode.includes("control_wait")) { 
+                                    foundWait = true; 
+                                }
+
+                                if (nextBlock.opcode.includes("motion_movesteps")) {
+                                    foundMove = true; 
+                                } else if (['looks_costume','looks_switchcostumeto','looks_nextcostume'].includes(nextBlock.opcode)) {
+                                    foundCostume = true; 
+                                } else if (nextBlock.opcode.includes("control_wait")) { 
+                                    foundWait = true; 
+                                }
+
+                                if (thirdBlock.opcode.includes("motion_movesteps")) {
+                                    foundMove = true; 
+                                } else if (['looks_costume','looks_switchcostumeto','looks_nextcostume'].includes(thirdBlock.opcode)) {
+                                    foundCostume = true; 
+                                } else if (thirdBlock.opcode.includes("control_wait")) {
+                                    foundWait = true; 
+                                }
+                
+                                // if one of each kind of seqAction blocks is found in the sequence of three given blocks
+                                seqAction = seqAction || (foundMove && foundCostume && foundWait);
+                                    
+                                // reset the flags
+                                foundMove = false;
+                                foundCostume = false;
+                                foundWait = false;                                
+                            }
+                        }                         
+                    }                  
                 });
             }
         }        
@@ -5483,10 +4018,9 @@ module.exports = class {
         return {
             name: sprite.name,
             usesGoTo: goTo,
+            usesTouching: touching,
             hasSeqAction: seqAction,
             hasDiffActions: diffActions,
-            isWaitingUntil: waitingUntil,
-            isRepeatingUntil: repeatingUntil,
         }
     }
 
@@ -5501,11 +4035,9 @@ module.exports = class {
         var totalSprites = 0;
         var newSprites = 0;
         var numSpritesGoTo = 0;
+        var numSpritesTouching = 0;
         var numSpritesSeqAction = 0;
         var numSpritesDiffAction = 0;
-        var numSpritesTouching = 0;
-        let waitUntilTargets = {};
-        let repeatUntilTargets = {};
 
         for(var target of project.targets) {
             if (target.isStage) {
@@ -5526,47 +4058,15 @@ module.exports = class {
                 var currSprite = this.gradeSprite(target);
 
                 if (currSprite.usesGoTo) numSpritesGoTo++;
+                if (currSprite.usesTouching) numSpritesTouching++;
                 if (currSprite.hasSeqAction) numSpritesSeqAction++;
                 if (currSprite.hasDiffActions) numSpritesDiffAction++;
-                if ((currSprite.isWaitingUntil.length >= 1) || (currSprite.isRepeatingUntil.length >= 1)) {  // if target arrays are nonempty
-                    numSpritesTouching++;
-                    // add sprite's target arrays to a repeat or wait object
-                    if (currSprite.isWaitingUntil.length >= 1) {
-                        waitUntilTargets[currSprite.name] = currSprite.isWaitingUntil;
-                        console.log(currSprite.name + " is waiting until touching: [" + waitUntilTargets[currSprite.name] + "]");
-                    }
-                    if (currSprite.isRepeatingUntil.length >= 1) {
-                        repeatUntilTargets[currSprite.name] = currSprite.isRepeatingUntil;
-                        console.log(currSprite.name + " is repeating until touching: [" + repeatUntilTargets[currSprite.name] + "]");
-                    }
-                }
             }
         }
-
         if (newSprites >= 3) this.requirements.addThreeSprites.bool = true;
         if (numSpritesGoTo >= 2) this.requirements.twoSpritesGoTo.bool = true;
+        if (numSpritesTouching >= 2) this.requirements.touchingBlock.bool = true;
         if (numSpritesSeqAction >= 2) this.requirements.sequentialAction.bool = true;
-
-        // if at least 2 sprites use conditional blocks
-        if (numSpritesTouching >= 2) {
-            // if at least one sprite uses "wait until" and at least one sprite uses "repeat until"
-            if ((Object.keys(waitUntilTargets).length >= 1) && (Object.keys(repeatUntilTargets).length >= 1)) {
-                // check to see if Sprites A and B have wait/repeat until blocks that target each other 
-                for (let currKey in waitUntilTargets) {
-                    for (var i = 0; i < waitUntilTargets[currKey].length; i++) {
-                        let currTarget = waitUntilTargets[currKey][i];
-
-                        if (currTarget in repeatUntilTargets) {
-                            for (var j = 0; j < repeatUntilTargets[currTarget].length; j++) {
-                                if (repeatUntilTargets[currTarget][j] === currKey) {
-                                    this.requirements.touchingBlock.bool = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
         if ((numSpritesDiffAction >= 3) || ((totalSprites >= 3) && (numSpritesDiffAction >= 1))) {
             this.extensions.thirdSprite.bool = true;
@@ -5575,7 +4075,7 @@ module.exports = class {
         }
     }
 }
-},{"./scratch3":29}],24:[function(require,module,exports){
+},{"./scratch3":23}],18:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -5638,7 +4138,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":29}],25:[function(require,module,exports){
+},{"./scratch3":23}],19:[function(require,module,exports){
 /* Events L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and bug fixes: Marco Anaya, Summer 2019
@@ -5676,61 +4176,19 @@ module.exports = class {
             moreScripts: {bool: false, str: "A sprite reacts to more events."},
             spriteBlinks: {bool: false, str: "A sprite blinks (use hide, show, and wait blocks)."}
         };
-
-        this.info = {
-            blocks: 0,
-            sprites: 0,
-            spritesWith1Script: 0,
-            spritesWith2Scripts: 0,
-            holiday: null,
-            guidingUser: false,
-            blockTypes: new Set([]),
-            
-
-            
-
-        }
     }
     
     gradeSprite(sprite) {
         var reqEvents = [];
         var events = [];
-        var validScripts = 0;    
-
-        this.info.sprites++;
+        var validScripts = 0;     
         for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes('event_when'))){
-            
+
             //look for extension requirements throughout each block
             var blink = {hide: false, wait: false, show: false};
             var spin = {wait: false, turn: false};
             iterateBlocks(script, (block, level) => {
                 var opcode = block.opcode;
-                if (opcode in this.info.blockTypes) {
-                    
-                } else {
-                    this.info.blockTypes.add(opcode)
-                    this.info.blocks++;
-                }
-                if (opcode.includes('say')) {
-                    let string = block.inputs.MESSAGE[1][1].toLowerCase();
-                    if (!this.info.holiday) {
-                        for (let holiday of ['christmas', 'halloween', 'july', 'birthday', 'day']) {
-                            
-                            if (string.includes(holiday)) {
-                                this.info.holiday = holiday;
-                                break;
-                            }
-                        }
-                    }
-                    if (!this.info.guidingUser) {
-                        for (let keyWord of ['press', 'click']) {
-                            if (string.includes(keyWord)) {
-                                this.info.guidingUser = true;
-                                break;
-                            }
-                        }
-                    }
-                }
                 spin.turn = spin.turn || opcode.includes("motion_turn");
                 blink.hide = blink.hide || (opcode == 'looks_hide');
                 blink.show = blink.show || (opcode == 'looks_show');
@@ -5777,8 +4235,6 @@ module.exports = class {
                 break;
             }
         }
-        if (validScripts >=2) this.info.spritesWith2Scripts++
-        else if (validScripts >= 1) this.info.spritesWith1Script++;
         return reqEvents;
     }
 
@@ -5793,286 +4249,901 @@ module.exports = class {
                     this.requirements.choseBackdrop.bool = true;
                 continue;
             }
-
             // calls the sprite grader while aggregating the total required events used
             reqEvents = [...new Set([...reqEvents, ...this.gradeSprite(target)])];
         }
         this.requirements.usesTheThreeEvents.bool = (reqEvents.length === 3);
         this.requirements.hasThreeSprites.bool = (project.targets.length - 1 >= 3);
-        
     }
 } 
-},{"./scratch3":29}],26:[function(require,module,exports){
+},{"./scratch3":23}],20:[function(require,module,exports){
 /* One Way Sync L1 Autograder
- * Marco Anaya, Summer 2019
+ * Marco Anaya, Spring 2019
  */
-require('./scratch3');
 
-let control = ['control_forever', 'control_if', 'control_if_else', 'control_repeat', 'control_stop', 'control_repeat_until', 'control_wait_until'];
-let loops = ['control_forever', 'control_repeat', 'control_repeat_until'];
+var sb3 = {
+	//null checker
+	no: function(x) { 
+	  return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
+	},
 
-// helper function to iterate for each block in scripts and subscripts recursively.
-// understanding the usecases is more important than the details of the code (unless there are bugs)
-let iterateBlocks = (script, func, parentBlocks=control) => {
-    const recursive = (scripts, func, level) => {
-        if (!is(scripts) || scripts === [[]]) return;
-        for (let script of scripts) {
-            for(let block of script.blocks) {
-                func(block, level);
-				recursive(block.subScripts(), func, 
-					level + parentBlocks.includes(block.opcode) ? 1 : 0);
-            }
-        }
-    }
-    recursive([script], func, 1);
-}
+	//retrieve a given sprite's blocks from JSON
+	//note: doesn't check whether or not blocks are properly attached
+	jsonToSpriteBlocks: function(json, spriteName) { 
+		if (this.no(json)) return []; //make sure script exists
 
-
-module.exports = class {
-
-	init() { //initialize all metrics to false
-		this.requirements = {
-			oneToOne: {bool:false, str:'Djembe passes unique message to Mali child'},
-			djembePlays: {bool: false, str: 'When Djembe is clicked, Djembe plays music'},
-			djembeToChild: {bool: false, str: 'When Djembe is clicked, Mali child dances'},
-			startButton: {bool: false, str: 'Start button sprite created'},
-			oneToMany: {bool: false, str: 'Start button passes the same message to all other sprites'},
-			startToSprite1: {bool: false, str: 'A sprite plays or dances when the start button is clicked'},
-			startToSprite2:	{bool: false, str: 'Another sprite plays or dances when the start button is clicked'},
-			startToSprite3:	{bool: false, str: 'A third sprite plays or dances when the start button is clicked'},
-			startToSprite4:	{bool: false, str: 'A fourth sprite plays or dances when the start button is clicked'}
-		};
-		this.extensions = {
-			changeWait: {bool: false, str: 'Changed the duration of a wait block'},
-			sayBlock:	{bool: false, str: 'Added a say block under another event'}
-		}
-	}
-
-	grade(fileObj, user) {
-		this.init();
-		const project = new Project(fileObj)
-
-		let reports = project.sprites.map(sprite => this.gradeSprite(sprite));
-		let messages = {};
+		var projInfo = json['targets'] //extract targets from JSON data
+		var allBlocks={};
+		var blocks={};
 		
-		for (let report of reports) {
-			if (report.sent != []) {
-				for (let msg of report.sent) {
-					if (msg in messages) messages[msg].sent = true;
-					else messages[msg] = {sent: true, recipents: []};
-				}
+		//find sprite
+		for(i=0; i <projInfo.length; i++){
+			if(projInfo[i]['name'] == spriteName){
+				return projInfo[i]['blocks'];
 			}
-			if (report.received != []) {
-				for (let msg of report.received) {
-					if (msg in messages) messages[msg].recipents.push(report.name);
-					else messages[msg] = {sent: false, recipents: [report.name]};
+		}
+		return [];
+	}, //done
+	
+	//retrieve a given sprite's info (not just blocks) from JSON
+	jsonToSprite: function(json, spriteName) { 
+		if (this.no(json)) return []; //make sure script exists
+
+		var projInfo = json['targets'] //extract targets from JSON data
+		
+		//find sprite
+		for(i=0; i <projInfo.length; i++){
+			if(projInfo[i]['name'] == spriteName){
+				return projInfo[i];
+			}
+		}
+		return [];
+	}, //done
+	
+	//counts the number of non-background sprites in a project
+	countSprites: function(json){
+		if (this.no(json)) return false; //make sure script exists
+		
+		var numSprites = 0;
+		var projInfo = json['targets'] //extract targets from JSON data
+		
+		for(i=0; i <projInfo.length; i++){
+			if(projInfo[i]['isStage'] == false){
+				numSprites ++;
+			}
+		}
+		return numSprites
+	},
+	
+	//looks through json to see if a sprite with a given name is present
+	//returns true if sprite with given name found
+	findSprite: function(json, spriteName){ 
+		if (this.no(json)) return false; //make sure script exists
+
+		var projInfo = json['targets'] //extract targets from JSON data
+		
+		//find sprite
+		for(i=0; i <projInfo.length; i++){
+			if(projInfo[i]['name'] == spriteName){
+				return true;
+			}
+		}
+		return false;
+	}, //done
+	
+	//returns list of block ids given a set of blocks
+	findBlockIDs: function(blocks, opcode){
+		if(this.no(blocks) || blocks == {}) return null;
+		
+		var blockids = [];
+		
+		for(block in blocks){ 
+			if(blocks[block]['opcode'] == opcode){
+				blockids.push(block);
+			}
+		}
+		return blockids;
+	},
+	
+	//given particular key, returns list of block ids of a certain kind of key press given a set of blocks 
+	findKeyPressID: function(blocks, key){
+		if(this.no(blocks) || blocks == {}) return [];
+		
+		var blockids = [];
+		
+		for(block in blocks){ 
+			if(blocks[block]['opcode'] == 'event_whenkeypressed'){
+				if(blocks[block]['fields']['KEY_OPTION'][0] == key){
+					blockids.push(block);
 				}
 			}
 		}
-		reports = reports.reduce((acc, r) => {
-			acc.push({
-				name: r.name,
-				plays: r.plays,
-				sent: 
-					r.sent.length === 0 ? null : r.sent.reduce((acc, msg) => {
-						acc[msg] = messages[msg].recipents;
-						return acc;
-					}, {}),
-				received: r.received,
-				dances: r.dances.costume && r.dances.wait
-			})
-			return acc;
-		}, []);
-		const sentCount = (sender) => 
-				Object.values(sender.sent).reduce((acc, b) => acc + b.length, 0) + !(sender.name.includes('ali') || sender.name.includes('avajo'));
+		return blockids;
+	},
+	
+	opcodeBlocks: function(script, myOpcode) { //retrieve blocks with a certain opcode from a script list of blocks
+		if (this.no(script)) return [];
+		
+		var miniscript = [];
 
-		let senders = reports.filter(r => r.sent).sort((a, b) => {
-				return sentCount(b) - sentCount(a);
-		})
-		this.requirements.startButton.bool = reports.length >= 5;
-        // Checks the sprite with the most broadcasts, assuming that it must be the start button
-		if (senders.length >= 3) {
-			let startButton = senders[0];
+		for(block in script){
+			if(script[block]['opcode'] == myOpcode){
+				miniscript.push(script[block]);
+			}
+		}
+		return miniscript;
+	}, 
+	
+	opcode: function(block) { //retrives opcode from a block object 
+		if (this.no(block)) return "";
+		return block['opcode'];
+	}, 
+	
+	countBlocks: function(blocks,opcode){ //counts number of blocks with a given opcode
+		var total = 0;
+	for(id in blocks){ 
+			if([blocks][id]['opcode'] == opcode){
+				total = total + 1;
+			}
+		}
+		return total;
+	}, //done
+	
+	//(recursive) helper function to extract blocks inside a given loop
+	//works like makeScript except it only goes down the linked list (rather than down & up)
+	loopExtract: function(blocks, blockID){
+		if (this.no(blocks) || this.no(blockID)) return [];
+		loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
+		
+		var curBlockID = blockID;
+		var script = [];
+
+		//Find all blocks that come after
+		curBlockID = blockID //Initialize with blockID of interest
+		while(curBlockID != null){
+			curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+			script.push(curBlockInfo); //Add the block itself to the script dictionary                
+
 			
-			let totalRecipients = new Set([]);
-			for (let recipients of Object.values(startButton.sent)) {
-				let score = 0;
-				for (let name of recipients) {
-					let recipientReport = reports.find(r => r.name == name);
-					if (recipientReport.plays.onClick || recipientReport.plays.onBroadcast || recipientReport.dances) {
-						score++;
-						totalRecipients.add(name);
+			//nextInfo = blocks[nextID]
+			opcode = curBlockInfo['opcode'];
+			
+			//extract nested children if loop block
+			if(loop_opcodes.includes(opcode)){
+				var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+				if(innerloop != undefined){
+					var nested_blocks = this.makeScript(blocks, innerloop)
+					for(b in nested_blocks){
+						script.push(nested_blocks[b])
 					}
 				}
-				if (score >= 4) this.requirements.oneToMany.bool = true;
 			}
-			
-			if (totalRecipients.size > 0) {
-				for (let i = Math.min(totalRecipients.size, 4); i > 0; i--) 
-					this.requirements[`startToSprite${i}`].bool = true;
-				//remove this sprite
-				senders = senders.slice(1);
+
+			//Get next info out
+			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+	
+			//If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
+			if((nextID == null) && (event_opcodes.includes(opcode))){
+				return [];
 			}
-        }
-        // Check if at least two of remaining sprites do what is expected from Djembe and Flute sprites
-        if (senders.length >= 2) {
-
-			let visitedFlute = false;
-			let probableDjembe = null;
-
-			const sumScore = (score) => !score? 0 : Object.values(score).reduce((a, b) => a + b, 0)
+			//Iterate: Set next to curBlock
+			curBlockID = nextID;
+		}     
+		return script;        
+	},
+	
+	//given list of blocks and a keyID of a block, return a script
+	makeScript: function(blocks, blockID){
+		if (this.no(blocks) || this.no(blockID)) return [];
+		event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
+		loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
+		
+		var curBlockID = blockID;
+		var script = [];
+	
+		//find all blocks that come before
+		while(curBlockID != null){
+			var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+			script.push(curBlockInfo); //Add the block itself to the script dictionary 
 			
-            for (let sender of senders) {    
-                for (let [msg, recipients] of Object.entries(sender.sent)) {
-					let score = {
-						uniqueMessage: msg.toLowerCase() != 'navajo',
-						senderPlays: (sender.plays.onClick || sender.plays.onBroadcast),
-						recipientDances: recipients.some(recipient => reports.find(r => r.name == recipient && r.dances))
-					};
-					
-                	if (score.recipientDances && score.senderPlays && !score.uniqueMessage && !visitedFlute) {
-						visitedFlute = true;
-					} else {
-						probableDjembe = sumScore(score) > sumScore(probableDjembe) ? score : probableDjembe;
+			//Get parent info out
+			var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
+			//parentInfo = blocks[parentID]
+		var opcode = curBlockInfo['opcode'];
+
+			
+			//extract nested children if loop block
+			if(loop_opcodes.includes(opcode)){
+				var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+				if(innerloop != undefined){
+					var nested_blocks = this.loopExtract(blocks, innerloop)
+					for(b in nested_blocks){
+						script.push(nested_blocks[b])
 					}
 				}
-            }
-            [this.requirements.oneToOne.bool, this.requirements.djembePlays.bool, this.requirements.djembeToChild.bool] = Object.values(probableDjembe);
-        }		
+			}
+			
+			//If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
+			if ((parentID == null) && !(event_opcodes.includes(opcode))){
+				return [];
+			}
+
+			//Iterate: set parent to curBlock
+			curBlockID = parentID
+		}
+
+		//find all blocks that come after
+		curBlockID = blocks[blockID]['next']
+		while(curBlockID != null){
+			curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+
+			//nextInfo = blocks[nextID]
+			opcode = curBlockInfo['opcode'];
+			
+			//extract nested children if loop block
+			if(loop_opcodes.includes(opcode)){
+				var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+				if(innerloop != undefined){
+					var nested_blocks = this.loopExtract(blocks, innerloop)
+					for(b in nested_blocks){                            
+						script.push(nested_blocks[b])
+					}
+				}
+			}
+
+			//Get next info out
+			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+	
+			//If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
+			if((nextID == null) && (event_opcodes.includes(opcode))){
+				return [];
+			}
+			script.push(curBlockInfo); //Add the block itself to the script dictionary                
+			//Iterate: Set next to curBlock
+			curBlockID = nextID;
+		}
+		return script;
 	}
-	gradeSprite(sprite) {
-		let reqs = {
-			name: sprite.name,
-			plays: {onClick: false, onBroadcast: false},
-			sent: [],
-			received: [],
-			dances: {costume: false, wait: false}
+};
+
+class GradeOneWaySyncL1 {
+
+	constructor() {
+		this.requirements = {};
+		this.extensions = {};
+	}
+
+	initReqs() { //initialize all metrics to false
+		this.requirements = {
+
+			oneToOne: 
+				{bool:false, str:'Djembe passes unique message to Mali child'},
+			djembePlays: 
+				{bool: false, str: 'When Djembe is clicked, Djembe plays music'},
+			djembeToChild: 
+				{bool: false, str: 'When Djembe is clicked, Mali child dances'},
+			startButton: 
+				{bool: false, str: 'Start button sprite created'},
+			oneToMany: 
+				{bool: false, str: 'Start button passes the same message to all other sprites'},
+			startToDjembe: 
+				{bool: false, str: 'When start button is clicked, Djembe plays music'},
+			startToFlute: 
+				{bool: false, str: 'When start button is clicked, Flute plays music'},
+			startToMaliChild: 
+				{bool: false, str: 'When start button is clicked, Mali child dances'},
+			startToNavajoChild: 
+				{bool: false, str: 'When start button is clicked, Navajo child dances'}
+		};
+	}
+	initExts() {
+		this.extensions = {
+			changeWait: 
+				{bool: false, str: 'Changed the duration of a wait block'},
+			sayBlock: 
+				{bool: false, str: 'Added a say block under another event'}
 		}
-		for (let script of sprite.scripts.filter(s => s.blocks[0].opcode.includes('event_when'))) {
-			if (script.blocks[0].opcode === 'event_whenthisspriteclicked')
-				iterateBlocks(script, (block, level) => {
-					if (['sound_play', 'sound_playuntildone'].includes(block.opcode))
-						reqs.plays.onClick = true;
-					else if (['event_broadcast', 'event_broadcastandwait'].includes(block.opcode))
-						reqs.sent.push( block.inputs.BROADCAST_INPUT[1][1])
-				});
-			else if (script.blocks[0].opcode === 'event_whenbroadcastreceived') {
-				reqs.received.push(script.blocks[0].fields.BROADCAST_OPTION[0]);
-				iterateBlocks(script, (block, level) => {
-					if (['sound_play', 'sound_playuntildone'].includes(block.opcode))
-						reqs.plays.onBroadcast = true;
-					else if (['event_blooks_switchcostumeto', 'looks_nextcostume'].includes(block.opcode))
-						reqs.dances.costume = true;
-					else if (block.opcode === 'control_wait') {
-						reqs.dances.wait = true;
-						if (block.inputs.DURATION[1][1] != .5) this.extensions.changeWait.bool = true;
+	}
+
+	grade(fileObj, user) { //call to grade project //fileobj is 
+		this.initReqs();
+		this.initExts();
+		var sprites = {'Navajo Flute': null, 'Navajo child': null, 'Mali Djembe': null, 'Mali child': null};
+		const targets = fileObj.targets;
+		var spriteIsButton = true;
+		
+		// creates object of sprites, first non-default one is marked as the start button
+		for (var target of targets) {
+			if (target.isStage) {
+				continue;
+			}
+			if (target.name in sprites) {
+				sprites[target.name] = target;
+			} else if (spriteIsButton) {
+				sprites['Start Button'] = target;
+				spriteIsButton = false;
+			}
+		}
+		this.checkDjembeBroadcast(sprites)
+		this.checkStartBroadcast(sprites);
+		sprites = Object.values(sprites).filter(sprite => sprite != null);
+		this.checkSayOnEvent(sprites);
+		this.checkChangeWait(sprites);
+	}
+
+	/*
+	 * Returns an array of two booleans:
+	 *   whether the sprite received the message
+	 *   whether it is playing a sound
+	 */
+	broadcastToPlay(sprite, message) {
+		if (sb3.no(sprite)) {
+			return;
+		}
+		var receivesMessage = false;
+		const whenReceiveBlocks = sb3.findBlockIDs(sprite.blocks, 'event_whenbroadcastreceived');
+
+		if(whenReceiveBlocks) {
+			for(var whenReceiveBlock of whenReceiveBlocks) {
+				var script = sb3.makeScript(sprite.blocks, whenReceiveBlock);
+
+				if (script[0].fields.BROADCAST_OPTION[0] == message) {
+					receivesMessage = true;
+					for (var block of script) {
+						if (['sound_play', 'sound_playuntildone'].includes(block.opcode)) {
+							return [receivesMessage, true];
+						}
 					}
-				});
-			} 
-			iterateBlocks(script, (block, level) => {
-				if (['looks_say', 'looks_sayforsecs'].includes(block.opcode))
-					this.extensions.sayBlock.bool = true;
-			});
+				}
+			}
 		}
-		return reqs;
+		return [receivesMessage, false];
+	}
+
+	/* 
+	 * Returns an array of two booleans:
+	 *   whether the sprite received the message
+	 *   whether it is dancing
+	 */
+	broadcastToDance(sprite, message) {
+		if (sb3.no(sprite)) {
+			return;
+		}
+		// if costume change and waitblock within a repeat loop, the sprite is dancing
+		var animation = {constume: false, wait: false};
+		var receivesMessage = false;
+
+		const whenReceiveBlocks = sb3.findBlockIDs(sprite.blocks, 'event_whenbroadcastreceived');
+
+		if (whenReceiveBlocks) {
+			for(var whenReceiveBlock of whenReceiveBlocks) {
+				var script = sb3.makeScript(sprite.blocks, whenReceiveBlock);
+
+				if (script[0].fields.BROADCAST_OPTION[0] == message) {
+					receivesMessage = true;
+
+					for (var block of script) {
+							if (block.opcode == 'control_repeat') {
+
+							var sblock = block.inputs.SUBSTACK[1];
+							while(sblock != null) {
+								const sblockInfo = sprite.blocks[sblock];
+								switch(sblockInfo.opcode) {
+									case 'looks_switchcostumeto':
+									case 'looks_nextcostume': {
+										animation.costume = true;
+										break;
+									}
+									case 'control_wait': {
+
+										animation.wait = true;
+									}
+								}
+								sblock = sblockInfo.next;
+							}
+						}
+					}
+				}
+			}
+		}
+		return [receivesMessage, animation.costume && animation.wait];
+	}
+
+	/* Checks first part of lesson, whether djembe broadcasts to child */
+	checkDjembeBroadcast({ 'Mali Djembe': djembe = null, 'Mali child': child = null}) {
+		if (!djembe) return;
+		
+		var messageSent = false;
+		var messageName = "";
+		var djembePlaysDirectly = false;
+
+		var whenClickedBlocks = sb3.findBlockIDs(djembe.blocks, 'event_whenthisspriteclicked');
+
+		if(whenClickedBlocks) {
+			for(var whenClickedBlock of whenClickedBlocks) {
+				var script = sb3.makeScript(djembe.blocks, whenClickedBlock);
+				for(var block of script){
+					switch(block.opcode) {
+						case 'sound_play':
+						case 'sound_playuntildone': {
+							djembePlaysDirectly = true;
+							break;
+						}
+						case 'event_broadcast':
+						case 'event_broadcastandwait': {
+							messageSent = true;
+							messageName = block.inputs.BROADCAST_INPUT[1][1];
+						}
+					} 
+				}
+			}  
+			
+			const [, djembePlaysBroadcast] = this.broadcastToPlay(djembe, messageName);
+			// djembe can be played directly when sprite is clicked, or it can send a message to itself
+			this.requirements.djembePlays.bool = djembePlaysDirectly || djembePlaysBroadcast;
+		}
+		// if message was sent, check if it was received and produced the desired result
+		if (messageSent) {
+			if (!child) 
+				return;
+
+			const [childReceives, childDances] = this.broadcastToDance(child, messageName);
+			// checks whether the child receives the message and whether it is unique
+			this.requirements.oneToOne.bool = childReceives && (messageName != 'Navajo');
+			this.requirements.djembeToChild.bool = childDances;
+		}
+	}
+
+	/* Checks second part of lesson, the creation and broadcasting of start sprite */
+	checkStartBroadcast({ 'Mali Djembe': djembe, 
+											  'Mali child': maliChild, 
+											  'Navajo Flute': flute, 
+											  'Navajo child': navajoChild, 
+											  'Start Button': start = null }) {
+		if (!start) {
+			return;
+		}
+
+		this.requirements.startButton.bool = true;
+
+		var messageSent = false;
+		var messageName = "";
+		var whenClickedBlocks = sb3.findBlockIDs(start.blocks, 'event_whenthisspriteclicked');
+
+		if(whenClickedBlocks) {
+			for(var whenClickedBlock of whenClickedBlocks) {
+				var script = sb3.makeScript(start.blocks, whenClickedBlock);
+				for(var block of script){
+					if(['event_broadcast', 'event_broadcastandwait'].includes(block.opcode)) {
+						messageSent = true;
+						messageName = block.inputs.BROADCAST_INPUT[1][1];
+					} 
+				}
+			}
+		}
+		// if message was sent, check if it was received and if it produced the desired results
+		if(messageSent) {
+			var receives = Array(4).fill(false);
+			
+			if (djembe) 
+				[receives[0], this.requirements.startToDjembe.bool] = this.broadcastToPlay(djembe, messageName);
+			if (flute)
+				[receives[1], this.requirements.startToFlute.bool] = this.broadcastToPlay(flute, messageName);
+			if (maliChild) 
+				[receives[2], this.requirements.startToMaliChild.bool] = this.broadcastToDance(maliChild, messageName);
+			if (navajoChild)
+				[receives[3], this.requirements.startToNavajoChild.bool] = this.broadcastToDance(navajoChild, messageName);
+				
+			// if all sprites receive the same message, this requirement is satisfied
+			if (djembe && flute && maliChild && navajoChild) 
+				this.requirements.oneToMany.bool = receives.every(received => received === true);
+		}
+	}
+	checkSayOnEvent(sprites) {
+		if (sb3.no(sprites)) {
+			return;
+		}
+
+		const eventOpcodes = [
+			'event_whenflagclicked', 'event_whenthisspriteclicked','event_whenkeypressed', 
+			'event_whenbackdropswitchesto','event_whengreaterthan'
+		];
+			
+		for (const sprite of sprites) {
+			var eventBlocks = [];
+			for(const block in sprite.blocks){ 
+				const blockInfo = sprite.blocks[block];
+				if(eventOpcodes.includes(blockInfo.opcode)){
+
+					eventBlocks.push(block);
+				}
+			}
+
+			for (const eventBlock of eventBlocks) {
+				const script = sb3.makeScript(sprite.blocks, eventBlock);
+				for (const block of script) {
+					if (['looks_say', 'looks_sayforsecs'].includes(block.opcode)) {
+						this.extensions.sayBlock.bool = true;
+						return;
+					}
+				}
+			}
+		}
+	}
+
+	checkChangeWait(sprites) {
+		if (sb3.no(sprites)) {
+			return;
+		}
+
+		for (const sprite of sprites) {
+			const whenReceivedBlocks = sb3.findBlockIDs(sprite.blocks, 'event_whenbroadcastreceived');
+			for (const whenReceivedBlock of whenReceivedBlocks) {
+				const script = sb3.makeScript(sprite.blocks, whenReceivedBlock);
+				for (const block of script) {
+
+					if (block.opcode == 'control_wait') {
+
+						if (block.inputs.DURATION[1][1] != .5) {
+							this.extensions.changeWait.bool = true;
+						}
+					}
+				}
+			}
+		}
 	}
 }
-},{"./scratch3":29}],27:[function(require,module,exports){
+
+module.exports = GradeOneWaySyncL1;
+},{}],21:[function(require,module,exports){
 /* Scratch Basics L1 Autograder
-Updated Version: Saranya Turimella, Summer 2019
+Scratch 2 (original) version: Max White, Summer 2018
+Scratch 3 updates: Elizabeth Crowdus, Spring 2019
 */
 
-require('../grading-scripts-s3/scratch3')
+var sb3 = {
+    //null checker
+    no: function(x) { 
+        return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
+    },
 
-module.exports = class {
+    //retrieve a given sprite's blocks from JSON
+    //note: doesn't check whether or not blocks are properly attached
+    jsonToSpriteBlocks: function(json, spriteName) { 
+        if (this.no(json)) return []; //make sure script exists
+
+        var projInfo = json['targets'] //extract targets from JSON data
+        var allBlocks={};
+        var blocks={};
+        
+        //find sprite
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['name'] == spriteName){
+                return projInfo[i]['blocks'];
+            }
+        }
+        return [];
+    }, //done
+    
+    //retrieve a given sprite's info (not just blocks) from JSON
+    jsonToSprite: function(json, spriteName) { 
+        if (this.no(json)) return []; //make sure script exists
+
+        var projInfo = json['targets'] //extract targets from JSON data
+        
+        //find sprite
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['name'] == spriteName){
+                return projInfo[i];
+            }
+        }
+        return [];
+    }, //done
+    
+    //counts the number of non-background sprites in a project
+    countSprites: function(json){
+        if (this.no(json)) return false; //make sure script exists
+        
+        var numSprites = 0;
+        var projInfo = json['targets'] //extract targets from JSON data
+        
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['isStage'] == false){
+                numSprites ++;
+            }
+        }
+        return numSprites
+    },
+    
+    //looks through json to see if a sprite with a given name is present
+    //returns true if sprite with given name found
+    findSprite: function(json, spriteName){ 
+        if (this.no(json)) return false; //make sure script exists
+
+        var projInfo = json['targets'] //extract targets from JSON data
+        
+        //find sprite
+        for(i=0; i <projInfo.length; i++){
+            if(projInfo[i]['name'] == spriteName){
+                return true;
+            }
+        }
+        return false;
+    }, //done
+    
+    //returns list of block ids given a set of blocks
+    findBlockIDs: function(blocks, opcode){
+        if(this.no(blocks) || blocks == {}) return [];
+        
+        var blockids = [];
+        
+        for(block in blocks){ 
+            if(blocks[block]['opcode'] == opcode){
+                blockids.push(block);
+            }
+        }
+        return blockids;
+    },
+    
+    //given particular key, returns list of block ids of a certain kind of key press given a set of blocks 
+    findKeyPressID: function(blocks, key){
+        if(this.no(blocks) || blocks == {}) return [];
+        
+        var blockids = [];
+        
+        for(block in blocks){ 
+            if(blocks[block]['opcode'] == 'event_whenkeypressed'){
+                if(blocks[block]['fields']['KEY_OPTION'][0] == key){
+                    blockids.push(block);
+                }
+            }
+        }
+        return blockids;
+    },
+    
+    opcodeBlocks: function(script, myOpcode) { //retrieve blocks with a certain opcode from a script list of blocks
+        if (this.no(script)) return [];
+        
+        var miniscript = [];
+
+        for(block in script){
+            if(script[block]['opcode'] == myOpcode){
+                miniscript.push(script[block]);
+            }
+        }
+        return miniscript;
+    }, 
+    
+    opcode: function(block) { //retrives opcode from a block object 
+        if (this.no(block)) return "";
+        return block['opcode'];
+    }, 
+    
+    countBlocks: function(blocks,opcode){ //counts number of blocks with a given opcode
+        var total = 0;
+		for(id in blocks){ 
+            if([blocks][id]['opcode'] == opcode){
+                total = total + 1;
+            }
+        }
+        return total;
+    }, //done
+    
+    //(recursive) helper function to extract blocks inside a given loop
+    //works like makeScript except it only goes down the linked list (rather than down & up)
+    loopExtract: function(blocks, blockID){
+        if (this.no(blocks) || this.no(blockID)) return [];
+        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
+        
+        var curBlockID = blockID;
+        var script = [];
+
+        //Find all blocks that come after
+        curBlockID = blockID //Initialize with blockID of interest
+        while(curBlockID != null){
+            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+            script.push(curBlockInfo); //Add the block itself to the script dictionary                
+
+            //nextInfo = blocks[nextID]
+            opcode = curBlockInfo['opcode'];
+            
+            //extract nested children if loop block
+            if(loop_opcodes.includes(opcode)){
+                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+                if(innerloop != undefined){
+                    var nested_blocks = this.makeScript(blocks, innerloop)
+                    for(b in nested_blocks){
+                        script.push(nested_blocks[b])
+                    }
+                }
+            }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+		
+            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
+            if((nextID == null) && (event_opcodes.includes(opcode))){
+                return [];
+            }
+            //Iterate: Set next to curBlock
+            curBlockID = nextID;
+        }     
+        return script;        
+    },
+    
+    //given list of blocks and a keyID of a block, return a script
+    makeScript: function(blocks, blockID){
+        if (this.no(blocks) || this.no(blockID)) return [];
+        event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
+        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
+        
+        var curBlockID = blockID;
+        var script = [];
+    
+        //find all blocks that come before
+        while(curBlockID != null){
+            var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+            script.push(curBlockInfo); //Add the block itself to the script dictionary 
+            
+            //parentInfo = blocks[parentID]
+    		var opcode = curBlockInfo['opcode'];
+
+            
+            //extract nested children if loop block
+            if(loop_opcodes.includes(opcode)){
+                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+                if(innerloop != undefined){
+                    var nested_blocks = this.loopExtract(blocks, innerloop)
+                    for(b in nested_blocks){
+                        script.push(nested_blocks[b])
+                    }
+                }
+            }
+            
+            //Get parent info out
+            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
+            
+            //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
+            if ((parentID == null) && !(event_opcodes.includes(opcode))){
+                return [];
+            }
+
+            //Iterate: set parent to curBlock
+            curBlockID = parentID
+        }
+
+        //find all blocks that come after
+        curBlockID = blocks[blockID]['next']
+        while(curBlockID != null){
+            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
+
+            //nextInfo = blocks[nextID]
+            opcode = curBlockInfo['opcode'];
+            
+            //extract nested children if loop block
+            if(loop_opcodes.includes(opcode)){
+                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
+                if(innerloop != undefined){
+                    var nested_blocks = this.loopExtract(blocks, innerloop)
+                    for(b in nested_blocks){                            
+                        script.push(nested_blocks[b])
+                    }
+
+                    // if sprite uses a sound block 
+                    if (["sound_play", "sound_playuntildone"].includes(opcode)) {
+                        this.extensions.soundBlock.bool = true;
+                    } 
+
+                    // search a loop for sequential action blocks (wait, move, costume)
+                    if (opcode.includes("control_repeat")) { 
+                        seqAction = seqAction || this.findSequentialAction(block);
+                    }              
+                });
+            }
+            
+            //Get next info out
+            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
+		
+            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
+            if((nextID == null) && (event_opcodes.includes(opcode))){
+                return [];
+            }
+            script.push(curBlockInfo); //Add the block itself to the script dictionary                
+            //Iterate: Set next to curBlock
+            curBlockID = nextID;
+        }
+        return script;
+    }
+};
+
+class GradeScratchBasicsL1 {
+
     constructor() {
         this.requirements = {};
-        this.extensions = {};
     }
 
-    initReqs() {
-        this.requirements.changeFredSteps = { bool: false, str: 'The number of steps Fred takes is changed to 100.' };
-        this.requirements.addSayBlock = { bool: false, str: 'Fred the user tells the user to "Have fun!"' };
-        this.requirements.increaseWaitTime = { bool: false, str: 'The wait time between costume changes is increased' };
+    grade(fileObj, user) { //call to grade project //fileobj is 
+        this.initMetrics();
+        
+        var fred  = sb3.jsonToSpriteBlocks(fileObj, 'Fred'); 
+        var helen = sb3.jsonToSpriteBlocks(fileObj, 'Helen');
+        this.checkFred(fred);
+        this.checkHelen(helen);  
     }
 
-    grade(fileObj, user) {
-        var project = new Project(fileObj, null);
-        var original = new Project(require('../grading-scripts-s3/basicsOriginal'), null);
+    initMetrics() { //initialize all metrics to false
+        this.requirements = {
+            changedSteps: {
+                bool: false, str: 'Fred takes 100 steps each time he talks instead of 50.'
+            },
+            fredTalks: {
+                bool: false, str: 'Fred uses a new block to say "Have fun!" to the user.'
+            },
+            timeChanged: {
+                bool: false, str: 'Changed time between Helen\'s costume changes.'
+            }
+        };
 
-        this.initReqs();
+    }
 
-        let originalTime = 0;
-        for (let origTarget of original.targets) {
-            if (origTarget.name === 'Helen') {
-                for (let block in origTarget.blocks) {
-                    if (origTarget.blocks[block].opcode === 'control_wait') {
-                        originalTime = origTarget.blocks[block].inputs.DURATION[1][1];
+    checkFred(fred) {
+        if (!fred) return;
+        
+        var stepcount = 0;
+        var speakcount = 0;
+        var havefun = false;
+        var funs = ['Have fun!', 'have fun!', 'have Fun!', 'HAVE FUN', 'HAVE FUN!', 'have fun', 'Have fun', 'have Fun', 'Have Fun', 'Have Fun!']
+        
+        var blockids = sb3.findBlockIDs(fred, 'event_whenflagclicked');
+        
+        if(blockids != null){
+            for(var block of blockids){
+                var script = sb3.makeScript(fred, block)
+                for(var sblock of script){
+                    if(sblock['opcode'] == 'motion_movesteps' && sblock['inputs']['STEPS'][1][1] == 100){
+                        stepcount++;
+                        if(stepcount >= 3){
+                            this.requirements.changedSteps.bool = true;
+                        }
                     }
+                    if (sblock['opcode'] == 'looks_sayforsecs'){ 
+                        speakcount++;
+                        if(funs.includes(sblock['inputs']['MESSAGE'][1][1])){ //check for have fun message
+                            havefun = true;
+                        }
+                        if(havefun && speakcount >= 4){ //check that new block was added
+                            this.requirements.fredTalks.bool = true;
+                        }
+                    }  
+                }
+            }  
+        }
+        this.requirements.usesTheThreeEvents.bool = (reqEvents.length === 3);
+        this.requirements.hasThreeSprites.bool = (project.targets.length - 1 >= 3);
+        
+    }
+
+    checkHelen(helen) {
+        if (!helen) return;
+        
+        var blockids = sb3.findBlockIDs(helen, 'event_whenkeypressed');
+        
+        for(var block of blockids){
+            var script = sb3.makeScript(helen, block)
+
+            for(var sblock of script){
+                if(sblock['opcode'] == 'control_wait' && sblock['inputs']['DURATION'][1][1] > 1){
+                    this.requirements.timeChanged.bool = true
+                    return
                 }
             }
-        }
-
-        for (let target of project.targets) {
-            if (target.isStage) {
-                continue;
-            }
-            else {
-                for (let block in target.blocks) {
-                    if (target.blocks[block].opcode === 'motion_movesteps') {
-                        let steps = (target.blocks[block].inputs.STEPS[1][1]).toString();
-                        if (steps === (100).toString()) {
-                            this.requirements.changeFredSteps.bool = true;
-                        }
-                    }
-                    if (target.blocks[block].opcode === 'looks_sayforsecs' || 
-                    target.blocks[block].opcode === 'looks_say') {
-                        let haveFun = target.blocks[block].inputs.MESSAGE[1][1].toLowerCase();
-                        let haveFunArr = [];
-                        for (let i = 0; i < haveFun.length; i++) {
-                            haveFunArr[i] = haveFun.charAt(i);
-                        }
-                        let haveFunNewArr = [];
-                        for (let i = 0; i < haveFun.length; i++) {
-                            if (haveFunArr[i].charCodeAt() !== 32) {
-                                if (haveFunArr[i].charCodeAt() >= 97 && haveFunArr[i].charCodeAt() <= 122) {
-                                    haveFunNewArr[i] = haveFunArr[i];
-                                }
-                            }
-                        }
-                        haveFunNewArr = haveFunNewArr.filter(Boolean);
-
-                        var util = require('util');
-                        let correctArr = ['h', 'a', 'v', 'e', 'f', 'u', 'n'];
-                        correctArr = util.inspect(correctArr);
-                        haveFunNewArr = util.inspect(haveFunNewArr);
-
-                        var isSame = false;
-                        if (correctArr === haveFunNewArr) {
-                            isSame = true;
-                            if (isSame) {
-                                this.requirements.addSayBlock.bool = true;
-                            } else { continue;}
-                        }
-                    }
-                    if (target.blocks[block].opcode === 'control_wait') {
-                        let nextBlock = target.blocks[block].next;
-                        if (nextBlock !== null) {
-                            if (target.blocks[nextBlock].opcode === 'looks_nextcostume') {
-                                if (originalTime < target.blocks[block].inputs.DURATION[1][1]) {
-                                    this.requirements.increaseWaitTime.bool = true;
-                                }
-                            }
-                        }
-                        
-                    }
-                }
-            }
-        }
-       
+        }  
     }
 }
-},{"../grading-scripts-s3/basicsOriginal":17,"../grading-scripts-s3/scratch3":29,"util":4}],28:[function(require,module,exports){
+
+
+module.exports = GradeScratchBasicsL1;
+},{}],22:[function(require,module,exports){
 /* Scratch Basics L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -6125,7 +5196,7 @@ module.exports = class {
             "looks_say",
             'looks_sayforsecs', 
             'event_whenkeypressed',
-            "looks_nextcostume", 
+            "looks_costume", 
             'looks_switchcostumeto', 
             'control_repeat', 
             'event_whenthisspriteclicked' 
@@ -6271,7 +5342,7 @@ module.exports = class {
         
     }
 }
-},{"./scratch3":29}],29:[function(require,module,exports){
+},{"./scratch3":23}],23:[function(require,module,exports){
 (function (global){
 /// Scratch 3 helper functions
 require('./context');
@@ -6418,7 +5489,7 @@ global.Project = class {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./context":21}],30:[function(require,module,exports){
+},{"./context":15}],24:[function(require,module,exports){
 var sb3 = {
     //null checker
     no: function(x) { 
@@ -6791,7 +5862,7 @@ class GradeTwoWaySyncL1 {
 }
 
 module.exports = GradeTwoWaySyncL1;
-},{}],31:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 /// Provides necessary scripts for index.html.
 
 /// Requirements (scripts)
@@ -6808,7 +5879,6 @@ var graders = {
   decompL2:        { name: 'Decomp. by Sequence L2', file: require('./grading-scripts-s3/decomp-L2')         },
   oneWaySyncL1:    { name: 'One-Way Sync L1',        file: require('./grading-scripts-s3/one-way-sync-L1')   },
   oneWaySyncL2:    { name: 'Two-Way Sync L2',        file: require('./grading-scripts-s3/two-way-sync-L2')   },
-  complexConditionalsL1: {name: 'Complex Conditionals L1', file: require('./grading-scripts-s3/complex-conditionals-L1')},
 };
 
 // act 1 graders
@@ -7204,4 +6274,812 @@ function noError() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-},{"./act1-grading-scripts/5-block-challenge":5,"./act1-grading-scripts/aboutMe":6,"./act1-grading-scripts/build-a-band":7,"./act1-grading-scripts/final-project":8,"./act1-grading-scripts/ladybug":9,"./act1-grading-scripts/name-poem":11,"./act1-grading-scripts/ofrenda":12,"./grading-scripts-s3/animation-L1":15,"./grading-scripts-s3/animation-L2":16,"./grading-scripts-s3/complex-conditionals-L1":18,"./grading-scripts-s3/cond-loops-L1":19,"./grading-scripts-s3/cond-loops-L2":20,"./grading-scripts-s3/decomp-L1":22,"./grading-scripts-s3/decomp-L2":23,"./grading-scripts-s3/events-L1":24,"./grading-scripts-s3/events-L2":25,"./grading-scripts-s3/one-way-sync-L1":26,"./grading-scripts-s3/scratch-basics-L1":27,"./grading-scripts-s3/scratch-basics-L2":28,"./grading-scripts-s3/two-way-sync-L2":30}]},{},[31]);
+},{"./act1-grading-scripts/5-block-challenge":1,"./act1-grading-scripts/aboutMe":2,"./act1-grading-scripts/build-a-band":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/ladybug":5,"./act1-grading-scripts/name-poem":7,"./act1-grading-scripts/ofrenda":8,"./grading-scripts-s3/animation-L1":11,"./grading-scripts-s3/animation-L2":12,"./grading-scripts-s3/cond-loops-L1":13,"./grading-scripts-s3/cond-loops-L2":14,"./grading-scripts-s3/decomp-L1":16,"./grading-scripts-s3/decomp-L2":17,"./grading-scripts-s3/events-L1":18,"./grading-scripts-s3/events-L2":19,"./grading-scripts-s3/one-way-sync-L1":20,"./grading-scripts-s3/scratch-basics-L1":21,"./grading-scripts-s3/scratch-basics-L2":22,"./grading-scripts-s3/two-way-sync-L2":24}],26:[function(require,module,exports){
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],27:[function(require,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+},{}],28:[function(require,module,exports){
+module.exports = function isBuffer(arg) {
+  return arg && typeof arg === 'object'
+    && typeof arg.copy === 'function'
+    && typeof arg.fill === 'function'
+    && typeof arg.readUInt8 === 'function';
+}
+},{}],29:[function(require,module,exports){
+(function (process,global){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+var formatRegExp = /%[sdj%]/g;
+exports.format = function(f) {
+  if (!isString(f)) {
+    var objects = [];
+    for (var i = 0; i < arguments.length; i++) {
+      objects.push(inspect(arguments[i]));
+    }
+    return objects.join(' ');
+  }
+
+  var i = 1;
+  var args = arguments;
+  var len = args.length;
+  var str = String(f).replace(formatRegExp, function(x) {
+    if (x === '%%') return '%';
+    if (i >= len) return x;
+    switch (x) {
+      case '%s': return String(args[i++]);
+      case '%d': return Number(args[i++]);
+      case '%j':
+        try {
+          return JSON.stringify(args[i++]);
+        } catch (_) {
+          return '[Circular]';
+        }
+      default:
+        return x;
+    }
+  });
+  for (var x = args[i]; i < len; x = args[++i]) {
+    if (isNull(x) || !isObject(x)) {
+      str += ' ' + x;
+    } else {
+      str += ' ' + inspect(x);
+    }
+  }
+  return str;
+};
+
+
+// Mark that a method should not be used.
+// Returns a modified function which warns once by default.
+// If --no-deprecation is set, then it is a no-op.
+exports.deprecate = function(fn, msg) {
+  // Allow for deprecating things in the process of starting up.
+  if (isUndefined(global.process)) {
+    return function() {
+      return exports.deprecate(fn, msg).apply(this, arguments);
+    };
+  }
+
+  if (process.noDeprecation === true) {
+    return fn;
+  }
+
+  var warned = false;
+  function deprecated() {
+    if (!warned) {
+      if (process.throwDeprecation) {
+        throw new Error(msg);
+      } else if (process.traceDeprecation) {
+        console.trace(msg);
+      } else {
+        console.error(msg);
+      }
+      warned = true;
+    }
+    return fn.apply(this, arguments);
+  }
+
+  return deprecated;
+};
+
+
+var debugs = {};
+var debugEnviron;
+exports.debuglog = function(set) {
+  if (isUndefined(debugEnviron))
+    debugEnviron = process.env.NODE_DEBUG || '';
+  set = set.toUpperCase();
+  if (!debugs[set]) {
+    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
+      var pid = process.pid;
+      debugs[set] = function() {
+        var msg = exports.format.apply(exports, arguments);
+        console.error('%s %d: %s', set, pid, msg);
+      };
+    } else {
+      debugs[set] = function() {};
+    }
+  }
+  return debugs[set];
+};
+
+
+/**
+ * Echos the value of a value. Trys to print the value out
+ * in the best way possible given the different types.
+ *
+ * @param {Object} obj The object to print out.
+ * @param {Object} opts Optional options object that alters the output.
+ */
+/* legacy: obj, showHidden, depth, colors*/
+function inspect(obj, opts) {
+  // default options
+  var ctx = {
+    seen: [],
+    stylize: stylizeNoColor
+  };
+  // legacy...
+  if (arguments.length >= 3) ctx.depth = arguments[2];
+  if (arguments.length >= 4) ctx.colors = arguments[3];
+  if (isBoolean(opts)) {
+    // legacy...
+    ctx.showHidden = opts;
+  } else if (opts) {
+    // got an "options" object
+    exports._extend(ctx, opts);
+  }
+  // set default options
+  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
+  if (isUndefined(ctx.depth)) ctx.depth = 2;
+  if (isUndefined(ctx.colors)) ctx.colors = false;
+  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
+  if (ctx.colors) ctx.stylize = stylizeWithColor;
+  return formatValue(ctx, obj, ctx.depth);
+}
+exports.inspect = inspect;
+
+
+// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
+inspect.colors = {
+  'bold' : [1, 22],
+  'italic' : [3, 23],
+  'underline' : [4, 24],
+  'inverse' : [7, 27],
+  'white' : [37, 39],
+  'grey' : [90, 39],
+  'black' : [30, 39],
+  'blue' : [34, 39],
+  'cyan' : [36, 39],
+  'green' : [32, 39],
+  'magenta' : [35, 39],
+  'red' : [31, 39],
+  'yellow' : [33, 39]
+};
+
+// Don't use 'blue' not visible on cmd.exe
+inspect.styles = {
+  'special': 'cyan',
+  'number': 'yellow',
+  'boolean': 'yellow',
+  'undefined': 'grey',
+  'null': 'bold',
+  'string': 'green',
+  'date': 'magenta',
+  // "name": intentionally not styling
+  'regexp': 'red'
+};
+
+
+function stylizeWithColor(str, styleType) {
+  var style = inspect.styles[styleType];
+
+  if (style) {
+    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
+           '\u001b[' + inspect.colors[style][1] + 'm';
+  } else {
+    return str;
+  }
+}
+
+
+function stylizeNoColor(str, styleType) {
+  return str;
+}
+
+
+function arrayToHash(array) {
+  var hash = {};
+
+  array.forEach(function(val, idx) {
+    hash[val] = true;
+  });
+
+  return hash;
+}
+
+
+function formatValue(ctx, value, recurseTimes) {
+  // Provide a hook for user-specified inspect functions.
+  // Check that value is an object with an inspect function on it
+  if (ctx.customInspect &&
+      value &&
+      isFunction(value.inspect) &&
+      // Filter out the util module, it's inspect function is special
+      value.inspect !== exports.inspect &&
+      // Also filter out any prototype objects using the circular check.
+      !(value.constructor && value.constructor.prototype === value)) {
+    var ret = value.inspect(recurseTimes, ctx);
+    if (!isString(ret)) {
+      ret = formatValue(ctx, ret, recurseTimes);
+    }
+    return ret;
+  }
+
+  // Primitive types cannot have properties
+  var primitive = formatPrimitive(ctx, value);
+  if (primitive) {
+    return primitive;
+  }
+
+  // Look up the keys of the object.
+  var keys = Object.keys(value);
+  var visibleKeys = arrayToHash(keys);
+
+  if (ctx.showHidden) {
+    keys = Object.getOwnPropertyNames(value);
+  }
+
+  // IE doesn't make error fields non-enumerable
+  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
+  if (isError(value)
+      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
+    return formatError(value);
+  }
+
+  // Some type of object without properties can be shortcutted.
+  if (keys.length === 0) {
+    if (isFunction(value)) {
+      var name = value.name ? ': ' + value.name : '';
+      return ctx.stylize('[Function' + name + ']', 'special');
+    }
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    }
+    if (isDate(value)) {
+      return ctx.stylize(Date.prototype.toString.call(value), 'date');
+    }
+    if (isError(value)) {
+      return formatError(value);
+    }
+  }
+
+  var base = '', array = false, braces = ['{', '}'];
+
+  // Make Array say that they are Array
+  if (isArray(value)) {
+    array = true;
+    braces = ['[', ']'];
+  }
+
+  // Make functions say that they are functions
+  if (isFunction(value)) {
+    var n = value.name ? ': ' + value.name : '';
+    base = ' [Function' + n + ']';
+  }
+
+  // Make RegExps say that they are RegExps
+  if (isRegExp(value)) {
+    base = ' ' + RegExp.prototype.toString.call(value);
+  }
+
+  // Make dates with properties first say the date
+  if (isDate(value)) {
+    base = ' ' + Date.prototype.toUTCString.call(value);
+  }
+
+  // Make error with message first say the error
+  if (isError(value)) {
+    base = ' ' + formatError(value);
+  }
+
+  if (keys.length === 0 && (!array || value.length == 0)) {
+    return braces[0] + base + braces[1];
+  }
+
+  if (recurseTimes < 0) {
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    } else {
+      return ctx.stylize('[Object]', 'special');
+    }
+  }
+
+  ctx.seen.push(value);
+
+  var output;
+  if (array) {
+    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
+  } else {
+    output = keys.map(function(key) {
+      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
+    });
+  }
+
+  ctx.seen.pop();
+
+  return reduceToSingleString(output, base, braces);
+}
+
+
+function formatPrimitive(ctx, value) {
+  if (isUndefined(value))
+    return ctx.stylize('undefined', 'undefined');
+  if (isString(value)) {
+    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
+                                             .replace(/'/g, "\\'")
+                                             .replace(/\\"/g, '"') + '\'';
+    return ctx.stylize(simple, 'string');
+  }
+  if (isNumber(value))
+    return ctx.stylize('' + value, 'number');
+  if (isBoolean(value))
+    return ctx.stylize('' + value, 'boolean');
+  // For some reason typeof null is "object", so special case here.
+  if (isNull(value))
+    return ctx.stylize('null', 'null');
+}
+
+
+function formatError(value) {
+  return '[' + Error.prototype.toString.call(value) + ']';
+}
+
+
+function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
+  var output = [];
+  for (var i = 0, l = value.length; i < l; ++i) {
+    if (hasOwnProperty(value, String(i))) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          String(i), true));
+    } else {
+      output.push('');
+    }
+  }
+  keys.forEach(function(key) {
+    if (!key.match(/^\d+$/)) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          key, true));
+    }
+  });
+  return output;
+}
+
+
+function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
+  var name, str, desc;
+  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
+  if (desc.get) {
+    if (desc.set) {
+      str = ctx.stylize('[Getter/Setter]', 'special');
+    } else {
+      str = ctx.stylize('[Getter]', 'special');
+    }
+  } else {
+    if (desc.set) {
+      str = ctx.stylize('[Setter]', 'special');
+    }
+  }
+  if (!hasOwnProperty(visibleKeys, key)) {
+    name = '[' + key + ']';
+  }
+  if (!str) {
+    if (ctx.seen.indexOf(desc.value) < 0) {
+      if (isNull(recurseTimes)) {
+        str = formatValue(ctx, desc.value, null);
+      } else {
+        str = formatValue(ctx, desc.value, recurseTimes - 1);
+      }
+      if (str.indexOf('\n') > -1) {
+        if (array) {
+          str = str.split('\n').map(function(line) {
+            return '  ' + line;
+          }).join('\n').substr(2);
+        } else {
+          str = '\n' + str.split('\n').map(function(line) {
+            return '   ' + line;
+          }).join('\n');
+        }
+      }
+    } else {
+      str = ctx.stylize('[Circular]', 'special');
+    }
+  }
+  if (isUndefined(name)) {
+    if (array && key.match(/^\d+$/)) {
+      return str;
+    }
+    name = JSON.stringify('' + key);
+    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+      name = name.substr(1, name.length - 2);
+      name = ctx.stylize(name, 'name');
+    } else {
+      name = name.replace(/'/g, "\\'")
+                 .replace(/\\"/g, '"')
+                 .replace(/(^"|"$)/g, "'");
+      name = ctx.stylize(name, 'string');
+    }
+  }
+
+  return name + ': ' + str;
+}
+
+
+function reduceToSingleString(output, base, braces) {
+  var numLinesEst = 0;
+  var length = output.reduce(function(prev, cur) {
+    numLinesEst++;
+    if (cur.indexOf('\n') >= 0) numLinesEst++;
+    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
+  }, 0);
+
+  if (length > 60) {
+    return braces[0] +
+           (base === '' ? '' : base + '\n ') +
+           ' ' +
+           output.join(',\n  ') +
+           ' ' +
+           braces[1];
+  }
+
+  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
+}
+
+
+// NOTE: These type checking functions intentionally don't use `instanceof`
+// because it is fragile and can be easily faked with `Object.create()`.
+function isArray(ar) {
+  return Array.isArray(ar);
+}
+exports.isArray = isArray;
+
+function isBoolean(arg) {
+  return typeof arg === 'boolean';
+}
+exports.isBoolean = isBoolean;
+
+function isNull(arg) {
+  return arg === null;
+}
+exports.isNull = isNull;
+
+function isNullOrUndefined(arg) {
+  return arg == null;
+}
+exports.isNullOrUndefined = isNullOrUndefined;
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+exports.isNumber = isNumber;
+
+function isString(arg) {
+  return typeof arg === 'string';
+}
+exports.isString = isString;
+
+function isSymbol(arg) {
+  return typeof arg === 'symbol';
+}
+exports.isSymbol = isSymbol;
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+exports.isUndefined = isUndefined;
+
+function isRegExp(re) {
+  return isObject(re) && objectToString(re) === '[object RegExp]';
+}
+exports.isRegExp = isRegExp;
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+exports.isObject = isObject;
+
+function isDate(d) {
+  return isObject(d) && objectToString(d) === '[object Date]';
+}
+exports.isDate = isDate;
+
+function isError(e) {
+  return isObject(e) &&
+      (objectToString(e) === '[object Error]' || e instanceof Error);
+}
+exports.isError = isError;
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+exports.isFunction = isFunction;
+
+function isPrimitive(arg) {
+  return arg === null ||
+         typeof arg === 'boolean' ||
+         typeof arg === 'number' ||
+         typeof arg === 'string' ||
+         typeof arg === 'symbol' ||  // ES6 symbol
+         typeof arg === 'undefined';
+}
+exports.isPrimitive = isPrimitive;
+
+exports.isBuffer = require('./support/isBuffer');
+
+function objectToString(o) {
+  return Object.prototype.toString.call(o);
+}
+
+
+function pad(n) {
+  return n < 10 ? '0' + n.toString(10) : n.toString(10);
+}
+
+
+var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+              'Oct', 'Nov', 'Dec'];
+
+// 26 Feb 16:19:34
+function timestamp() {
+  var d = new Date();
+  var time = [pad(d.getHours()),
+              pad(d.getMinutes()),
+              pad(d.getSeconds())].join(':');
+  return [d.getDate(), months[d.getMonth()], time].join(' ');
+}
+
+
+// log is just a thin wrapper to console.log that prepends a timestamp
+exports.log = function() {
+  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
+};
+
+
+/**
+ * Inherit the prototype methods from one constructor into another.
+ *
+ * The Function.prototype.inherits from lang.js rewritten as a standalone
+ * function (not on Function.prototype). NOTE: If this file is to be loaded
+ * during bootstrapping this function needs to be rewritten using some native
+ * functions as prototype setup using normal JavaScript does not work as
+ * expected during bootstrapping (see mirror.js in r114903).
+ *
+ * @param {function} ctor Constructor function which needs to inherit the
+ *     prototype.
+ * @param {function} superCtor Constructor function to inherit prototype from.
+ */
+exports.inherits = require('inherits');
+
+exports._extend = function(origin, add) {
+  // Don't do anything if add isn't an object
+  if (!add || !isObject(add)) return origin;
+
+  var keys = Object.keys(add);
+  var i = keys.length;
+  while (i--) {
+    origin[keys[i]] = add[keys[i]];
+  }
+  return origin;
+};
+
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./support/isBuffer":28,"_process":26,"inherits":27}]},{},[25]);
