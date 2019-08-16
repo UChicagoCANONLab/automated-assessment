@@ -3,26 +3,6 @@
  */
 require('./scratch3');
 
-let control = ['control_forever', 'control_if', 'control_if_else', 'control_repeat', 'control_stop', 'control_repeat_until', 'control_wait_until'];
-let loops = ['control_forever', 'control_repeat', 'control_repeat_until'];
-
-// helper function to iterate for each block in scripts and subscripts recursively.
-// understanding the usecases is more important than the details of the code (unless there are bugs)
-let iterateBlocks = (script, func, parentBlocks=control) => {
-    const recursive = (scripts, func, level) => {
-        if (!is(scripts) || scripts === [[]]) return;
-        for (let script of scripts) {
-            for(let block of script.blocks) {
-                func(block, level);
-				recursive(block.subScripts(), func, 
-					level + parentBlocks.includes(block.opcode) ? 1 : 0);
-            }
-        }
-    }
-    recursive([script], func, 1);
-}
-
-
 module.exports = class {
 
 	init() { //initialize all metrics to false
@@ -64,6 +44,9 @@ module.exports = class {
 				}
 			}
 		}
+
+		
+
 		reports = reports.reduce((acc, r) => {
 			acc.push({
 				name: r.name,
@@ -74,8 +57,8 @@ module.exports = class {
 						return acc;
 					}, {}),
 				received: r.received,
-				dances: r.dances.costume && r.dances.wait
-			})
+				dances: r.dances
+			});
 			return acc;
 		}, []);
 		const sentCount = (sender) => 
@@ -145,7 +128,7 @@ module.exports = class {
 		}
 		for (let script of sprite.scripts.filter(s => s.blocks[0].opcode.includes('event_when'))) {
 			if (script.blocks[0].opcode === 'event_whenthisspriteclicked')
-				iterateBlocks(script, (block, level) => {
+				script.traverseBlocks((block, level) => {
 					if (['sound_play', 'sound_playuntildone'].includes(block.opcode))
 						reqs.plays.onClick = true;
 					else if (['event_broadcast', 'event_broadcastandwait'].includes(block.opcode))
@@ -153,7 +136,7 @@ module.exports = class {
 				});
 			else if (script.blocks[0].opcode === 'event_whenbroadcastreceived') {
 				reqs.received.push(script.blocks[0].fields.BROADCAST_OPTION[0]);
-				iterateBlocks(script, (block, level) => {
+				script.traverseBlocks((block, level) => {
 					if (['sound_play', 'sound_playuntildone'].includes(block.opcode))
 						reqs.plays.onBroadcast = true;
 					else if (['event_blooks_switchcostumeto', 'looks_nextcostume'].includes(block.opcode))
@@ -164,11 +147,12 @@ module.exports = class {
 					}
 				});
 			} 
-			iterateBlocks(script, (block, level) => {
+			script.traverseBlocks((block, level) => {
 				if (['looks_say', 'looks_sayforsecs'].includes(block.opcode))
 					this.extensions.sayBlock.bool = true;
 			});
 		}
+		reqs.dances = reqs.dances.costume && reqs.dances.costume;
 		return reqs;
 	}
 }
