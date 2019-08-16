@@ -50,7 +50,7 @@ module.exports = class {
             "looks_say",
             'looks_sayforsecs', 
             'event_whenkeypressed',
-            "looks_costume", 
+            "looks_nextcostume", 
             'looks_switchcostumeto', 
             'control_repeat', 
             'event_whenthisspriteclicked' 
