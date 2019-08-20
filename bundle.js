@@ -2061,8 +2061,32 @@ module.exports = class {
                             }
                         }
                     }
+
+                    //checks if 'Eat Aphid' block is connected to a script
+                    if (target.blocks[block].opcode === 'procedures_call') {
+                        if (target.blocks[block].mutation.proccode === 'Eat Aphid') {
+                            if (target.blocks[block].parent !== null) {
+                                this.requirements.eatAphidBlock.bool = true;
+                            }
+                        }
+                    }
+
+                    //checks if a new "move steps" block has been connected
+                    if (target.blocks[block].opcode === 'motion_movesteps') {
+                        if (target.blocks[block].parent !== null) {
+                            moveStepsBlocks++;
+                        }
+                    }
+                    if ((target.blocks[block].opcode === 'motion_turnright') ||
+                        (target.blocks[block].opcode === 'motion_turnleft')) {
+                        if (target.blocks[block].parent !== null) {
+                            turnBlocks++;
+                        }
+                    }
                 }
+                break;
             }
+
         }
     }
 } 
@@ -3339,6 +3363,36 @@ module.exports = class {
                                         script.context.carStops = 1;
                                     }
                                 }
+                                if (target.name === 'N-Glow') {
+                                    if (paramSecs === '1' && paramX === '-202' && paramY === '-52'
+                                        && next === null && parent === '{nR@2|=S?G3-4ukMhO4n') {
+                                        bool = false;
+                                    }
+                                }
+                                if (target.name === 'A-Glow2') {
+                                    if (paramSecs === '1' && paramX === '-200' && paramY === '-120'
+                                        && next === null && parent === 'ojhZT:%|m?wFvLSVqRoH') {
+                                        bool = false;
+                                    }
+                                }
+                            }
+                            if (opc === 'motion_pointindirection' && target.name === 'N-Glow') {
+                                let param = target.scripts[script].blocks[block].inputs.CHANGE[1][1];
+                                if (param === '90'
+                                    && target.scripts[script].blocks[block].next === 'i4C7qLY,7Dc:@{}d`:nV'
+                                    && target.scripts[script].blocks[block].parent === 'GN6a/]#X1pYt~+7OZ{Rc') {
+                                    bool = false;
+                                }
+                                if (param === '-90'
+                                    && target.scripts[script].blocks[block].next === null
+                                    && target.scripts[script].blocks[block].parent === 'i4C7qLY,7Dc:@{}d`:nV') {
+                                    bool = false;
+                                }
+                            }
+                            if (bool) {
+                                hasMovement = true;
+                           //     console.log('Sprite with new movement:');
+                             //   console.log(target.name);
                             }
                         }
                     }
@@ -5935,6 +5989,10 @@ class GradeTwoWaySyncL1 {
                         rainbowThinkTimes.push(rainbowTime);
                         rainbowTime += parseInt(block.inputs.SECS[1][1]);
                     }
+                });  
+                
+                if ((pointedRight && !negSteps) || (!pointedRight && negSteps)){
+                    this.extensions.goalieMovesRight.bool = true; 
                 }
             }
         }

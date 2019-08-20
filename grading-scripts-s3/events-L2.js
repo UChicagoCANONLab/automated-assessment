@@ -3,19 +3,6 @@ Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and bug fixes: Marco Anaya, Summer 2019
 */
 require('./scratch3');
-// recursive function that searches a script and any subscripts (those within loops)
-function iterateBlocks(script, func) {
-    function recursive(scripts, func, level) {
-        if (!is(scripts) || scripts === [[]]) return;
-        for (var script of scripts) {
-            for(var block of script.blocks) {
-                func(block, level);
-                recursive(block.subScripts(), func, level + 1);
-            }
-        }
-    }
-    recursive([script], func, 1);
-}
 
 module.exports = class {
     init() {
@@ -35,19 +22,57 @@ module.exports = class {
             moreScripts: {bool: false, str: "A sprite reacts to more events."},
             spriteBlinks: {bool: false, str: "A sprite blinks (use hide, show, and wait blocks)."}
         };
+
+        this.info = {
+            blocks: 0,
+            sprites: 0,
+            spritesWith1Script: 0,
+            spritesWith2Scripts: 0,
+            holiday: null,
+            guidingUser: false,
+            blockTypes: new Set([]),
+        }
     }
     
     gradeSprite(sprite) {
         var reqEvents = [];
         var events = [];
-        var validScripts = 0;     
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes('event_when'))){
+        var validScripts = 0;    
 
+        this.info.sprites++;
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes('event_when'))){
+            
             //look for extension requirements throughout each block
             var blink = {hide: false, wait: false, show: false};
             var spin = {wait: false, turn: false};
-            iterateBlocks(script, (block, level) => {
+            script.traverseBlocks((block, level) => {
                 var opcode = block.opcode;
+                if (opcode in this.info.blockTypes) {
+                    
+                } else {
+                    this.info.blockTypes.add(opcode)
+                    this.info.blocks++;
+                }
+                if (opcode.includes('say')) {
+                    let string = block.inputs.MESSAGE[1][1].toLowerCase();
+                    if (!this.info.holiday) {
+                        for (let holiday of ['christmas', 'halloween', 'july', 'birthday', 'day']) {
+                            
+                            if (string.includes(holiday)) {
+                                this.info.holiday = holiday;
+                                break;
+                            }
+                        }
+                    }
+                    if (!this.info.guidingUser) {
+                        for (let keyWord of ['press', 'click']) {
+                            if (string.includes(keyWord)) {
+                                this.info.guidingUser = true;
+                                break;
+                            }
+                        }
+                    }
+                }
                 spin.turn = spin.turn || opcode.includes("motion_turn");
                 blink.hide = blink.hide || (opcode == 'looks_hide');
                 blink.show = blink.show || (opcode == 'looks_show');
@@ -94,6 +119,8 @@ module.exports = class {
                 break;
             }
         }
+        if (validScripts >=2) this.info.spritesWith2Scripts++
+        else if (validScripts >= 1) this.info.spritesWith1Script++;
         return reqEvents;
     }
 
@@ -108,10 +135,12 @@ module.exports = class {
                     this.requirements.choseBackdrop.bool = true;
                 continue;
             }
+
             // calls the sprite grader while aggregating the total required events used
             reqEvents = [...new Set([...reqEvents, ...this.gradeSprite(target)])];
         }
         this.requirements.usesTheThreeEvents.bool = (reqEvents.length === 3);
         this.requirements.hasThreeSprites.bool = (project.targets.length - 1 >= 3);
+        
     }
 } 

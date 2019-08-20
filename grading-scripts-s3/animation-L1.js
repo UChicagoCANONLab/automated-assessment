@@ -1,23 +1,6 @@
 require('./scratch3');
 
-let control = ['control_forever', 'control_if', 'control_if_else', 'control_repeat', 'control_stop', 'control_repeat_until', 'control_wait_until'];
 let loops = ['control_forever', 'control_repeat', 'control_repeat_until'];
-
-// helper function to iterate for each block in scripts and subscripts recursively.
-// understanding the usecases is more important than the details of the code (unless there are bugs)
-let iterateBlocks = (script, func, parentBlocks=control) => {
-    const recursive = (scripts, func, level) => {
-        if (!is(scripts) || scripts === [[]]) return;
-        for (let script of scripts) {
-            for(let block of script.blocks) {
-                func(block, level);
-                if (parentBlocks.includes(block.opcode)) 
-                    recursive(block.subScripts(), func, level + 1);
-            }
-        }
-    }
-    recursive([script], func, 1);
-}
 
 let within = (x, range) => x >= range[0] && x <= range[1];
 
@@ -109,7 +92,7 @@ module.exports = class {
         let stats = {start: null, speed: {}, finished: {}, wiggle: false};
         
         for (let script of sprite.scripts.filter(s => s.blocks[0].opcode === 'event_whenflagclicked'))
-            iterateBlocks(script, (block, level) => {
+            script.traverseBlocks((block, level) => {
                 if (block.opcode === 'motion_gotoxy') {
                     // checks if sprite starts before finish line
                     if (within(block.inputs.X[1][1], [-271, 115]))
@@ -135,7 +118,7 @@ module.exports = class {
             
             if (key === 'space') {
                 space.handles = true;
-                iterateBlocks(script, (block, level) => {
+                script.traverseBlocks((block, level) => {
                     //check for loop
                     if(loops.includes(block.opcode)) {
                         space.loop = true;
@@ -156,7 +139,7 @@ module.exports = class {
                 }, loops);
             } else if (key === 'down arrow') {
                 down.handles = true;
-                iterateBlocks(script, (block, level) => {
+                script.traverseBlocks((block, level) => {
                     if(['looks_switchcostumeto', 'looks_nextcostume'].includes(block.opcode)){
                         down.costume = true;
                     } else if (block.opcode == 'control_wait'){

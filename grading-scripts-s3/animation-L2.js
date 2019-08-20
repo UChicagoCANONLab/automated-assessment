@@ -5,23 +5,6 @@ Reformatting and minor bug fixes: Marco Anaya, Summer 2019
 
 require('./scratch3');
 
-// recursive function that searches a script and any subscripts (those within loops)
-function iterateBlocks(script, func) {
-    function recursive(scripts, func, level) {
-        if (!is(scripts) || scripts === [[]]) return;
-        for (var script of scripts) {
-            for(var block of script.blocks) {
-                func(block, level);
-                recursive(block.subScripts(), func, level + 1);
-            }
-        }
-    }
-    
-    recursive([script], func, 1);
-}
-
-const print = (block, level) => console.log("   ".repeat(level) + block.opcode);
-
 module.exports = class {
     // initializes the requirement objects and a list of event block codes
     // which will be used below
@@ -63,7 +46,7 @@ module.exports = class {
             var reqs = {loop: false, wait: false, costume: false, move: false};
             // search through each block and execute the given callback function
             // that determines what to look for and what to do (through side effects) for each block
-            iterateBlocks(script, (block, level) => {
+            script.traverseBlocks((block, level) => {
                 var opcode = block.opcode;
 
                 reqs.loop = reqs.loop || ['control_forever', 'control_repeat', 'control_repeat_until'].includes(opcode);
