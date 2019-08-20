@@ -17,7 +17,7 @@ module.exports = class {
         this.requirements.bothAphids = { bool: false, str: 'Ladybug eats both aphids using only blocks specified' };
         // this.requirements.eatAphidBlock = { bool: false, str: '"Eat Aphid" block is used' };
         this.requirements.ladybugInBounds = { bool: true, str: 'The ladybug stays on the branch' };
-        this.requirements.changedProject = { bool: false, str: 'Project has been modified from the original project' };
+        // this.requirements.changedProject = { bool: false, str: 'Project has been modified from the original project' };
         this.extensions.music = { bool: false, str: 'Background music added' };
         // this.extensions.changeAphidCode = { bool: false, str: 'Aphid code has been changed' };
         this.extensions.ladybugRedrawn = { bool: false, str: 'The ladybug has been redrawn in the costumes tab' };
@@ -144,7 +144,7 @@ module.exports = class {
         if ((a!==ogA)||(a2!==ogA2)){
             // this.extensions.changeAphidCode.bool=true;
         }
-        if (bb!==ogBB){ this.requirements.changedProject.bool=true;}
+        // if (bb!==ogBB){ this.requirements.changedProject.bool=true;}
 
         for (let target of project.targets) {
             for (let block in target.blocks) {
