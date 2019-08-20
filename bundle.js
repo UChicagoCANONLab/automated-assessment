@@ -2064,8 +2064,11 @@ module.exports = class {
                                 continue;
                             } else if (target.scripts[script].blocks[block].next === "/f[ltBij)7]5Jtg|W(1%" && target.scripts[script].blocks[block].parent === null) {
                                 continue;
-                            } else {
-                                
+                               
+                            }  else if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
+                                continue;
+                            }
+                            else {
                                     this.requirements.interactive1.bool = true;
                                 }
                         }
