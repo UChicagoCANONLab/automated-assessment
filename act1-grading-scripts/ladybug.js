@@ -42,24 +42,33 @@ module.exports = class {
         return false;
     }
 
-    updateBug(block) {
+    blankTo0(input){
+        console.log('here');
 
+        if (input===''){
+            return 0;
+        }else{
+            return input;
+        }
+    }
+
+    updateBug(block) {
         if (block.opcode === 'motion_gotoxy') {
-            this.bug.locX = parseFloat(block.inputs.X[1][1]);
-            this.bug.locY = parseFloat(block.inputs.Y[1][1]);
+            this.bug.locX = parseFloat(this.blankTo0(block.inputs.X[1][1]));
+            this.bug.locY = parseFloat(this.blankTo0(block.inputs.Y[1][1]));
         }
         if (block.opcode === 'motion_pointindirection') {
-            this.bug.dir = parseFloat(block.inputs.DIRECTION[1][1]);
+            this.bug.dir = parseFloat(this.blankTo0(block.inputs.DIRECTION[1][1]));
         }
         if (block.opcode === 'motion_turnright') {
-            this.bug.dir -= parseFloat(block.inputs.DEGREES[1][1]);
+            this.bug.dir -= parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
         }
         if (block.opcode === 'motion_turnleft') {
-            this.bug.dir += parseFloat(block.inputs.DEGREES[1][1]);
+            this.bug.dir += parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
         }
         if (block.opcode === 'motion_movesteps') {
             let radDir = (this.bug.dir - 90) * Math.PI / 180;
-            let steps = parseFloat(block.inputs.STEPS[1][1]);
+            let steps = parseFloat(this.blankTo0(block.inputs.STEPS[1][1]));
             this.bug.locX += Math.round(steps * Math.cos(radDir));
             this.bug.locY += Math.round(steps * Math.sin(radDir));
         }
@@ -154,6 +163,7 @@ module.exports = class {
 
                     if (target.blocks[block].opcode === 'event_whenflagclicked') {
                         for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
+                            console.log(target.blocks[i].opcode);
                             this.updateBug(target.blocks[i]);
                             let onBranch = this.inBounds(this.bug.locX, this.bug.locY);
                             if (!onBranch) {
@@ -162,6 +172,9 @@ module.exports = class {
                             }
 
                             let onAphid = false;
+                            console.log("Bug Loc");
+                            console.log(this.bug.locX);
+                            console.log(this.bug.locY);
                             for (let aphidLoc of aphidLocations) {
                                 if ((Math.abs(aphidLoc[0] - this.bug.locX) <= 40) &&
                                     (Math.abs(aphidLoc[1] - this.bug.locY) <= 40)) {
