@@ -160,8 +160,9 @@ module.exports = class {
                         this.extensions.ladybugRedrawn.bool = true;
                     }
                 }
+                
                 for (let block in target.blocks) {
-
+                    
                     if (target.blocks[block].opcode === 'event_whenflagclicked') {
                         for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
                             console.log(target.blocks[i].opcode);
