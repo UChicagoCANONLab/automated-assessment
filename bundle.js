@@ -106,7 +106,7 @@ module.exports = class {
 
     }
 }
-},{"../grading-scripts-s3/scratch3":24}],2:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":26}],2:[function(require,module,exports){
 /*
 Act 1 About Me Grader
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -191,7 +191,7 @@ module.exports = class {
     }
 }
 
-},{"../grading-scripts-s3/scratch3":24}],3:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":26}],3:[function(require,module,exports){
 /*
 Act 1 Build-a-Band Project Autograder
 Initial version and testing: Zipporah Klain
@@ -358,7 +358,7 @@ module.exports = class {
 }
 
 
-},{"../act1-grading-scripts/originalband":11,"../grading-scripts-s3/scratch3":24,"util":30}],4:[function(require,module,exports){
+},{"../act1-grading-scripts/originalband":11,"../grading-scripts-s3/scratch3":26,"util":31}],4:[function(require,module,exports){
 /*
 Act 1 Final Project Autograder
 Initial version and testing: Zipporah Klain
@@ -434,7 +434,7 @@ module.exports = class {
     }
 
 }
-},{"../grading-scripts-s3/scratch3":24}],5:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":26}],5:[function(require,module,exports){
 /*
 Act 1 Ladybug Scramble Autograder
 Initial version and testing: Saranya Turimella and Zipporah Klain, 2019
@@ -447,18 +447,18 @@ module.exports = class {
     constructor() {
         this.requirements = {};
         this.extensions = {};
-        this.bug = { dir: 0, locX: -200, locY: -25 }
     }
 
     initReqs() {
         this.requirements.oneAphid = { bool: false, str: 'Ladybug eats at least one aphid using only blocks specified' };
         this.requirements.bothAphids = { bool: false, str: 'Ladybug eats both aphids using only blocks specified' };
-        this.requirements.eatAphidBlock = { bool: false, str: '"Eat Aphid" block is used' };
+        // this.requirements.eatAphidBlock = { bool: false, str: '"Eat Aphid" block is used' };
         this.requirements.ladybugInBounds = { bool: true, str: 'The ladybug stays on the branch' };
         this.requirements.changedProject = { bool: false, str: 'Project has been modified from the original project' };
         this.extensions.music = { bool: false, str: 'Background music added' };
-        this.extensions.changeAphidCode = { bool: false, str: 'Aphid code has been changed' };
+        // this.extensions.changeAphidCode = { bool: false, str: 'Aphid code has been changed' };
         this.extensions.ladybugRedrawn = { bool: false, str: 'The ladybug has been redrawn in the costumes tab' };
+        this.bug = { dir: 0, locX: -200, locY: -25 };
     }
 
     //helper functions
@@ -479,24 +479,33 @@ module.exports = class {
         return false;
     }
 
-    updateBug(block) {
+    blankTo0(input){
+        console.log('here');
 
+        if (input===''){
+            return 0;
+        }else{
+            return input;
+        }
+    }
+
+    updateBug(block) {
         if (block.opcode === 'motion_gotoxy') {
-            this.bug.locX = parseFloat(block.inputs.X[1][1]);
-            this.bug.locY = parseFloat(block.inputs.Y[1][1]);
+            this.bug.locX = parseFloat(this.blankTo0(block.inputs.X[1][1]));
+            this.bug.locY = parseFloat(this.blankTo0(block.inputs.Y[1][1]));
         }
         if (block.opcode === 'motion_pointindirection') {
-            this.bug.dir = parseFloat(block.inputs.DIRECTION[1][1]);
+            this.bug.dir = parseFloat(this.blankTo0(block.inputs.DIRECTION[1][1]));
         }
         if (block.opcode === 'motion_turnright') {
-            this.bug.dir -= parseFloat(block.inputs.DEGREES[1][1]);
+            this.bug.dir -= parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
         }
         if (block.opcode === 'motion_turnleft') {
-            this.bug.dir += parseFloat(block.inputs.DEGREES[1][1]);
+            this.bug.dir += parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
         }
         if (block.opcode === 'motion_movesteps') {
             let radDir = (this.bug.dir - 90) * Math.PI / 180;
-            let steps = parseFloat(block.inputs.STEPS[1][1]);
+            let steps = parseFloat(this.blankTo0(block.inputs.STEPS[1][1]));
             this.bug.locX += Math.round(steps * Math.cos(radDir));
             this.bug.locY += Math.round(steps * Math.sin(radDir));
         }
@@ -513,11 +522,14 @@ module.exports = class {
 
     grade(fileObj, user) {
 
-        var project = new Project(fileObj, null);
-        var original = new Project(require('../act1-grading-scripts/original-ladybug'), null);
-
         this.initReqs();
         if (!is(fileObj)) return;
+
+        var project = new Project(fileObj, null);
+        var original = new Project(require('../act1-grading-scripts/original-ladybug'), null);
+        if (!is(original)) return;
+
+        
 
         let aphidLocations = [];
         let aphidsEaten = 0;
@@ -567,7 +579,7 @@ module.exports = class {
         let bb = util.inspect(bugBlocks);
         let ogBB = util.inspect(ogBugBlocks);
         if ((a!==ogA)||(a2!==ogA2)){
-            this.extensions.changeAphidCode.bool=true;
+            // this.extensions.changeAphidCode.bool=true;
         }
         if (bb!==ogBB){ this.requirements.changedProject.bool=true;}
 
@@ -576,7 +588,6 @@ module.exports = class {
                 if ((target.blocks[block].opcode === 'sound_playuntildone')
                     || (target.blocks[block].opcode === 'sound_play')) {
                     this.extensions.music.bool = true;
-                    break;
                 }
             }
             if (target.name === 'Ladybug1' || this.isLadybug(target)) {
@@ -584,13 +595,13 @@ module.exports = class {
                     if ((target.costumes[cost].assetId !== '7501580fb154fde8192a931f6cab472b')
                         && (target.costumes[cost].assetId !== '169c0efa8c094fdedddf8c19c36f0229')) {
                         this.extensions.ladybugRedrawn.bool = true;
-                        break;
                     }
                 }
                 for (let block in target.blocks) {
 
                     if (target.blocks[block].opcode === 'event_whenflagclicked') {
                         for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
+                            console.log(target.blocks[i].opcode);
                             this.updateBug(target.blocks[i]);
                             let onBranch = this.inBounds(this.bug.locX, this.bug.locY);
                             if (!onBranch) {
@@ -599,6 +610,9 @@ module.exports = class {
                             }
 
                             let onAphid = false;
+                            console.log("Bug Loc");
+                            console.log(this.bug.locX);
+                            console.log(this.bug.locY);
                             for (let aphidLoc of aphidLocations) {
                                 if ((Math.abs(aphidLoc[0] - this.bug.locX) <= 40) &&
                                     (Math.abs(aphidLoc[1] - this.bug.locY) <= 40)) {
@@ -623,7 +637,7 @@ module.exports = class {
                     if (target.blocks[block].opcode === 'procedures_call') {
                         if (target.blocks[block].mutation.proccode === 'Eat Aphid') {
                             if (target.blocks[block].parent !== null) {
-                                this.requirements.eatAphidBlock.bool = true;
+                                // this.requirements.eatAphidBlock.bool = true;
                             }
                         }
                     }
@@ -641,7 +655,6 @@ module.exports = class {
                         }
                     }
                 }
-                break;
             }
 
         }
@@ -655,7 +668,7 @@ module.exports = class {
     }
 
 }
-},{"../act1-grading-scripts/original-ladybug":9,"../grading-scripts-s3/scratch3":24,"util":30}],6:[function(require,module,exports){
+},{"../act1-grading-scripts/original-ladybug":9,"../grading-scripts-s3/scratch3":26,"util":31}],6:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -1842,7 +1855,7 @@ module.exports = class {
 
 
 
-},{"../act1-grading-scripts/name-poem-original-test":6,"../grading-scripts-s3/scratch3":24}],8:[function(require,module,exports){
+},{"../act1-grading-scripts/name-poem-original-test":6,"../grading-scripts-s3/scratch3":26}],8:[function(require,module,exports){
 /*
 Act 1 Events Ofrenda Autograder
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -1856,32 +1869,23 @@ module.exports = class {
     }
 
     initReqs() {
-        // strict completion metrics
         this.requirements.leftChanged = { bool: false, str: 'The left sprite has new dialogue' }; // done
         this.requirements.leftCostume = { bool: false, str: 'The left costume has been changed' }; // done
         this.requirements.rightCostume = { bool: false, str: 'The right costume has been changed' }; // done
-        this.requirements.midCostume = {bool: false, str: 'The middle costume has been changed'};
-        this.requirements.interactiveRight = { bool: false, str: 'Right sprite uses the "when this sprite clicked" block' };
-        this.requirements.interactiveMiddle = { bool: false, str: 'Middle sprite uses the "when this sprite clicked" block'};
+        this.requirements.midCostume = { bool: false, str: 'The middle costume has been changed' };
+        this.requirements.interactiveRight = { bool: false, str: 'Right sprite uses the "when this sprite clicked" block (is interactive)' };
+        this.requirements.interactiveMiddle = { bool: false, str: 'Middle sprite uses the "when this sprite clicked" block (is interactive)' };
         this.requirements.speakingRight = { bool: false, str: 'Right sprite has a script with a say block in it' }; // done
         this.requirements.speakingMiddle = { bool: false, str: 'Middle sprite has a script with a say block in it' }; // done
 
-        // demonstrated understanding metrics under extensions
-        this.extensions.newCostumes1 = { bool: false, str: 'At least one sprite has a new costumes' };
-        //this.requirements.newCostumes2= {bool: false, str: 'At least two sprites have new costumes'};
-        //this.requirements.newCostumes3 = {bool: false, str: 'At least three sprites have new costumes'}; 
-
-        //this.extensions.speaking3 = {bool: false, str: 'All three sprites use the say block'}; 
-        //this.extensions.speaking2 = {bool: false, str: 'Two sprites use the say block'}; 
-        this.extensions.speaking1 = { bool: false, str: 'A sprite uses the say block' };
-
-        //this.extensions.interactive2 = {bool: false, str: '2/3 sprites are interactive'}; 
-        this.extensions.interactive1 = { bool: false, str: '1/3 sprites are interactive' };
-
-        // extensions
-        // this.extensions.usesPlaySoundUntilDone = { bool: false, str: 'The project uses the "Play Sound Until" block in a script' }; 
-        // this.extensions.usesGotoXY = { bool: false, str: 'The project uses the "Go to XY" block in a script' };
-        // this.extensions.keyCommand = { bool: false, str: 'The project uses a "when "key" pressed" block in a script' };
+        this.requirements.newCostumes1 = { bool: false, str: '1/3 sprites has a new costume' };
+        this.requirements.speaking1 = { bool: false, str: '1/3 sprites uses the say block' };
+        this.requirements.interactive1 = { bool: false, str: '1/3 sprites is interactive' };
+       
+        // // extensions
+        this.extensions.usesPlaySoundUntilDone = { bool: false, str: 'The project uses the "Play Sound Until" block in a script' };
+        this.extensions.usesGotoXY = { bool: false, str: 'The project uses the "Go to XY" block in a script' };
+        this.extensions.keyCommand = { bool: false, str: 'The project uses a "when "key" pressed" block in a script' };
     }
 
     grade(fileObj, user) {
@@ -1934,6 +1938,10 @@ module.exports = class {
 
         // strict requirements
         for (let target of project.targets) {
+            if (target.isStage) {
+                continue;
+            }
+           
             if (target.name === 'Left') {
                 let cost1 = target.currentCostume;
                 leftCost = target.costumes[cost1].assetId;
@@ -1948,7 +1956,14 @@ module.exports = class {
 
                     }
                 }
+                if (leftDialogue !== origLeftDialogue && leftDialogue !== '') {
+                    this.requirements.leftChanged.bool = true;
+                }
+                if (leftCost !== origCostumeLeft && leftCost !== 0) {
+                    this.requirements.leftCostume.bool = true;
+                }
             }
+            // make sure that the code is not the same as the original here, copy in from the bottom
             if (target.name === 'Middle') {
                 let cost2 = target.currentCostume;
                 midCost = target.costumes[cost2].assetId;
@@ -1957,8 +1972,16 @@ module.exports = class {
                     if (target.blocks[block].opcode === 'event_whenthisspriteclicked') {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             continue;
-                        }
-                        else {
+                        } else if ((target.blocks[block].next === "/f[ltBij)7]5Jtg|W(1%") && (target.blocks[block].parent === null)) {
+                            let nextBlock = target.blocks[block].next;
+                            if (target.blocks[nextBlock].next === null) {
+                                continue;
+                                // means that they have added another block to the script, meaning it is different from 
+                                // the original
+                            } else {
+                                midInteraction = true;
+                            }
+                        } else {
                             midInteraction = true;
                         }
                     }
@@ -1970,7 +1993,17 @@ module.exports = class {
                         }
                     }
                 }
+                if (midInteraction) {
+                    this.requirements.interactiveMiddle.bool = true;
+                }
+                if (midDialogue !== '') {
+                    this.requirements.speakingMiddle.bool = true;
+                }
+                if (midCost !== origCostumeMiddle && midCost !== 0) {
+                    this.requirements.midCostume.bool = true;
+                }
             }
+
             if (target.name === 'Right') {
                 let cost3 = target.currentCostume;
                 rightCost = target.costumes[cost3].assetId;
@@ -1992,48 +2025,32 @@ module.exports = class {
                         }
                     }
                 }
+                if (rightInteraction) {
+                    this.requirements.interactiveRight.bool = true;
+                }
+                if (rightDialogue !== '') {
+                    this.requirements.speakingRight.bool = true;
+                }
+                if (rightCost !== origCostumeRight && rightCost !== 0) {
+                    this.requirements.rightCostume.bool = true;
+                }
             }
         }
 
-        if (midInteraction) {
-            this.requirements.interactiveMiddle.bool = true;
-        } 
-        if (rightInteraction) {
-            this.requirements.interactiveRight.bool = true;
-        }
-        if (midDialogue !== '') {
-            this.requirements.speakingMiddle.bool = true;
-        }
-        if (rightDialogue !== '') {
-            this.requirements.speakingRight.bool = true;
-        }
         
-        if (leftDialogue !== origLeftDialogue) {
-            this.requirements.leftChanged.bool = true;
+        if (JSON.stringify(oldCostumes) !== JSON.stringify(newCostumes)) {
+            if (project.sprites.length >0) {
+                this.requirements.newCostumes1.bool = true;
+            }
+           
         }
-        if (leftCost !== origCostumeLeft) {
-            this.requirements.leftCostume.bool = true;
-        }
-        if (rightCost !== origCostumeRight) {
-            this.requirements.rightCostume.bool = true;
-        }
-        if (midCost !== origCostumeMiddle) {
-            this.requirements.midCostume.bool = true;
-        }
+
         // --------------------------------------------------------------------------------------------------------- //
 
+    
 
-        // at least one sprite has a new costume - make an array of the old costumes lmr and then 
-        // an array of the new costumes lmr and then if they are not equal then the requirement is fulfilled
-        // new cost is left middle right 
-
-        // if the elements are not the same or they are not in the same order
-        if (JSON.stringify(oldCostumes) !== JSON.stringify(newCostumes)) {
-            this.extensions.newCostumes1.bool = true;
-        }
-
-        // if there is a say block in a sprite that is not named catrina, and that say block is not used in the same 
-        // context as the original project (same parent and next block)
+        //f there is a say block in a sprite that is not named catrina, and that say block is not used in the same 
+        //context as the original project (same parent and next block)
         for (let target of project.targets) {
             if (target.name === 'Catrina') {
                 continue;
@@ -2041,56 +2058,59 @@ module.exports = class {
                 for (let script in target.scripts) {
                     for (let block in target.scripts[script].blocks) {
                         if (soundOptions.includes(target.scripts[script].blocks[block].opcode)) {
-                            if (target.scripts[script].blocks[block].next === "Q.gGFO#r}[Z@fzClmRq-" && target.scripts[script].blocks[block].parent === "taz8m.4x_rVweL9%J@(3") {
+                            if ((target.scripts[script].blocks[block].next === "Q.gGFO#r}[Z@fzClmRq-") &&
+                                (target.scripts[script].blocks[block].parent === "taz8m.4x_rVweL9%J@(3") &&
+                                (target.scripts[script].blocks[block].inputs.MESSAGE[1][1] === "I am Grandpa John.")) {
                                 continue;
-                            } else if (target.scripts[script].blocks[block].next === "sPl?mFlNaaD_l]+QJ.CW" && target.scripts[script].blocks[block].parent === "Y5!LLf.Gqemqe/6!)t=e") {
+                            } else if ((target.scripts[script].blocks[block].next === "sPl?mFlNaaD_l]+QJ.CW") &&
+                                (target.scripts[script].blocks[block].parent === "Y5!LLf.Gqemqe/6!)t=e") &&
+                                (target.scripts[script].blocks[block].inputs.MESSAGE[1][1] === "I loved to cook with my granchildren.")) {
                                 continue;
                             }
                             else {
-                                this.extensions.speaking1.bool = true;
-                            }
+                                    this.requirements.speaking1.bool = true;
+                                }
                         }
-                        
                         if (target.scripts[script].blocks[block].opcode === 'event_whenthisspriteclicked') {
                             if (target.scripts[script].blocks[block].next === "}VBgCH{K:oDh6pV0h.pi" && target.scripts[script].blocks[block].parent === null) {
                                 continue;
                             } else if (target.scripts[script].blocks[block].next === "/f[ltBij)7]5Jtg|W(1%" && target.scripts[script].blocks[block].parent === null) {
                                 continue;
                             } else {
-                                this.extensions.interactive1.bool = true;
+                                
+                                    this.requirements.interactive1.bool = true;
+                                }
+                        }
+
+                        // extensions
+                        if (target.scripts[script].blocks[block].opcode === 'sound_playuntildone') {
+                            if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
+                                continue;
+                            } else {
+                                this.extensions.usesPlaySoundUntilDone.bool = true;
                             }
                         }
-                    }
-
-                    //checks if 'Eat Aphid' block is connected to a script
-                    if (target.blocks[block].opcode === 'procedures_call') {
-                        if (target.blocks[block].mutation.proccode === 'Eat Aphid') {
-                            if (target.blocks[block].parent !== null) {
-                                this.requirements.eatAphidBlock.bool = true;
+                        if (target.scripts[script].blocks[block].opcode === 'event_whenkeypressed') {
+                            if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
+                                continue;
+                            } else {
+                                this.extensions.useskeyCommand.bool = true;
                             }
                         }
-                    }
-
-                    //checks if a new "move steps" block has been connected
-                    if (target.blocks[block].opcode === 'motion_movesteps') {
-                        if (target.blocks[block].parent !== null) {
-                            moveStepsBlocks++;
-                        }
-                    }
-                    if ((target.blocks[block].opcode === 'motion_turnright') ||
-                        (target.blocks[block].opcode === 'motion_turnleft')) {
-                        if (target.blocks[block].parent !== null) {
-                            turnBlocks++;
+                        if (target.scripts[script].blocks[block].opcode === 'motion_gotoxy') {
+                            if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
+                                continue;
+                            } else {
+                                this.extensions.usesGotoXY.bool = true;
+                            }
                         }
                     }
                 }
-                break;
             }
-
         }
     }
 } 
-},{"../act1-grading-scripts/originalOfrenda-test":10,"../grading-scripts-s3/scratch3":24}],9:[function(require,module,exports){
+},{"../act1-grading-scripts/originalOfrenda-test":10,"../grading-scripts-s3/scratch3":26}],9:[function(require,module,exports){
 module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{"broadcastMsgId-munch":"munch"},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"6bbe43392c0dbffe7d7c63cc5bd08aa3","name":"backdrop1","bitmapResolution":1,"md5ext":"6bbe43392c0dbffe7d7c63cc5bd08aa3.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Ladybug1","variables":{},"lists":{},"broadcasts":{},"blocks":{"U7gIJGYi2sEQ1R~Q#Y(x":{"opcode":"event_whenflagclicked","next":"F@9g]aRRb1sq*2qa!%ng","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":264,"y":24},"F@9g]aRRb1sq*2qa!%ng":{"opcode":"motion_gotoxy","next":"Sfc=i0}1cnoDpchs?.Uq","parent":"U7gIJGYi2sEQ1R~Q#Y(x","inputs":{"X":[1,[4,-175]],"Y":[1,[4,-24]]},"fields":{},"shadow":false,"topLevel":false},"Sfc=i0}1cnoDpchs?.Uq":{"opcode":"motion_pointindirection","next":"^)NnU+Yxi6BeEWyh3in`","parent":"F@9g]aRRb1sq*2qa!%ng","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},"^)NnU+Yxi6BeEWyh3in`":{"opcode":"control_wait","next":"{*nT,|Un;N}8m)P0wAVC","parent":"Sfc=i0}1cnoDpchs?.Uq","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"{*nT,|Un;N}8m)P0wAVC":{"opcode":"motion_movesteps","next":"Qjej.|{eUe=~o*uAuRF,","parent":"^)NnU+Yxi6BeEWyh3in`","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"Qjej.|{eUe=~o*uAuRF,":{"opcode":"control_wait","next":"lDrR0@W5G`|K9EW2^U=0","parent":"{*nT,|Un;N}8m)P0wAVC","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"lDrR0@W5G`|K9EW2^U=0":{"opcode":"motion_turnright","next":"R%7gnK]7!DF4`qpYfccd","parent":"Qjej.|{eUe=~o*uAuRF,","inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":false},"R%7gnK]7!DF4`qpYfccd":{"opcode":"control_wait","next":"1?YefC;{nn1p+6x[y7=p","parent":"lDrR0@W5G`|K9EW2^U=0","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"1?YefC;{nn1p+6x[y7=p":{"opcode":"motion_movesteps","next":null,"parent":"R%7gnK]7!DF4`qpYfccd","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"iQ]xjD_RSjVU39KKi+D+":{"opcode":"event_whenflagclicked","next":"03[Ml=XIME[mlM`[oI,{","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":1117,"y":41},"03[Ml=XIME[mlM`[oI,{":{"opcode":"control_forever","next":null,"parent":"iQ]xjD_RSjVU39KKi+D+","inputs":{"SUBSTACK":[2,"{eG]NNI}y+`9w8~P-Y@w"]},"fields":{},"shadow":false,"topLevel":false},"{eG]NNI}y+`9w8~P-Y@w":{"opcode":"control_if","next":null,"parent":"03[Ml=XIME[mlM`[oI,{","inputs":{"CONDITION":[2,"HJ?{4{KV1xCg#k7UhPC6"],"SUBSTACK":[2,"kQKB.w^V0`:QX38gKYzf"]},"fields":{},"shadow":false,"topLevel":false},"HJ?{4{KV1xCg#k7UhPC6":{"opcode":"sensing_touchingcolor","next":null,"parent":"{eG]NNI}y+`9w8~P-Y@w","inputs":{"COLOR":[1,[9,"#00ffff"]]},"fields":{},"shadow":false,"topLevel":false},"kQKB.w^V0`:QX38gKYzf":{"opcode":"control_stop","next":";Dm1;gL:ROwhL*^;y!zp","parent":"{eG]NNI}y+`9w8~P-Y@w","inputs":{},"fields":{"STOP_OPTION":["other scripts in sprite"]},"shadow":false,"topLevel":false,"mutation":{"tagName":"mutation","hasnext":"true","children":[]}},";Dm1;gL:ROwhL*^;y!zp":{"opcode":"looks_sayforsecs","next":"H#v_fC4p1{^Dy]J98),R","parent":"kQKB.w^V0`:QX38gKYzf","inputs":{"MESSAGE":[1,[10,"Aaaaah! I fell off the branch!!!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"H#v_fC4p1{^Dy]J98),R":{"opcode":"control_repeat","next":"eO]JO},91+03]-,-p.kW","parent":";Dm1;gL:ROwhL*^;y!zp","inputs":{"TIMES":[1,[6,3]],"SUBSTACK":[2,"Hfkes2)|!Awk/*Iir#]f"]},"fields":{},"shadow":false,"topLevel":false},"Hfkes2)|!Awk/*Iir#]f":{"opcode":"looks_hide","next":"NdsT}^o2UI(D_trv9KW9","parent":"H#v_fC4p1{^Dy]J98),R","inputs":{},"fields":{},"shadow":false,"topLevel":false},"NdsT}^o2UI(D_trv9KW9":{"opcode":"control_wait","next":"Rp7XGUXIMwRD^e4J2IZy","parent":"Hfkes2)|!Awk/*Iir#]f","inputs":{"DURATION":[1,[5,0.5]]},"fields":{},"shadow":false,"topLevel":false},"Rp7XGUXIMwRD^e4J2IZy":{"opcode":"looks_show","next":"k7:X0JW7;CDuX8ZM[`|-","parent":"NdsT}^o2UI(D_trv9KW9","inputs":{},"fields":{},"shadow":false,"topLevel":false},"k7:X0JW7;CDuX8ZM[`|-":{"opcode":"control_wait","next":null,"parent":"Rp7XGUXIMwRD^e4J2IZy","inputs":{"DURATION":[1,[5,0.5]]},"fields":{},"shadow":false,"topLevel":false},"eO]JO},91+03]-,-p.kW":{"opcode":"motion_gotoxy","next":"I3gZVQ)z)SV7w[OezvsL","parent":"H#v_fC4p1{^Dy]J98),R","inputs":{"X":[1,[4,-175]],"Y":[1,[4,-24]]},"fields":{},"shadow":false,"topLevel":false},"I3gZVQ)z)SV7w[OezvsL":{"opcode":"motion_pointindirection","next":null,"parent":"eO]JO},91+03]-,-p.kW","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},":g/E[3PXa}d6Cve2Swk2":{"opcode":"motion_movesteps","next":null,"parent":null,"inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":33},"M1gwhU_QVGXM)kQF*L`{":{"opcode":"procedures_definition","next":"@,~#(h4pJpg}jA2}_/R[","parent":null,"inputs":{"custom_block":[1,"+d7X?d`DBq2~x0}OHSC/"]},"fields":{},"shadow":false,"topLevel":true,"x":1136,"y":820},"+d7X?d`DBq2~x0}OHSC/":{"opcode":"procedures_prototype","next":null,"inputs":{},"fields":{},"shadow":true,"topLevel":false,"mutation":{"tagName":"mutation","proccode":"Eat Aphid","argumentnames":"[]","argumentids":"[]","argumentdefaults":"[]","warp":false,"children":[]}},"@,~#(h4pJpg}jA2}_/R[":{"opcode":"event_broadcast","next":null,"parent":"M1gwhU_QVGXM)kQF*L`{","inputs":{"BROADCAST_INPUT":[1,[11,"Munch","broadcastMsgId-munch"]]},"fields":{},"shadow":false,"topLevel":false},"%vAkoQPRX5(5~AohGy*u":{"opcode":"motion_turnright","next":null,"parent":null,"inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":109},"~)q`N2jinQ]:/zs,-.s1":{"opcode":"motion_turnleft","next":null,"parent":null,"inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":true,"x":7,"y":188},"nZ1!J1WTOAWy}Af(z1#c":{"opcode":"control_wait","next":null,"parent":null,"inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":268},"Yl_GU18WZdM(iSO=,FM~":{"opcode":"procedures_call","next":null,"parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":10,"y":366,"mutation":{"tagName":"mutation","children":[],"proccode":"Eat Aphid","argumentids":"[]"}}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"7501580fb154fde8192a931f6cab472b","name":"ladybug3","bitmapResolution":1,"md5ext":"7501580fb154fde8192a931f6cab472b.svg","dataFormat":"svg","rotationCenterX":41,"rotationCenterY":43},{"assetId":"169c0efa8c094fdedddf8c19c36f0229","name":"ladybug2","bitmapResolution":1,"md5ext":"169c0efa8c094fdedddf8c19c36f0229.svg","dataFormat":"svg","rotationCenterX":41,"rotationCenterY":43}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-175,"y":-24,"size":50,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Sprite1","variables":{},"lists":{},"broadcasts":{},"blocks":{"g{X}coEAM3Ta^+%(=s^s":{"opcode":"event_whenflagclicked","next":"3S,1y@;w+[,tG`(EZCAt","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":68,"y":35},"3S,1y@;w+[,tG`(EZCAt":{"opcode":"looks_show","next":"_LYbp}EcsXWoN1ppLxcv","parent":"g{X}coEAM3Ta^+%(=s^s","inputs":{},"fields":{},"shadow":false,"topLevel":false},"_LYbp}EcsXWoN1ppLxcv":{"opcode":"motion_pointindirection","next":"4Q5;gsz5+/bgWS(:Rag,","parent":"3S,1y@;w+[,tG`(EZCAt","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},"4Q5;gsz5+/bgWS(:Rag,":{"opcode":"motion_gotoxy","next":"4L~#s_w.KLA*F5Xc`{C`","parent":"_LYbp}EcsXWoN1ppLxcv","inputs":{"X":[1,[4,0]],"Y":[1,[4,-150]]},"fields":{},"shadow":false,"topLevel":false},"4L~#s_w.KLA*F5Xc`{C`":{"opcode":"control_repeat","next":"Vb38^m9i^P8Qx=K`.+Yh","parent":"4Q5;gsz5+/bgWS(:Rag,","inputs":{"TIMES":[1,[6,6]],"SUBSTACK":[2,"56{t%hej8N*pk`S3%Nrj"]},"fields":{},"shadow":false,"topLevel":false},"56{t%hej8N*pk`S3%Nrj":{"opcode":"pen_stamp","next":"UyBZkQkw+i|j3]/7K`[%","parent":"4L~#s_w.KLA*F5Xc`{C`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"UyBZkQkw+i|j3]/7K`[%":{"opcode":"motion_changeyby","next":null,"parent":"56{t%hej8N*pk`S3%Nrj","inputs":{"DY":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"Vb38^m9i^P8Qx=K`.+Yh":{"opcode":"pen_stamp","next":"#I:55@rxBustg@:0CNW,","parent":"4L~#s_w.KLA*F5Xc`{C`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"#I:55@rxBustg@:0CNW,":{"opcode":"motion_gotoxy","next":"c?Rcii^r7j{3zIKlPCY7","parent":"Vb38^m9i^P8Qx=K`.+Yh","inputs":{"X":[1,[4,-200]],"Y":[1,[4,0]]},"fields":{},"shadow":false,"topLevel":false},"c?Rcii^r7j{3zIKlPCY7":{"opcode":"motion_pointindirection","next":"Ev;g}Py1-pZ#SpwkoO~I","parent":"#I:55@rxBustg@:0CNW,","inputs":{"DIRECTION":[1,[8,0]]},"fields":{},"shadow":false,"topLevel":false},"Ev;g}Py1-pZ#SpwkoO~I":{"opcode":"control_repeat","next":"1R95jS-gQRcWy1!()qDX","parent":"c?Rcii^r7j{3zIKlPCY7","inputs":{"TIMES":[1,[6,8]],"SUBSTACK":[2,"C+]}-*OqPzGDND@[I`!`"]},"fields":{},"shadow":false,"topLevel":false},"C+]}-*OqPzGDND@[I`!`":{"opcode":"pen_stamp","next":"vf~MRj8GONdu)xTW+`sX","parent":"Ev;g}Py1-pZ#SpwkoO~I","inputs":{},"fields":{},"shadow":false,"topLevel":false},"vf~MRj8GONdu)xTW+`sX":{"opcode":"motion_changexby","next":null,"parent":"C+]}-*OqPzGDND@[I`!`","inputs":{"DX":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"1R95jS-gQRcWy1!()qDX":{"opcode":"pen_stamp","next":"!]hy8aHujpmLSmfwgk7+","parent":"Ev;g}Py1-pZ#SpwkoO~I","inputs":{},"fields":{},"shadow":false,"topLevel":false},"!]hy8aHujpmLSmfwgk7+":{"opcode":"looks_hide","next":null,"parent":"1R95jS-gQRcWy1!()qDX","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"098ac26af75d9b14546ba423f0376c78","name":"costume1","bitmapResolution":1,"md5ext":"098ac26af75d9b14546ba423f0376c78.svg","dataFormat":"svg","rotationCenterX":247,"rotationCenterY":2}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":false,"x":200,"y":0,"size":100,"direction":0,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Aphid","variables":{},"lists":{},"broadcasts":{},"blocks":{"Al/9-=x`PHo)+1K4Jsw2":{"opcode":"event_whenflagclicked","next":"|FY,izak`W47{j*=KnG5","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":37,"y":46},"|FY,izak`W47{j*=KnG5":{"opcode":"looks_show","next":null,"parent":"Al/9-=x`PHo)+1K4Jsw2","inputs":{},"fields":{},"shadow":false,"topLevel":false},"se5y3M`e{qYhvvplydn.":{"opcode":"event_whenbroadcastreceived","next":"?ec)oOeZLY5LfeL(D5QB","parent":null,"inputs":{},"fields":{"BROADCAST_OPTION":["Munch","broadcastMsgId-munch"]},"shadow":false,"topLevel":true,"x":45,"y":264},"?ec)oOeZLY5LfeL(D5QB":{"opcode":"control_if","next":null,"parent":"se5y3M`e{qYhvvplydn.","inputs":{"CONDITION":[2,".[;R|zxb)eHrP+bfg`JR"],"SUBSTACK":[2,"@:tiv_aA#I^^`0sQ%}O1"]},"fields":{},"shadow":false,"topLevel":false},".[;R|zxb)eHrP+bfg`JR":{"opcode":"sensing_touchingobject","next":null,"parent":"?ec)oOeZLY5LfeL(D5QB","inputs":{"TOUCHINGOBJECTMENU":[1,"cB1l?RjX4g=!:@^[I(X?"]},"fields":{},"shadow":false,"topLevel":false},"cB1l?RjX4g=!:@^[I(X?":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":".[;R|zxb)eHrP+bfg`JR","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Ladybug1"]},"shadow":true,"topLevel":false},"@:tiv_aA#I^^`0sQ%}O1":{"opcode":"looks_sayforsecs","next":"d4JFINYQk,`yV3Hd5Rz3","parent":"?ec)oOeZLY5LfeL(D5QB","inputs":{"MESSAGE":[1,[10,"Oh, no!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"d4JFINYQk,`yV3Hd5Rz3":{"opcode":"looks_hide","next":null,"parent":"@:tiv_aA#I^^`0sQ%}O1","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b3b7ab6b68e1d72f5f0246bd5246e35","name":"beetle","bitmapResolution":1,"md5ext":"2b3b7ab6b68e1d72f5f0246bd5246e35.svg","dataFormat":"svg","rotationCenterX":43,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-24,"y":77,"size":30,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Aphid2","variables":{},"lists":{},"broadcasts":{},"blocks":{"|*E4bHy6(tUyNr_FpiHL":{"opcode":"event_whenbroadcastreceived","next":"@I467Tz-PCo,~F~{tDEl","parent":null,"inputs":{},"fields":{"BROADCAST_OPTION":["Munch","broadcastMsgId-munch"]},"shadow":false,"topLevel":true,"x":31,"y":393},"@I467Tz-PCo,~F~{tDEl":{"opcode":"control_if","next":null,"parent":"|*E4bHy6(tUyNr_FpiHL","inputs":{"CONDITION":[2,"uT8k:bk6A^umen=_kL-m"],"SUBSTACK":[2,"LBQ7xhpD3hzBGz^u~MW`"]},"fields":{},"shadow":false,"topLevel":false},"uT8k:bk6A^umen=_kL-m":{"opcode":"sensing_touchingobject","next":null,"parent":"@I467Tz-PCo,~F~{tDEl","inputs":{"TOUCHINGOBJECTMENU":[1,"w.R6uBYuAjg(y#K#YJx*"]},"fields":{},"shadow":false,"topLevel":false},"w.R6uBYuAjg(y#K#YJx*":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"uT8k:bk6A^umen=_kL-m","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Ladybug1"]},"shadow":true,"topLevel":false},"LBQ7xhpD3hzBGz^u~MW`":{"opcode":"looks_sayforsecs","next":"XO!5H:??cO_M~G2fB;}l","parent":"@I467Tz-PCo,~F~{tDEl","inputs":{"MESSAGE":[1,[10,"Oh, no!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"XO!5H:??cO_M~G2fB;}l":{"opcode":"looks_hide","next":null,"parent":"LBQ7xhpD3hzBGz^u~MW`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"|pG9oKkH+F.OL|36O0Lp":{"opcode":"event_whenflagclicked","next":"t:(!q?g_}9!~)wm!FUIP","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":39,"y":50},"t:(!q?g_}9!~)wm!FUIP":{"opcode":"looks_show","next":null,"parent":"|pG9oKkH+F.OL|36O0Lp","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b3b7ab6b68e1d72f5f0246bd5246e35","name":"beetle","bitmapResolution":1,"md5ext":"2b3b7ab6b68e1d72f5f0246bd5246e35.svg","dataFormat":"svg","rotationCenterX":43,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":75,"y":-123,"size":30,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":["pen"],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190619042313","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"}}
 },{}],10:[function(require,module,exports){
 module.exports={
@@ -2943,24 +2963,7 @@ module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists"
 },{}],12:[function(require,module,exports){
 require('./scratch3');
 
-let control = ['control_forever', 'control_if', 'control_if_else', 'control_repeat', 'control_stop', 'control_repeat_until', 'control_wait_until'];
 let loops = ['control_forever', 'control_repeat', 'control_repeat_until'];
-
-// helper function to iterate for each block in scripts and subscripts recursively.
-// understanding the usecases is more important than the details of the code (unless there are bugs)
-let iterateBlocks = (script, func, parentBlocks=control) => {
-    const recursive = (scripts, func, level) => {
-        if (!is(scripts) || scripts === [[]]) return;
-        for (let script of scripts) {
-            for(let block of script.blocks) {
-                func(block, level);
-                if (parentBlocks.includes(block.opcode)) 
-                    recursive(block.subScripts(), func, level + 1);
-            }
-        }
-    }
-    recursive([script], func, 1);
-}
 
 let within = (x, range) => x >= range[0] && x <= range[1];
 
@@ -3052,7 +3055,7 @@ module.exports = class {
         let stats = {start: null, speed: {}, finished: {}, wiggle: false};
         
         for (let script of sprite.scripts.filter(s => s.blocks[0].opcode === 'event_whenflagclicked'))
-            iterateBlocks(script, (block, level) => {
+            script.traverseBlocks((block, level) => {
                 if (block.opcode === 'motion_gotoxy') {
                     // checks if sprite starts before finish line
                     if (within(block.inputs.X[1][1], [-271, 115]))
@@ -3078,7 +3081,7 @@ module.exports = class {
             
             if (key === 'space') {
                 space.handles = true;
-                iterateBlocks(script, (block, level) => {
+                script.traverseBlocks((block, level) => {
                     //check for loop
                     if(loops.includes(block.opcode)) {
                         space.loop = true;
@@ -3099,7 +3102,7 @@ module.exports = class {
                 }, loops);
             } else if (key === 'down arrow') {
                 down.handles = true;
-                iterateBlocks(script, (block, level) => {
+                script.traverseBlocks((block, level) => {
                     if(['looks_switchcostumeto', 'looks_nextcostume'].includes(block.opcode)){
                         down.costume = true;
                     } else if (block.opcode == 'control_wait'){
@@ -3127,30 +3130,13 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":24}],13:[function(require,module,exports){
+},{"./scratch3":26}],13:[function(require,module,exports){
 /* Animation L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and minor bug fixes: Marco Anaya, Summer 2019
 */
 
 require('./scratch3');
-
-// recursive function that searches a script and any subscripts (those within loops)
-function iterateBlocks(script, func) {
-    function recursive(scripts, func, level) {
-        if (!is(scripts) || scripts === [[]]) return;
-        for (var script of scripts) {
-            for(var block of script.blocks) {
-                func(block, level);
-                recursive(block.subScripts(), func, level + 1);
-            }
-        }
-    }
-    
-    recursive([script], func, 1);
-}
-
-const print = (block, level) => console.log("   ".repeat(level) + block.opcode);
 
 module.exports = class {
     // initializes the requirement objects and a list of event block codes
@@ -3193,7 +3179,7 @@ module.exports = class {
             var reqs = {loop: false, wait: false, costume: false, move: false};
             // search through each block and execute the given callback function
             // that determines what to look for and what to do (through side effects) for each block
-            iterateBlocks(script, (block, level) => {
+            script.traverseBlocks((block, level) => {
                 var opcode = block.opcode;
 
                 reqs.loop = reqs.loop || ['control_forever', 'control_repeat', 'control_repeat_until'].includes(opcode);
@@ -3288,7 +3274,249 @@ module.exports = class {
         this.extensions.moreThanOneAnimation.bool = (this.animationTypes.length > 1)
     }
 }
-},{"./scratch3":24}],14:[function(require,module,exports){
+},{"./scratch3":26}],14:[function(require,module,exports){
+/* Complex Conditionals L1(TIPP&SEE Modify) Autograder
+ * Scratch 3 (original) version: Anna Zipp, Summer 2019
+ */
+
+require('./scratch3');
+
+// recursive function that searches a script and any subscripts (those within loops)
+function iterateBlocks(script, func) {
+    function recursive(scripts, func, level) {
+        if (!is(scripts) || scripts === [[]]) return;
+        for (var script of scripts) {
+            for(var block of script.blocks) {
+                func(block, level);
+                recursive(block.subScripts(), func, level + 1);
+            }
+        }
+    }
+    recursive([script], func, 1);
+}
+
+module.exports = class {
+    // initialize the requirement and extension objects to be graded
+    init() {
+        this.requirements = {
+            bluePainted: {bool: false, str: 'Switches Paint Mix costume to "Blue Paint Mix" when Blue is selected.'},  
+            yellowPainted: {bool: false, str: 'Switches Paint Mix sprite to "Yellow Paint Mix" when Yellow is selected.'},
+            purpleMixed: {bool: false, str: 'Paint Mix switches to "Purple Paint Mix" and broadcasts "purple" if Blue & Red selected.'},
+            greenMixed: {bool: false, str: 'Paint Mix switches to "Green Paint Mix" and broadcasts "green" if Blue & Yellow selected.'},
+        }
+        this.extensions = {
+            brownMixed: {bool: false, str: 'Paint Mix switches to "Brown Paint Mix" and broadcasts "brown" if Red & Blue & Yellow selected.'},
+            spriteCustomized: {bool: false, str: 'The Sprite is customized with different hair and skin color.'},
+            soundAdded: {bool: false, str: 'A sound effect plays when a painting is completed.'},
+        }
+    }
+
+    // given an "operator_equals" block, check that one side is set to "1" and return the other side
+    getColor(block) {
+        let input1 = block.inputs.OPERAND1[1][1];
+        let input2 = block.inputs.OPERAND2[1][1];
+
+        if (input1 === "1") {
+            return input2;
+        } else if (input2 === "1") {
+            return input1;
+        } else {  // if neither side is set to "1", return null
+            return null;
+        }
+    }
+
+    // given an "If/Then" block that has an input conditon, find colors selected (color = 1)
+    checkColors(block) {
+        let colorReqs = {
+            red: false,
+            yellow: false,
+            blue: false,
+        };
+
+        let ifCondition = block.conditionBlock();  // the operator block       
+        if (ifCondition !== null) {
+            if ("operator_equals" === ifCondition.opcode) {
+                let colorSelected = this.getColor(ifCondition);
+                if (colorSelected === "Red") {
+                    colorReqs.red = true;
+                } else if (colorSelected === "Yellow") {
+                    colorReqs.yellow = true;
+                } else if (colorSelected === "Blue") {
+                    colorReqs.blue = true;
+                }
+            } else if ("operator_and" === ifCondition.opcode) {
+                let operand1 = ifCondition.toBlock(ifCondition.inputs.OPERAND1[1]);
+                let operand2 = ifCondition.toBlock(ifCondition.inputs.OPERAND2[1]);
+                let color1 = null;
+                let color2 = null;
+                let color3 = null;
+
+                // check first side of "and"
+                if (operand1.opcode === "operator_and") {  // if left side of "and" is also an "and" block
+                    color1 = this.getColor(operand1.toBlock(operand1.inputs.OPERAND1[1]));
+                    color2 = this.getColor(operand1.toBlock(operand1.inputs.OPERAND2[1]));
+                    // if left side of "and" is also an "and", then right side will have the third color
+                    color3 = this.getColor(operand2);
+                } else {  // if left side of "and" is NOT also an "and" block
+                    color1 = this.getColor(operand1);
+                } 
+
+                // check second side of "and"
+                if (operand2.opcode === "operator_and") {  // if right side of "and" is also an "and" block
+                    color2 = this.getColor(operand2.toBlock(operand2.inputs.OPERAND1[1]));
+                    color3 = this.getColor(operand2.toBlock(operand2.inputs.OPERAND2[1]));
+                    // color 1 will have already been set above 
+                } else {  // if right side of "and" is NOT also an "and" block
+                    color2 = this.getColor(operand2);
+                } 
+
+                if (color1 === "Red") {
+                    colorReqs.red = true;
+                } else if (color1 === "Yellow") {
+                    colorReqs.yellow = true;
+                } else if (color1 === "Blue") {
+                    colorReqs.blue = true;
+                }
+                
+                if (color2 === "Red") {
+                    colorReqs.red = true;
+                } else if (color2 === "Yellow") {
+                    colorReqs.yellow = true;
+                } else if (color2 === "Blue") {
+                    colorReqs.blue = true;
+                }
+
+                if (color3 === "Red") {
+                    colorReqs.red = true;
+                } else if (color3 === "Yellow") {
+                    colorReqs.yellow = true;
+                } else if (color3 === "Blue") {
+                    colorReqs.blue = true;
+                }
+            }
+        }
+        return colorReqs;
+    }
+
+    // given an array of subscripts, check for existence of "switch costume to" and broadcast block
+    checkSubscript(array) {
+        let subScriptReqs = {
+            costumeTo: "",
+            broadcastStr: "",
+        };
+
+        let i = 0;
+
+        // iterate through the blocks in each subscript in the array 
+        for (i; i < array.length; i++) {
+            iterateBlocks(array[i], (block, level) => {
+                let opcode = block.opcode;
+
+                if (opcode === "looks_switchcostumeto") {
+                    let costumeBlock = block.toBlock(block.inputs.COSTUME[1]);
+                    if ((costumeBlock != null) && (costumeBlock.opcode === "looks_costume")) {
+                        subScriptReqs.costumeTo = costumeBlock.fields.COSTUME[0];
+                    }
+                } else if (opcode === "event_broadcast") {
+                    subScriptReqs.broadcastStr = block.inputs.BROADCAST_INPUT[1][1];
+                }
+            });
+        }
+        return subScriptReqs;
+    }
+
+    gradePaintMix(sprite) {
+        // iterate through each of the sprite's scripts that start with the event 'When I Receive' 
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenbroadcastreceived"))) {  
+            let eventBlock = script.blocks[0];
+            if (eventBlock.fields.BROADCAST_OPTION[0] === "mix paint") {
+                iterateBlocks(script, (block, level) => {
+                    let opcode = block.opcode;
+
+                    if (opcode === "control_if") {
+                        let colors = this.checkColors(block);
+                        let subBlocks = block.subScripts();
+                        let subReqs = this.checkSubscript(subBlocks);
+                        
+                        // if only one color is selected
+                        if (!colors.red && !colors.yellow && colors.blue) { 
+                            if (subReqs.costumeTo === "Blue Paint Mix") {
+                                this.requirements.bluePainted.bool = true;
+                            }
+                        } else if (!colors.red && colors.yellow && !colors.blue) {  
+                            if (subReqs.costumeTo === "Yellow Paint Mix") {
+                                this.requirements.yellowPainted.bool = true;
+                            }
+                        }
+                        // if two colors are selected
+                        if (colors.red && !colors.yellow && colors.blue) {
+                            if ((subReqs.costumeTo === "Purple Paint Mix") && (subReqs.broadcastStr === "purple")) {
+                                this.requirements.purpleMixed.bool = true;
+                            }
+                        } else if (!colors.red && colors.yellow && colors.blue) {
+                            if ((subReqs.costumeTo === "Green Paint Mix") && (subReqs.broadcastStr === "green")) {
+                                this.requirements.greenMixed.bool = true;
+                            }
+                        }
+                        // if all three colors are selected
+                        if (colors.red && colors.yellow && colors.blue) {
+                            if ((subReqs.costumeTo === "Brown Paint Mix") && (subReqs.broadcastStr === "brown")) {
+                                this.extensions.brownMixed.bool = true;
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    // check Artist Sprite's "When I Receive" scripts for a sound block
+    checkSound(sprite) {
+        let sound = false;
+        // iterate through each of the sprite's scripts that start with the event 'When I Receive' 
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenbroadcastreceived"))) {  
+            iterateBlocks(script, (block, level) => {
+                let opcode = block.opcode;
+                if (["sound_playuntildone","sound_play"].includes(opcode)) {
+                    sound = true;           
+                }
+            });
+        }
+        return sound;         
+    }
+
+    // main grading function
+    grade(fileObj, user) {
+        var project = new Project(fileObj);
+
+        this.init();
+        // if project doesn't exist, return
+        if (!is(fileObj)) return;
+
+        for(var target of project.targets) {
+            if (!(target.isStage)) {
+                if (target.name.includes("Artist")) {
+                    // check if sprite has been changed or customized
+                    // default sprite is at index 4, "Artist 3", assetId: 7896f4313a525c551b95b745024b1b17
+                    let costumeIndex = target.currentCostume;
+                    let currAssetID = target.costumes[costumeIndex].assetId;
+                    if (currAssetID != "7896f4313a525c551b95b745024b1b17") {
+                        this.extensions.spriteCustomized.bool = true;
+                    }
+
+                    // check if sound blocks were added after a broadcast is received
+                    let sound = this.checkSound(target);
+                    if (sound) {
+                        this.extensions.soundAdded.bool = true;
+                    }
+                } else if (target.name === "Paint Mix") {
+                    this.gradePaintMix(target);
+                }
+            }
+        }
+    }    
+}
+},{"./scratch3":26}],15:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -3363,36 +3591,6 @@ module.exports = class {
                                         script.context.carStops = 1;
                                     }
                                 }
-                                if (target.name === 'N-Glow') {
-                                    if (paramSecs === '1' && paramX === '-202' && paramY === '-52'
-                                        && next === null && parent === '{nR@2|=S?G3-4ukMhO4n') {
-                                        bool = false;
-                                    }
-                                }
-                                if (target.name === 'A-Glow2') {
-                                    if (paramSecs === '1' && paramX === '-200' && paramY === '-120'
-                                        && next === null && parent === 'ojhZT:%|m?wFvLSVqRoH') {
-                                        bool = false;
-                                    }
-                                }
-                            }
-                            if (opc === 'motion_pointindirection' && target.name === 'N-Glow') {
-                                let param = target.scripts[script].blocks[block].inputs.CHANGE[1][1];
-                                if (param === '90'
-                                    && target.scripts[script].blocks[block].next === 'i4C7qLY,7Dc:@{}d`:nV'
-                                    && target.scripts[script].blocks[block].parent === 'GN6a/]#X1pYt~+7OZ{Rc') {
-                                    bool = false;
-                                }
-                                if (param === '-90'
-                                    && target.scripts[script].blocks[block].next === null
-                                    && target.scripts[script].blocks[block].parent === 'i4C7qLY,7Dc:@{}d`:nV') {
-                                    bool = false;
-                                }
-                            }
-                            if (bool) {
-                                hasMovement = true;
-                           //     console.log('Sprite with new movement:');
-                             //   console.log(target.name);
                             }
                         }
                     }
@@ -3432,7 +3630,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":24}],15:[function(require,module,exports){
+},{"./scratch3":26}],16:[function(require,module,exports){
 /* Conditional Loops L2 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -3512,7 +3710,7 @@ module.exports = class {
 }
 
 
-},{"../grading-scripts-s3/scratch3":24}],16:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":26}],17:[function(require,module,exports){
 (function (global){
 /// Info layer template
 global.Context = class {
@@ -3547,499 +3745,318 @@ global.Context = class {
     }
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 /* Decomposition By Sequence L1 Autograder
-Scratch 2 (original) version: Max White, Summer 2018
-Scratch 3 updates: Elizabeth Crowdus, Spring 2019
-*/
+ * Scratch 2 (original) version: Max White, Summer 2018
+ * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
+ * Reformatting, bug fixes, and updates: Anna Zipp, Summer 2019
+ */
 
-var sb3 = {
-    //null checker
-    no: function(x) { 
-        return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
-    },
+require('./scratch3');
 
-    //retrieve a given sprite's blocks from JSON
-    //note: doesn't check whether or not blocks are properly attached
-    jsonToSpriteBlocks: function(json, spriteName) { 
-        if (this.no(json)) return []; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        var allBlocks={};
-        var blocks={};
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i]['blocks'];
-            }
-        }
-        return [];
-    }, //done
-    
-    //retrieve a given sprite's info (not just blocks) from JSON
-    jsonToSprite: function(json, spriteName) { 
-        if (this.no(json)) return []; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i];
-            }
-        }
-        return [];
-    }, //done
-    
-    //counts the number of non-background sprites in a project
-    countSprites: function(json){
-        if (this.no(json)) return false; //make sure script exists
-        
-        var numSprites = 0;
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['isStage'] == false){
-                numSprites ++;
-            }
-        }
-        return numSprites
-    },
-    
-    //looks through json to see if a sprite with a given name is present
-    //returns sprite
-    returnSprite: function(json, spriteName){ 
-        if (this.no(json)) return; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i];
-            }
-        }
-        return ;
-    }, //done
-    
-    //looks through json to see if a sprite with a given name is present
-    //returns true if sprite with given name found
-    findSprite: function(json, spriteName){ 
-        if (this.no(json)) return false; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return true;
-            }
-        }
-        return false;
-    }, //done
-    
-    //returns list of block ids given a set of blocks
-    findBlockIDs: function(blocks, opcode){
-        if(this.no(blocks) || blocks == {}) return [];
-        
-        var blockids = [];
-        
-        for(block in blocks){ 
-            if(blocks[block]['opcode'] == opcode){
-                blockids.push(block);
-            }
-        }
-        return blockids;
-    },
-    
-    //given particular key, returns list of block ids of a certain kind of key press given a set of blocks 
-    findKeyPressIDs: function(blocks, key){
-        if(this.no(blocks) || blocks == {}) return [];
-        
-        var blockids = [];
-        
-        for(block in blocks){ 
-            if(blocks[block]['opcode'] == 'event_whenkeypressed'){
-                if(blocks[block]['fields']['KEY_OPTION'][0] == key){
-                    blockids.push(block);
-                }
-            }
-        }
-        return blockids;
-    },
-    
-    opcodeBlocks: function(script, myOpcode) { //retrieve blocks with a certain opcode from a script list of blocks
-        if (this.no(script)) return [];
-        
-        var miniscript = [];
-
-        for(block in script){
-            if(script[block]['opcode'] == myOpcode){
-                miniscript.push(script[block]);
-            }
-        }
-        return miniscript;
-    }, 
-    
-    opcode: function(block) { //retrives opcode from a block object 
-        if (this.no(block)) return "";
-        return block['opcode'];
-    }, 
-    
-    countBlocks: function(blocks,opcode){ //counts number of blocks with a given opcode
-        var total = 0;
-		for(id in blocks){ 
-            if([blocks][id]['opcode'] == opcode){
-                total = total + 1;
-            }
-        }
-        return total;
-    }, //done
-    
-    //(recursive) helper function to extract blocks inside a given loop
-    //works like makeScript except it only goes down the linked list (rather than down & up)
-    loopExtract: function(blocks, blockID){
-        if (this.no(blocks) || this.no(blockID)) return [];
-        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
-        
-        var curBlockID = blockID;
-        var script = [];
-
-        //Find all blocks that come after
-        curBlockID = blockID //Initialize with blockID of interest
-        while(curBlockID != null){
-            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-            script.push(curBlockInfo); //Add the block itself to the script dictionary                
-
-            //nextInfo = blocks[nextID]
-            opcode = curBlockInfo['opcode'];
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.makeScript(blocks, innerloop)
-                    for(b in nested_blocks){
-                        script.push(nested_blocks[b])
-                    }
-                }
-            }
-            
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-		
-            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
-            if((nextID == null) && (event_opcodes.includes(opcode))){
-                return [];
-            }
-            //Iterate: Set next to curBlock
-            curBlockID = nextID;
-        }     
-        return script;        
-    },
-    
-    //given list of blocks and a keyID of a block, return a script
-    makeScript: function(blocks, blockID){
-        if (this.no(blocks) || this.no(blockID)) return [];
-        event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
-        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
-        
-        var curBlockID = blockID;
-        var script = [];
-    
-        //find all blocks that come before
-        while(curBlockID != null){
-            var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-            script.push(curBlockInfo); //Add the block itself to the script dictionary 
-            
-            //Get parent info out
-            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
-            //parentInfo = blocks[parentID]
-    		var opcode = curBlockInfo['opcode'];
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.loopExtract(blocks, innerloop)
-                    for(b in nested_blocks){
-                        script.push(nested_blocks[b])
-                    }
-                }
-            }
-            
-            //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
-            if ((parentID == null) && !(event_opcodes.includes(opcode))){
-                return [];
-            }
-
-            //Iterate: set parent to curBlock
-            curBlockID = parentID
-        }
-
-        //find all blocks that come after
-        curBlockID = blocks[blockID]['next']
-        while(curBlockID != null){
-            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-
-            //nextInfo = blocks[nextID]
-            opcode = curBlockInfo['opcode'];
-
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.loopExtract(blocks, innerloop)
-                    for(b in nested_blocks){   
-                        script.push(nested_blocks[b])
-                    }
-                }
-            }
-            
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-		
-            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
-            if((nextID == null) && (event_opcodes.includes(opcode))){
-                return [];
-            }
-            script.push(curBlockInfo); //Add the block itself to the script dictionary                
-            //Iterate: Set next to curBlock
-            curBlockID = nextID;
-        }
-        return script;
-    }
-};
-
-class GradeDecompBySeq{
-    
-    constructor() {
-        this.requirements = {}
-    }
-    
-    init() {
-        this.requirements = {
-      JaimeToBall:
-        {bool:false, str:'Jaime uses the "repeat until" block to do an action until it touches the Soccer Ball.'},
-      JaimeAnimated:
-        {bool:false, str:'Jaime is animated correctly to move towards the Soccer Ball.'},
-      ballStayStill:
-        {bool:false, str:'Soccer Ball uses the "wait until" to wait until Jaime touches it.'},
-      ballToGoal:
-        {bool:false, str:'Soccer Ball uses the "repeat until" block to do an action until it touches the Goal.'},
-      ballAnimated: 
-        {bool:false, str:'Soccer Ball is animated correctly to move towards the Goal.'},
-    }
-        this.extensions = {
-            cheer:
-                {bool: false, str: 'Cheer sound when ball enters goal'},
-            bounce:
-                {bool: false, str: 'Ball bounces off goal'},
-            jump:
-                {bool: false, str: 'Jaime jumps up and down to celebrate goal'},
-            goalie: 
-                {bool: false, str: 'Added a goalie sprite.'},
-            goaliebounce:
-                {bool: false, str: 'Ball bounces off the goalie.'},
-            goaliemoves:
-                {bool: false, str: 'Goalie can move left and right with the arrow keys.'}
-            
-        }
-    }
-    
-    
-    
-    grade(fileObj, user){
-        this.init();
-        
-        for(var i in fileObj['targets']){ //find sprite
-            var sprite = fileObj['targets'][i]
-            if(sprite['name'] == 'Jaime '){
-                var jaime = sprite;
-                this.checkJaime(jaime);
-            }
-            else if(sprite['name'] == 'Soccer Ball'){
-                var ball = sprite;
-                this.checkBall(ball);
-            }
-            else if(sprite['name'] == 'Goal'){
-                var goal = sprite;
-                this.checkGoal(goal);
-            }
-            else if(goal != undefined && ball != undefined && goal != undefined){ //
-                var goalie = sprite;
-                this.extensions.goalie.bool = true;
-                this.checkGoalie(goalie);
+// recursive function that searches a script and any subscripts (those within loops)
+function iterateBlocks(script, func) {
+    function recursive(scripts, func, level) {
+        if (!is(scripts) || scripts === [[]]) return;
+        for (var script of scripts) {
+            for(var block of script.blocks) {
+                func(block, level);
+                recursive(block.subScripts(), func, level + 1);
             }
         }
     }
-    
-    checkJaime(jaime){
-        var jaimeids = sb3.findBlockIDs(jaime['blocks'], 'event_whenflagclicked');
-        for(var j in jaimeids){
-            var jaimeScript = sb3.makeScript(jaime['blocks'], jaimeids[j]);
-            for(var i in jaimeScript){
-                if(jaimeScript[i]['opcode'] == 'control_repeat_until'){
-                    var condblock = jaimeScript[i]['inputs']['CONDITION'][1];
-                    var cond = jaime['blocks'][condblock];
-                    if(cond['opcode'] == 'sensing_touchingobject'){
-                        var objectID = cond['inputs']['TOUCHINGOBJECTMENU'][1];
-                        var object = jaime['blocks'][objectID]['fields']['TOUCHINGOBJECTMENU'][0]
-                        if(object == 'Soccer Ball'){
-                            this.requirements.JaimeToBall.bool = true;
-                            var curID = jaimeScript[i]['inputs']['SUBSTACK'][1]
-                            while(curID != null){ //check if Jaime is moving towards the ball
-                                if(jaime['blocks'][curID]['opcode'] == 'motion_movesteps'){
-                                   this.requirements.JaimeAnimated.bool = true;
-                                }
-                                curID = jaime['blocks'][curID]['next']
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    checkBall(ball){
-        var ballids = sb3.findBlockIDs(ball['blocks'], 'event_whenflagclicked');
-        for(var j in ballids){
-            var ballScript = sb3.makeScript(ball['blocks'], ballids[j]);
-            for(var i in ballScript){
-                if(ballScript[i]['opcode'] == 'control_wait_until'){
-                    var condid = ballScript[i]['inputs']['CONDITION'][1] //find key of condition block
-                    if(condid != null){ //handles case where no condition is nested in the block
-                        var cond = ball['blocks'][condid]
-                        var nameid = cond['inputs']['TOUCHINGOBJECTMENU'][1] //find key of block with nested object of the condition
-                        if(nameid != null){
-                            var name = ball['blocks'][nameid]['fields']['TOUCHINGOBJECTMENU'][0]
-                            if(name == 'Jaime '){
-                                this.requirements.ballStayStill.bool = true;
-                            }
-                            if(name == 'Goal'){
-                            
-                                var curID = ballScript[i]
-                                while(curID != null){ 
-                                    if(ball['blocks'][curID]['opcode'] == 'control_repeat_until'){
-                                        var condid = ballScript[i]['inputs']['CONDITION'][1]
-                                        var condition = ball['blocks'][condid]['opcode']
-                                        if(condition == 'sensing_touchingobject'){
-                                            var object = ball['blocks'][condid]['inputs']['TOUCHINGOBJECTMENU'][1] //find key of condition block
-                                            if(object != null){
-                                                var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0] //find key of block with nested object
-                                                if(objname == 'Jaime '){
-                                                    this.extensions.bounce.bool = true;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    curID = ball['blocks'][curID]['next'] //iterate
-                                }
-                                
-                            }
-                        }
-                    }
-                }
-                if(ballScript[i]['opcode'] == 'control_repeat_until' ){
-                    var condid = ballScript[i]['inputs']['CONDITION'][1]
-                    var condition = ball['blocks'][condid]['opcode']
-                    if(condition == 'sensing_touchingobject'){
-                        var object = ball['blocks'][condid]['inputs']['TOUCHINGOBJECTMENU'][1] //find key of condition block
-                        if(object != null){
-                            var objname = ball['blocks'][object]['fields']['TOUCHINGOBJECTMENU'][0] //find key of block with nested object
-                            if(objname == 'Goal'){
-                                this.requirements.ballToGoal.bool = true;
-                            
-                                var curID = ballScript[i]['inputs']['SUBSTACK'][1]
-                                while(curID != null){ 
-                                    if(ball['blocks'][curID]['opcode'] == 'motion_movesteps'){
-                                        this.requirements.ballAnimated.bool = true;
-                                    }
-                                    curID = ball['blocks'][curID]['next']
-                                }
-                            }
-                            if(objname == 'Jaime '){
-                                var curID = ballScript[i]['inputs']['SUBSTACK'][1]
-                                while(curID != null){ 
-                                    if(ball['blocks'][curID]['opcode'] == 'motion_movesteps'){
-                                        this.extensions.bounce.bool = true;
-                                    }
-                                    curID = ball['blocks'][curID]['next']
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    checkGoal(goal){
-        var flags = sb3.findBlockIDs(goal['blocks'], 'event_whenflagclicked');
-        for(var j in flags){
-            var goalScript = sb3.makeScript(goal['blocks'], flags[j]);
-            for(var i in goalScript){
-                if(goalScript[i]['opcode'] == 'control_wait_until'){
-                    var condid = goalScript[i]['inputs']['CONDITION'][1] //find key of condition block
-                    if(condid != null){ //handles case where no condition is nested in the block
-                        var cond = goal['blocks'][condid]
-                        var nameid = cond['inputs']['TOUCHINGOBJECTMENU'][1] //find key of block with nested object of the condition
-                        if(nameid != null){
-                            var name = goal['blocks'][nameid]['fields']['TOUCHINGOBJECTMENU'][0]
-                            if(name == 'Soccer Ball'){
-                                var curid = goalScript[i]['next']
-                                while(curid != null){
-                                    if(goal['blocks'][curid]['opcode'] == 'sound_playuntildone' || goal['blocks'][curid]['opcode'] == 'sound_play'){
-                                        this.extensions.cheer.bool = true;
-                                    }
-                                    curid = goal['blocks'][curid]['next'] //iterate
-                                }
-                            }
-                            
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    checkGoalie(goalie){
-        var movement = ['motion_changexby', 'motion_glidesecstoxy', 'motion_glideto', 'motion_goto', 'motion_gotoxy']
-        
-        var arrows = sb3.findBlockIDs(goalie['blocks'], 'event_whenkeypressed');
-        var left = false;
-        var right = false;
-        for(var i in arrows){ 
-            var blockid = arrows[i]
-            if(goalie['blocks'][arrows[i]]['fields']['KEY_OPTION'][0] == 'left arrow'){
-                var leftscript = sb3.makeScript(goalie['blocks'], blockid)
-                for(var j in leftscript){
-                    if(movement.includes(leftscript[j]['opcode'])){
-                        left = true
-                    }
-                }
-                
-            }
-            if(goalie['blocks'][arrows[i]]['fields']['KEY_OPTION'][0] == 'right arrow'){
-                var rightscript = sb3.makeScript(goalie['blocks'], blockid)
-                for(var j in rightscript){
-                    if(movement.includes(rightscript[j]['opcode'])){
-                        right = true
-                    }
-                }
-            }
-            if(left == true && right == true){
-                this.extensions.goaliemoves.bool = true
-            }
-        }
-    }
-    
-    
+    recursive([script], func, 1);
 }
 
-module.exports = GradeDecompBySeq;
-},{}],18:[function(require,module,exports){
+module.exports = class {
+    // initialize the requirement and extension objects to be graded
+    init() {
+        this.requirements = {
+            jaimeRepeats: {bool: false, str: 'Jaime has a "Repeat Until Touching Soccer Ball" script under "When Green Flag Clicked".'},
+            jaimeMoves: {bool: false, str: 'Jaime has a "Move" block within his "Repeat Until" loop.'},
+            ballWaitsUntil: {bool: false, str: 'Soccer Ball has a "Wait Until Touching Jaime" block under "When Green Flag Clicked".'},
+            ballRepeats: {bool: false, str: 'Soccer Ball has a "Repeat Until Touching Goal" script under "When Green Flag Clicked".'},
+            ballMoves: {bool: false, str: 'Soccer Ball has a "Move" block within its "Repeat Until" loop.'},
+        }
+
+        this.extensions = {
+            cheerSounds: {bool: false, str: 'Cheer sound plays when ball is touching the goal.'},
+            ballBounces: {bool: false, str: 'Ball bounces off the goal.'},
+            //kickAgain: {bool: false, str: 'Jaime kicks the ball again if it bounces off the goal.'},
+            //TODO: should bounce and kick again be combined? Is kickAgain too complicated to look for?
+            jaimeJumps: {bool: false, str: 'Jaime jumps up and down to celebrate a goal.'},
+            goalieAdded: {bool: false, str: 'Added a goalie sprite.'},
+            goalieBlocks: {bool: false, str: 'Ball bounces away if it hits the goalie.'},
+            goalieMovesLeft: {bool: false, str: 'Goalie moves to the left when Left Arrow Key is pressed.'},
+            goalieMovesRight: {bool: false, str: 'Goalie moves to the right when Right Arrow Key is pressed.'},
+            jaimeWaitBlock: {bool: false, str: 'Jaime uses a "Wait" block in his "Repeat Until" loop.'},
+            jaimeNextCostume: {bool: false, str: 'Jaime is animated by a "Next Costume" block in the "Repeat Until" loop.'},
+            ballWaitBlock: {bool: false, str: 'Soccer Ball uses a "Wait" block in its "Repeat Until" loop.'},
+        }
+    }
+
+    // given a block that has an input conditon, check if it is a Touching condition
+    // and return the opcode of what its touching target conditon is
+    getCondOpcode(block) {
+        let targetCond;
+        let inputCond = block.conditionBlock();  // the input condition block       
+        if ((inputCond !== null) && ("sensing_touchingobject" === inputCond.opcode)) {
+            // find the specific field entered into the input condition block
+            let condSelected = inputCond.toBlock(inputCond.inputs.TOUCHINGOBJECTMENU[1]);                          
+            if ((condSelected !== null) && (condSelected.opcode === "sensing_touchingobjectmenu")) {
+                targetCond = condSelected.fields.TOUCHINGOBJECTMENU[0];
+            }
+        }
+        return targetCond;
+    }
+
+    // Check the blocks/scripts only inside a conditional loop 
+    gradeCondLoop(block, targetCondition) {
+        let condLoopReqs = {
+            repeatLoop: false,
+            moveBlock: false,
+            waitBlock: false,
+            costumeBlock: false,
+        };
+
+        // check block's condition input
+        let blockCond = this.getCondOpcode(block);            
+
+        // if the correct targetCondition is selected ("Soccer Ball" if sprite is Jaime, or vice versa)
+        if (blockCond === targetCondition) {
+            condLoopReqs.repeatLoop = true;
+
+            // check for other required blocks inside the Repeat Until loop
+            var repeatUntilSubs = block.subScripts();
+            for (var subScript of repeatUntilSubs) {
+                iterateBlocks(subScript, (block, level) => {
+                    let subop = block.opcode; 
+
+                    if (subop === 'motion_movesteps') {
+                        condLoopReqs.moveBlock = true; 
+                    }
+                    if (subop === 'control_wait') {
+                        condLoopReqs.waitBlock = true;
+                    }
+                    if (['looks_nextcostume', 'looks_switchcostumeto'].includes(subop)) {
+                        condLoopReqs.costumeBlock = true;
+                    }
+                });
+            }                                   
+        }
+        return condLoopReqs;
+    }
+
+    // Check remaining blocks outside of/after a condition (either after loops or inside ifs) for sound and movement
+    // must be given a Wait Until, Repeat Until, If, or If/Then block
+    // here, any sound counts as a cheer, but code to restrict the sound to cheers only is there, but commented out
+    checkAfter(block) {
+        let extns = {
+            soundPlays: false,
+            movement: false,
+            repeatedMovement: false,
+        };
+        let opcode = block.opcode;
+        let remainingBlocks;
+
+        if ((opcode === "control_wait_until") || (opcode === "control_repeat_until")) {
+            remainingBlocks = block.childBlocks();
+        } else if (opcode.includes("control_if")) { 
+            // restrict remainingBlocks to the blocks within the If
+            let nextIf = block.toBlock(block.inputs.SUBSTACK[1]);
+            remainingBlocks = nextIf.childBlocks();
+        }
+        
+        for (let rBlock of remainingBlocks) {
+            let rCode = rBlock.opcode;
+
+            // check for sound block
+            if (["sound_playuntildone","sound_play"].includes(rCode)) {             
+                // check if sound block plays a sound
+                let soundBlock = rBlock.toBlock(rBlock.inputs.SOUND_MENU[1]);
+                if (soundBlock !== null) {
+                    let soundSelected = soundBlock.fields.SOUND_MENU[0];
+                    if (soundSelected !== null) {
+                        extns.soundPlays = true;
+                        /* if you want to restrict the sound to only "cheer", "Cheer", or "Goal Cheer"
+                        commented out for now, bc some students may want to use different sounds   
+                        if ((soundSelected.includes("cheer")) || soundSelected.includes("Cheer")) {
+                            cheerSelected = true;
+                        }
+                        */
+                    }
+                }
+            // check for movement after condition is met    
+            } else if (rCode.includes("motion_move") || rCode.includes("motion_goto") || rCode.includes("motion_glide")) {
+                extns.movement = true;
+            }
+        }
+        return extns;
+    }
+
+    gradeJaime(sprite) {
+        let condLoopReqs;
+        // iterating through each of the sprite's scripts that start with the event 'When Green Flag Clicked' 
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenflagclicked"))) {  
+            iterateBlocks(script, (block, level) => {
+                let opcode = block.opcode;
+                
+                if (opcode.includes("control_repeat_until")) {
+                    condLoopReqs = this.gradeCondLoop(block, "Soccer Ball");
+                    if (condLoopReqs.repeatLoop) this.requirements.jaimeRepeats.bool = true;
+                    if (condLoopReqs.moveBlock) this.requirements.jaimeMoves.bool = true;
+                    if (condLoopReqs.waitBlock) this.extensions.jaimeWaitBlock.bool = true;
+                    if (condLoopReqs.costumeBlock) this.extensions.jaimeNextCostume.bool = true;
+                }
+
+                // TODO: this just checks if Jaime has a "change/set y" block in his scripts
+                // more rigorous evaluation should check WHEN he uses those blocks, and also check other types of motion
+                // however, most kids didn't seem to implement this extension anyways
+                if (["motion_changeyby", "motion_sety"].includes(opcode)) {
+                    this.extensions.jaimeJumps.bool = true;
+                }
+            });
+        }
+    }
+
+    gradeBall(sprite) {
+        let condLoopReqs;
+        let afterCondReqs;
+
+        // iterating through each of the sprite's scripts that start with the event 'When Green Flag Clicked' 
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenflagclicked"))) { 
+            iterateBlocks(script, (block, level) => {
+                let opcode = block.opcode;
+                let targetCond = this.getCondOpcode(block);
+                
+                if (opcode.includes("control_wait_until")) {
+                    // If Ball has "Wait Until Touching _" block
+                    if (targetCond === "Jaime ") {
+                        this.requirements.ballWaitsUntil.bool = true;
+                    } else if (targetCond === "Goal") {
+                        afterCondReqs = this.checkAfter(block); 
+                        if (afterCondReqs.soundPlays) this.extensions.cheerSounds.bool = true;
+                    }
+                } else if (opcode.includes("control_repeat_until")) {
+                    condLoopReqs = this.gradeCondLoop(block, "Goal");
+                    if (condLoopReqs.repeatLoop) this.requirements.ballRepeats.bool = true;
+                    if (condLoopReqs.moveBlock) this.requirements.ballMoves.bool = true;
+                    if (condLoopReqs.waitBlock) this.extensions.ballWaitBlock.bool = true;
+
+                    afterCondReqs = this.checkAfter(block);
+                    if (afterCondReqs.movement) this.extensions.ballBounces.bool = true;
+                    if (afterCondReqs.soundPlays) this.extensions.cheerSounds.bool = true;
+                } else if (opcode.includes("control_if")) {
+                    afterCondReqs = this.checkAfter(block);
+
+                    if (targetCond === "Goal") {
+                        if (afterCondReqs.soundPlays) this.extensions.cheerSounds.bool = true;
+                    } else if (!(["Goal", "Jaime "].includes(targetCond))) {//&& totnumSprites > 3? ) {
+                        // if ball moves after "If touching goalie", goalieBlocks req fulfilled
+                        // TODO: probably need to check this req more rigorously 
+                        if (afterCondReqs.movement) this.extensions.goalieBlocks.bool = true; 
+                    } 
+                }
+            });
+        }
+    }
+
+    gradeGoal(sprite) {
+        // iterating through each of the sprite's scripts that start with the event 'When Green Flag Clicked' 
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenflagclicked"))) {  
+            iterateBlocks(script, (block, level) => {
+                let opcode = block.opcode;
+                
+                if (["control_wait_until","control_if"].includes(opcode)) {
+                    let targetCond = this.getCondOpcode(block);
+                    if (targetCond === "Soccer Ball") {
+                        let afterCond = this.checkAfter(block);
+                        if (afterCondReqs.soundPlays) this.extensions.cheerSounds.bool = true;
+                    }
+                }
+            });
+        } 
+    }
+
+    gradeGoalie(sprite) {
+        // iterating through each of the sprite's scripts that start with the event 'When _ Key Pressed' 
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenkeypressed"))) { 
+            let eventBlock = script.blocks[0];
+            let keyOption = eventBlock.fields.KEY_OPTION[0];
+ 
+            if (keyOption === "left arrow") {
+                let pointedLeft = false;
+                let negSteps = false;
+                iterateBlocks(script, (block, level) => {
+                    let opcode = block.opcode; 
+                    if (opcode.includes("motion_pointindirection")) {
+                        if (block.inputs.DIRECTION[1][1][0] === "-") {  // if first character is - (negative)
+                            pointedLeft = true;
+                        }
+                    }
+                    if (["motion_movesteps", "motion_glide"].includes(opcode)) {
+                        if (block.inputs.STEPS[1][1][0] === "-") {  // if first character is - (negative)
+                            negSteps = true;
+                        }
+                    }
+                });
+
+                if ((pointedLeft && !negSteps) || (!pointedLeft && negSteps)) {
+                    this.extensions.goalieMovesLeft.bool = true;
+                }
+            } else if (keyOption === "right arrow") {
+                let pointedRight = true;
+                let negSteps = false;
+                iterateBlocks(script, (block, level) => {
+                    let opcode = block.opcode; 
+                    if (opcode.includes("motion_pointindirection")) {
+                        if (block.inputs.DIRECTION[1][1][0] === "-") {  // if first character is - (negative)
+                            pointedRight = false;
+                        }
+                    }
+                    if (["motion_movesteps", "motion_glide"].includes(opcode)) {
+                        if (block.inputs.STEPS[1][1][0] === "-") {  // if first character is - (negative)
+                            negSteps = true;
+                        }
+                    }
+                });  
+                
+                if ((pointedRight && !negSteps) || (!pointedRight && negSteps)){
+                    this.extensions.goalieMovesRight.bool = true; 
+                }
+            }
+        }
+    }
+
+    // main grading function
+    grade(fileObj, user) {
+        var project = new Project(fileObj);
+
+        this.init();
+        // if project doesn't exist, return
+        if (!is(fileObj)) return;
+
+        for(var target of project.targets) {
+            if (!(target.isStage)) {
+
+                if (target.name === "Jaime ") {
+                    this.gradeJaime(target);
+                } else if (target.name === "Soccer Ball") {
+                    this.gradeBall(target);
+                } else if (target.name === "Goal") {
+                    if (!(this.extensions.cheerSounds.bool)) {
+                        this.gradeGoal(target);
+                    } 
+                } else {   // if not Jaime, Ball, or Goal, sprite must be added goalie
+                    this.extensions.goalieAdded.bool = true;
+                    this.gradeGoalie(target);
+                }
+            }
+        }
+    }    
+}
+
+},{"./scratch3":26}],19:[function(require,module,exports){
 /* Decomposition by Sequence L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -4069,14 +4086,55 @@ module.exports = class {
             addBackdrop: {bool: false, str: 'Added a new backdrop.'},  
             addThreeSprites: {bool: false, str: 'Added at least three sprites.'},
             twoSpritesGoTo: {bool: false, str: 'Two sprites use the "goto x:_ y:_" block.'},
-            touchingBlock: {bool: false, str: 'Two sprites use "wait until touching" and/or "repeat until touching".'},
-            sequentialAction: {bool: false, str: 'Two sprites have sequential action.'},
-            //TODO: do the touching and sequentialaction reqs have to be under the same event block?
+            sequentialAction: {bool: false, str: 'Two sprites have sequential action in a loop that animates them.'},
+            touchingBlock: {bool: false, str: 'Has Two sprites (A and B) where A uses "wait (or repeat) until touching B" and B uses "repeat (or wait) until touching A".'},
+            //TODO: the L2 Student sheet does not specify the "wait/repeat until touching" requirement very well
         }
         this.extensions = {
             thirdSprite: {bool: false, str: 'The third sprite has a new event with different actions.'},
             soundBlock: {bool: false, str: 'The project uses a sound block.'},
         }
+    }
+
+    // given a block that has an input conditon, check if it is a Touching condition
+    // and return the opcode of what its touching target conditon is
+    getCondOpcode(block) {
+        let targetCond = null;
+        let inputCond = block.conditionBlock();  // the input condition block       
+        if ((inputCond !== null) && ("sensing_touchingobject" === inputCond.opcode)) {
+            // find the specific field entered into the input condition block
+            let condSelected = inputCond.toBlock(inputCond.inputs.TOUCHINGOBJECTMENU[1]);                          
+            if ((condSelected !== null) && (condSelected.opcode === "sensing_touchingobjectmenu")) {
+                targetCond = condSelected.fields.TOUCHINGOBJECTMENU[0];
+            }
+        }
+        return targetCond;
+    }
+
+    // given a loop block, look for a move, wait, and costume block for sequential action/animation 
+    findSequentialAction(block) {
+        let foundMove = false;
+        let foundWait = false; 
+        let foundCostume = false;
+
+        let subBlocks = block.subScripts();
+
+        for (var subScript of subBlocks) {
+            iterateBlocks(subScript, (block, level) => {
+                let subop = block.opcode; 
+
+                if (subop === 'motion_movesteps') {
+                    foundMove = true; 
+                }
+                if (subop === 'control_wait') {
+                    foundWait = true;
+                }
+                if (['looks_nextcostume', 'looks_switchcostumeto'].includes(subop)) {
+                    foundCostume = true;
+                }
+            });
+        }   
+        return (foundMove && foundCostume && foundWait);
     }
 
     gradeSprite(sprite) {
@@ -4091,25 +4149,16 @@ module.exports = class {
             'control_repeat',
             'control_repeat_until',
             'sound_play',
-            'sound_playuntildone'
+            'sound_playuntildone',
+            "motion_pointtowards",
+            "motion_pointtowards_menu",
         ];
 
         var goTo = false;
-        var touching = false;
+        var waitingUntil = [];
+        var repeatingUntil = [];
         var seqAction = false;
         var diffActions = false; 
-
-        var actionBlocks = [
-            'motion_movesteps', 
-            'looks_costume', 
-            'looks_switchcostumeto', 
-            'looks_nextcostume', 
-            'control_wait',
-        ];
-
-        var foundMove = false;
-        var foundCostume = false;
-        var foundWait = false; 
 
         // iterate through the sprite's scripts that start with an event block 
         for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) {
@@ -4124,13 +4173,18 @@ module.exports = class {
                     goTo = goTo || opcode.includes("motion_gotoxy");
 
                     // if sprite uses wait until touching or repeat until touching blocks
-                    if (["control_wait_until", "control_repeat_until"].includes(opcode)) {
-                        var inputCond = block.conditionBlock();  // the input condition block
-                        if (inputCond !== null) {
-                            if (["sensing_touchingcolor", "sensing_touchingobject", "sensing_touchingobjectmenu", "sensing_coloristouchingcolor"].includes(inputCond.opcode)) 
-                                touching = true;
+                    // create an array of the targets it uses in these blocks
+                    if (opcode.includes("control_wait_until")) {
+                        let targetSprite = this.getCondOpcode(block);
+                        if (targetSprite != null) {
+                            waitingUntil.push(targetSprite);
                         }
-                    }
+                    } else if (opcode.includes("control_repeat_until")) {
+                        let targetSprite = this.getCondOpcode(block);
+                        if (targetSprite != null) {
+                            repeatingUntil.push(targetSprite);
+                        }
+                    } 
 
                     // if sprite uses new action blocks
                     if (!(knownBlocks.includes(opcode)) && (opcode.includes("motion_") || opcode.includes("looks_"))) {
@@ -4142,48 +4196,10 @@ module.exports = class {
                         this.extensions.soundBlock.bool = true;
                     } 
 
-                    // search for sequential action blocks (wait, move, change costume) in any order
-                    if (actionBlocks.includes(opcode) && (seqAction === false)) {
-                        var currBlock = block;
-                        var nextBlock = block.nextBlock();
-                        if ((nextBlock !== null) && (nextBlock.next !== null)) {  // if a group of 3 blocks exist
-                            var thirdBlock = nextBlock.nextBlock();
-                            // only check groups of three sequential blocks that are all potential seqAction blocks 
-                            if ((actionBlocks.includes(nextBlock.opcode)) && (actionBlocks.includes(thirdBlock.opcode))) { 
-                                if (currBlock.opcode.includes("motion_movesteps")) {
-                                    foundMove = true; 
-                                } else if (['looks_costume','looks_switchcostumeto','looks_nextcostume'].includes(currBlock.opcode)) {
-                                    foundCostume = true; 
-                                } else if (currBlock.opcode.includes("control_wait")) { 
-                                    foundWait = true; 
-                                }
-
-                                if (nextBlock.opcode.includes("motion_movesteps")) {
-                                    foundMove = true; 
-                                } else if (['looks_costume','looks_switchcostumeto','looks_nextcostume'].includes(nextBlock.opcode)) {
-                                    foundCostume = true; 
-                                } else if (nextBlock.opcode.includes("control_wait")) { 
-                                    foundWait = true; 
-                                }
-
-                                if (thirdBlock.opcode.includes("motion_movesteps")) {
-                                    foundMove = true; 
-                                } else if (['looks_costume','looks_switchcostumeto','looks_nextcostume'].includes(thirdBlock.opcode)) {
-                                    foundCostume = true; 
-                                } else if (thirdBlock.opcode.includes("control_wait")) {
-                                    foundWait = true; 
-                                }
-                
-                                // if one of each kind of seqAction blocks is found in the sequence of three given blocks
-                                seqAction = seqAction || (foundMove && foundCostume && foundWait);
-                                    
-                                // reset the flags
-                                foundMove = false;
-                                foundCostume = false;
-                                foundWait = false;                                
-                            }
-                        }                         
-                    }                  
+                    // search a loop for sequential action blocks (wait, move, costume)
+                    if (opcode.includes("control_repeat")) { 
+                        seqAction = seqAction || this.findSequentialAction(block);
+                    }              
                 });
             }
         }        
@@ -4191,9 +4207,10 @@ module.exports = class {
         return {
             name: sprite.name,
             usesGoTo: goTo,
-            usesTouching: touching,
             hasSeqAction: seqAction,
             hasDiffActions: diffActions,
+            isWaitingUntil: waitingUntil,
+            isRepeatingUntil: repeatingUntil,
         }
     }
 
@@ -4208,9 +4225,11 @@ module.exports = class {
         var totalSprites = 0;
         var newSprites = 0;
         var numSpritesGoTo = 0;
-        var numSpritesTouching = 0;
         var numSpritesSeqAction = 0;
         var numSpritesDiffAction = 0;
+        var numSpritesTouching = 0;
+        let waitUntilTargets = {};
+        let repeatUntilTargets = {};
 
         for(var target of project.targets) {
             if (target.isStage) {
@@ -4231,15 +4250,47 @@ module.exports = class {
                 var currSprite = this.gradeSprite(target);
 
                 if (currSprite.usesGoTo) numSpritesGoTo++;
-                if (currSprite.usesTouching) numSpritesTouching++;
                 if (currSprite.hasSeqAction) numSpritesSeqAction++;
                 if (currSprite.hasDiffActions) numSpritesDiffAction++;
+                if ((currSprite.isWaitingUntil.length >= 1) || (currSprite.isRepeatingUntil.length >= 1)) {  // if target arrays are nonempty
+                    numSpritesTouching++;
+                    // add sprite's target arrays to a repeat or wait object
+                    if (currSprite.isWaitingUntil.length >= 1) {
+                        waitUntilTargets[currSprite.name] = currSprite.isWaitingUntil;
+                        console.log(currSprite.name + " is waiting until touching: [" + waitUntilTargets[currSprite.name] + "]");
+                    }
+                    if (currSprite.isRepeatingUntil.length >= 1) {
+                        repeatUntilTargets[currSprite.name] = currSprite.isRepeatingUntil;
+                        console.log(currSprite.name + " is repeating until touching: [" + repeatUntilTargets[currSprite.name] + "]");
+                    }
+                }
             }
         }
+
         if (newSprites >= 3) this.requirements.addThreeSprites.bool = true;
         if (numSpritesGoTo >= 2) this.requirements.twoSpritesGoTo.bool = true;
-        if (numSpritesTouching >= 2) this.requirements.touchingBlock.bool = true;
         if (numSpritesSeqAction >= 2) this.requirements.sequentialAction.bool = true;
+
+        // if at least 2 sprites use conditional blocks
+        if (numSpritesTouching >= 2) {
+            // if at least one sprite uses "wait until" and at least one sprite uses "repeat until"
+            if ((Object.keys(waitUntilTargets).length >= 1) && (Object.keys(repeatUntilTargets).length >= 1)) {
+                // check to see if Sprites A and B have wait/repeat until blocks that target each other 
+                for (let currKey in waitUntilTargets) {
+                    for (var i = 0; i < waitUntilTargets[currKey].length; i++) {
+                        let currTarget = waitUntilTargets[currKey][i];
+
+                        if (currTarget in repeatUntilTargets) {
+                            for (var j = 0; j < repeatUntilTargets[currTarget].length; j++) {
+                                if (repeatUntilTargets[currTarget][j] === currKey) {
+                                    this.requirements.touchingBlock.bool = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         if ((numSpritesDiffAction >= 3) || ((totalSprites >= 3) && (numSpritesDiffAction >= 1))) {
             this.extensions.thirdSprite.bool = true;
@@ -4248,7 +4299,7 @@ module.exports = class {
         }
     }
 }
-},{"./scratch3":24}],19:[function(require,module,exports){
+},{"./scratch3":26}],20:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -4311,25 +4362,12 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":24}],20:[function(require,module,exports){
+},{"./scratch3":26}],21:[function(require,module,exports){
 /* Events L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and bug fixes: Marco Anaya, Summer 2019
 */
 require('./scratch3');
-// recursive function that searches a script and any subscripts (those within loops)
-function iterateBlocks(script, func) {
-    function recursive(scripts, func, level) {
-        if (!is(scripts) || scripts === [[]]) return;
-        for (var script of scripts) {
-            for(var block of script.blocks) {
-                func(block, level);
-                recursive(block.subScripts(), func, level + 1);
-            }
-        }
-    }
-    recursive([script], func, 1);
-}
 
 module.exports = class {
     init() {
@@ -4349,19 +4387,57 @@ module.exports = class {
             moreScripts: {bool: false, str: "A sprite reacts to more events."},
             spriteBlinks: {bool: false, str: "A sprite blinks (use hide, show, and wait blocks)."}
         };
+
+        this.info = {
+            blocks: 0,
+            sprites: 0,
+            spritesWith1Script: 0,
+            spritesWith2Scripts: 0,
+            holiday: null,
+            guidingUser: false,
+            blockTypes: new Set([]),
+        }
     }
     
     gradeSprite(sprite) {
         var reqEvents = [];
         var events = [];
-        var validScripts = 0;     
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes('event_when'))){
+        var validScripts = 0;    
 
+        this.info.sprites++;
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes('event_when'))){
+            
             //look for extension requirements throughout each block
             var blink = {hide: false, wait: false, show: false};
             var spin = {wait: false, turn: false};
-            iterateBlocks(script, (block, level) => {
+            script.traverseBlocks((block, level) => {
                 var opcode = block.opcode;
+                if (opcode in this.info.blockTypes) {
+                    
+                } else {
+                    this.info.blockTypes.add(opcode)
+                    this.info.blocks++;
+                }
+                if (opcode.includes('say')) {
+                    let string = block.inputs.MESSAGE[1][1].toLowerCase();
+                    if (!this.info.holiday) {
+                        for (let holiday of ['christmas', 'halloween', 'july', 'birthday', 'day']) {
+                            
+                            if (string.includes(holiday)) {
+                                this.info.holiday = holiday;
+                                break;
+                            }
+                        }
+                    }
+                    if (!this.info.guidingUser) {
+                        for (let keyWord of ['press', 'click']) {
+                            if (string.includes(keyWord)) {
+                                this.info.guidingUser = true;
+                                break;
+                            }
+                        }
+                    }
+                }
                 spin.turn = spin.turn || opcode.includes("motion_turn");
                 blink.hide = blink.hide || (opcode == 'looks_hide');
                 blink.show = blink.show || (opcode == 'looks_show');
@@ -4408,6 +4484,8 @@ module.exports = class {
                 break;
             }
         }
+        if (validScripts >=2) this.info.spritesWith2Scripts++
+        else if (validScripts >= 1) this.info.spritesWith1Script++;
         return reqEvents;
     }
 
@@ -4422,888 +4500,351 @@ module.exports = class {
                     this.requirements.choseBackdrop.bool = true;
                 continue;
             }
+
             // calls the sprite grader while aggregating the total required events used
             reqEvents = [...new Set([...reqEvents, ...this.gradeSprite(target)])];
         }
         this.requirements.usesTheThreeEvents.bool = (reqEvents.length === 3);
         this.requirements.hasThreeSprites.bool = (project.targets.length - 1 >= 3);
+        
     }
 } 
-},{"./scratch3":24}],21:[function(require,module,exports){
+},{"./scratch3":26}],22:[function(require,module,exports){
 /* One Way Sync L1 Autograder
- * Marco Anaya, Spring 2019
+ * Marco Anaya, Summer 2019
+ */
+require('./scratch3');
+
+module.exports = class {
+
+	init() { //initialize all metrics to false
+		this.requirements = {
+			oneToOne: {bool:false, str:'Djembe passes unique message to Mali child'},
+			djembePlays: {bool: false, str: 'When Djembe is clicked, Djembe plays music'},
+			djembeToChild: {bool: false, str: 'When Djembe is clicked, Mali child dances'},
+			startButton: {bool: false, str: 'Start button sprite created'},
+			oneToMany: {bool: false, str: 'Start button passes the same message to all other sprites'},
+			startToSprite1: {bool: false, str: 'A sprite plays or dances when the start button is clicked'},
+			startToSprite2:	{bool: false, str: 'Another sprite plays or dances when the start button is clicked'},
+			startToSprite3:	{bool: false, str: 'A third sprite plays or dances when the start button is clicked'},
+			startToSprite4:	{bool: false, str: 'A fourth sprite plays or dances when the start button is clicked'}
+		};
+		this.extensions = {
+			changeWait: {bool: false, str: 'Changed the duration of a wait block'},
+			sayBlock:	{bool: false, str: 'Added a say block under another event'}
+		}
+	}
+
+	grade(fileObj, user) {
+		this.init();
+		const project = new Project(fileObj)
+
+		let reports = project.sprites.map(sprite => this.gradeSprite(sprite));
+		let messages = {};
+		
+		for (let report of reports) {
+			if (report.sent != []) {
+				for (let msg of report.sent) {
+					if (msg in messages) messages[msg].sent = true;
+					else messages[msg] = {sent: true, recipents: []};
+				}
+			}
+			if (report.received != []) {
+				for (let msg of report.received) {
+					if (msg in messages) messages[msg].recipents.push(report.name);
+					else messages[msg] = {sent: false, recipents: [report.name]};
+				}
+			}
+		}
+
+		
+
+		reports = reports.reduce((acc, r) => {
+			acc.push({
+				name: r.name,
+				plays: r.plays,
+				sent: 
+					r.sent.length === 0 ? null : r.sent.reduce((acc, msg) => {
+						acc[msg] = messages[msg].recipents;
+						return acc;
+					}, {}),
+				received: r.received,
+				dances: r.dances
+			});
+			return acc;
+		}, []);
+		const sentCount = (sender) => 
+				Object.values(sender.sent).reduce((acc, b) => acc + b.length, 0) + !(sender.name.includes('ali') || sender.name.includes('avajo'));
+
+		let senders = reports.filter(r => r.sent).sort((a, b) => {
+				return sentCount(b) - sentCount(a);
+		})
+		this.requirements.startButton.bool = reports.length >= 5;
+        // Checks the sprite with the most broadcasts, assuming that it must be the start button
+		if (senders.length >= 3) {
+			let startButton = senders[0];
+			
+			let totalRecipients = new Set([]);
+			for (let recipients of Object.values(startButton.sent)) {
+				let score = 0;
+				for (let name of recipients) {
+					let recipientReport = reports.find(r => r.name == name);
+					if (recipientReport.plays.onClick || recipientReport.plays.onBroadcast || recipientReport.dances) {
+						score++;
+						totalRecipients.add(name);
+					}
+				}
+				if (score >= 4) this.requirements.oneToMany.bool = true;
+			}
+			
+			if (totalRecipients.size > 0) {
+				for (let i = Math.min(totalRecipients.size, 4); i > 0; i--) 
+					this.requirements[`startToSprite${i}`].bool = true;
+				//remove this sprite
+				senders = senders.slice(1);
+			}
+        }
+        // Check if at least two of remaining sprites do what is expected from Djembe and Flute sprites
+        if (senders.length >= 2) {
+
+			let visitedFlute = false;
+			let probableDjembe = null;
+
+			const sumScore = (score) => !score? 0 : Object.values(score).reduce((a, b) => a + b, 0)
+			
+            for (let sender of senders) {    
+                for (let [msg, recipients] of Object.entries(sender.sent)) {
+					let score = {
+						uniqueMessage: msg.toLowerCase() != 'navajo',
+						senderPlays: (sender.plays.onClick || sender.plays.onBroadcast),
+						recipientDances: recipients.some(recipient => reports.find(r => r.name == recipient && r.dances))
+					};
+					
+                	if (score.recipientDances && score.senderPlays && !score.uniqueMessage && !visitedFlute) {
+						visitedFlute = true;
+					} else {
+						probableDjembe = sumScore(score) > sumScore(probableDjembe) ? score : probableDjembe;
+					}
+				}
+            }
+            [this.requirements.oneToOne.bool, this.requirements.djembePlays.bool, this.requirements.djembeToChild.bool] = Object.values(probableDjembe);
+        }		
+	}
+	gradeSprite(sprite) {
+		let reqs = {
+			name: sprite.name,
+			plays: {onClick: false, onBroadcast: false},
+			sent: [],
+			received: [],
+			dances: {costume: false, wait: false}
+		}
+		for (let script of sprite.scripts.filter(s => s.blocks[0].opcode.includes('event_when'))) {
+			if (script.blocks[0].opcode === 'event_whenthisspriteclicked')
+				script.traverseBlocks((block, level) => {
+					if (['sound_play', 'sound_playuntildone'].includes(block.opcode))
+						reqs.plays.onClick = true;
+					else if (['event_broadcast', 'event_broadcastandwait'].includes(block.opcode))
+						reqs.sent.push( block.inputs.BROADCAST_INPUT[1][1])
+				});
+			else if (script.blocks[0].opcode === 'event_whenbroadcastreceived') {
+				reqs.received.push(script.blocks[0].fields.BROADCAST_OPTION[0]);
+				script.traverseBlocks((block, level) => {
+					if (['sound_play', 'sound_playuntildone'].includes(block.opcode))
+						reqs.plays.onBroadcast = true;
+					else if (['event_blooks_switchcostumeto', 'looks_nextcostume'].includes(block.opcode))
+						reqs.dances.costume = true;
+					else if (block.opcode === 'control_wait') {
+						reqs.dances.wait = true;
+						if (block.inputs.DURATION[1][1] != .5) this.extensions.changeWait.bool = true;
+					}
+				});
+			} 
+			script.traverseBlocks((block, level) => {
+				if (['looks_say', 'looks_sayforsecs'].includes(block.opcode))
+					this.extensions.sayBlock.bool = true;
+			});
+		}
+		reqs.dances = reqs.dances.costume && reqs.dances.costume;
+		return reqs;
+	}
+}
+},{"./scratch3":26}],23:[function(require,module,exports){
+/* One Way Sync L2 Autograder
+ * Marco Anaya, Summer 2019
  */
 
-var sb3 = {
-	//null checker
-	no: function(x) { 
-	  return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
-	},
+require('./scratch3');
 
-	//retrieve a given sprite's blocks from JSON
-	//note: doesn't check whether or not blocks are properly attached
-	jsonToSpriteBlocks: function(json, spriteName) { 
-		if (this.no(json)) return []; //make sure script exists
+module.exports = class {
 
-		var projInfo = json['targets'] //extract targets from JSON data
-		var allBlocks={};
-		var blocks={};
-		
-		//find sprite
-		for(i=0; i <projInfo.length; i++){
-			if(projInfo[i]['name'] == spriteName){
-				return projInfo[i]['blocks'];
-			}
-		}
-		return [];
-	}, //done
-	
-	//retrieve a given sprite's info (not just blocks) from JSON
-	jsonToSprite: function(json, spriteName) { 
-		if (this.no(json)) return []; //make sure script exists
-
-		var projInfo = json['targets'] //extract targets from JSON data
-		
-		//find sprite
-		for(i=0; i <projInfo.length; i++){
-			if(projInfo[i]['name'] == spriteName){
-				return projInfo[i];
-			}
-		}
-		return [];
-	}, //done
-	
-	//counts the number of non-background sprites in a project
-	countSprites: function(json){
-		if (this.no(json)) return false; //make sure script exists
-		
-		var numSprites = 0;
-		var projInfo = json['targets'] //extract targets from JSON data
-		
-		for(i=0; i <projInfo.length; i++){
-			if(projInfo[i]['isStage'] == false){
-				numSprites ++;
-			}
-		}
-		return numSprites
-	},
-	
-	//looks through json to see if a sprite with a given name is present
-	//returns true if sprite with given name found
-	findSprite: function(json, spriteName){ 
-		if (this.no(json)) return false; //make sure script exists
-
-		var projInfo = json['targets'] //extract targets from JSON data
-		
-		//find sprite
-		for(i=0; i <projInfo.length; i++){
-			if(projInfo[i]['name'] == spriteName){
-				return true;
-			}
-		}
-		return false;
-	}, //done
-	
-	//returns list of block ids given a set of blocks
-	findBlockIDs: function(blocks, opcode){
-		if(this.no(blocks) || blocks == {}) return null;
-		
-		var blockids = [];
-		
-		for(block in blocks){ 
-			if(blocks[block]['opcode'] == opcode){
-				blockids.push(block);
-			}
-		}
-		return blockids;
-	},
-	
-	//given particular key, returns list of block ids of a certain kind of key press given a set of blocks 
-	findKeyPressID: function(blocks, key){
-		if(this.no(blocks) || blocks == {}) return [];
-		
-		var blockids = [];
-		
-		for(block in blocks){ 
-			if(blocks[block]['opcode'] == 'event_whenkeypressed'){
-				if(blocks[block]['fields']['KEY_OPTION'][0] == key){
-					blockids.push(block);
-				}
-			}
-		}
-		return blockids;
-	},
-	
-	opcodeBlocks: function(script, myOpcode) { //retrieve blocks with a certain opcode from a script list of blocks
-		if (this.no(script)) return [];
-		
-		var miniscript = [];
-
-		for(block in script){
-			if(script[block]['opcode'] == myOpcode){
-				miniscript.push(script[block]);
-			}
-		}
-		return miniscript;
-	}, 
-	
-	opcode: function(block) { //retrives opcode from a block object 
-		if (this.no(block)) return "";
-		return block['opcode'];
-	}, 
-	
-	countBlocks: function(blocks,opcode){ //counts number of blocks with a given opcode
-		var total = 0;
-	for(id in blocks){ 
-			if([blocks][id]['opcode'] == opcode){
-				total = total + 1;
-			}
-		}
-		return total;
-	}, //done
-	
-	//(recursive) helper function to extract blocks inside a given loop
-	//works like makeScript except it only goes down the linked list (rather than down & up)
-	loopExtract: function(blocks, blockID){
-		if (this.no(blocks) || this.no(blockID)) return [];
-		loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
-		
-		var curBlockID = blockID;
-		var script = [];
-
-		//Find all blocks that come after
-		curBlockID = blockID //Initialize with blockID of interest
-		while(curBlockID != null){
-			curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-			script.push(curBlockInfo); //Add the block itself to the script dictionary                
-
-			
-			//nextInfo = blocks[nextID]
-			opcode = curBlockInfo['opcode'];
-			
-			//extract nested children if loop block
-			if(loop_opcodes.includes(opcode)){
-				var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-				if(innerloop != undefined){
-					var nested_blocks = this.makeScript(blocks, innerloop)
-					for(b in nested_blocks){
-						script.push(nested_blocks[b])
-					}
-				}
-			}
-
-			//Get next info out
-			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-	
-			//If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
-			if((nextID == null) && (event_opcodes.includes(opcode))){
-				return [];
-			}
-			//Iterate: Set next to curBlock
-			curBlockID = nextID;
-		}     
-		return script;        
-	},
-	
-	//given list of blocks and a keyID of a block, return a script
-	makeScript: function(blocks, blockID){
-		if (this.no(blocks) || this.no(blockID)) return [];
-		event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
-		loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
-		
-		var curBlockID = blockID;
-		var script = [];
-	
-		//find all blocks that come before
-		while(curBlockID != null){
-			var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-			script.push(curBlockInfo); //Add the block itself to the script dictionary 
-			
-			//Get parent info out
-			var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
-			//parentInfo = blocks[parentID]
-		var opcode = curBlockInfo['opcode'];
-
-			
-			//extract nested children if loop block
-			if(loop_opcodes.includes(opcode)){
-				var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-				if(innerloop != undefined){
-					var nested_blocks = this.loopExtract(blocks, innerloop)
-					for(b in nested_blocks){
-						script.push(nested_blocks[b])
-					}
-				}
-			}
-			
-			//If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
-			if ((parentID == null) && !(event_opcodes.includes(opcode))){
-				return [];
-			}
-
-			//Iterate: set parent to curBlock
-			curBlockID = parentID
-		}
-
-		//find all blocks that come after
-		curBlockID = blocks[blockID]['next']
-		while(curBlockID != null){
-			curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-
-			//nextInfo = blocks[nextID]
-			opcode = curBlockInfo['opcode'];
-			
-			//extract nested children if loop block
-			if(loop_opcodes.includes(opcode)){
-				var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-				if(innerloop != undefined){
-					var nested_blocks = this.loopExtract(blocks, innerloop)
-					for(b in nested_blocks){                            
-						script.push(nested_blocks[b])
-					}
-				}
-			}
-
-			//Get next info out
-			nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-	
-			//If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
-			if((nextID == null) && (event_opcodes.includes(opcode))){
-				return [];
-			}
-			script.push(curBlockInfo); //Add the block itself to the script dictionary                
-			//Iterate: Set next to curBlock
-			curBlockID = nextID;
-		}
-		return script;
-	}
-};
-
-class GradeOneWaySyncL1 {
-
-	constructor() {
-		this.requirements = {};
-		this.extensions = {};
-	}
-
-	initReqs() { //initialize all metrics to false
+	init() { 
 		this.requirements = {
-
-			oneToOne: 
-				{bool:false, str:'Djembe passes unique message to Mali child'},
-			djembePlays: 
-				{bool: false, str: 'When Djembe is clicked, Djembe plays music'},
-			djembeToChild: 
-				{bool: false, str: 'When Djembe is clicked, Mali child dances'},
-			startButton: 
-				{bool: false, str: 'Start button sprite created'},
-			oneToMany: 
-				{bool: false, str: 'Start button passes the same message to all other sprites'},
-			startToDjembe: 
-				{bool: false, str: 'When start button is clicked, Djembe plays music'},
-			startToFlute: 
-				{bool: false, str: 'When start button is clicked, Flute plays music'},
-			startToMaliChild: 
-				{bool: false, str: 'When start button is clicked, Mali child dances'},
-			startToNavajoChild: 
-				{bool: false, str: 'When start button is clicked, Navajo child dances'}
+			hasBackdrop: {bool: false, str: 'Project has a backdrop'},
+			fiveSprites: {bool: false, str: 'Five sprites created'},
+			oneToMany: {bool: false, str: 'One sprite sends a broadcast'},
+			startToSprite1: {bool: false, str: 'Message received by sprite 1 and sprite does something'},
+			startToSprite2: {bool: false, str: 'Message received by sprite 2 and sprite does something'},
+			startToSprite3: {bool: false, str: 'Message received by sprite 3 and sprite does something'},
+			startToSprite4: {bool: false, str: 'Message received by sprite 4 and sprite does something'}
+		};
+		this.extensions = {
+			animated: {bool: false, str: 'Added animation to sprites'},
+			sayBlock: {bool: false, str: 'Added say blocks to sprites'},
+			anotherOneToMany: {bool: false, str: 'Used one-to-many synchronization a second time'}
 		};
 	}
-	initExts() {
-		this.extensions = {
-			changeWait: 
-				{bool: false, str: 'Changed the duration of a wait block'},
-			sayBlock: 
-				{bool: false, str: 'Added a say block under another event'}
-		}
-	}
 
-	grade(fileObj, user) { //call to grade project //fileobj is 
-		this.initReqs();
-		this.initExts();
-		var sprites = {'Navajo Flute': null, 'Navajo child': null, 'Mali Djembe': null, 'Mali child': null};
-		const targets = fileObj.targets;
-		var spriteIsButton = true;
+	grade(fileObj, user) { 
+		this.init();
+		let project = new Project(fileObj);
 		
-		// creates object of sprites, first non-default one is marked as the start button
-		for (var target of targets) {
-			if (target.isStage) {
-				continue;
+		this.requirements.hasBackdrop.bool = project.targets[0].costumes.length > 1 || project.targets[0].costumes[0].name !== 'backdrop1';
+		let reports = project.sprites.map(sprite => this.gradeSprite(sprite));
+
+		let messages = {};
+
+		for (let report of reports) {
+			if (report.sent != []) {
+				for (let msg of report.sent) {
+					if (msg in messages) messages[msg].sent = true;
+					else messages[msg] = {sent: true, recipients: []};
+				}
 			}
-			if (target.name in sprites) {
-				sprites[target.name] = target;
-			} else if (spriteIsButton) {
-				sprites['Start Button'] = target;
-				spriteIsButton = false;
+			if (report.received != []) {
+				for (let msg of report.received) {
+					if (msg in messages) messages[msg].recipients.push(report.name);
+					else messages[msg] = {sent: false, recipients: [report.name]};
+				}
 			}
 		}
-		this.checkDjembeBroadcast(sprites)
-		this.checkStartBroadcast(sprites);
-		sprites = Object.values(sprites).filter(sprite => sprite != null);
-		this.checkSayOnEvent(sprites);
-		this.checkChangeWait(sprites);
-	}
 
-	/*
-	 * Returns an array of two booleans:
-	 *   whether the sprite received the message
-	 *   whether it is playing a sound
-	 */
-	broadcastToPlay(sprite, message) {
-		if (sb3.no(sprite)) {
-			return;
-		}
-		var receivesMessage = false;
-		const whenReceiveBlocks = sb3.findBlockIDs(sprite.blocks, 'event_whenbroadcastreceived');
+		let oneToFourCount = 0;
 
-		if(whenReceiveBlocks) {
-			for(var whenReceiveBlock of whenReceiveBlocks) {
-				var script = sb3.makeScript(sprite.blocks, whenReceiveBlock);
-
-				if (script[0].fields.BROADCAST_OPTION[0] == message) {
-					receivesMessage = true;
-					for (var block of script) {
-						if (['sound_play', 'sound_playuntildone'].includes(block.opcode)) {
-							return [receivesMessage, true];
+		messages = Object.entries(messages).sort((a, b) => b[1].recipients.length - a[1].recipients.length);
+		if (messages.length > 0) {
+			for (let [msg, {sent, recipients}] of messages) {
+				if (sent) {
+					for (let sender of reports.filter(r => r.sent.includes(msg))) {
+						let count = (recipients.length - recipients.includes(sender));
+						for (let i = Math.min(count, 4); i > 0; i--) {
+							this.requirements[`startToSprite${i}`].bool = true;
 						}
+						oneToFourCount += count >= 4;
 					}
 				}
-			}
+			}	 
 		}
-		return [receivesMessage, false];
+
+		this.requirements.fiveSprites.bool = (reports.length >= 5);
+		this.extensions.anotherOneToMany.bool = (oneToFourCount > 1);
 	}
-
-	/* 
-	 * Returns an array of two booleans:
-	 *   whether the sprite received the message
-	 *   whether it is dancing
-	 */
-	broadcastToDance(sprite, message) {
-		if (sb3.no(sprite)) {
-			return;
+	
+	gradeSprite(sprite) {
+		let reqs = {
+			name: sprite.name,
+			sent: [],
+			received: []
 		}
-		// if costume change and waitblock within a repeat loop, the sprite is dancing
-		var animation = {constume: false, wait: false};
-		var receivesMessage = false;
-
-		const whenReceiveBlocks = sb3.findBlockIDs(sprite.blocks, 'event_whenbroadcastreceived');
-
-		if (whenReceiveBlocks) {
-			for(var whenReceiveBlock of whenReceiveBlocks) {
-				var script = sb3.makeScript(sprite.blocks, whenReceiveBlock);
-
-				if (script[0].fields.BROADCAST_OPTION[0] == message) {
-					receivesMessage = true;
-
-					for (var block of script) {
-							if (block.opcode == 'control_repeat') {
-
-							var sblock = block.inputs.SUBSTACK[1];
-							while(sblock != null) {
-								const sblockInfo = sprite.blocks[sblock];
-								switch(sblockInfo.opcode) {
-									case 'looks_switchcostumeto':
-									case 'looks_nextcostume': {
-										animation.costume = true;
-										break;
-									}
-									case 'control_wait': {
-
-										animation.wait = true;
-									}
-								}
-								sblock = sblockInfo.next;
-							}
-						}
-					}
-				}
-			}
-		}
-		return [receivesMessage, animation.costume && animation.wait];
-	}
-
-	/* Checks first part of lesson, whether djembe broadcasts to child */
-	checkDjembeBroadcast({ 'Mali Djembe': djembe = null, 'Mali child': child = null}) {
-		if (!djembe) return;
-		
-		var messageSent = false;
-		var messageName = "";
-		var djembePlaysDirectly = false;
-
-		var whenClickedBlocks = sb3.findBlockIDs(djembe.blocks, 'event_whenthisspriteclicked');
-
-		if(whenClickedBlocks) {
-			for(var whenClickedBlock of whenClickedBlocks) {
-				var script = sb3.makeScript(djembe.blocks, whenClickedBlock);
-				for(var block of script){
-					switch(block.opcode) {
-						case 'sound_play':
-						case 'sound_playuntildone': {
-							djembePlaysDirectly = true;
-							break;
-						}
-						case 'event_broadcast':
-						case 'event_broadcastandwait': {
-							messageSent = true;
-							messageName = block.inputs.BROADCAST_INPUT[1][1];
-						}
-					} 
-				}
-			}  
+		for (let script of sprite.scripts.filter(s => s.blocks[0].opcode.includes('event_when'))) {
 			
-			const [, djembePlaysBroadcast] = this.broadcastToPlay(djembe, messageName);
-			// djembe can be played directly when sprite is clicked, or it can send a message to itself
-			this.requirements.djembePlays.bool = djembePlaysDirectly || djembePlaysBroadcast;
-		}
-		// if message was sent, check if it was received and produced the desired result
-		if (messageSent) {
-			if (!child) 
-				return;
-
-			const [childReceives, childDances] = this.broadcastToDance(child, messageName);
-			// checks whether the child receives the message and whether it is unique
-			this.requirements.oneToOne.bool = childReceives && (messageName != 'Navajo');
-			this.requirements.djembeToChild.bool = childDances;
-		}
-	}
-
-	/* Checks second part of lesson, the creation and broadcasting of start sprite */
-	checkStartBroadcast({ 'Mali Djembe': djembe, 
-											  'Mali child': maliChild, 
-											  'Navajo Flute': flute, 
-											  'Navajo child': navajoChild, 
-											  'Start Button': start = null }) {
-		if (!start) {
-			return;
-		}
-
-		this.requirements.startButton.bool = true;
-
-		var messageSent = false;
-		var messageName = "";
-		var whenClickedBlocks = sb3.findBlockIDs(start.blocks, 'event_whenthisspriteclicked');
-
-		if(whenClickedBlocks) {
-			for(var whenClickedBlock of whenClickedBlocks) {
-				var script = sb3.makeScript(start.blocks, whenClickedBlock);
-				for(var block of script){
-					if(['event_broadcast', 'event_broadcastandwait'].includes(block.opcode)) {
-						messageSent = true;
-						messageName = block.inputs.BROADCAST_INPUT[1][1];
-					} 
-				}
+			if (script.blocks[0].opcode === 'event_whenbroadcastreceived' && script.blocks.length > 1) {
+				reqs.received.push(script.blocks[0].fields.BROADCAST_OPTION[0]);
 			}
-		}
-		// if message was sent, check if it was received and if it produced the desired results
-		if(messageSent) {
-			var receives = Array(4).fill(false);
-			
-			if (djembe) 
-				[receives[0], this.requirements.startToDjembe.bool] = this.broadcastToPlay(djembe, messageName);
-			if (flute)
-				[receives[1], this.requirements.startToFlute.bool] = this.broadcastToPlay(flute, messageName);
-			if (maliChild) 
-				[receives[2], this.requirements.startToMaliChild.bool] = this.broadcastToDance(maliChild, messageName);
-			if (navajoChild)
-				[receives[3], this.requirements.startToNavajoChild.bool] = this.broadcastToDance(navajoChild, messageName);
-				
-			// if all sprites receive the same message, this requirement is satisfied
-			if (djembe && flute && maliChild && navajoChild) 
-				this.requirements.oneToMany.bool = receives.every(received => received === true);
-		}
-	}
-	checkSayOnEvent(sprites) {
-		if (sb3.no(sprites)) {
-			return;
-		}
+			let animated = {costume: false, move: false, wait: false};
+			script.traverseBlocks((block, level) => {
 
-		const eventOpcodes = [
-			'event_whenflagclicked', 'event_whenthisspriteclicked','event_whenkeypressed', 
-			'event_whenbackdropswitchesto','event_whengreaterthan'
-		];
-			
-		for (const sprite of sprites) {
-			var eventBlocks = [];
-			for(const block in sprite.blocks){ 
-				const blockInfo = sprite.blocks[block];
-				if(eventOpcodes.includes(blockInfo.opcode)){
-
-					eventBlocks.push(block);
+				if (['event_broadcast', 'event_broadcastandwait'].includes(block.opcode)) {
+					reqs.sent.push( block.inputs.BROADCAST_INPUT[1][1]);
+					this.requirements.oneToMany.bool = true;
 				}
-			}
 
-			for (const eventBlock of eventBlocks) {
-				const script = sb3.makeScript(sprite.blocks, eventBlock);
-				for (const block of script) {
-					if (['looks_say', 'looks_sayforsecs'].includes(block.opcode)) {
-						this.extensions.sayBlock.bool = true;
-						return;
+				if (['looks_say', 'looks_sayforsecs'].includes(block.opcode))
+					this.extensions.sayBlock.bool = true;
+
+				if (level > 1) {
+					if (['event_blooks_switchcostumeto', 'looks_nextcostume'].includes(block.opcode)) {
+						animated.costume = true;
+					} else if (block.opcode === 'control_wait') {
+						animated.wait = true;	
+					} else if (block.opcode.includes('motion_')) {
+						animated.motion = true;
 					}
 				}
-			}
+			}, ['control_forever', 'control_repeat', 'control_repeat_until']);
+
+			if (animated.wait && (animated.move || animated.costume)) {
+				this.extensions.animated.bool = true;
+			}	
 		}
-	}
-
-	checkChangeWait(sprites) {
-		if (sb3.no(sprites)) {
-			return;
-		}
-
-		for (const sprite of sprites) {
-			const whenReceivedBlocks = sb3.findBlockIDs(sprite.blocks, 'event_whenbroadcastreceived');
-			for (const whenReceivedBlock of whenReceivedBlocks) {
-				const script = sb3.makeScript(sprite.blocks, whenReceivedBlock);
-				for (const block of script) {
-
-					if (block.opcode == 'control_wait') {
-
-						if (block.inputs.DURATION[1][1] != .5) {
-							this.extensions.changeWait.bool = true;
-						}
-					}
-				}
-			}
-		}
+		return reqs;
 	}
 }
 
-module.exports = GradeOneWaySyncL1;
-},{}],22:[function(require,module,exports){
+},{"./scratch3":26}],24:[function(require,module,exports){
 /* Scratch Basics L1 Autograder
-Scratch 2 (original) version: Max White, Summer 2018
-Scratch 3 updates: Elizabeth Crowdus, Spring 2019
+Updated Version: Saranya Turimella, Summer 2019
 */
 
-var sb3 = {
-    //null checker
-    no: function(x) { 
-        return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
-    },
+require('../grading-scripts-s3/scratch3')
 
-    //retrieve a given sprite's blocks from JSON
-    //note: doesn't check whether or not blocks are properly attached
-    jsonToSpriteBlocks: function(json, spriteName) { 
-        if (this.no(json)) return []; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        var allBlocks={};
-        var blocks={};
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i]['blocks'];
-            }
-        }
-        return [];
-    }, //done
-    
-    //retrieve a given sprite's info (not just blocks) from JSON
-    jsonToSprite: function(json, spriteName) { 
-        if (this.no(json)) return []; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i];
-            }
-        }
-        return [];
-    }, //done
-    
-    //counts the number of non-background sprites in a project
-    countSprites: function(json){
-        if (this.no(json)) return false; //make sure script exists
-        
-        var numSprites = 0;
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['isStage'] == false){
-                numSprites ++;
-            }
-        }
-        return numSprites
-    },
-    
-    //looks through json to see if a sprite with a given name is present
-    //returns true if sprite with given name found
-    findSprite: function(json, spriteName){ 
-        if (this.no(json)) return false; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return true;
-            }
-        }
-        return false;
-    }, //done
-    
-    //returns list of block ids given a set of blocks
-    findBlockIDs: function(blocks, opcode){
-        if(this.no(blocks) || blocks == {}) return [];
-        
-        var blockids = [];
-        
-        for(block in blocks){ 
-            if(blocks[block]['opcode'] == opcode){
-                blockids.push(block);
-            }
-        }
-        return blockids;
-    },
-    
-    //given particular key, returns list of block ids of a certain kind of key press given a set of blocks 
-    findKeyPressID: function(blocks, key){
-        if(this.no(blocks) || blocks == {}) return [];
-        
-        var blockids = [];
-        
-        for(block in blocks){ 
-            if(blocks[block]['opcode'] == 'event_whenkeypressed'){
-                if(blocks[block]['fields']['KEY_OPTION'][0] == key){
-                    blockids.push(block);
-                }
-            }
-        }
-        return blockids;
-    },
-    
-    opcodeBlocks: function(script, myOpcode) { //retrieve blocks with a certain opcode from a script list of blocks
-        if (this.no(script)) return [];
-        
-        var miniscript = [];
-
-        for(block in script){
-            if(script[block]['opcode'] == myOpcode){
-                miniscript.push(script[block]);
-            }
-        }
-        return miniscript;
-    }, 
-    
-    opcode: function(block) { //retrives opcode from a block object 
-        if (this.no(block)) return "";
-        return block['opcode'];
-    }, 
-    
-    countBlocks: function(blocks,opcode){ //counts number of blocks with a given opcode
-        var total = 0;
-		for(id in blocks){ 
-            if([blocks][id]['opcode'] == opcode){
-                total = total + 1;
-            }
-        }
-        return total;
-    }, //done
-    
-    //(recursive) helper function to extract blocks inside a given loop
-    //works like makeScript except it only goes down the linked list (rather than down & up)
-    loopExtract: function(blocks, blockID){
-        if (this.no(blocks) || this.no(blockID)) return [];
-        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
-        
-        var curBlockID = blockID;
-        var script = [];
-
-        //Find all blocks that come after
-        curBlockID = blockID //Initialize with blockID of interest
-        while(curBlockID != null){
-            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-            script.push(curBlockInfo); //Add the block itself to the script dictionary                
-
-            //nextInfo = blocks[nextID]
-            opcode = curBlockInfo['opcode'];
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.makeScript(blocks, innerloop)
-                    for(b in nested_blocks){
-                        script.push(nested_blocks[b])
-                    }
-                }
-            }
-            
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-		
-            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
-            if((nextID == null) && (event_opcodes.includes(opcode))){
-                return [];
-            }
-            //Iterate: Set next to curBlock
-            curBlockID = nextID;
-        }     
-        return script;        
-    },
-    
-    //given list of blocks and a keyID of a block, return a script
-    makeScript: function(blocks, blockID){
-        if (this.no(blocks) || this.no(blockID)) return [];
-        event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
-        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
-        
-        var curBlockID = blockID;
-        var script = [];
-    
-        //find all blocks that come before
-        while(curBlockID != null){
-            var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-            script.push(curBlockInfo); //Add the block itself to the script dictionary 
-            
-            //parentInfo = blocks[parentID]
-    		var opcode = curBlockInfo['opcode'];
-
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.loopExtract(blocks, innerloop)
-                    for(b in nested_blocks){
-                        script.push(nested_blocks[b])
-                    }
-                }
-            }
-            
-            //Get parent info out
-            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
-            
-            //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
-            if ((parentID == null) && !(event_opcodes.includes(opcode))){
-                return [];
-            }
-
-            //Iterate: set parent to curBlock
-            curBlockID = parentID
-        }
-
-        //find all blocks that come after
-        curBlockID = blocks[blockID]['next']
-        while(curBlockID != null){
-            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-
-            //nextInfo = blocks[nextID]
-            opcode = curBlockInfo['opcode'];
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.loopExtract(blocks, innerloop)
-                    for(b in nested_blocks){                            
-                        script.push(nested_blocks[b])
-                    }
-                }
-            }
-            
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-		
-            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
-            if((nextID == null) && (event_opcodes.includes(opcode))){
-                return [];
-            }
-            script.push(curBlockInfo); //Add the block itself to the script dictionary                
-            //Iterate: Set next to curBlock
-            curBlockID = nextID;
-        }
-        return script;
-    }
-};
-
-class GradeScratchBasicsL1 {
-
+module.exports = class {
     constructor() {
         this.requirements = {};
+        this.extensions = {};
     }
 
-    grade(fileObj, user) { //call to grade project //fileobj is 
-        this.initMetrics();
-        
-        var fred  = sb3.jsonToSpriteBlocks(fileObj, 'Fred'); 
-        var helen = sb3.jsonToSpriteBlocks(fileObj, 'Helen');
-        this.checkFred(fred);
-        this.checkHelen(helen);  
+    initReqs() {
+        this.requirements.addSay = { bool: false, str: 'A say block is added after a sprite says “Click the Space Bar.”' }
+        this.extensions.addedHelenSpeech = { bool: false, str: 'The sprite that is changing costumes says something else' };
+        this.extensions.carlMoves10Steps = { bool: false, str: "A sprite moves 10 steps when it is finished talking" };
     }
 
-    initMetrics() { //initialize all metrics to false
-        this.requirements = {
-            changedSteps: {
-                bool: false, str: 'Fred takes 100 steps each time he talks instead of 50.'
-            },
-            fredTalks: {
-                bool: false, str: 'Fred uses a new block to say "Have fun!" to the user.'
-            },
-            timeChanged: {
-                bool: false, str: 'Changed time between Helen\'s costume changes.'
-            }
-        };
+    grade(fileObj, user) {
+        var project = new Project(fileObj, null);
 
-    }
+        this.initReqs();
 
-    checkFred(fred) {
-        if (!fred) return;
-        
-        var stepcount = 0;
-        var speakcount = 0;
-        var havefun = false;
-        var funs = ['Have fun!', 'have fun!', 'have Fun!', 'HAVE FUN', 'HAVE FUN!', 'have fun', 'Have fun', 'have Fun', 'Have Fun', 'Have Fun!']
-        
-        var blockids = sb3.findBlockIDs(fred, 'event_whenflagclicked');
-        
-        if(blockids != null){
-            for(var block of blockids){
-                var script = sb3.makeScript(fred, block)
-                for(var sblock of script){
-                    if(sblock['opcode'] == 'motion_movesteps' && sblock['inputs']['STEPS'][1][1] == 100){
-                        stepcount++;
-                        if(stepcount >= 3){
-                            this.requirements.changedSteps.bool = true;
+        var numSayBlocks = 0;
+        for (let target of project.targets) {
+            if (target.isStage) { continue; }
+            else {
+                for (let script of target.scripts) {
+                    for (let i = 0; i < script.blocks.length; i++) {
+                        // checks to see if there is a say block after the one where Carl the Cloud says to click on the sapce bar to see helen
+                        // change color
+                        if (script.blocks[i].opcode === 'looks_sayforsecs') {
+                            if (script.blocks[i].parent === "8K5Ak(+XsZvwjx2V0~D)") {
+                                this.requirements.addSay.bool = true;
+                            }
+                        }
+                        
+                        // if there is a say block in a script that has a sprite moving 10 steps, the requirement is met
+                        if (script.blocks[i].opcode === 'motion_movesteps') {
+                            {
+                                if (script.blocks[i].inputs.STEPS[1][1] == 10) {
+                                    this.extensions.carlMoves10Steps.bool = true;
+                                }
+                            }
+                        }
+                        // if the block is not one of the original say blocks, and it is not the say block that has been added after 
+                        // carl the cloud says to click to see the changing colors
+                        if (script.blocks[i].opcode === 'looks_sayforsecs') {
+                            if (script.blocks[i].next === "ahLTJjNBf`+1#.[qNZE4" && script.blocks[i].parent === "`4;L4Q?o6CqFmdbH?:ms") { continue; }
+                            else if (script.blocks[i].next === "=n_7]#{Cxj6pf!BUV,OP" && script.blocks[i].parent === "ahLTJjNBf`+1#.[qNZE4") { continue; }
+                            else if (script.blocks[i].next === null && script.blocks[i].parent === "=n_7]#{Cxj6pf!BUV,OP") { continue; }
+                            else if (script.blocks[i].next === null && script.blocks[i].parent === "3?,1QT}D[0#@^jvT!J*^") { continue; }
+                            else if (script.blocks[i].next === null && script.blocks[i].parent === "8K5Ak(+XsZvwjx2V0~D)") { continue; }
+                            else {
+                                this.extensions.addedHelenSpeech.bool = true;
+                            }
                         }
                     }
-                    if (sblock['opcode'] == 'looks_sayforsecs'){ 
-                        speakcount++;
-                        if(funs.includes(sblock['inputs']['MESSAGE'][1][1])){ //check for have fun message
-                            havefun = true;
-                        }
-                        if(havefun && speakcount >= 4){ //check that new block was added
-                            this.requirements.fredTalks.bool = true;
-                        }
-                    }  
-                }
-            }  
-        }
-    }
-
-    checkHelen(helen) {
-        if (!helen) return;
-        
-        var blockids = sb3.findBlockIDs(helen, 'event_whenkeypressed');
-        
-        for(var block of blockids){
-            var script = sb3.makeScript(helen, block)
-
-            for(var sblock of script){
-                if(sblock['opcode'] == 'control_wait' && sblock['inputs']['DURATION'][1][1] > 1){
-                    this.requirements.timeChanged.bool = true
-                    return
                 }
             }
-        }  
+        }
     }
 }
-
-
-module.exports = GradeScratchBasicsL1;
-},{}],23:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":26}],25:[function(require,module,exports){
 /* Scratch Basics L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -5356,7 +4897,7 @@ module.exports = class {
             "looks_say",
             'looks_sayforsecs', 
             'event_whenkeypressed',
-            "looks_costume", 
+            "looks_nextcostume", 
             'looks_switchcostumeto', 
             'control_repeat', 
             'event_whenthisspriteclicked' 
@@ -5502,7 +5043,7 @@ module.exports = class {
         
     }
 }
-},{"./scratch3":24}],24:[function(require,module,exports){
+},{"./scratch3":26}],26:[function(require,module,exports){
 (function (global){
 /// Scratch 3 helper functions
 require('./context');
@@ -5608,6 +5149,20 @@ global.Script = class {
         }
         return allSubscripts;
     }
+    /// Recursively visits each block in a scrip and its subscripts, 
+    ///  noting at which level of nestedness it is in within control blocks of ones choosing.
+    traverseBlocks(func, parentBlocks=['control_forever', 'control_if', 'control_if_else', 'control_repeat', 'control_repeat_until']) {
+        const traverse = (scripts, level) => {
+            if (!is(scripts) || scripts === [[]]) return;
+            for (let script of scripts) {
+                for (let block of script.blocks) {
+                    func(block, level);
+                    traverse(block.subScripts(), level + parentBlocks.includes(block.opcode));
+                }
+            }
+        }
+        traverse([this], 1);
+    }
 }
 
 /// Container class for Scratch targets (stages & sprites).
@@ -5649,384 +5204,7 @@ global.Project = class {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./context":16}],25:[function(require,module,exports){
-var sb3 = {
-    //null checker
-    no: function(x) { 
-        return (x == null || x == {} || x == undefined || !x || x == '' | x.length === 0);
-    },
-
-    //retrieve a given sprite's blocks from JSON
-    //note: doesn't check whether or not blocks are properly attached
-    jsonToSpriteBlocks: function(json, spriteName) { 
-        if (this.no(json)) return []; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        var allBlocks={};
-        var blocks={};
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i]['blocks'];
-            }
-        }
-        return [];
-    }, //done
-    
-    //retrieve a given sprite's info (not just blocks) from JSON
-    jsonToSprite: function(json, spriteName) { 
-        if (this.no(json)) return []; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i];
-            }
-        }
-        return [];
-    }, //done
-    
-    //counts the number of non-background sprites in a project
-    countSprites: function(json){
-        if (this.no(json)) return false; //make sure script exists
-        
-        var numSprites = 0;
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['isStage'] == false){
-                numSprites ++;
-            }
-        }
-        return numSprites
-    },
-    
-    //looks through json to see if a sprite with a given name is present
-    //returns sprite
-    returnSprite: function(json, spriteName){ 
-        if (this.no(json)) return; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return projInfo[i];
-            }
-        }
-        return ;
-    }, //done
-    
-    //looks through json to see if a sprite with a given name is present
-    //returns true if sprite with given name found
-    findSprite: function(json, spriteName){ 
-        if (this.no(json)) return false; //make sure script exists
-
-        var projInfo = json['targets'] //extract targets from JSON data
-        
-        //find sprite
-        for(i=0; i <projInfo.length; i++){
-            if(projInfo[i]['name'] == spriteName){
-                return true;
-            }
-        }
-        return false;
-    }, //done
-    
-    //returns list of block ids given a set of blocks
-    findBlockIDs: function(blocks, opcode){
-        if(this.no(blocks) || blocks == {}) return [];
-        
-        var blockids = [];
-        
-        for(block in blocks){ 
-            if(blocks[block]['opcode'] == opcode){
-                blockids.push(block);
-            }
-        }
-        return blockids;
-    },
-    
-    //given particular key, returns list of block ids of a certain kind of key press given a set of blocks 
-    findKeyPressID: function(blocks, key){
-        if(this.no(blocks) || blocks == {}) return [];
-        
-        var blockids = [];
-        
-        for(block in blocks){ 
-            if(blocks[block]['opcode'] == 'event_whenkeypressed'){
-                if(blocks[block]['fields']['KEY_OPTION'][0] == key){
-                    blockids.push(block);
-                }
-            }
-        }
-        return blockids;
-    },
-    
-    opcodeBlocks: function(script, myOpcode) { //retrieve blocks with a certain opcode from a script list of blocks
-        if (this.no(script)) return [];
-        
-        var miniscript = [];
-
-        for(block in script){
-            if(script[block]['opcode'] == myOpcode){
-                miniscript.push(script[block]);
-            }
-        }
-        return miniscript;
-    }, 
-    
-    opcode: function(block) { //retrives opcode from a block object 
-        if (this.no(block)) return "";
-        return block['opcode'];
-    }, 
-    
-    countBlocks: function(blocks,opcode){ //counts number of blocks with a given opcode
-        var total = 0;
-		for(id in blocks){ 
-            if([blocks][id]['opcode'] == opcode){
-                total = total + 1;
-            }
-        }
-        return total;
-    }, //done
-    
-    //(recursive) helper function to extract blocks inside a given loop
-    //works like makeScript except it only goes down the linked list (rather than down & up)
-    loopExtract: function(blocks, blockID){
-        if (this.no(blocks) || this.no(blockID)) return [];
-        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
-        
-        var curBlockID = blockID;
-        var script = [];
-
-        //Find all blocks that come after
-        curBlockID = blockID //Initialize with blockID of interest
-        while(curBlockID != null){
-            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-            script.push(curBlockInfo); //Add the block itself to the script dictionary                
-
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-            //nextInfo = blocks[nextID]
-            opcode = curBlockInfo['opcode'];
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.makeScript(blocks, innerloop)
-                    for(b in nested_blocks){
-                        script.push(nested_blocks[b])
-                    }
-                }
-            }
-		
-            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
-            if((nextID == null) && (event_opcodes.includes(opcode))){
-                return [];
-            }
-            //Iterate: Set next to curBlock
-            curBlockID = nextID;
-        }     
-        return script;        
-    },
-    
-    //given list of blocks and a keyID of a block, return a script
-    makeScript: function(blocks, blockID){
-        if (this.no(blocks) || this.no(blockID)) return [];
-        event_opcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked','event_whenbroadcastreceived','event_whenkeypressed', 'event_whenbackdropswitchesto','event_whengreaterthan'];
-        loop_opcodes = ['control_repeat', 'control_forever', 'control_if', 'control_if_else', 'control_repeat_until'];
-        
-        var curBlockID = blockID;
-        var script = [];
-    
-        //find all blocks that come before
-        while(curBlockID != null){
-            var curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-            script.push(curBlockInfo); //Add the block itself to the script dictionary 
-            
-            //Get parent info out
-            var parentID = curBlockInfo['parent']; //Block that comes before has key 'parent'
-            //parentInfo = blocks[parentID]
-    		var opcode = curBlockInfo['opcode'];
-
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.loopExtract(blocks, innerloop)
-                    for(b in nested_blocks){
-                        script.push(nested_blocks[b])
-                    }
-                }
-            }
-            
-            //If the block is not part of a script (i.e. it's the first block, but is not an event), return empty dictionary
-            if ((parentID == null) && !(event_opcodes.includes(opcode))){
-                return [];
-            }
-
-            //Iterate: set parent to curBlock
-            curBlockID = parentID
-        }
-
-        //find all blocks that come after
-        curBlockID = blocks[blockID]['next']
-        while(curBlockID != null){
-            curBlockInfo = blocks[curBlockID]; //Pull out info about the block
-
-            //Get next info out
-            nextID = curBlockInfo['next']; //Block that comes after has key 'next'
-            //nextInfo = blocks[nextID]
-            opcode = curBlockInfo['opcode'];
-            
-            //extract nested children if loop block
-            if(loop_opcodes.includes(opcode)){
-                var innerloop = curBlockInfo['inputs']['SUBSTACK'][1]
-                if(innerloop != undefined){
-                    var nested_blocks = this.loopExtract(blocks, innerloop)
-                    for(b in nested_blocks){                            
-                        script.push(nested_blocks[b])
-                    }
-                }
-            }
-		
-            //If the block is not a script (i.e. it's an event but doesn't have anything after), return empty dictionary
-            if((nextID == null) && (event_opcodes.includes(opcode))){
-                return [];
-            }
-            script.push(curBlockInfo); //Add the block itself to the script dictionary                
-            //Iterate: Set next to curBlock
-            curBlockID = nextID;
-        }
-        return script;
-    }
-};
-
-/// Max White
-class GradeTwoWaySyncL1 {
-
-    constructor() {
-        this.requirements = {};
-    }
-
-    grade(fileObj, user) {
-        this.initMetrics();
-        this.checkSync(fileObj);
-    }
-
-    initMetrics() {
-        this.requirements = {
-            isDialogueSynced: {
-                bool: true, str: 'Text messages are correctly synchronized.'
-            },
-            areMessagesAdded: {
-                bool: false, str: 'One additional text message has been added to each sprite.'
-            }
-        };
-        this.extensions = {
-            evenMoreMessages: {
-                bool: false, str: 'Added more than one additional text message to each sprite.'
-            },
-            changedSounds: {
-                bool: false, str: 'Changed the "boing" or "pop" sound to something else.'
-            },
-        }
-    }
-
-    checkSync(fileObj) {
-
-        /// Find the relevant sprites for this project.
-        var basketball = fileObj.targets.find(function(target) {
-            return target.name === 'Basketball';
-        });
-        var rainbow = fileObj.targets.find(function(target) {
-            return target.name === 'Rainbow';
-        });
-        if (basketball === undefined || rainbow === undefined) {
-            /// TODO: Signal a mistake
-            return;
-        }
-
-        /// Iterate through the basketball's scripts and note the times (in seconds) at which it speaks.
-        var basketballTime = 0;
-        var basketballThinkTimes = [];
-        var blockIDs = sb3.findBlockIDs(basketball.blocks, 'event_whenflagclicked');
-        if (blockIDs !== null) {
-            for (var blockID of blockIDs) {
-                var script = sb3.makeScript(basketball.blocks, blockID);
-                basketballTime = 0;
-                for (var block of script) {
-                    if (block.opcode === 'control_wait') {
-                        basketballTime += parseInt(block.inputs.DURATION[1][1]);
-                    }
-                    if (block.opcode === 'looks_thinkforsecs') {
-                        basketballThinkTimes.push(basketballTime);
-                        basketballTime += parseInt(block.inputs.SECS[1][1]);
-                    }
-                }
-            }
-        }
-
-        /// Do the same for the rainbow.
-        var rainbowTime = 0;
-        var rainbowThinkTimes = [];
-        blockIDs = sb3.findBlockIDs(rainbow.blocks, 'event_whenflagclicked');
-        if (blockIDs !== null) {
-            for (var blockID of blockIDs) {
-                var script = sb3.makeScript(rainbow.blocks, blockID);
-                rainbowTime = 0;
-                for (var block of script) {
-                    if (block.opcode === 'control_wait') {
-                        rainbowTime += parseInt(block.inputs.DURATION[1][1]);
-                    }
-                    if (block.opcode === 'looks_thinkforsecs') {
-                        rainbowThinkTimes.push(rainbowTime);
-                        rainbowTime += parseInt(block.inputs.SECS[1][1]);
-                    }
-                });  
-                
-                if ((pointedRight && !negSteps) || (!pointedRight && negSteps)){
-                    this.extensions.goalieMovesRight.bool = true; 
-                }
-            }
-        }
-
-        /// We can check now if enough (or extra) messages have been added.
-        var basketballThoughts = basketballThinkTimes.length;
-        var rainbowThoughts = rainbowThinkTimes.length;
-        this.requirements.areMessagesAdded.bool = (basketballThoughts > 1) && (rainbowThoughts > 1);
-        this.extensions.evenMoreMessages.bool = (basketballThoughts > 2) && (rainbowThoughts > 2);
-
-        /// Now we can see if the dialogue is synced by comparing the thinkTime arrays. The basketball goes first.
-        if (!basketballThoughts || !rainbowThoughts) this.requirements.isDialogueSynced.bool = false;
-        for (var i = 0; i < basketballThoughts && i < rainbowThoughts; i++) {
-            if (basketballThinkTimes[i] >= rainbowThinkTimes[i]) {
-                this.requirements.isDialogueSynced.bool = false;
-            }
-        }
-
-        /// Finally, we check if there are any sounds aside from 'boing' or 'pop.'
-        var sprites = [basketball, rainbow];
-        for (var sprite of sprites) {
-            if (sprite.sounds != null) {
-                for (var sound of sprite.sounds) {
-                    if (sound.name !== 'boing' && sound.name !== 'pop') {
-                        this.extensions.changedSounds.bool = true;
-                    }
-                }
-            }
-        }
-    }
-}
-
-module.exports = GradeTwoWaySyncL1;
-},{}],26:[function(require,module,exports){
+},{"./context":17}],27:[function(require,module,exports){
 /// Provides necessary scripts for index.html.
 
 /// Requirements (scripts)
@@ -6042,7 +5220,8 @@ var graders = {
   decompL1:        { name: 'Decomp. by Sequence L1', file: require('./grading-scripts-s3/decomp-L1')         },
   decompL2:        { name: 'Decomp. by Sequence L2', file: require('./grading-scripts-s3/decomp-L2')         },
   oneWaySyncL1:    { name: 'One-Way Sync L1',        file: require('./grading-scripts-s3/one-way-sync-L1')   },
-  oneWaySyncL2:    { name: 'Two-Way Sync L2',        file: require('./grading-scripts-s3/two-way-sync-L2')   },
+  oneWaySyncL2:    { name: 'One-Way Sync L2',        file: require('./grading-scripts-s3/one-way-sync-L2')   },
+  complexConditionalsL1: {name: 'Complex Conditionals L1', file: require('./grading-scripts-s3/complex-conditionals-L1')},
 };
 
 // act 1 graders
@@ -6438,7 +5617,7 @@ function noError() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-},{"./act1-grading-scripts/5-block-challenge":1,"./act1-grading-scripts/aboutMe":2,"./act1-grading-scripts/build-a-band":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/ladybug":5,"./act1-grading-scripts/name-poem":7,"./act1-grading-scripts/ofrenda":8,"./grading-scripts-s3/animation-L1":12,"./grading-scripts-s3/animation-L2":13,"./grading-scripts-s3/cond-loops-L1":14,"./grading-scripts-s3/cond-loops-L2":15,"./grading-scripts-s3/decomp-L1":17,"./grading-scripts-s3/decomp-L2":18,"./grading-scripts-s3/events-L1":19,"./grading-scripts-s3/events-L2":20,"./grading-scripts-s3/one-way-sync-L1":21,"./grading-scripts-s3/scratch-basics-L1":22,"./grading-scripts-s3/scratch-basics-L2":23,"./grading-scripts-s3/two-way-sync-L2":25}],27:[function(require,module,exports){
+},{"./act1-grading-scripts/5-block-challenge":1,"./act1-grading-scripts/aboutMe":2,"./act1-grading-scripts/build-a-band":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/ladybug":5,"./act1-grading-scripts/name-poem":7,"./act1-grading-scripts/ofrenda":8,"./grading-scripts-s3/animation-L1":12,"./grading-scripts-s3/animation-L2":13,"./grading-scripts-s3/complex-conditionals-L1":14,"./grading-scripts-s3/cond-loops-L1":15,"./grading-scripts-s3/cond-loops-L2":16,"./grading-scripts-s3/decomp-L1":18,"./grading-scripts-s3/decomp-L2":19,"./grading-scripts-s3/events-L1":20,"./grading-scripts-s3/events-L2":21,"./grading-scripts-s3/one-way-sync-L1":22,"./grading-scripts-s3/one-way-sync-L2":23,"./grading-scripts-s3/scratch-basics-L1":24,"./grading-scripts-s3/scratch-basics-L2":25}],28:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -6624,7 +5803,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -6649,14 +5828,14 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -7246,4 +6425,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":29,"_process":27,"inherits":28}]},{},[26]);
+},{"./support/isBuffer":30,"_process":28,"inherits":29}]},{},[27]);
