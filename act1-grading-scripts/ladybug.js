@@ -10,7 +10,6 @@ module.exports = class {
     constructor() {
         this.requirements = {};
         this.extensions = {};
-        this.bug = { dir: 0, locX: -200, locY: -25 }
     }
 
     initReqs() {
@@ -22,6 +21,7 @@ module.exports = class {
         this.extensions.music = { bool: false, str: 'Background music added' };
         // this.extensions.changeAphidCode = { bool: false, str: 'Aphid code has been changed' };
         this.extensions.ladybugRedrawn = { bool: false, str: 'The ladybug has been redrawn in the costumes tab' };
+        this.bug = { dir: 0, locX: -200, locY: -25 };
     }
 
     //helper functions
@@ -85,11 +85,14 @@ module.exports = class {
 
     grade(fileObj, user) {
 
-        var project = new Project(fileObj, null);
-        var original = new Project(require('../act1-grading-scripts/original-ladybug'), null);
-
         this.initReqs();
         if (!is(fileObj)) return;
+
+        var project = new Project(fileObj, null);
+        var original = new Project(require('../act1-grading-scripts/original-ladybug'), null);
+        if (!is(original)) return;
+
+        
 
         let aphidLocations = [];
         let aphidsEaten = 0;
@@ -148,7 +151,6 @@ module.exports = class {
                 if ((target.blocks[block].opcode === 'sound_playuntildone')
                     || (target.blocks[block].opcode === 'sound_play')) {
                     this.extensions.music.bool = true;
-                    break;
                 }
             }
             if (target.name === 'Ladybug1' || this.isLadybug(target)) {
@@ -156,7 +158,6 @@ module.exports = class {
                     if ((target.costumes[cost].assetId !== '7501580fb154fde8192a931f6cab472b')
                         && (target.costumes[cost].assetId !== '169c0efa8c094fdedddf8c19c36f0229')) {
                         this.extensions.ladybugRedrawn.bool = true;
-                        break;
                     }
                 }
                 for (let block in target.blocks) {
@@ -217,7 +218,6 @@ module.exports = class {
                         }
                     }
                 }
-                break;
             }
 
         }
