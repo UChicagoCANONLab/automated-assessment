@@ -150,8 +150,9 @@ module.exports = class {
                         break;
                     }
                 }
+                
                 for (let block in target.blocks) {
-
+                    
                     if (target.blocks[block].opcode === 'event_whenflagclicked') {
                         for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
                             this.updateBug(target.blocks[i]);
@@ -162,7 +163,7 @@ module.exports = class {
                             }
 
                             let onAphid = false;
-                            for (let aphidLoc of aphidLocations) {
+                            for (let aphidLoc of aphidLocations) {                                
                                 if ((Math.abs(aphidLoc[0] - this.bug.locX) <= 40) &&
                                     (Math.abs(aphidLoc[1] - this.bug.locY) <= 40)) {
                                     onAphid = true;
