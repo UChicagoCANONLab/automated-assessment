@@ -131,6 +131,9 @@ module.exports = class {
                 aphid2Blocks = target.blocks;
             }else if ((target.name === 'Ladybug1')||this.isLadybug(target)){
                 bugBlocks=target.blocks;
+                this.bug.locX=target.x;
+                this.bug.locY=target.y;
+                this.bug.dir=target.direction;
             }
         }
 
@@ -178,6 +181,9 @@ module.exports = class {
                             console.log(this.bug.locX);
                             console.log(this.bug.locY);
                             for (let aphidLoc of aphidLocations) {
+                                console.log('Aphid Loc');
+                                console.log(aphidLoc[0]);
+                                console.log(aphidLoc[1]);
                                 if ((Math.abs(aphidLoc[0] - this.bug.locX) <= 40) &&
                                     (Math.abs(aphidLoc[1] - this.bug.locY) <= 40)) {
                                     onAphid = true;
