@@ -31,7 +31,8 @@ module.exports = class {
         let ogDrumBlocks = null;
         let drumBlocks = null;
 
-        var original = new Project(require('../act1-grading-scripts/originalband'),null);
+        var original = new Project(require('../act1-grading-scripts/original-band1'), null);
+
         for (let target of original.targets){
             if (target.name === 'Trumpet'){
                 ogTrumpetBlocks=target.blocks;
