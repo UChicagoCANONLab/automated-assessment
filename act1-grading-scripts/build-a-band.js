@@ -13,12 +13,12 @@ module.exports = class {
 
     initReqs() {
         // this.requirements.guitar = { bool: false, str: 'Script added for guitar (including event and action block)' }
-        // this.requirements.sprite = { bool: false, str: 'Added at least one new sprite' };
-        // this.requirements.script = { bool: false, str: 'At least one of the new sprites has a script' };
+        this.requirements.sprite = { bool: false, str: 'Added at least one new sprite' };
+        this.requirements.script = { bool: false, str: 'At least one of the new sprites has a script' };
         this.requirements.changed1 = { bool: false, str: "Either the trumpet or the drum's code has been changed"};
         this.requirements.changed = { bool: false, str: "Both the trumpet and the drum's code have been changed"};
-        // this.requirements.cat1 = { bool: false, str: "The cat's code has been changed"};
-        // this.requirements.cat = { bool: false, str: 'Cat animated using loop with wait block and motion (including changing costumes and size)' };
+        this.requirements.cat1 = { bool: false, str: "The cat's code has been changed"};
+        this.requirements.cat = { bool: false, str: 'Cat animated using loop with wait block and motion (including changing costumes and size)' };
     }
 
     // makeArray(target){
@@ -238,7 +238,7 @@ module.exports = class {
                                 }
                             }
                         }
-   //                     if (!oldCode) {this.requirements.cat1.bool=true;}
+                       if (!oldCode) {this.requirements.cat1.bool=true;}
 
                         if (target.blocks[block].opcode.includes('event_')) {
                             for (let i = block; i !== null; i = target.blocks[i].next) {
@@ -264,7 +264,7 @@ module.exports = class {
 
                                             }
                                         if (wait && (nextCostChangeSize || motion || (switchCostSize > 1))) {
-                                  //          this.requirements.cat.bool = true;
+                                           this.requirements.cat.bool = true;
                                         }
                                     }
                                 }
@@ -287,11 +287,11 @@ module.exports = class {
                     (target.name != 'Trumpet') &&
                     (target.name != 'Drum-Bass') &&
                     (target.name != 'Guitar-Electric')) {
-      //              this.requirements.sprite.bool = true;
+                   this.requirements.sprite.bool = true;
                     for (let block in target.blocks) {
                         if (target.blocks[block].opcode.includes('event_')) {
                             if (target.blocks[block].next != null) {
-   //                             this.requirements.script.bool = true;
+                               this.requirements.script.bool = true;
                             }
                         }
                     }
