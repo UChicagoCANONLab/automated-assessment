@@ -15,11 +15,20 @@ module.exports = class {
         // this.requirements.guitar = { bool: false, str: 'Script added for guitar (including event and action block)' }
         this.requirements.sprite = { bool: false, str: 'Added at least one new sprite' };
         this.requirements.script = { bool: false, str: 'At least one of the new sprites has a script' };
-        this.requirements.changed1 = { bool: false, str: "Either the trumpet or the drum's code has been changed"};
-        this.requirements.changed = { bool: false, str: "Both the trumpet and the drum's code have been changed"};
+   //     this.requirements.changed1 = { bool: false, str: "Either the trumpet or the drum's code has been changed"};
+     //   this.requirements.changed = { bool: false, str: "Both the trumpet and the drum's code have been changed"};
         this.requirements.cat1 = { bool: false, str: "The cat's code has been changed"};
         this.requirements.cat = { bool: false, str: 'Cat animated using loop with wait block and motion (including changing costumes and size)' };
     }
+
+    // makeArray(target){
+    //     let arr = [];
+    //     for (let block in target.blocks){
+    //         arr.push(target.blocks[block].opcode);
+    //         arr.push(target.blocks[block].next);
+    //         arr.push(target.blocks[block].parent);
+    //     }
+    // }
 
     grade(fileObj, user) {
         var project = new Project(fileObj, null);
@@ -30,60 +39,84 @@ module.exports = class {
         let trumpetBlocks = null;
         let ogDrumBlocks = null;
         let drumBlocks = null;
+        let ogSpriteBlocks = null;
+        let spriteBlocks = null;
 
-        var original = new Project(require('../act1-grading-scripts/original-band1'), null);
+  //      var original = new Project(require('../act1-grading-scripts/real-original-band'), null);
 
-        for (let target of original.targets){
-            if (target.name === 'Trumpet'){
-                ogTrumpetBlocks=target.blocks;
-            } else if (target.name === 'Drum-Bass'){
-                ogDrumBlocks=target.blocks;
-            }
-        }
-        for (let target of project.targets){
-            if (target.name === 'Trumpet'){
-                trumpetBlocks = target.blocks;
-            } else if (target.name === 'Drum-Bass'){
-                drumBlocks = target.blocks;
-            }
-        }
+        // for (let target of original.targets){
+        //     if (target.name === 'Trumpet'){
+        //         ogTrumpetBlocks=target.blocks;
+        //     } else if (target.name === 'Drum-Bass'){
+        //         ogDrumBlocks=target.blocks;
+        //     } else if (target.name === 'Sprite2'){
+        //         ogSpriteBlocks=target.blocks;
+        //     }
+        // }
+        // for (let target of project.targets){
+        //     if (target.name === 'Trumpet'){
+        //         trumpetBlocks = target.blocks;
+        //     } else if (target.name === 'Drum-Bass'){
+        //         drumBlocks = target.blocks;
+        //     } else if (target.name === 'Sprite2'){
+        //         spriteBlocks=target.blocks;
+        //     }
+        // }
+
         let givenSpritesChanged = 0;
-        var util = require('util');
-        let tB = util.inspect(trumpetBlocks);
-        let ogTB = util.inspect(ogTrumpetBlocks);
-        let dB = util.inspect(drumBlocks);
-        let ogDB = util.inspect(ogDrumBlocks);
-        if (tB!==ogTB){givenSpritesChanged++;}
-        if (dB!==ogDB){givenSpritesChanged++;}
-        if (givenSpritesChanged){
-            this.requirements.changed1.bool=true;
-        }
-        if (givenSpritesChanged>1){
-            this.requirements.changed.bool=true;
-        }
+        // var util = require('util');
+        // let tB = util.inspect(trumpetBlocks);
+        // let ogTB = util.inspect(ogTrumpetBlocks);
+        // let dB = util.inspect(drumBlocks);
+        // let ogDB = util.inspect(ogDrumBlocks);
+        // let sB = util.inspect(spriteBlocks);
+        // let ogSB = util.inspect(ogSpriteBlocks);
+        // if (tB!==ogTB){givenSpritesChanged++;}
+        // if (dB!==ogDB){givenSpritesChanged++;}
 
+        
+        // if (givenSpritesChanged){
+        //     this.requirements.changed1.bool=true;
+        // }
+        // if (givenSpritesChanged>1){
+        //     this.requirements.changed.bool=true;
+        // }
+        // if (sB!==ogSB){this.requirements.cat1.bool=true;}
+
+        let trumpetChanged = false;
+        let drumChanged = false;
         for (let target of project.targets) {
             if (!target.isStage) {
                 if (target.name === 'Trumpet'){
-                    // for (let script in target.scripts){
-                    //     if (script.blocks[0].opcode === 'event_whenthisspriteclicked'){
-                    //         if ((script.blocks[1].opcode==='motion_turnright' &&
-                    //                 script.blocks[1].inputs.DEGREES[1][1]===15)
-                    //             && (script.blocks[2].opcode==='control_repeat' &&
-                    //                 script.blocks[2].inputs.TIMES[1][1])
-                    //             && ()
+                    // for (let script of target.scripts){
+                    //     console.log('script');
+                    //     console.log(script);
+                    //     if (target.scripts[script].blocks[0].opcode==='event_whenthisspriteclicked'){
+                    //         if (target.scripts[script].blocks.length>4){
+                    //             trumpetChanged = true;
+                    //         } else if (target.scripts[script].blocks[1].opcode!=='motion_turnright'
+                    //         || target.scripts[script].blocks[2].opcode!=='control_repeat'
+                    //         || target.scripts[script].blocks[3].opcode!=='motion_turnleft'){
+                    //             trumpetChanged = true;
+                    //         }
+                    //     } else if (target.scripts[script].blocks[0].opcode==='event_whenkeypressed'
+                    //     && target.blocks[target.scripts[script].blocks[0].id].fields.KEY_OPTION[0]===3){
+                    //         if (target.scripts[script].blocks.length>4) {
+
+                    //         }
                     //     }
                     // }
                 }
                 if (target.name === 'Sprite2') {
                     for (let block in target.blocks) {
-
                         let oldCode = false;
                         if (target.blocks[block].opcode==='event_whenflagclicked'){
                             let next = target.blocks[block].next;
-                            if (next === 'i`x:QN,(K}4VXexrv2s1'){
+                            if (next === '-=c~#;5EEGjK{HrhxCUC'){
                                 if (target.blocks[next].inputs.MESSAGE[1][1]==='Click on an instrument to play some music!'){
-                                    if (target.blocks[next].inputs.SECS[1][1]===7){
+                                    let secs = target.blocks[next].inputs.SECS[1][1];
+                                    if (secs==7){
+                                        console.log('here');
                                         oldCode = true;
                                     }
                                 }
@@ -91,10 +124,10 @@ module.exports = class {
                         }
                         if (target.blocks[block].opcode==='looks_sayforsecs'){
                             let parent = target.blocks[block].parent;
-                            if (parent === '35NjOT;ABdxt.yY%0)4F'){
+                            if (parent === 'r5{d*2~:^,9ShD5in?er'){
                                 if (target.blocks[block].next === null){
                                     if (target.blocks[block].inputs.MESSAGE[1][1]==='Click on an instrument to play some music!'){
-                                        if (target.blocks[block].inputs.SECS[1][1]===7){
+                                        if (target.blocks[block].inputs.SECS[1][1]==7){
                                             oldCode = true;
                                         }
                                     }

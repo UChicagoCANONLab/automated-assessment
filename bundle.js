@@ -106,7 +106,7 @@ module.exports = class {
 
     }
 }
-},{"../grading-scripts-s3/scratch3":26}],2:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],2:[function(require,module,exports){
 /*
 Act 1 About Me Grader
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -191,7 +191,7 @@ module.exports = class {
     }
 }
 
-},{"../grading-scripts-s3/scratch3":26}],3:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],3:[function(require,module,exports){
 /*
 Act 1 Build-a-Band Project Autograder
 Initial version and testing: Zipporah Klain
@@ -209,11 +209,20 @@ module.exports = class {
         // this.requirements.guitar = { bool: false, str: 'Script added for guitar (including event and action block)' }
         this.requirements.sprite = { bool: false, str: 'Added at least one new sprite' };
         this.requirements.script = { bool: false, str: 'At least one of the new sprites has a script' };
-        this.requirements.changed1 = { bool: false, str: "Either the trumpet or the drum's code has been changed"};
-        this.requirements.changed = { bool: false, str: "Both the trumpet and the drum's code have been changed"};
+   //     this.requirements.changed1 = { bool: false, str: "Either the trumpet or the drum's code has been changed"};
+     //   this.requirements.changed = { bool: false, str: "Both the trumpet and the drum's code have been changed"};
         this.requirements.cat1 = { bool: false, str: "The cat's code has been changed"};
         this.requirements.cat = { bool: false, str: 'Cat animated using loop with wait block and motion (including changing costumes and size)' };
     }
+
+    // makeArray(target){
+    //     let arr = [];
+    //     for (let block in target.blocks){
+    //         arr.push(target.blocks[block].opcode);
+    //         arr.push(target.blocks[block].next);
+    //         arr.push(target.blocks[block].parent);
+    //     }
+    // }
 
     grade(fileObj, user) {
         var project = new Project(fileObj, null);
@@ -224,59 +233,84 @@ module.exports = class {
         let trumpetBlocks = null;
         let ogDrumBlocks = null;
         let drumBlocks = null;
+        let ogSpriteBlocks = null;
+        let spriteBlocks = null;
 
-        var original = new Project(require('../act1-grading-scripts/originalband'),null);
-        for (let target of original.targets){
-            if (target.name === 'Trumpet'){
-                ogTrumpetBlocks=target.blocks;
-            } else if (target.name === 'Drum-Bass'){
-                ogDrumBlocks=target.blocks;
-            }
-        }
-        for (let target of project.targets){
-            if (target.name === 'Trumpet'){
-                trumpetBlocks = target.blocks;
-            } else if (target.name === 'Drum-Bass'){
-                drumBlocks = target.blocks;
-            }
-        }
+  //      var original = new Project(require('../act1-grading-scripts/real-original-band'), null);
+
+        // for (let target of original.targets){
+        //     if (target.name === 'Trumpet'){
+        //         ogTrumpetBlocks=target.blocks;
+        //     } else if (target.name === 'Drum-Bass'){
+        //         ogDrumBlocks=target.blocks;
+        //     } else if (target.name === 'Sprite2'){
+        //         ogSpriteBlocks=target.blocks;
+        //     }
+        // }
+        // for (let target of project.targets){
+        //     if (target.name === 'Trumpet'){
+        //         trumpetBlocks = target.blocks;
+        //     } else if (target.name === 'Drum-Bass'){
+        //         drumBlocks = target.blocks;
+        //     } else if (target.name === 'Sprite2'){
+        //         spriteBlocks=target.blocks;
+        //     }
+        // }
+
         let givenSpritesChanged = 0;
-        var util = require('util');
-        let tB = util.inspect(trumpetBlocks);
-        let ogTB = util.inspect(ogTrumpetBlocks);
-        let dB = util.inspect(drumBlocks);
-        let ogDB = util.inspect(ogDrumBlocks);
-        if (tB!==ogTB){givenSpritesChanged++;}
-        if (dB!==ogDB){givenSpritesChanged++;}
-        if (givenSpritesChanged){
-            this.requirements.changed1.bool=true;
-        }
-        if (givenSpritesChanged>1){
-            this.requirements.changed.bool=true;
-        }
+        // var util = require('util');
+        // let tB = util.inspect(trumpetBlocks);
+        // let ogTB = util.inspect(ogTrumpetBlocks);
+        // let dB = util.inspect(drumBlocks);
+        // let ogDB = util.inspect(ogDrumBlocks);
+        // let sB = util.inspect(spriteBlocks);
+        // let ogSB = util.inspect(ogSpriteBlocks);
+        // if (tB!==ogTB){givenSpritesChanged++;}
+        // if (dB!==ogDB){givenSpritesChanged++;}
 
+        
+        // if (givenSpritesChanged){
+        //     this.requirements.changed1.bool=true;
+        // }
+        // if (givenSpritesChanged>1){
+        //     this.requirements.changed.bool=true;
+        // }
+        // if (sB!==ogSB){this.requirements.cat1.bool=true;}
+
+        let trumpetChanged = false;
+        let drumChanged = false;
         for (let target of project.targets) {
             if (!target.isStage) {
                 if (target.name === 'Trumpet'){
-                    // for (let script in target.scripts){
-                    //     if (script.blocks[0].opcode === 'event_whenthisspriteclicked'){
-                    //         if ((script.blocks[1].opcode==='motion_turnright' &&
-                    //                 script.blocks[1].inputs.DEGREES[1][1]===15)
-                    //             && (script.blocks[2].opcode==='control_repeat' &&
-                    //                 script.blocks[2].inputs.TIMES[1][1])
-                    //             && ()
+                    // for (let script of target.scripts){
+                    //     console.log('script');
+                    //     console.log(script);
+                    //     if (target.scripts[script].blocks[0].opcode==='event_whenthisspriteclicked'){
+                    //         if (target.scripts[script].blocks.length>4){
+                    //             trumpetChanged = true;
+                    //         } else if (target.scripts[script].blocks[1].opcode!=='motion_turnright'
+                    //         || target.scripts[script].blocks[2].opcode!=='control_repeat'
+                    //         || target.scripts[script].blocks[3].opcode!=='motion_turnleft'){
+                    //             trumpetChanged = true;
+                    //         }
+                    //     } else if (target.scripts[script].blocks[0].opcode==='event_whenkeypressed'
+                    //     && target.blocks[target.scripts[script].blocks[0].id].fields.KEY_OPTION[0]===3){
+                    //         if (target.scripts[script].blocks.length>4) {
+
+                    //         }
                     //     }
                     // }
                 }
                 if (target.name === 'Sprite2') {
                     for (let block in target.blocks) {
-
                         let oldCode = false;
                         if (target.blocks[block].opcode==='event_whenflagclicked'){
                             let next = target.blocks[block].next;
-                            if (next === 'i`x:QN,(K}4VXexrv2s1'){
+                            if (next === '-=c~#;5EEGjK{HrhxCUC'){
                                 if (target.blocks[next].inputs.MESSAGE[1][1]==='Click on an instrument to play some music!'){
-                                    if (target.blocks[next].inputs.SECS[1][1]===7){
+                                    let secs = target.blocks[next].inputs.SECS[1][1];
+                                    if (secs==7){
+                                        console.log('here');
                                         oldCode = true;
                                     }
                                 }
@@ -284,10 +318,10 @@ module.exports = class {
                         }
                         if (target.blocks[block].opcode==='looks_sayforsecs'){
                             let parent = target.blocks[block].parent;
-                            if (parent === '35NjOT;ABdxt.yY%0)4F'){
+                            if (parent === 'r5{d*2~:^,9ShD5in?er'){
                                 if (target.blocks[block].next === null){
                                     if (target.blocks[block].inputs.MESSAGE[1][1]==='Click on an instrument to play some music!'){
-                                        if (target.blocks[block].inputs.SECS[1][1]===7){
+                                        if (target.blocks[block].inputs.SECS[1][1]==7){
                                             oldCode = true;
                                         }
                                     }
@@ -358,7 +392,7 @@ module.exports = class {
 }
 
 
-},{"../act1-grading-scripts/originalband":11,"../grading-scripts-s3/scratch3":26,"util":31}],4:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],4:[function(require,module,exports){
 /*
 Act 1 Final Project Autograder
 Initial version and testing: Zipporah Klain
@@ -434,7 +468,7 @@ module.exports = class {
     }
 
 }
-},{"../grading-scripts-s3/scratch3":26}],5:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],5:[function(require,module,exports){
 /*
 Act 1 Ladybug Scramble Autograder
 Initial version and testing: Saranya Turimella and Zipporah Klain, 2019
@@ -675,7 +709,7 @@ module.exports = class {
     }
 
 }
-},{"../act1-grading-scripts/original-ladybug":9,"../grading-scripts-s3/scratch3":26,"util":31}],6:[function(require,module,exports){
+},{"../act1-grading-scripts/original-ladybug":9,"../grading-scripts-s3/scratch3":25,"util":30}],6:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -1862,7 +1896,7 @@ module.exports = class {
 
 
 
-},{"../act1-grading-scripts/name-poem-original-test":6,"../grading-scripts-s3/scratch3":26}],8:[function(require,module,exports){
+},{"../act1-grading-scripts/name-poem-original-test":6,"../grading-scripts-s3/scratch3":25}],8:[function(require,module,exports){
 /*
 Act 1 Events Ofrenda Autograder
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -2120,7 +2154,7 @@ module.exports = class {
         }
     }
 } 
-},{"../act1-grading-scripts/originalOfrenda-test":10,"../grading-scripts-s3/scratch3":26}],9:[function(require,module,exports){
+},{"../act1-grading-scripts/originalOfrenda-test":10,"../grading-scripts-s3/scratch3":25}],9:[function(require,module,exports){
 module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{"broadcastMsgId-munch":"munch"},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"6bbe43392c0dbffe7d7c63cc5bd08aa3","name":"backdrop1","bitmapResolution":1,"md5ext":"6bbe43392c0dbffe7d7c63cc5bd08aa3.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Ladybug1","variables":{},"lists":{},"broadcasts":{},"blocks":{"U7gIJGYi2sEQ1R~Q#Y(x":{"opcode":"event_whenflagclicked","next":"F@9g]aRRb1sq*2qa!%ng","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":264,"y":24},"F@9g]aRRb1sq*2qa!%ng":{"opcode":"motion_gotoxy","next":"Sfc=i0}1cnoDpchs?.Uq","parent":"U7gIJGYi2sEQ1R~Q#Y(x","inputs":{"X":[1,[4,-175]],"Y":[1,[4,-24]]},"fields":{},"shadow":false,"topLevel":false},"Sfc=i0}1cnoDpchs?.Uq":{"opcode":"motion_pointindirection","next":"^)NnU+Yxi6BeEWyh3in`","parent":"F@9g]aRRb1sq*2qa!%ng","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},"^)NnU+Yxi6BeEWyh3in`":{"opcode":"control_wait","next":"{*nT,|Un;N}8m)P0wAVC","parent":"Sfc=i0}1cnoDpchs?.Uq","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"{*nT,|Un;N}8m)P0wAVC":{"opcode":"motion_movesteps","next":"Qjej.|{eUe=~o*uAuRF,","parent":"^)NnU+Yxi6BeEWyh3in`","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"Qjej.|{eUe=~o*uAuRF,":{"opcode":"control_wait","next":"lDrR0@W5G`|K9EW2^U=0","parent":"{*nT,|Un;N}8m)P0wAVC","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"lDrR0@W5G`|K9EW2^U=0":{"opcode":"motion_turnright","next":"R%7gnK]7!DF4`qpYfccd","parent":"Qjej.|{eUe=~o*uAuRF,","inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":false},"R%7gnK]7!DF4`qpYfccd":{"opcode":"control_wait","next":"1?YefC;{nn1p+6x[y7=p","parent":"lDrR0@W5G`|K9EW2^U=0","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"1?YefC;{nn1p+6x[y7=p":{"opcode":"motion_movesteps","next":null,"parent":"R%7gnK]7!DF4`qpYfccd","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"iQ]xjD_RSjVU39KKi+D+":{"opcode":"event_whenflagclicked","next":"03[Ml=XIME[mlM`[oI,{","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":1117,"y":41},"03[Ml=XIME[mlM`[oI,{":{"opcode":"control_forever","next":null,"parent":"iQ]xjD_RSjVU39KKi+D+","inputs":{"SUBSTACK":[2,"{eG]NNI}y+`9w8~P-Y@w"]},"fields":{},"shadow":false,"topLevel":false},"{eG]NNI}y+`9w8~P-Y@w":{"opcode":"control_if","next":null,"parent":"03[Ml=XIME[mlM`[oI,{","inputs":{"CONDITION":[2,"HJ?{4{KV1xCg#k7UhPC6"],"SUBSTACK":[2,"kQKB.w^V0`:QX38gKYzf"]},"fields":{},"shadow":false,"topLevel":false},"HJ?{4{KV1xCg#k7UhPC6":{"opcode":"sensing_touchingcolor","next":null,"parent":"{eG]NNI}y+`9w8~P-Y@w","inputs":{"COLOR":[1,[9,"#00ffff"]]},"fields":{},"shadow":false,"topLevel":false},"kQKB.w^V0`:QX38gKYzf":{"opcode":"control_stop","next":";Dm1;gL:ROwhL*^;y!zp","parent":"{eG]NNI}y+`9w8~P-Y@w","inputs":{},"fields":{"STOP_OPTION":["other scripts in sprite"]},"shadow":false,"topLevel":false,"mutation":{"tagName":"mutation","hasnext":"true","children":[]}},";Dm1;gL:ROwhL*^;y!zp":{"opcode":"looks_sayforsecs","next":"H#v_fC4p1{^Dy]J98),R","parent":"kQKB.w^V0`:QX38gKYzf","inputs":{"MESSAGE":[1,[10,"Aaaaah! I fell off the branch!!!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"H#v_fC4p1{^Dy]J98),R":{"opcode":"control_repeat","next":"eO]JO},91+03]-,-p.kW","parent":";Dm1;gL:ROwhL*^;y!zp","inputs":{"TIMES":[1,[6,3]],"SUBSTACK":[2,"Hfkes2)|!Awk/*Iir#]f"]},"fields":{},"shadow":false,"topLevel":false},"Hfkes2)|!Awk/*Iir#]f":{"opcode":"looks_hide","next":"NdsT}^o2UI(D_trv9KW9","parent":"H#v_fC4p1{^Dy]J98),R","inputs":{},"fields":{},"shadow":false,"topLevel":false},"NdsT}^o2UI(D_trv9KW9":{"opcode":"control_wait","next":"Rp7XGUXIMwRD^e4J2IZy","parent":"Hfkes2)|!Awk/*Iir#]f","inputs":{"DURATION":[1,[5,0.5]]},"fields":{},"shadow":false,"topLevel":false},"Rp7XGUXIMwRD^e4J2IZy":{"opcode":"looks_show","next":"k7:X0JW7;CDuX8ZM[`|-","parent":"NdsT}^o2UI(D_trv9KW9","inputs":{},"fields":{},"shadow":false,"topLevel":false},"k7:X0JW7;CDuX8ZM[`|-":{"opcode":"control_wait","next":null,"parent":"Rp7XGUXIMwRD^e4J2IZy","inputs":{"DURATION":[1,[5,0.5]]},"fields":{},"shadow":false,"topLevel":false},"eO]JO},91+03]-,-p.kW":{"opcode":"motion_gotoxy","next":"I3gZVQ)z)SV7w[OezvsL","parent":"H#v_fC4p1{^Dy]J98),R","inputs":{"X":[1,[4,-175]],"Y":[1,[4,-24]]},"fields":{},"shadow":false,"topLevel":false},"I3gZVQ)z)SV7w[OezvsL":{"opcode":"motion_pointindirection","next":null,"parent":"eO]JO},91+03]-,-p.kW","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},":g/E[3PXa}d6Cve2Swk2":{"opcode":"motion_movesteps","next":null,"parent":null,"inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":33},"M1gwhU_QVGXM)kQF*L`{":{"opcode":"procedures_definition","next":"@,~#(h4pJpg}jA2}_/R[","parent":null,"inputs":{"custom_block":[1,"+d7X?d`DBq2~x0}OHSC/"]},"fields":{},"shadow":false,"topLevel":true,"x":1136,"y":820},"+d7X?d`DBq2~x0}OHSC/":{"opcode":"procedures_prototype","next":null,"inputs":{},"fields":{},"shadow":true,"topLevel":false,"mutation":{"tagName":"mutation","proccode":"Eat Aphid","argumentnames":"[]","argumentids":"[]","argumentdefaults":"[]","warp":false,"children":[]}},"@,~#(h4pJpg}jA2}_/R[":{"opcode":"event_broadcast","next":null,"parent":"M1gwhU_QVGXM)kQF*L`{","inputs":{"BROADCAST_INPUT":[1,[11,"Munch","broadcastMsgId-munch"]]},"fields":{},"shadow":false,"topLevel":false},"%vAkoQPRX5(5~AohGy*u":{"opcode":"motion_turnright","next":null,"parent":null,"inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":109},"~)q`N2jinQ]:/zs,-.s1":{"opcode":"motion_turnleft","next":null,"parent":null,"inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":true,"x":7,"y":188},"nZ1!J1WTOAWy}Af(z1#c":{"opcode":"control_wait","next":null,"parent":null,"inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":268},"Yl_GU18WZdM(iSO=,FM~":{"opcode":"procedures_call","next":null,"parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":10,"y":366,"mutation":{"tagName":"mutation","children":[],"proccode":"Eat Aphid","argumentids":"[]"}}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"7501580fb154fde8192a931f6cab472b","name":"ladybug3","bitmapResolution":1,"md5ext":"7501580fb154fde8192a931f6cab472b.svg","dataFormat":"svg","rotationCenterX":41,"rotationCenterY":43},{"assetId":"169c0efa8c094fdedddf8c19c36f0229","name":"ladybug2","bitmapResolution":1,"md5ext":"169c0efa8c094fdedddf8c19c36f0229.svg","dataFormat":"svg","rotationCenterX":41,"rotationCenterY":43}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-175,"y":-24,"size":50,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Sprite1","variables":{},"lists":{},"broadcasts":{},"blocks":{"g{X}coEAM3Ta^+%(=s^s":{"opcode":"event_whenflagclicked","next":"3S,1y@;w+[,tG`(EZCAt","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":68,"y":35},"3S,1y@;w+[,tG`(EZCAt":{"opcode":"looks_show","next":"_LYbp}EcsXWoN1ppLxcv","parent":"g{X}coEAM3Ta^+%(=s^s","inputs":{},"fields":{},"shadow":false,"topLevel":false},"_LYbp}EcsXWoN1ppLxcv":{"opcode":"motion_pointindirection","next":"4Q5;gsz5+/bgWS(:Rag,","parent":"3S,1y@;w+[,tG`(EZCAt","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},"4Q5;gsz5+/bgWS(:Rag,":{"opcode":"motion_gotoxy","next":"4L~#s_w.KLA*F5Xc`{C`","parent":"_LYbp}EcsXWoN1ppLxcv","inputs":{"X":[1,[4,0]],"Y":[1,[4,-150]]},"fields":{},"shadow":false,"topLevel":false},"4L~#s_w.KLA*F5Xc`{C`":{"opcode":"control_repeat","next":"Vb38^m9i^P8Qx=K`.+Yh","parent":"4Q5;gsz5+/bgWS(:Rag,","inputs":{"TIMES":[1,[6,6]],"SUBSTACK":[2,"56{t%hej8N*pk`S3%Nrj"]},"fields":{},"shadow":false,"topLevel":false},"56{t%hej8N*pk`S3%Nrj":{"opcode":"pen_stamp","next":"UyBZkQkw+i|j3]/7K`[%","parent":"4L~#s_w.KLA*F5Xc`{C`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"UyBZkQkw+i|j3]/7K`[%":{"opcode":"motion_changeyby","next":null,"parent":"56{t%hej8N*pk`S3%Nrj","inputs":{"DY":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"Vb38^m9i^P8Qx=K`.+Yh":{"opcode":"pen_stamp","next":"#I:55@rxBustg@:0CNW,","parent":"4L~#s_w.KLA*F5Xc`{C`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"#I:55@rxBustg@:0CNW,":{"opcode":"motion_gotoxy","next":"c?Rcii^r7j{3zIKlPCY7","parent":"Vb38^m9i^P8Qx=K`.+Yh","inputs":{"X":[1,[4,-200]],"Y":[1,[4,0]]},"fields":{},"shadow":false,"topLevel":false},"c?Rcii^r7j{3zIKlPCY7":{"opcode":"motion_pointindirection","next":"Ev;g}Py1-pZ#SpwkoO~I","parent":"#I:55@rxBustg@:0CNW,","inputs":{"DIRECTION":[1,[8,0]]},"fields":{},"shadow":false,"topLevel":false},"Ev;g}Py1-pZ#SpwkoO~I":{"opcode":"control_repeat","next":"1R95jS-gQRcWy1!()qDX","parent":"c?Rcii^r7j{3zIKlPCY7","inputs":{"TIMES":[1,[6,8]],"SUBSTACK":[2,"C+]}-*OqPzGDND@[I`!`"]},"fields":{},"shadow":false,"topLevel":false},"C+]}-*OqPzGDND@[I`!`":{"opcode":"pen_stamp","next":"vf~MRj8GONdu)xTW+`sX","parent":"Ev;g}Py1-pZ#SpwkoO~I","inputs":{},"fields":{},"shadow":false,"topLevel":false},"vf~MRj8GONdu)xTW+`sX":{"opcode":"motion_changexby","next":null,"parent":"C+]}-*OqPzGDND@[I`!`","inputs":{"DX":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"1R95jS-gQRcWy1!()qDX":{"opcode":"pen_stamp","next":"!]hy8aHujpmLSmfwgk7+","parent":"Ev;g}Py1-pZ#SpwkoO~I","inputs":{},"fields":{},"shadow":false,"topLevel":false},"!]hy8aHujpmLSmfwgk7+":{"opcode":"looks_hide","next":null,"parent":"1R95jS-gQRcWy1!()qDX","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"098ac26af75d9b14546ba423f0376c78","name":"costume1","bitmapResolution":1,"md5ext":"098ac26af75d9b14546ba423f0376c78.svg","dataFormat":"svg","rotationCenterX":247,"rotationCenterY":2}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":false,"x":200,"y":0,"size":100,"direction":0,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Aphid","variables":{},"lists":{},"broadcasts":{},"blocks":{"Al/9-=x`PHo)+1K4Jsw2":{"opcode":"event_whenflagclicked","next":"|FY,izak`W47{j*=KnG5","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":37,"y":46},"|FY,izak`W47{j*=KnG5":{"opcode":"looks_show","next":null,"parent":"Al/9-=x`PHo)+1K4Jsw2","inputs":{},"fields":{},"shadow":false,"topLevel":false},"se5y3M`e{qYhvvplydn.":{"opcode":"event_whenbroadcastreceived","next":"?ec)oOeZLY5LfeL(D5QB","parent":null,"inputs":{},"fields":{"BROADCAST_OPTION":["Munch","broadcastMsgId-munch"]},"shadow":false,"topLevel":true,"x":45,"y":264},"?ec)oOeZLY5LfeL(D5QB":{"opcode":"control_if","next":null,"parent":"se5y3M`e{qYhvvplydn.","inputs":{"CONDITION":[2,".[;R|zxb)eHrP+bfg`JR"],"SUBSTACK":[2,"@:tiv_aA#I^^`0sQ%}O1"]},"fields":{},"shadow":false,"topLevel":false},".[;R|zxb)eHrP+bfg`JR":{"opcode":"sensing_touchingobject","next":null,"parent":"?ec)oOeZLY5LfeL(D5QB","inputs":{"TOUCHINGOBJECTMENU":[1,"cB1l?RjX4g=!:@^[I(X?"]},"fields":{},"shadow":false,"topLevel":false},"cB1l?RjX4g=!:@^[I(X?":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":".[;R|zxb)eHrP+bfg`JR","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Ladybug1"]},"shadow":true,"topLevel":false},"@:tiv_aA#I^^`0sQ%}O1":{"opcode":"looks_sayforsecs","next":"d4JFINYQk,`yV3Hd5Rz3","parent":"?ec)oOeZLY5LfeL(D5QB","inputs":{"MESSAGE":[1,[10,"Oh, no!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"d4JFINYQk,`yV3Hd5Rz3":{"opcode":"looks_hide","next":null,"parent":"@:tiv_aA#I^^`0sQ%}O1","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b3b7ab6b68e1d72f5f0246bd5246e35","name":"beetle","bitmapResolution":1,"md5ext":"2b3b7ab6b68e1d72f5f0246bd5246e35.svg","dataFormat":"svg","rotationCenterX":43,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-24,"y":77,"size":30,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Aphid2","variables":{},"lists":{},"broadcasts":{},"blocks":{"|*E4bHy6(tUyNr_FpiHL":{"opcode":"event_whenbroadcastreceived","next":"@I467Tz-PCo,~F~{tDEl","parent":null,"inputs":{},"fields":{"BROADCAST_OPTION":["Munch","broadcastMsgId-munch"]},"shadow":false,"topLevel":true,"x":31,"y":393},"@I467Tz-PCo,~F~{tDEl":{"opcode":"control_if","next":null,"parent":"|*E4bHy6(tUyNr_FpiHL","inputs":{"CONDITION":[2,"uT8k:bk6A^umen=_kL-m"],"SUBSTACK":[2,"LBQ7xhpD3hzBGz^u~MW`"]},"fields":{},"shadow":false,"topLevel":false},"uT8k:bk6A^umen=_kL-m":{"opcode":"sensing_touchingobject","next":null,"parent":"@I467Tz-PCo,~F~{tDEl","inputs":{"TOUCHINGOBJECTMENU":[1,"w.R6uBYuAjg(y#K#YJx*"]},"fields":{},"shadow":false,"topLevel":false},"w.R6uBYuAjg(y#K#YJx*":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"uT8k:bk6A^umen=_kL-m","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Ladybug1"]},"shadow":true,"topLevel":false},"LBQ7xhpD3hzBGz^u~MW`":{"opcode":"looks_sayforsecs","next":"XO!5H:??cO_M~G2fB;}l","parent":"@I467Tz-PCo,~F~{tDEl","inputs":{"MESSAGE":[1,[10,"Oh, no!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"XO!5H:??cO_M~G2fB;}l":{"opcode":"looks_hide","next":null,"parent":"LBQ7xhpD3hzBGz^u~MW`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"|pG9oKkH+F.OL|36O0Lp":{"opcode":"event_whenflagclicked","next":"t:(!q?g_}9!~)wm!FUIP","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":39,"y":50},"t:(!q?g_}9!~)wm!FUIP":{"opcode":"looks_show","next":null,"parent":"|pG9oKkH+F.OL|36O0Lp","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b3b7ab6b68e1d72f5f0246bd5246e35","name":"beetle","bitmapResolution":1,"md5ext":"2b3b7ab6b68e1d72f5f0246bd5246e35.svg","dataFormat":"svg","rotationCenterX":43,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":75,"y":-123,"size":30,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":["pen"],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190619042313","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"}}
 },{}],10:[function(require,module,exports){
 module.exports={
@@ -2969,8 +3003,6 @@ module.exports={
     }
 }
 },{}],11:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":1,"costumes":[{"assetId":"24c3dbdd0a8f6f3fb0d65694462fdfa8","name":"backdrop1","bitmapResolution":2,"md5ext":"24c3dbdd0a8f6f3fb0d65694462fdfa8.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"dbc784b5312acd28ab2dd6f4a866771a","name":"spotlight-stage2","bitmapResolution":1,"md5ext":"dbc784b5312acd28ab2dd6f4a866771a.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Sprite2","variables":{},"lists":{},"broadcasts":{},"blocks":{"35NjOT;ABdxt.yY%0)4F":{"opcode":"event_whenflagclicked","next":"i`x:QN,(K}4VXexrv2s1","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":86,"y":378},"i`x:QN,(K}4VXexrv2s1":{"opcode":"looks_sayforsecs","next":null,"parent":"35NjOT;ABdxt.yY%0)4F","inputs":{"MESSAGE":[1,[10,"Click on an instrument to play some music!"]],"SECS":[1,[4,7]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"5fc87e93c3d9cae1c2204251ef2d79cc","name":"costume1","bitmapResolution":1,"md5ext":"5fc87e93c3d9cae1c2204251ef2d79cc.svg","dataFormat":"svg","rotationCenterX":47,"rotationCenterY":55},{"assetId":"38c0ce065417c8f26d3e2146d841c51f","name":"costume2","bitmapResolution":1,"md5ext":"38c0ce065417c8f26d3e2146d841c51f.svg","dataFormat":"svg","rotationCenterX":47,"rotationCenterY":55}],"sounds":[{"assetId":"83c36d806dc92327b9e7049a565c6bff","name":"meow","dataFormat":"wav","format":"","rate":44100,"sampleCount":37376,"md5ext":"83c36d806dc92327b9e7049a565c6bff.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":-14.400000000000006,"y":-109.3,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Trumpet","variables":{},"lists":{},"broadcasts":{},"blocks":{"2zLFYr[w+vfyRWjQdXPc":{"opcode":"event_whenthisspriteclicked","next":"|`ngh[%I)BP}E|2{X}/5","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":48,"y":41},"|`ngh[%I)BP}E|2{X}/5":{"opcode":"motion_turnright","next":"3}bFFN4V[;|9Ix(0~DdJ","parent":"2zLFYr[w+vfyRWjQdXPc","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"3}bFFN4V[;|9Ix(0~DdJ":{"opcode":"control_repeat","next":"ybu|WAX,68dNEOsYrR)b","parent":"|`ngh[%I)BP}E|2{X}/5","inputs":{"TIMES":[1,[6,2]],"SUBSTACK":[2,"(zcPjVxZeoj/=KcJyZ+d"]},"fields":{},"shadow":false,"topLevel":false},"(zcPjVxZeoj/=KcJyZ+d":{"opcode":"sound_playuntildone","next":"?Q5p?Q0./39o7+6RiSlL","parent":"3}bFFN4V[;|9Ix(0~DdJ","inputs":{"SOUND_MENU":[1,"jug]O?g,%)9pS3pDix{D"]},"fields":{},"shadow":false,"topLevel":false},"jug]O?g,%)9pS3pDix{D":{"opcode":"sound_sounds_menu","next":null,"parent":"(zcPjVxZeoj/=KcJyZ+d","inputs":{},"fields":{"SOUND_MENU":["C trumpet"]},"shadow":true,"topLevel":false},"?Q5p?Q0./39o7+6RiSlL":{"opcode":"sound_playuntildone","next":"Y~DctCFpl)pWH|ECnU-8","parent":"(zcPjVxZeoj/=KcJyZ+d","inputs":{"SOUND_MENU":[1,"U6)Wpylb9RZfCOGJjyja"]},"fields":{},"shadow":false,"topLevel":false},"U6)Wpylb9RZfCOGJjyja":{"opcode":"sound_sounds_menu","next":null,"parent":"?Q5p?Q0./39o7+6RiSlL","inputs":{},"fields":{"SOUND_MENU":["D trumpet"]},"shadow":true,"topLevel":false},"Y~DctCFpl)pWH|ECnU-8":{"opcode":"sound_playuntildone","next":null,"parent":"?Q5p?Q0./39o7+6RiSlL","inputs":{"SOUND_MENU":[1,"a_@mqU6^`5F+8lZG:LV,"]},"fields":{},"shadow":false,"topLevel":false},"a_@mqU6^`5F+8lZG:LV,":{"opcode":"sound_sounds_menu","next":null,"parent":"Y~DctCFpl)pWH|ECnU-8","inputs":{},"fields":{"SOUND_MENU":["E trumpet"]},"shadow":true,"topLevel":false},"ybu|WAX,68dNEOsYrR)b":{"opcode":"motion_turnleft","next":null,"parent":"3}bFFN4V[;|9Ix(0~DdJ","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"JP)FzZX#7]vm@@U`4p`5":{"opcode":"event_whenkeypressed","next":"A*C_,YQ)Lqsu(ArQUfGy","parent":null,"inputs":{},"fields":{"KEY_OPTION":["1"]},"shadow":false,"topLevel":true,"x":44,"y":515},"A*C_,YQ)Lqsu(ArQUfGy":{"opcode":"motion_turnright","next":"N)_UqLpnc/44_NfKCbt^","parent":"JP)FzZX#7]vm@@U`4p`5","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"N)_UqLpnc/44_NfKCbt^":{"opcode":"sound_playuntildone","next":"HKL0)R5k9x-:RCMp:0A~","parent":"A*C_,YQ)Lqsu(ArQUfGy","inputs":{"SOUND_MENU":[1,"?kJJ5iPg^0#If-a,tei}"]},"fields":{},"shadow":false,"topLevel":false},"?kJJ5iPg^0#If-a,tei}":{"opcode":"sound_sounds_menu","next":null,"parent":"N)_UqLpnc/44_NfKCbt^","inputs":{},"fields":{"SOUND_MENU":["C trumpet"]},"shadow":true,"topLevel":false},"HKL0)R5k9x-:RCMp:0A~":{"opcode":"sound_playuntildone","next":"YQ3d}N8B=~Jc%4=1pWcT","parent":"N)_UqLpnc/44_NfKCbt^","inputs":{"SOUND_MENU":[1,"g@zE.|C}D(zJwI@wRedF"]},"fields":{},"shadow":false,"topLevel":false},"g@zE.|C}D(zJwI@wRedF":{"opcode":"sound_sounds_menu","next":null,"parent":"HKL0)R5k9x-:RCMp:0A~","inputs":{},"fields":{"SOUND_MENU":["D trumpet"]},"shadow":true,"topLevel":false},"YQ3d}N8B=~Jc%4=1pWcT":{"opcode":"sound_playuntildone","next":"wwnpVC=LSGzIN.~]?1M/","parent":"HKL0)R5k9x-:RCMp:0A~","inputs":{"SOUND_MENU":[1,"af9r[*^;]5uBtW6pW|B9"]},"fields":{},"shadow":false,"topLevel":false},"af9r[*^;]5uBtW6pW|B9":{"opcode":"sound_sounds_menu","next":null,"parent":"YQ3d}N8B=~Jc%4=1pWcT","inputs":{},"fields":{"SOUND_MENU":["E trumpet"]},"shadow":true,"topLevel":false},"wwnpVC=LSGzIN.~]?1M/":{"opcode":"sound_playuntildone","next":"~1/ck^N[hg?uXy+;AW!y","parent":"YQ3d}N8B=~Jc%4=1pWcT","inputs":{"SOUND_MENU":[1,"oWq%6`kv_#3+`59r8v!g"]},"fields":{},"shadow":false,"topLevel":false},"oWq%6`kv_#3+`59r8v!g":{"opcode":"sound_sounds_menu","next":null,"parent":"wwnpVC=LSGzIN.~]?1M/","inputs":{},"fields":{"SOUND_MENU":["C trumpet"]},"shadow":true,"topLevel":false},"~1/ck^N[hg?uXy+;AW!y":{"opcode":"sound_playuntildone","next":"o/:~LAeJ2`()(0#7^`|k","parent":"wwnpVC=LSGzIN.~]?1M/","inputs":{"SOUND_MENU":[1,"b?n-dt2b^OPu=`NMaK)p"]},"fields":{},"shadow":false,"topLevel":false},"b?n-dt2b^OPu=`NMaK)p":{"opcode":"sound_sounds_menu","next":null,"parent":"~1/ck^N[hg?uXy+;AW!y","inputs":{},"fields":{"SOUND_MENU":["D trumpet"]},"shadow":true,"topLevel":false},"o/:~LAeJ2`()(0#7^`|k":{"opcode":"sound_playuntildone","next":"H*uesnchAo4nT?eivLnR","parent":"~1/ck^N[hg?uXy+;AW!y","inputs":{"SOUND_MENU":[1,"SM|y0~C9cvV[8-?[#qZH"]},"fields":{},"shadow":false,"topLevel":false},"SM|y0~C9cvV[8-?[#qZH":{"opcode":"sound_sounds_menu","next":null,"parent":"o/:~LAeJ2`()(0#7^`|k","inputs":{},"fields":{"SOUND_MENU":["E trumpet"]},"shadow":true,"topLevel":false},"H*uesnchAo4nT?eivLnR":{"opcode":"motion_turnleft","next":null,"parent":"o/:~LAeJ2`()(0#7^`|k","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"dlW,4iz|ZK{,N]68TkIm":{"opcode":"event_whenkeypressed","next":"ZyjuMG!Fz!m#1Z_V1~#6","parent":null,"inputs":{},"fields":{"KEY_OPTION":["2"]},"shadow":false,"topLevel":true,"x":428,"y":417},"ZyjuMG!Fz!m#1Z_V1~#6":{"opcode":"motion_turnright","next":"g=(yBcJZ2Eql3XcK[PLm","parent":"dlW,4iz|ZK{,N]68TkIm","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"g=(yBcJZ2Eql3XcK[PLm":{"opcode":"sound_playuntildone","next":"-C#Kgp9e(h[:[~Iqt0{N","parent":"ZyjuMG!Fz!m#1Z_V1~#6","inputs":{"SOUND_MENU":[1,"Pc)#l/AUi36M@5_nU)VD"]},"fields":{},"shadow":false,"topLevel":false},"Pc)#l/AUi36M@5_nU)VD":{"opcode":"sound_sounds_menu","next":null,"parent":"g=(yBcJZ2Eql3XcK[PLm","inputs":{},"fields":{"SOUND_MENU":["C trumpet"]},"shadow":true,"topLevel":false},"-C#Kgp9e(h[:[~Iqt0{N":{"opcode":"sound_playuntildone","next":"b1hNPPkDFqYA+tPm4mGP","parent":"g=(yBcJZ2Eql3XcK[PLm","inputs":{"SOUND_MENU":[1,"IxVfDPPZb0C#qtp`EtpI"]},"fields":{},"shadow":false,"topLevel":false},"IxVfDPPZb0C#qtp`EtpI":{"opcode":"sound_sounds_menu","next":null,"parent":"-C#Kgp9e(h[:[~Iqt0{N","inputs":{},"fields":{"SOUND_MENU":["D trumpet"]},"shadow":true,"topLevel":false},"b1hNPPkDFqYA+tPm4mGP":{"opcode":"sound_playuntildone","next":"F]GiC-dP0MFIyh/8}A!r","parent":"-C#Kgp9e(h[:[~Iqt0{N","inputs":{"SOUND_MENU":[1,"kfft%bMk,v^T/[A)3|Z?"]},"fields":{},"shadow":false,"topLevel":false},"kfft%bMk,v^T/[A)3|Z?":{"opcode":"sound_sounds_menu","next":null,"parent":"b1hNPPkDFqYA+tPm4mGP","inputs":{},"fields":{"SOUND_MENU":["E trumpet"]},"shadow":true,"topLevel":false},"F]GiC-dP0MFIyh/8}A!r":{"opcode":"motion_turnleft","next":null,"parent":"b1hNPPkDFqYA+tPm4mGP","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":1,"costumes":[{"assetId":"6c8bcfdb00c8e9735325bb47293b8708","name":"trumpet-a","bitmapResolution":1,"md5ext":"6c8bcfdb00c8e9735325bb47293b8708.svg","dataFormat":"svg","rotationCenterX":84,"rotationCenterY":25},{"assetId":"44f254a53f6de969acb9d1a8a89dcf6f","name":"trumpet-a2","bitmapResolution":1,"md5ext":"44f254a53f6de969acb9d1a8a89dcf6f.svg","dataFormat":"svg","rotationCenterX":84,"rotationCenterY":25}],"sounds":[{"assetId":"5be75eaeffb43a9d4d028683dbffbdef","name":"C trumpet","dataFormat":"wav","format":"","rate":44100,"sampleCount":16320,"md5ext":"5be75eaeffb43a9d4d028683dbffbdef.wav"},{"assetId":"a8adcb651d7f9d4aa890a800ed21741f","name":"D trumpet","dataFormat":"wav","format":"","rate":44100,"sampleCount":16640,"md5ext":"a8adcb651d7f9d4aa890a800ed21741f.wav"},{"assetId":"dac852247dda7dbfa070fd8dcf7755a3","name":"E trumpet","dataFormat":"wav","format":"","rate":44100,"sampleCount":17472,"md5ext":"dac852247dda7dbfa070fd8dcf7755a3.wav"},{"assetId":"edf667e43ebf68967889e944f07464ec","name":"F trumpet","dataFormat":"wav","format":"","rate":44100,"sampleCount":17984,"md5ext":"edf667e43ebf68967889e944f07464ec.wav"},{"assetId":"5e19c11cfeb0cb1eb0f52907cb27aa9e","name":"G trumpet","dataFormat":"wav","format":"","rate":44100,"sampleCount":18816,"md5ext":"5e19c11cfeb0cb1eb0f52907cb27aa9e.wav"},{"assetId":"5a458ca02703818c729affd90de67276","name":"A trumpet","dataFormat":"wav","format":"","rate":44100,"sampleCount":17600,"md5ext":"5a458ca02703818c729affd90de67276.wav"},{"assetId":"dd8628a99a2a7b9f2fc5d268e7a7dd6e","name":"B trumpet","dataFormat":"wav","format":"","rate":44100,"sampleCount":18240,"md5ext":"dd8628a99a2a7b9f2fc5d268e7a7dd6e.wav"},{"assetId":"70681a3e39c28052eee823ba2f338ab6","name":"C2 trumpet","dataFormat":"wav","format":"","rate":44100,"sampleCount":18624,"md5ext":"70681a3e39c28052eee823ba2f338ab6.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-148.6,"y":-1.4000000000000057,"size":100,"direction":-15,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Drum-Bass","variables":{},"lists":{},"broadcasts":{},"blocks":{"t|be{-,6PxaW@`bi6-@:":{"opcode":"event_whenthisspriteclicked","next":"W}]10B(qdB}G/];%]pT|","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"W}]10B(qdB}G/];%]pT|":{"opcode":"control_repeat","next":null,"parent":"t|be{-,6PxaW@`bi6-@:","inputs":{"TIMES":[1,[6,3]],"SUBSTACK":[2,"t_R(GE[bVnfULae(:LPe"]},"fields":{},"shadow":false,"topLevel":false},"t_R(GE[bVnfULae(:LPe":{"opcode":"motion_turnright","next":"m|7P,ROqs3d?GYKrnlI;","parent":"W}]10B(qdB}G/];%]pT|","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"m|7P,ROqs3d?GYKrnlI;":{"opcode":"sound_playuntildone","next":null,"parent":"t_R(GE[bVnfULae(:LPe","inputs":{"SOUND_MENU":[1,",ub-rE7hA#[Bvz?OQeX["]},"fields":{},"shadow":false,"topLevel":false},",ub-rE7hA#[Bvz?OQeX[":{"opcode":"sound_sounds_menu","next":null,"parent":"m|7P,ROqs3d?GYKrnlI;","inputs":{},"fields":{"SOUND_MENU":["drum bass3"]},"shadow":true,"topLevel":false},"u#w[DOE%d}BM846X2NE*":{"opcode":"event_whenkeypressed","next":"*8DC;iL({;jViQB8#|hi","parent":null,"inputs":{},"fields":{"KEY_OPTION":["3"]},"shadow":false,"topLevel":true,"x":22,"y":355},"*8DC;iL({;jViQB8#|hi":{"opcode":"motion_turnright","next":"?[xR4XsQSD2VO.Ld]y2^","parent":"u#w[DOE%d}BM846X2NE*","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"?[xR4XsQSD2VO.Ld]y2^":{"opcode":"motion_turnright","next":"|/V.Zy`X:HwxF0LWGUwp","parent":"*8DC;iL({;jViQB8#|hi","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"|/V.Zy`X:HwxF0LWGUwp":{"opcode":"motion_turnright","next":"H[wgOsv`aGljm.MEp4h-","parent":"?[xR4XsQSD2VO.Ld]y2^","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"H[wgOsv`aGljm.MEp4h-":{"opcode":"sound_playuntildone","next":"YQXK{RMW5]@:IrT8ZPDC","parent":"|/V.Zy`X:HwxF0LWGUwp","inputs":{"SOUND_MENU":[1,"NJjZdWW#(w0yQV;0z.Rr"]},"fields":{},"shadow":false,"topLevel":false},"NJjZdWW#(w0yQV;0z.Rr":{"opcode":"sound_sounds_menu","next":null,"parent":"H[wgOsv`aGljm.MEp4h-","inputs":{},"fields":{"SOUND_MENU":["drum bass3"]},"shadow":true,"topLevel":false},"YQXK{RMW5]@:IrT8ZPDC":{"opcode":"sound_playuntildone","next":"c;5B2]}!s}1W*j9F//*z","parent":"H[wgOsv`aGljm.MEp4h-","inputs":{"SOUND_MENU":[1,"orK(A^dQA%dQ!/LL4AM_"]},"fields":{},"shadow":false,"topLevel":false},"orK(A^dQA%dQ!/LL4AM_":{"opcode":"sound_sounds_menu","next":null,"parent":"YQXK{RMW5]@:IrT8ZPDC","inputs":{},"fields":{"SOUND_MENU":["drum bass3"]},"shadow":true,"topLevel":false},"c;5B2]}!s}1W*j9F//*z":{"opcode":"sound_playuntildone","next":null,"parent":"YQXK{RMW5]@:IrT8ZPDC","inputs":{"SOUND_MENU":[1,"~,Bpg-.y@MZGG]z}tk@8"]},"fields":{},"shadow":false,"topLevel":false},"~,Bpg-.y@MZGG]z}tk@8":{"opcode":"sound_sounds_menu","next":null,"parent":"c;5B2]}!s}1W*j9F//*z","inputs":{},"fields":{"SOUND_MENU":["drum bass3"]},"shadow":true,"topLevel":false},"8R}Ggl_n;D`zqgxAnnGi":{"opcode":"event_whenkeypressed","next":"6h-q`v{q%Kg5q!;t(tvx","parent":null,"inputs":{},"fields":{"KEY_OPTION":["4"]},"shadow":false,"topLevel":true,"x":356,"y":355},"6h-q`v{q%Kg5q!;t(tvx":{"opcode":"motion_turnright","next":"C,sOP0up,([/[u0ZV}Gu","parent":"8R}Ggl_n;D`zqgxAnnGi","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"C,sOP0up,([/[u0ZV}Gu":{"opcode":"sound_playuntildone","next":"K-vF_uB6(BxHYe|@vLO6","parent":"6h-q`v{q%Kg5q!;t(tvx","inputs":{"SOUND_MENU":[1,"SXnPsn[DUy=S;/X+tG]s"]},"fields":{},"shadow":false,"topLevel":false},"SXnPsn[DUy=S;/X+tG]s":{"opcode":"sound_sounds_menu","next":null,"parent":"C,sOP0up,([/[u0ZV}Gu","inputs":{},"fields":{"SOUND_MENU":["drum bass3"]},"shadow":true,"topLevel":false},"K-vF_uB6(BxHYe|@vLO6":{"opcode":"motion_turnright","next":"R8e{}Cr0/(9s%;5oeAhD","parent":"C,sOP0up,([/[u0ZV}Gu","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"R8e{}Cr0/(9s%;5oeAhD":{"opcode":"sound_playuntildone","next":"+FuviMJ~b[hVd9qn,?dz","parent":"K-vF_uB6(BxHYe|@vLO6","inputs":{"SOUND_MENU":[1,"ggEhZc?2n7SIX!g@Nfz,"]},"fields":{},"shadow":false,"topLevel":false},"ggEhZc?2n7SIX!g@Nfz,":{"opcode":"sound_sounds_menu","next":null,"parent":"R8e{}Cr0/(9s%;5oeAhD","inputs":{},"fields":{"SOUND_MENU":["drum bass3"]},"shadow":true,"topLevel":false},"+FuviMJ~b[hVd9qn,?dz":{"opcode":"motion_turnright","next":"!ceOKL]POu?,Qb*U@h3%","parent":"R8e{}Cr0/(9s%;5oeAhD","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"!ceOKL]POu?,Qb*U@h3%":{"opcode":"sound_playuntildone","next":null,"parent":"+FuviMJ~b[hVd9qn,?dz","inputs":{"SOUND_MENU":[1,"MiAPp_R;N8]j0jO0PF*,"]},"fields":{},"shadow":false,"topLevel":false},"MiAPp_R;N8]j0jO0PF*,":{"opcode":"sound_sounds_menu","next":null,"parent":"!ceOKL]POu?,Qb*U@h3%","inputs":{},"fields":{"SOUND_MENU":["drum bass3"]},"shadow":true,"topLevel":false},")v51iht4Cp|8}Q-P9bge":{"opcode":"event_whenkeypressed","next":"+=L;jrY4Btc^/eL0U:B?","parent":null,"inputs":{},"fields":{"KEY_OPTION":["5"]},"shadow":false,"topLevel":true,"x":29,"y":808},"+=L;jrY4Btc^/eL0U:B?":{"opcode":"motion_turnright","next":"@,)z]@6?*jg(V5;hG.(;","parent":")v51iht4Cp|8}Q-P9bge","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"@,)z]@6?*jg(V5;hG.(;":{"opcode":"sound_playuntildone","next":null,"parent":"+=L;jrY4Btc^/eL0U:B?","inputs":{"SOUND_MENU":[1,"K8Hsw)5@7-L(qcZcrwG|"]},"fields":{},"shadow":false,"topLevel":false},"K8Hsw)5@7-L(qcZcrwG|":{"opcode":"sound_sounds_menu","next":null,"parent":"@,)z]@6?*jg(V5;hG.(;","inputs":{},"fields":{"SOUND_MENU":["drum bass3"]},"shadow":true,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"3845cea6b3f0e0b89ee6ce01d5373d14","name":"drum bass-a","bitmapResolution":1,"md5ext":"3845cea6b3f0e0b89ee6ce01d5373d14.svg","dataFormat":"svg","rotationCenterX":57,"rotationCenterY":54},{"assetId":"990e3b0fbd2cec833bb80efdb8143958","name":"drum bass-b","bitmapResolution":1,"md5ext":"990e3b0fbd2cec833bb80efdb8143958.svg","dataFormat":"svg","rotationCenterX":36,"rotationCenterY":46}],"sounds":[{"assetId":"48328c874353617451e4c7902cc82817","name":"drum bass1","dataFormat":"wav","format":"","rate":44100,"sampleCount":13056,"md5ext":"48328c874353617451e4c7902cc82817.wav"},{"assetId":"711a1270d1cf2e5de9b145ee539213e4","name":"drum bass2","dataFormat":"wav","format":"adpcm","rate":44100,"sampleCount":8136,"md5ext":"711a1270d1cf2e5de9b145ee539213e4.wav"},{"assetId":"a3759c50b3ed8c3e8c2859de44531a4b","name":"drum bass3","dataFormat":"wav","format":"","rate":44100,"sampleCount":13888,"md5ext":"a3759c50b3ed8c3e8c2859de44531a4b.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":4.699999999999989,"y":32.44999999999999,"size":100,"direction":105,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Guitar-Electric","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"b1932d0050af5ea6f6913489241ab593","name":"guitar electric","bitmapResolution":1,"md5ext":"b1932d0050af5ea6f6913489241ab593.svg","dataFormat":"svg","rotationCenterX":37,"rotationCenterY":114}],"sounds":[{"assetId":"f5bb45a10a05f7f05a48ceec70680be1","name":"C elec guitar","dataFormat":"wav","format":"","rate":44100,"sampleCount":32768,"md5ext":"f5bb45a10a05f7f05a48ceec70680be1.wav"},{"assetId":"aa2096d9f388b48237d1f23c8f0b82cc","name":"D elec guitar","dataFormat":"wav","format":"","rate":44100,"sampleCount":35648,"md5ext":"aa2096d9f388b48237d1f23c8f0b82cc.wav"},{"assetId":"7f1c4a822e7ad9a65da11cc2a27fde69","name":"E elec guitar","dataFormat":"wav","format":"","rate":44100,"sampleCount":35520,"md5ext":"7f1c4a822e7ad9a65da11cc2a27fde69.wav"},{"assetId":"a6050e838170f9ecbe085e2c5c6b9494","name":"F elec guitar","dataFormat":"wav","format":"","rate":44100,"sampleCount":34816,"md5ext":"a6050e838170f9ecbe085e2c5c6b9494.wav"},{"assetId":"f96cfa1c91a04ba5218f2ed1e8a76017","name":"G elec guitar","dataFormat":"wav","format":"","rate":44100,"sampleCount":36032,"md5ext":"f96cfa1c91a04ba5218f2ed1e8a76017.wav"},{"assetId":"ed3c75589b7a08de8b4d4b95eeef6646","name":"A elec guitar","dataFormat":"wav","format":"","rate":44100,"sampleCount":36864,"md5ext":"ed3c75589b7a08de8b4d4b95eeef6646.wav"},{"assetId":"d2b3f959e386a81b9e481fa312a4cb00","name":"B elec guitar","dataFormat":"wav","format":"","rate":44100,"sampleCount":41664,"md5ext":"d2b3f959e386a81b9e481fa312a4cb00.wav"},{"assetId":"3dff509a56f19d8278258a07a779aa17","name":"C2 elec guitar","dataFormat":"wav","format":"","rate":44100,"sampleCount":41088,"md5ext":"3dff509a56f19d8278258a07a779aa17.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":146,"y":12.300000000000011,"size":100,"direction":120,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Safari/605.1.15"}}
-},{}],12:[function(require,module,exports){
 require('./scratch3');
 
 let loops = ['control_forever', 'control_repeat', 'control_repeat_until'];
@@ -3140,7 +3172,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":26}],13:[function(require,module,exports){
+},{"./scratch3":25}],12:[function(require,module,exports){
 /* Animation L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and minor bug fixes: Marco Anaya, Summer 2019
@@ -3284,7 +3316,7 @@ module.exports = class {
         this.extensions.moreThanOneAnimation.bool = (this.animationTypes.length > 1)
     }
 }
-},{"./scratch3":26}],14:[function(require,module,exports){
+},{"./scratch3":25}],13:[function(require,module,exports){
 /* Complex Conditionals L1(TIPP&SEE Modify) Autograder
  * Scratch 3 (original) version: Anna Zipp, Summer 2019
  */
@@ -3526,7 +3558,7 @@ module.exports = class {
         }
     }    
 }
-},{"./scratch3":26}],15:[function(require,module,exports){
+},{"./scratch3":25}],14:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -3640,7 +3672,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":26}],16:[function(require,module,exports){
+},{"./scratch3":25}],15:[function(require,module,exports){
 /* Conditional Loops L2 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -3720,7 +3752,7 @@ module.exports = class {
 }
 
 
-},{"../grading-scripts-s3/scratch3":26}],17:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],16:[function(require,module,exports){
 (function (global){
 /// Info layer template
 global.Context = class {
@@ -3755,7 +3787,7 @@ global.Context = class {
     }
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],18:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /* Decomposition By Sequence L1 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -4066,7 +4098,7 @@ module.exports = class {
     }    
 }
 
-},{"./scratch3":26}],19:[function(require,module,exports){
+},{"./scratch3":25}],18:[function(require,module,exports){
 /* Decomposition by Sequence L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -4309,7 +4341,7 @@ module.exports = class {
         }
     }
 }
-},{"./scratch3":26}],20:[function(require,module,exports){
+},{"./scratch3":25}],19:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -4372,7 +4404,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":26}],21:[function(require,module,exports){
+},{"./scratch3":25}],20:[function(require,module,exports){
 /* Events L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and bug fixes: Marco Anaya, Summer 2019
@@ -4519,7 +4551,7 @@ module.exports = class {
         
     }
 } 
-},{"./scratch3":26}],22:[function(require,module,exports){
+},{"./scratch3":25}],21:[function(require,module,exports){
 /* One Way Sync L1 Autograder
  * Marco Anaya, Summer 2019
  */
@@ -4678,7 +4710,7 @@ module.exports = class {
 		return reqs;
 	}
 }
-},{"./scratch3":26}],23:[function(require,module,exports){
+},{"./scratch3":25}],22:[function(require,module,exports){
 /* One Way Sync L2 Autograder
  * Marco Anaya, Summer 2019
  */
@@ -4790,7 +4822,7 @@ module.exports = class {
 	}
 }
 
-},{"./scratch3":26}],24:[function(require,module,exports){
+},{"./scratch3":25}],23:[function(require,module,exports){
 /* Scratch Basics L1 Autograder
 Updated Version: Saranya Turimella, Summer 2019
 */
@@ -4854,7 +4886,7 @@ module.exports = class {
         }
     }
 }
-},{"../grading-scripts-s3/scratch3":26}],25:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],24:[function(require,module,exports){
 /* Scratch Basics L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -5053,7 +5085,7 @@ module.exports = class {
         
     }
 }
-},{"./scratch3":26}],26:[function(require,module,exports){
+},{"./scratch3":25}],25:[function(require,module,exports){
 (function (global){
 /// Scratch 3 helper functions
 require('./context');
@@ -5214,7 +5246,7 @@ global.Project = class {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./context":17}],27:[function(require,module,exports){
+},{"./context":16}],26:[function(require,module,exports){
 /// Provides necessary scripts for index.html.
 
 /// Requirements (scripts)
@@ -5627,7 +5659,7 @@ function noError() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-},{"./act1-grading-scripts/5-block-challenge":1,"./act1-grading-scripts/aboutMe":2,"./act1-grading-scripts/build-a-band":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/ladybug":5,"./act1-grading-scripts/name-poem":7,"./act1-grading-scripts/ofrenda":8,"./grading-scripts-s3/animation-L1":12,"./grading-scripts-s3/animation-L2":13,"./grading-scripts-s3/complex-conditionals-L1":14,"./grading-scripts-s3/cond-loops-L1":15,"./grading-scripts-s3/cond-loops-L2":16,"./grading-scripts-s3/decomp-L1":18,"./grading-scripts-s3/decomp-L2":19,"./grading-scripts-s3/events-L1":20,"./grading-scripts-s3/events-L2":21,"./grading-scripts-s3/one-way-sync-L1":22,"./grading-scripts-s3/one-way-sync-L2":23,"./grading-scripts-s3/scratch-basics-L1":24,"./grading-scripts-s3/scratch-basics-L2":25}],28:[function(require,module,exports){
+},{"./act1-grading-scripts/5-block-challenge":1,"./act1-grading-scripts/aboutMe":2,"./act1-grading-scripts/build-a-band":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/ladybug":5,"./act1-grading-scripts/name-poem":7,"./act1-grading-scripts/ofrenda":8,"./grading-scripts-s3/animation-L1":11,"./grading-scripts-s3/animation-L2":12,"./grading-scripts-s3/complex-conditionals-L1":13,"./grading-scripts-s3/cond-loops-L1":14,"./grading-scripts-s3/cond-loops-L2":15,"./grading-scripts-s3/decomp-L1":17,"./grading-scripts-s3/decomp-L2":18,"./grading-scripts-s3/events-L1":19,"./grading-scripts-s3/events-L2":20,"./grading-scripts-s3/one-way-sync-L1":21,"./grading-scripts-s3/one-way-sync-L2":22,"./grading-scripts-s3/scratch-basics-L1":23,"./grading-scripts-s3/scratch-basics-L2":24}],27:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -5813,7 +5845,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],29:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -5838,14 +5870,14 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],30:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],31:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -6435,4 +6467,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":30,"_process":28,"inherits":29}]},{},[27]);
+},{"./support/isBuffer":29,"_process":27,"inherits":28}]},{},[26]);
