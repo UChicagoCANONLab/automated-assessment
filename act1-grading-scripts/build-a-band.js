@@ -13,12 +13,12 @@ module.exports = class {
 
     initReqs() {
         // this.requirements.guitar = { bool: false, str: 'Script added for guitar (including event and action block)' }
-        this.requirements.sprite = { bool: false, str: 'Added at least one new sprite' };
-        this.requirements.script = { bool: false, str: 'At least one of the new sprites has a script' };
-   //     this.requirements.changed1 = { bool: false, str: "Either the trumpet or the drum's code has been changed"};
-     //   this.requirements.changed = { bool: false, str: "Both the trumpet and the drum's code have been changed"};
-        this.requirements.cat1 = { bool: false, str: "The cat's code has been changed"};
-        this.requirements.cat = { bool: false, str: 'Cat animated using loop with wait block and motion (including changing costumes and size)' };
+        // this.requirements.sprite = { bool: false, str: 'Added at least one new sprite' };
+        // this.requirements.script = { bool: false, str: 'At least one of the new sprites has a script' };
+        this.requirements.changed1 = { bool: false, str: "Either the trumpet or the drum's code has been changed"};
+        this.requirements.changed = { bool: false, str: "Both the trumpet and the drum's code have been changed"};
+        // this.requirements.cat1 = { bool: false, str: "The cat's code has been changed"};
+        // this.requirements.cat = { bool: false, str: 'Cat animated using loop with wait block and motion (including changing costumes and size)' };
     }
 
     // makeArray(target){
@@ -88,25 +88,130 @@ module.exports = class {
         for (let target of project.targets) {
             if (!target.isStage) {
                 if (target.name === 'Trumpet'){
-                    // for (let script of target.scripts){
-                    //     console.log('script');
-                    //     console.log(script);
-                    //     if (target.scripts[script].blocks[0].opcode==='event_whenthisspriteclicked'){
-                    //         if (target.scripts[script].blocks.length>4){
-                    //             trumpetChanged = true;
-                    //         } else if (target.scripts[script].blocks[1].opcode!=='motion_turnright'
-                    //         || target.scripts[script].blocks[2].opcode!=='control_repeat'
-                    //         || target.scripts[script].blocks[3].opcode!=='motion_turnleft'){
-                    //             trumpetChanged = true;
-                    //         }
-                    //     } else if (target.scripts[script].blocks[0].opcode==='event_whenkeypressed'
-                    //     && target.blocks[target.scripts[script].blocks[0].id].fields.KEY_OPTION[0]===3){
-                    //         if (target.scripts[script].blocks.length>4) {
-
-                    //         }
-                    //     }
-                    // }
+                    if (target.scripts.length!=3) {trumpetChanged = true;}
+                    for (let block in target.blocks){
+                        if ((target.blocks[block].opcode=='motion_turnright' || target.blocks[block].opcode=='motion_turnleft')
+                        && target.blocks[block].inputs.DEGREES[1][1]!=15){
+                            trumpetChanged = true;
+                        }
+                        if (target.blocks[block].opcode=='control_repeat'
+                        && target.blocks[block].inputs.TIMES[1][1]!=2){
+                            trumpetChanged=true;
+                        }
+                    }
+                    for (let script of target.scripts){
+                        if (script.blocks[0].opcode==='event_whenthisspriteclicked'){
+                            if (script.blocks.length!=4){
+                                trumpetChanged = true;
+                            } else if (script.blocks[1].opcode!=='motion_turnright'
+                            || script.blocks[2].opcode!=='control_repeat'
+                            || script.blocks[3].opcode!=='motion_turnleft'){
+                                trumpetChanged = true;
+                            } else if (script.blocks[2].subscripts[0].blocks[0].opcode != 'sound_playuntildone'
+                            || target.blocks[script.blocks[2].subscripts[0].blocks[0].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='C trumpet'
+                            || script.blocks[2].subscripts[0].blocks[1].opcode != 'sound_playuntildone'
+                            || target.blocks[script.blocks[2].subscripts[0].blocks[1].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='D trumpet'
+                            || script.blocks[2].subscripts[0].blocks[2].opcode != 'sound_playuntildone'
+                            || target.blocks[script.blocks[2].subscripts[0].blocks[2].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='E trumpet') {
+                                trumpetChanged = true;
+                            }
+                        } else if (script.blocks[0].opcode==='event_whenkeypressed'
+                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==1){
+                            if (script.blocks.length!=9) {
+                                trumpetChanged = true;
+                            } else if (script.blocks[1].opcode!=='motion_turnright'
+                            || script.blocks[2].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[2].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='C trumpet'
+                            || script.blocks[3].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[3].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='D trumpet'
+                            || script.blocks[4].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[4].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='E trumpet'
+                            || script.blocks[5].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[5].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='C trumpet'
+                            || script.blocks[6].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[6].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='D trumpet'
+                            || script.blocks[7].opcode!=='sound_playuntildone' 
+                            || target.blocks[target.blocks[script.blocks[7].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='E trumpet'
+                            || script.blocks[8].opcode!=='motion_turnleft'){
+                                trumpetChanged = true;
+                            }
+                        } else if (script.blocks[0].opcode==='event_whenkeypressed'
+                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==2){
+                            if (script.blocks.length!=6){
+                                trumpetChanged = true;
+                            }else if (script.blocks[1].opcode!=='motion_turnright'
+                            || script.blocks[2].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[2].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='C trumpet'
+                            || script.blocks[3].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[3].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='D trumpet'
+                            || script.blocks[4].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[4].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='E trumpet'
+                            || script.blocks[5].opcode!=='motion_turnleft'){
+                                trumpetChanged = true;
+                            }
+                        }
+                    }
                 }
+                if (target.name == 'Drum-Bass'){
+                    if (target.scripts.length!=4) {drumChanged=true;}
+                    for (let block in target.blocks){
+                        if (target.blocks[block].opcode=='motion_turnright' && target.blocks[block].inputs.DEGREES[1][1]!=15){
+                            drumChanged=true;
+                        }
+                        if (target.blocks[block].opcode=='control_repeat' && target.blocks[block].inputs.TIMES[1][1]!=3){
+                            drumChanged=true;
+                        }
+                        if (target.blocks[block].opcode=='sound_playuntildone'
+                        && target.blocks[target.blocks[block].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='drum bass3'){
+                            drumChanged=true;
+                        }
+                    }
+                    for (let script of target.scripts){
+                        if (script.blocks[0].opcode=='event_whenthisspriteclicked'){
+                            if (script.blocks.length!=2){
+                                drumChanged = true;
+                            } else if (script.blocks[1].opcode!='control_repeat'
+                            || script.blocks[1].subscripts[0].blocks[0].opcode != 'motion_turnright'
+                            || script.blocks[1].subscripts[0].blocks[1].opcode != 'sound_playuntildone'){
+                                drumChanged = true;
+                            } 
+                        } else if (script.blocks[0].opcode == 'event_whenkeypressed'
+                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==3){
+                            if (script.blocks.length!=7){
+                                drumChanged = true;
+                            } else if (script.blocks[1].opcode!='motion_turnright'
+                            || script.blocks[2].opcode!='motion_turnright'
+                            || script.blocks[3].opcode!='motion_turnright'
+                            || script.blocks[4].opcode!='sound_playuntildone'
+                            || script.blocks[5].opcode!='sound_playuntildone'
+                            || script.blocks[6].opcode!='sound_playuntildone') {
+                                drumChanged=true;
+                            }
+                        } else if (script.blocks[0].opcode=='event_whenkeypressed'
+                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==4){
+                            if (script.blocks.length!=7){
+                                drumChanged = true;
+                            } else if (script.blocks[1].opcode!='motion_turnright'
+                            || script.blocks[2].opcode!='sound_playuntildone'
+                            || script.blocks[3].opcode!='motion_turnright'
+                            || script.blocks[4].opcode!='sound_playuntildone'
+                            || script.blocks[5].opcode!='motion_turnright'
+                            || script.blocks[6].opcode!='sound_playuntildone') {
+                                drumChanged=true;
+                            }
+                        } else if (script.blocks[0].opcode=='event_whenkeypressed'
+                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==5){
+                            if (script.blocks.length!=3){
+                                drumChanged = true;
+                            } else if (script.blocks[1].opcode!='motion_turnright'
+                            || script.blocks[2].opcode!='sound_playuntildone') {
+                                drumChanged=true;
+                            }
+                        }
+                    }
+                }
+              
+
                 if (target.name === 'Sprite2') {
                     for (let block in target.blocks) {
                         let oldCode = false;
@@ -116,7 +221,6 @@ module.exports = class {
                                 if (target.blocks[next].inputs.MESSAGE[1][1]==='Click on an instrument to play some music!'){
                                     let secs = target.blocks[next].inputs.SECS[1][1];
                                     if (secs==7){
-                                        console.log('here');
                                         oldCode = true;
                                     }
                                 }
@@ -134,7 +238,7 @@ module.exports = class {
                                 }
                             }
                         }
-                        if (!oldCode) {this.requirements.cat1.bool=true;}
+   //                     if (!oldCode) {this.requirements.cat1.bool=true;}
 
                         if (target.blocks[block].opcode.includes('event_')) {
                             for (let i = block; i !== null; i = target.blocks[i].next) {
@@ -160,7 +264,7 @@ module.exports = class {
 
                                             }
                                         if (wait && (nextCostChangeSize || motion || (switchCostSize > 1))) {
-                                            this.requirements.cat.bool = true;
+                                  //          this.requirements.cat.bool = true;
                                         }
                                     }
                                 }
@@ -183,17 +287,21 @@ module.exports = class {
                     (target.name != 'Trumpet') &&
                     (target.name != 'Drum-Bass') &&
                     (target.name != 'Guitar-Electric')) {
-                    this.requirements.sprite.bool = true;
+      //              this.requirements.sprite.bool = true;
                     for (let block in target.blocks) {
                         if (target.blocks[block].opcode.includes('event_')) {
                             if (target.blocks[block].next != null) {
-                                this.requirements.script.bool = true;
+   //                             this.requirements.script.bool = true;
                             }
                         }
                     }
                 }
             }
         }
+        if (trumpetChanged) {givenSpritesChanged++;}
+        if (drumChanged) {givenSpritesChanged++;}
+        if (givenSpritesChanged) {this.requirements.changed1.bool=true;}
+        if (givenSpritesChanged>1) {this.requirements.changed.bool=true;}
     }
 }
 
