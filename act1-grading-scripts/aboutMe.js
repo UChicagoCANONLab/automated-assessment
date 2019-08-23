@@ -11,13 +11,32 @@ module.exports = class {
     }
 
     initReqs() {
+        // sprites - done
         this.requirements.hasOneSprite = { bool: false, str: 'Project has at least one sprite' };
-        this.requirements.interactiveSprite = { bool: false, str: 'Project has at least one interactive sprite with a multi-block script attached' };
-        //this.requirements.nonInteractiveSprite = { bool: false, str: 'Proejct has at least one non-interactive sprite with a multi-block script attached to it' };
-        this.extensions.multipleSprites = { bool: false, str: 'This project uses more than one sprite' }; // done
-        this.extensions.additionalBackdrop = { bool: false, str: 'This project has an additional backdrop' };
-        this.extensions.movingSprites = { bool: false, str: 'This project has a moving sprite' };
-        this.extensions.hasBackgroundMusic = { bool: false, str: 'This project has background music' };
+        this.requirements.hasTwoSprites = { bool: false, str: 'Project has at least two sprites' };
+        this.requirements.hasThreeSprites = { bool: false, str: 'Project has at least three sprites' };
+        // interaction - done
+        this.requirements.hasOneInteractiveSprite = { bool: false, str: 'Project has at least one interactive sprite' };
+        this.requirements.hasTwoInteractiveSprites = { bool: false, str: 'Project has at least two interactive sprites' };
+        this.requirements.hasThreeInteractiveSprites = { bool: false, str: 'Project has at least three interactive sprites' };
+        // interactive and speaking  - done
+        this.requirements.hasOneSpeakingInteractive = { bool: false, str: 'Project has one interactive sprite that speaks' };
+        this.requirements.hasTwoSpeakingInteractive = { bool: false, str: 'Project has two interactive sprites that speak' };
+        this.requirements.hasThreeSpeakingInteractive = { bool: false, str: 'Project has three interactive sprites that speak' };
+        // background - done
+        this.requirements.hasBackdrop = { bool: false, str: 'This project has a backdrop' };
+        // speaking - done
+        this.requirements.usesSayBlock = {bool: false, str: 'This project uses a say block'};
+      
+
+        // check for block usage - done 
+        this.extensions.usesThinkBlock = { bool: false, str: 'Project uses the think block' };
+        this.extensions.changeSize = { bool: false, str: 'Project uses change size block' };
+        this.extensions.playSound = { bool: false, str: 'Project uses play sound until done' };
+        this.extensions.moveSteps = { bool: false, str: 'Project uses a move block' };
+        
+
+
     }
 
     grade(fileObj, user) {
@@ -26,57 +45,90 @@ module.exports = class {
         this.initReqs();
         if (!is(fileObj)) return;
 
-        let scriptLengthInteractive = 0;
-        let scriptLengthNotInteractive = 0;
-        let isInteractive = false;
-        let numSprites = project.sprites.length;
+
+        let isInteractiveAndSpeaks = false;
+        let numInteractiveAndSpeaks = 0;
+        let numInteractive = 0;
 
         for (let target of project.targets) {
             if (target.isStage) {
                 for (let cost in target.costumes) {
                     if ((target.costumes.length > 1) || (cost.assetID !== "cd21514d0531fdffb22204e0ec5ed84a")) {
-                        this.extensions.additionalBackdrop.bool = true;
+                        this.requirements.hasBackdrop.bool = true;
                     }
                 }
             }
             else {
-                for (let block in target.blocks) {
+
+                for (let script of target.scripts) {
+                    if (script.blocks[0].opcode === 'event_whenthisspriteclicked') {
+                        if (script.blocks.length > 1) {
+                            numInteractive++;
+                        }
+                        for (let i = 0; i < script.blocks.length; i++) {
+                            if ((script.blocks[i].opcode === 'looks_say') ||
+                                (script.blocks[i].opcode === 'looks_sayforsecs')) {
+                                isInteractiveAndSpeaks = true;
+                            }
+                        }
+                    }
+
+                    for (let i = 0; i < script.blocks.length; i++) {
+                        if (script.blocks[i].opcode === 'looks_thinkforsecs') {
+                            this.extensions.usesThinkBlock.bool = true;
+                        }
+                        if (script.blocks[i].opcode === 'looks_changesizeby') {
+                            this.extensions.changeSize.bool = true;
+                        }
+                        if (script.blocks[i].opcode === 'sound_playuntildone') {
+                            this.extensions.playSound.bool = true;
+                        }
+                        if (script.blocks[i].opcode === 'motion_movesteps') {
+                            this.extensions.moveSteps.bool = true;
+                        }
+                        if ((script.blocks[i].opcode === 'looks_say') || (script.blocks[i].opcode === 'looks_sayforsecs')) {
+                            this.requirements.usesSayBlock.bool = true;
+                        }
                     
-                    if (target.blocks[block].opcode === "event_whenthisspriteclicked") {
-
-                        for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
-                            scriptLengthInteractive++;
-                        }
-                        if (scriptLengthInteractive > 1) {
-                            this.requirements.interactiveSprite.bool = true;
-                            
-                        }
                     }
-
-                    else if ((target.blocks[block].opcode === 'motion_gotoxy') ||
-                    target.blocks[block].opcode === 'motion_glidesecstoxy' ||
-                    target.blocks[block].opcode === 'motion_movesteps') {
-                        this.extensions.movingSprites.bool = true;
-                    }
-
-                    else if ((target.blocks[block].opcode === 'sound_playuntildone') ||
-                    (target.blocks[block].opcode === 'sound_play')) {
-                        this.extensions.hasBackgroundMusic.bool = true;
+                    if (isInteractiveAndSpeaks) {
+                        numInteractiveAndSpeaks ++;
                     }
                 }
             }
         }
 
-        if (this.requirements.interactiveSprite.bool === true) {
-            this.requirements.nonInteractiveSprite.bool = true;
-        }
-        
-        if (numSprites >= 1) {
+        // number of sprites
+        if (project.sprites.length >= 1) {
             this.requirements.hasOneSprite.bool = true;
+        } 
+        if (project.sprites.length >= 2) {
+            this.requirements.hasTwoSprites.bool = true;
+        } 
+        if (project.sprites.length >= 3) {
+            this.requirements.hasThreeSprites.bool = true;
         }
 
-        if (numSprites > 1) {
-            this.extensions.multipleSprites.bool = true;
+        // number of interactive sprites
+        if (numInteractive >= 1) {
+            this.requirements.hasOneInteractiveSprite.bool = true;
+        } 
+        if (numInteractive >= 2) {
+            this.requirements.hasTwoInteractiveSprites.bool = true;
+        } 
+        if (numInteractive >= 3) {
+            this.requirements.hasThreeInteractiveSprites.bool = true;
+        }
+
+        // number of interactive and speaking sprites
+        if (numInteractiveAndSpeaks >= 1) {
+            this.requirements.hasOneSpeakingInteractive.bool = true;
+        }
+        if (numInteractiveAndSpeaks >= 2) {
+            this.requirements.hasTwoSpeakingInteractive.bool = true;
+        } 
+        if (numInteractiveAndSpeaks >= 3) {
+            this.requirements.hasThreeSpeakingInteractive.bool = true;
         }
 
     }
