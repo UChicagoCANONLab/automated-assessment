@@ -105,7 +105,7 @@ module.exports = class {
 
     }
 }
-},{"../grading-scripts-s3/scratch3":26}],2:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],2:[function(require,module,exports){
 /*
 Act 1 About Me Grader
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -242,7 +242,7 @@ module.exports = class {
     }
 }
 
-},{"../grading-scripts-s3/scratch3":26}],3:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],3:[function(require,module,exports){
 /*
 Act 1 Build-a-Band Project Autograder
 Initial version and testing: Zipporah Klain
@@ -258,13 +258,22 @@ module.exports = class {
 
     initReqs() {
         // this.requirements.guitar = { bool: false, str: 'Script added for guitar (including event and action block)' }
-        this.requirements.sprite = { bool: false, str: 'Added at least one new sprite' };
-        this.requirements.script = { bool: false, str: 'At least one of the new sprites has a script' };
+        // this.requirements.sprite = { bool: false, str: 'Added at least one new sprite' };
+        // this.requirements.script = { bool: false, str: 'At least one of the new sprites has a script' };
         this.requirements.changed1 = { bool: false, str: "Either the trumpet or the drum's code has been changed"};
         this.requirements.changed = { bool: false, str: "Both the trumpet and the drum's code have been changed"};
-        this.requirements.cat1 = { bool: false, str: "The cat's code has been changed"};
-        this.requirements.cat = { bool: false, str: 'Cat animated using loop with wait block and motion (including changing costumes and size)' };
+        // this.requirements.cat1 = { bool: false, str: "The cat's code has been changed"};
+        // this.requirements.cat = { bool: false, str: 'Cat animated using loop with wait block and motion (including changing costumes and size)' };
     }
+
+    // makeArray(target){
+    //     let arr = [];
+    //     for (let block in target.blocks){
+    //         arr.push(target.blocks[block].opcode);
+    //         arr.push(target.blocks[block].next);
+    //         arr.push(target.blocks[block].parent);
+    //     }
+    // }
 
     grade(fileObj, user) {
         var project = new Project(fileObj, null);
@@ -275,6 +284,29 @@ module.exports = class {
         let trumpetBlocks = null;
         let ogDrumBlocks = null;
         let drumBlocks = null;
+        let ogSpriteBlocks = null;
+        let spriteBlocks = null;
+
+  //      var original = new Project(require('../act1-grading-scripts/real-original-band'), null);
+
+        // for (let target of original.targets){
+        //     if (target.name === 'Trumpet'){
+        //         ogTrumpetBlocks=target.blocks;
+        //     } else if (target.name === 'Drum-Bass'){
+        //         ogDrumBlocks=target.blocks;
+        //     } else if (target.name === 'Sprite2'){
+        //         ogSpriteBlocks=target.blocks;
+        //     }
+        // }
+        // for (let target of project.targets){
+        //     if (target.name === 'Trumpet'){
+        //         trumpetBlocks = target.blocks;
+        //     } else if (target.name === 'Drum-Bass'){
+        //         drumBlocks = target.blocks;
+        //     } else if (target.name === 'Sprite2'){
+        //         spriteBlocks=target.blocks;
+        //     }
+        // }
 
         var original = new Project(require('../act1-grading-scripts/original-band1'), null);
 
@@ -293,42 +325,163 @@ module.exports = class {
             }
         }
         let givenSpritesChanged = 0;
-        var util = require('util');
-        let tB = util.inspect(trumpetBlocks);
-        let ogTB = util.inspect(ogTrumpetBlocks);
-        let dB = util.inspect(drumBlocks);
-        let ogDB = util.inspect(ogDrumBlocks);
-        if (tB!==ogTB){givenSpritesChanged++;}
-        if (dB!==ogDB){givenSpritesChanged++;}
-        if (givenSpritesChanged){
-            this.requirements.changed1.bool=true;
-        }
-        if (givenSpritesChanged>1){
-            this.requirements.changed.bool=true;
-        }
+        // var util = require('util');
+        // let tB = util.inspect(trumpetBlocks);
+        // let ogTB = util.inspect(ogTrumpetBlocks);
+        // let dB = util.inspect(drumBlocks);
+        // let ogDB = util.inspect(ogDrumBlocks);
+        // let sB = util.inspect(spriteBlocks);
+        // let ogSB = util.inspect(ogSpriteBlocks);
+        // if (tB!==ogTB){givenSpritesChanged++;}
+        // if (dB!==ogDB){givenSpritesChanged++;}
 
+        
+        // if (givenSpritesChanged){
+        //     this.requirements.changed1.bool=true;
+        // }
+        // if (givenSpritesChanged>1){
+        //     this.requirements.changed.bool=true;
+        // }
+        // if (sB!==ogSB){this.requirements.cat1.bool=true;}
+
+        let trumpetChanged = false;
+        let drumChanged = false;
         for (let target of project.targets) {
             if (!target.isStage) {
                 if (target.name === 'Trumpet'){
-                    // for (let script in target.scripts){
-                    //     if (script.blocks[0].opcode === 'event_whenthisspriteclicked'){
-                    //         if ((script.blocks[1].opcode==='motion_turnright' &&
-                    //                 script.blocks[1].inputs.DEGREES[1][1]===15)
-                    //             && (script.blocks[2].opcode==='control_repeat' &&
-                    //                 script.blocks[2].inputs.TIMES[1][1])
-                    //             && ()
-                    //     }
-                    // }
+                    if (target.scripts.length!=3) {trumpetChanged = true;}
+                    for (let block in target.blocks){
+                        if ((target.blocks[block].opcode=='motion_turnright' || target.blocks[block].opcode=='motion_turnleft')
+                        && target.blocks[block].inputs.DEGREES[1][1]!=15){
+                            trumpetChanged = true;
+                        }
+                        if (target.blocks[block].opcode=='control_repeat'
+                        && target.blocks[block].inputs.TIMES[1][1]!=2){
+                            trumpetChanged=true;
+                        }
+                    }
+                    for (let script of target.scripts){
+                        if (script.blocks[0].opcode==='event_whenthisspriteclicked'){
+                            if (script.blocks.length!=4){
+                                trumpetChanged = true;
+                            } else if (script.blocks[1].opcode!=='motion_turnright'
+                            || script.blocks[2].opcode!=='control_repeat'
+                            || script.blocks[3].opcode!=='motion_turnleft'){
+                                trumpetChanged = true;
+                            } else if (script.blocks[2].subscripts[0].blocks[0].opcode != 'sound_playuntildone'
+                            || target.blocks[script.blocks[2].subscripts[0].blocks[0].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='C trumpet'
+                            || script.blocks[2].subscripts[0].blocks[1].opcode != 'sound_playuntildone'
+                            || target.blocks[script.blocks[2].subscripts[0].blocks[1].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='D trumpet'
+                            || script.blocks[2].subscripts[0].blocks[2].opcode != 'sound_playuntildone'
+                            || target.blocks[script.blocks[2].subscripts[0].blocks[2].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='E trumpet') {
+                                trumpetChanged = true;
+                            }
+                        } else if (script.blocks[0].opcode==='event_whenkeypressed'
+                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==1){
+                            if (script.blocks.length!=9) {
+                                trumpetChanged = true;
+                            } else if (script.blocks[1].opcode!=='motion_turnright'
+                            || script.blocks[2].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[2].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='C trumpet'
+                            || script.blocks[3].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[3].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='D trumpet'
+                            || script.blocks[4].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[4].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='E trumpet'
+                            || script.blocks[5].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[5].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='C trumpet'
+                            || script.blocks[6].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[6].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='D trumpet'
+                            || script.blocks[7].opcode!=='sound_playuntildone' 
+                            || target.blocks[target.blocks[script.blocks[7].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='E trumpet'
+                            || script.blocks[8].opcode!=='motion_turnleft'){
+                                trumpetChanged = true;
+                            }
+                        } else if (script.blocks[0].opcode==='event_whenkeypressed'
+                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==2){
+                            if (script.blocks.length!=6){
+                                trumpetChanged = true;
+                            }else if (script.blocks[1].opcode!=='motion_turnright'
+                            || script.blocks[2].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[2].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='C trumpet'
+                            || script.blocks[3].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[3].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='D trumpet'
+                            || script.blocks[4].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[4].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='E trumpet'
+                            || script.blocks[5].opcode!=='motion_turnleft'){
+                                trumpetChanged = true;
+                            }
+                        }
+                    }
                 }
+                if (target.name == 'Drum-Bass'){
+                    if (target.scripts.length!=4) {drumChanged=true;}
+                    for (let block in target.blocks){
+                        if (target.blocks[block].opcode=='motion_turnright' && target.blocks[block].inputs.DEGREES[1][1]!=15){
+                            drumChanged=true;
+                        }
+                        if (target.blocks[block].opcode=='control_repeat' && target.blocks[block].inputs.TIMES[1][1]!=3){
+                            drumChanged=true;
+                        }
+                        if (target.blocks[block].opcode=='sound_playuntildone'
+                        && target.blocks[target.blocks[block].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='drum bass3'){
+                            drumChanged=true;
+                        }
+                    }
+                    for (let script of target.scripts){
+                        if (script.blocks[0].opcode=='event_whenthisspriteclicked'){
+                            if (script.blocks.length!=2){
+                                drumChanged = true;
+                            } else if (script.blocks[1].opcode!='control_repeat'
+                            || script.blocks[1].subscripts[0].blocks[0].opcode != 'motion_turnright'
+                            || script.blocks[1].subscripts[0].blocks[1].opcode != 'sound_playuntildone'){
+                                drumChanged = true;
+                            } 
+                        } else if (script.blocks[0].opcode == 'event_whenkeypressed'
+                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==3){
+                            if (script.blocks.length!=7){
+                                drumChanged = true;
+                            } else if (script.blocks[1].opcode!='motion_turnright'
+                            || script.blocks[2].opcode!='motion_turnright'
+                            || script.blocks[3].opcode!='motion_turnright'
+                            || script.blocks[4].opcode!='sound_playuntildone'
+                            || script.blocks[5].opcode!='sound_playuntildone'
+                            || script.blocks[6].opcode!='sound_playuntildone') {
+                                drumChanged=true;
+                            }
+                        } else if (script.blocks[0].opcode=='event_whenkeypressed'
+                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==4){
+                            if (script.blocks.length!=7){
+                                drumChanged = true;
+                            } else if (script.blocks[1].opcode!='motion_turnright'
+                            || script.blocks[2].opcode!='sound_playuntildone'
+                            || script.blocks[3].opcode!='motion_turnright'
+                            || script.blocks[4].opcode!='sound_playuntildone'
+                            || script.blocks[5].opcode!='motion_turnright'
+                            || script.blocks[6].opcode!='sound_playuntildone') {
+                                drumChanged=true;
+                            }
+                        } else if (script.blocks[0].opcode=='event_whenkeypressed'
+                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==5){
+                            if (script.blocks.length!=3){
+                                drumChanged = true;
+                            } else if (script.blocks[1].opcode!='motion_turnright'
+                            || script.blocks[2].opcode!='sound_playuntildone') {
+                                drumChanged=true;
+                            }
+                        }
+                    }
+                }
+              
+
                 if (target.name === 'Sprite2') {
                     for (let block in target.blocks) {
-
                         let oldCode = false;
                         if (target.blocks[block].opcode==='event_whenflagclicked'){
                             let next = target.blocks[block].next;
-                            if (next === 'i`x:QN,(K}4VXexrv2s1'){
+                            if (next === '-=c~#;5EEGjK{HrhxCUC'){
                                 if (target.blocks[next].inputs.MESSAGE[1][1]==='Click on an instrument to play some music!'){
-                                    if (target.blocks[next].inputs.SECS[1][1]===7){
+                                    let secs = target.blocks[next].inputs.SECS[1][1];
+                                    if (secs==7){
                                         oldCode = true;
                                     }
                                 }
@@ -336,17 +489,17 @@ module.exports = class {
                         }
                         if (target.blocks[block].opcode==='looks_sayforsecs'){
                             let parent = target.blocks[block].parent;
-                            if (parent === '35NjOT;ABdxt.yY%0)4F'){
+                            if (parent === 'r5{d*2~:^,9ShD5in?er'){
                                 if (target.blocks[block].next === null){
                                     if (target.blocks[block].inputs.MESSAGE[1][1]==='Click on an instrument to play some music!'){
-                                        if (target.blocks[block].inputs.SECS[1][1]===7){
+                                        if (target.blocks[block].inputs.SECS[1][1]==7){
                                             oldCode = true;
                                         }
                                     }
                                 }
                             }
                         }
-                        if (!oldCode) {this.requirements.cat1.bool=true;}
+   //                     if (!oldCode) {this.requirements.cat1.bool=true;}
 
                         if (target.blocks[block].opcode.includes('event_')) {
                             for (let i = block; i !== null; i = target.blocks[i].next) {
@@ -372,7 +525,7 @@ module.exports = class {
 
                                             }
                                         if (wait && (nextCostChangeSize || motion || (switchCostSize > 1))) {
-                                            this.requirements.cat.bool = true;
+                                  //          this.requirements.cat.bool = true;
                                         }
                                     }
                                 }
@@ -395,17 +548,21 @@ module.exports = class {
                     (target.name != 'Trumpet') &&
                     (target.name != 'Drum-Bass') &&
                     (target.name != 'Guitar-Electric')) {
-                    this.requirements.sprite.bool = true;
+      //              this.requirements.sprite.bool = true;
                     for (let block in target.blocks) {
                         if (target.blocks[block].opcode.includes('event_')) {
                             if (target.blocks[block].next != null) {
-                                this.requirements.script.bool = true;
+   //                             this.requirements.script.bool = true;
                             }
                         }
                     }
                 }
             }
         }
+        if (trumpetChanged) {givenSpritesChanged++;}
+        if (drumChanged) {givenSpritesChanged++;}
+        if (givenSpritesChanged) {this.requirements.changed1.bool=true;}
+        if (givenSpritesChanged>1) {this.requirements.changed.bool=true;}
     }
 }
 
@@ -486,7 +643,7 @@ module.exports = class {
     }
 
 }
-},{"../grading-scripts-s3/scratch3":26}],5:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],5:[function(require,module,exports){
 /*
 Act 1 Ladybug Scramble Autograder
 Initial version and testing: Saranya Turimella and Zipporah Klain, 2019
@@ -2004,7 +2161,7 @@ module.exports = class {
 
 
 
-},{"../act1-grading-scripts/name-poem-original-test":6,"../grading-scripts-s3/scratch3":26}],8:[function(require,module,exports){
+},{"../act1-grading-scripts/name-poem-original-test":6,"../grading-scripts-s3/scratch3":25}],8:[function(require,module,exports){
 /*
 Act 1 Events Ofrenda Autograder
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -3282,7 +3439,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":26}],13:[function(require,module,exports){
+},{"./scratch3":25}],12:[function(require,module,exports){
 /* Animation L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and minor bug fixes: Marco Anaya, Summer 2019
@@ -3426,7 +3583,7 @@ module.exports = class {
         this.extensions.moreThanOneAnimation.bool = (this.animationTypes.length > 1)
     }
 }
-},{"./scratch3":26}],14:[function(require,module,exports){
+},{"./scratch3":25}],13:[function(require,module,exports){
 /* Complex Conditionals L1(TIPP&SEE Modify) Autograder
  * Scratch 3 (original) version: Anna Zipp, Summer 2019
  */
@@ -3668,7 +3825,7 @@ module.exports = class {
         }
     }    
 }
-},{"./scratch3":26}],15:[function(require,module,exports){
+},{"./scratch3":25}],14:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -3782,7 +3939,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":26}],16:[function(require,module,exports){
+},{"./scratch3":25}],15:[function(require,module,exports){
 /* Conditional Loops L2 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -3863,7 +4020,7 @@ module.exports = class {
 }
 
 
-},{"../grading-scripts-s3/scratch3":26}],17:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],16:[function(require,module,exports){
 (function (global){
 /// Info layer template
 global.Context = class {
@@ -3898,7 +4055,7 @@ global.Context = class {
     }
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],18:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /* Decomposition By Sequence L1 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -4209,7 +4366,7 @@ module.exports = class {
     }    
 }
 
-},{"./scratch3":26}],19:[function(require,module,exports){
+},{"./scratch3":25}],18:[function(require,module,exports){
 /* Decomposition by Sequence L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -4452,7 +4609,7 @@ module.exports = class {
         }
     }
 }
-},{"./scratch3":26}],20:[function(require,module,exports){
+},{"./scratch3":25}],19:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -4515,7 +4672,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":26}],21:[function(require,module,exports){
+},{"./scratch3":25}],20:[function(require,module,exports){
 /* Events L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and bug fixes: Marco Anaya, Summer 2019
@@ -4662,7 +4819,7 @@ module.exports = class {
         
     }
 } 
-},{"./scratch3":26}],22:[function(require,module,exports){
+},{"./scratch3":25}],21:[function(require,module,exports){
 /* One Way Sync L1 Autograder
  * Marco Anaya, Summer 2019
  */
@@ -4821,7 +4978,7 @@ module.exports = class {
 		return reqs;
 	}
 }
-},{"./scratch3":26}],23:[function(require,module,exports){
+},{"./scratch3":25}],22:[function(require,module,exports){
 /* One Way Sync L2 Autograder
  * Marco Anaya, Summer 2019
  */
@@ -4933,7 +5090,7 @@ module.exports = class {
 	}
 }
 
-},{"./scratch3":26}],24:[function(require,module,exports){
+},{"./scratch3":25}],23:[function(require,module,exports){
 /* Scratch Basics L1 Autograder
 Updated Version: Saranya Turimella, Summer 2019
 */
@@ -4997,7 +5154,7 @@ module.exports = class {
         }
     }
 }
-},{"../grading-scripts-s3/scratch3":26}],25:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],24:[function(require,module,exports){
 /* Scratch Basics L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -5196,7 +5353,7 @@ module.exports = class {
         
     }
 }
-},{"./scratch3":26}],26:[function(require,module,exports){
+},{"./scratch3":25}],25:[function(require,module,exports){
 (function (global){
 /// Scratch 3 helper functions
 require('./context');
@@ -5357,7 +5514,7 @@ global.Project = class {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./context":17}],27:[function(require,module,exports){
+},{"./context":16}],26:[function(require,module,exports){
 /// Provides necessary scripts for index.html.
 
 /// Requirements (scripts)
@@ -5770,7 +5927,7 @@ function noError() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-},{"./act1-grading-scripts/5-block-challenge":1,"./act1-grading-scripts/aboutMe":2,"./act1-grading-scripts/build-a-band":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/ladybug":5,"./act1-grading-scripts/name-poem":7,"./act1-grading-scripts/ofrenda":8,"./grading-scripts-s3/animation-L1":12,"./grading-scripts-s3/animation-L2":13,"./grading-scripts-s3/complex-conditionals-L1":14,"./grading-scripts-s3/cond-loops-L1":15,"./grading-scripts-s3/cond-loops-L2":16,"./grading-scripts-s3/decomp-L1":18,"./grading-scripts-s3/decomp-L2":19,"./grading-scripts-s3/events-L1":20,"./grading-scripts-s3/events-L2":21,"./grading-scripts-s3/one-way-sync-L1":22,"./grading-scripts-s3/one-way-sync-L2":23,"./grading-scripts-s3/scratch-basics-L1":24,"./grading-scripts-s3/scratch-basics-L2":25}],28:[function(require,module,exports){
+},{"./act1-grading-scripts/5-block-challenge":1,"./act1-grading-scripts/aboutMe":2,"./act1-grading-scripts/build-a-band":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/ladybug":5,"./act1-grading-scripts/name-poem":7,"./act1-grading-scripts/ofrenda":8,"./grading-scripts-s3/animation-L1":11,"./grading-scripts-s3/animation-L2":12,"./grading-scripts-s3/complex-conditionals-L1":13,"./grading-scripts-s3/cond-loops-L1":14,"./grading-scripts-s3/cond-loops-L2":15,"./grading-scripts-s3/decomp-L1":17,"./grading-scripts-s3/decomp-L2":18,"./grading-scripts-s3/events-L1":19,"./grading-scripts-s3/events-L2":20,"./grading-scripts-s3/one-way-sync-L1":21,"./grading-scripts-s3/one-way-sync-L2":22,"./grading-scripts-s3/scratch-basics-L1":23,"./grading-scripts-s3/scratch-basics-L2":24}],27:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -5956,7 +6113,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],29:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -5981,14 +6138,14 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],30:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],31:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -6578,4 +6735,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":30,"_process":28,"inherits":29}]},{},[27]);
+},{"./support/isBuffer":29,"_process":27,"inherits":28}]},{},[26]);
