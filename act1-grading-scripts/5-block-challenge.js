@@ -9,7 +9,7 @@ module.exports = class {
         this.otherOpcodes = ['motion_glidesecstoxy', 'looks_sayforsecs', 'control_wait'];
         this.blocksUsed = 0;
     }
-
+ 
     initReqs() {
         // this.requirements.fiveBlocksOld = { bool: false, str: 'Used 5 blocks specified - OLD REQ' };
         this.requirements.oneBlock = { bool: false, str: 'Used at least one of the five blocks specified' };
