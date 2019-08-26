@@ -23,8 +23,8 @@ module.exports = class {
         this.requirements.newCostumes1 = { bool: false, str: '1/3 sprites has a new costume' };
         this.requirements.speaking1 = { bool: false, str: '1/3 sprites uses the say block' };
         this.requirements.interactive1 = { bool: false, str: '1/3 sprites is interactive' };
-
-        // extensions
+       
+        // // extensions
         this.extensions.usesPlaySoundUntilDone = { bool: false, str: 'The project uses the "Play Sound Until" block in a script' };
         this.extensions.usesGotoXY = { bool: false, str: 'The project uses the "Go to XY" block in a script' };
         this.extensions.keyCommand = { bool: false, str: 'The project uses a "when "key" pressed" block in a script' };
@@ -80,6 +80,10 @@ module.exports = class {
 
         // strict requirements
         for (let target of project.targets) {
+            if (target.isStage) {
+                continue;
+            }
+           
             if (target.name === 'Left') {
                 let cost1 = target.currentCostume;
                 leftCost = target.costumes[cost1].assetId;
@@ -93,6 +97,12 @@ module.exports = class {
                         }
 
                     }
+                }
+                if (leftDialogue !== origLeftDialogue && leftDialogue !== '') {
+                    this.requirements.leftChanged.bool = true;
+                }
+                if (leftCost !== origCostumeLeft && leftCost !== 0) {
+                    this.requirements.leftCostume.bool = true;
                 }
             }
             // make sure that the code is not the same as the original here, copy in from the bottom
@@ -125,6 +135,15 @@ module.exports = class {
                         }
                     }
                 }
+                if (midInteraction) {
+                    this.requirements.interactiveMiddle.bool = true;
+                }
+                if (midDialogue !== '') {
+                    this.requirements.speakingMiddle.bool = true;
+                }
+                if (midCost !== origCostumeMiddle && midCost !== 0) {
+                    this.requirements.midCostume.bool = true;
+                }
             }
 
             if (target.name === 'Right') {
@@ -148,41 +167,29 @@ module.exports = class {
                         }
                     }
                 }
+                if (rightInteraction) {
+                    this.requirements.interactiveRight.bool = true;
+                }
+                if (rightDialogue !== '') {
+                    this.requirements.speakingRight.bool = true;
+                }
+                if (rightCost !== origCostumeRight && rightCost !== 0) {
+                    this.requirements.rightCostume.bool = true;
+                }
             }
         }
 
-        if (midInteraction) {
-            this.requirements.interactiveMiddle.bool = true;
-        }
-        if (rightInteraction) {
-            this.requirements.interactiveRight.bool = true;
-        }
-        if (midDialogue !== '') {
-            this.requirements.speakingMiddle.bool = true;
-        }
-        if (rightDialogue !== '') {
-            this.requirements.speakingRight.bool = true;
-        }
-
-        if (leftDialogue !== origLeftDialogue) {
-            this.requirements.leftChanged.bool = true;
-        }
-        if (leftCost !== origCostumeLeft) {
-            this.requirements.leftCostume.bool = true;
-        }
-        if (rightCost !== origCostumeRight) {
-            this.requirements.rightCostume.bool = true;
-        }
-        if (midCost !== origCostumeMiddle) {
-            this.requirements.midCostume.bool = true;
+        
+        if (JSON.stringify(oldCostumes) !== JSON.stringify(newCostumes)) {
+            if (project.sprites.length >0) {
+                this.requirements.newCostumes1.bool = true;
+            }
+           
         }
 
         // --------------------------------------------------------------------------------------------------------- //
 
-        //if the elements are not the same or they are not in the same order
-        if (JSON.stringify(oldCostumes) !== JSON.stringify(newCostumes)) {
-            this.requirements.newCostumes1.bool = true;
-        }
+    
 
         //f there is a say block in a sprite that is not named catrina, and that say block is not used in the same 
         //context as the original project (same parent and next block)
@@ -203,21 +210,25 @@ module.exports = class {
                                 continue;
                             }
                             else {
-                                this.requirements.speaking1.bool = true;
-                            }
+                                    this.requirements.speaking1.bool = true;
+                                }
                         }
                         if (target.scripts[script].blocks[block].opcode === 'event_whenthisspriteclicked') {
                             if (target.scripts[script].blocks[block].next === "}VBgCH{K:oDh6pV0h.pi" && target.scripts[script].blocks[block].parent === null) {
                                 continue;
                             } else if (target.scripts[script].blocks[block].next === "/f[ltBij)7]5Jtg|W(1%" && target.scripts[script].blocks[block].parent === null) {
                                 continue;
-                            } else {
-                                this.requirements.interactive1.bool = true;
+                               
+                            }  else if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
+                                continue;
                             }
+                            else {
+                                    this.requirements.interactive1.bool = true;
+                                }
                         }
 
                         // extensions
-                        if (target.scripts[script].blocks[block].opcode === 'sound_playsounduntil') {
+                        if (target.scripts[script].blocks[block].opcode === 'sound_playuntildone') {
                             if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
                                 continue;
                             } else {
