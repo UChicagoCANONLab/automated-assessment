@@ -4,6 +4,21 @@ Reformatting and bug fixes: Marco Anaya, Summer 2019
 */
 require('./scratch3');
 
+const holidays = {
+    christmas: ['christmas', 'chrismas', 'xmas', 'santa', 'x-mas', 'december 2'],
+    halloween: ['halloween', 'scary', 'trick or treat', 'hollween', 'costumeb'],
+    birthday: ['birthday', 'b-day', 'brithday', 'birth day'],
+    july: ['july'],
+    thanksgiving: ['thanksgiving'],
+    ['chinese new years']: ['chinese new'],
+    ['new years']: ['new year'],
+    valentines: ['valentine'],
+    easter: ['easter'],
+    ['national _ day']: ['national'],
+    other: ['day']
+}
+const family = ['mom', 'dad', 'father', 'mother', 'sister', 'brother', 'uncle', 'aunt','grandpa', 'grandma', 'cousin', 'famil', 'sibling', 'child'];
+
 module.exports = class {
     init() {
         this.requirements = {
@@ -30,7 +45,10 @@ module.exports = class {
             spritesWith2Scripts: 0,
             holiday: null,
             guidingUser: false,
+            family: false,
             blockTypes: new Set([]),
+            strings: [],
+            score: 0
         }
     }
     
@@ -50,25 +68,38 @@ module.exports = class {
                 if (opcode in this.info.blockTypes) {
                     
                 } else {
-                    this.info.blockTypes.add(opcode)
+                    this.info.blockTypes.add(opcode);
                     this.info.blocks++;
                 }
                 if (opcode.includes('say')) {
                     let string = block.inputs.MESSAGE[1][1].toLowerCase();
-                    if (!this.info.holiday) {
-                        for (let holiday of ['christmas', 'halloween', 'july', 'birthday', 'day']) {
+
+
+                    this.info.strings.push(string);
+
+                    if (!this.info.holiday || this.info.holiday == 'other') {
+                        for (let [holiday, keywords] of Object.entries(holidays)) {
                             
-                            if (string.includes(holiday)) {
+                            if (keywords.some(k => string.includes(k))) {
                                 this.info.holiday = holiday;
-                                break;
+                                if (holiday != 'other')
+                                    break;
                             }
                         }
                     }
                     if (!this.info.guidingUser) {
-                        for (let keyWord of ['press', 'click']) {
-                            if (string.includes(keyWord)) {
+                        for (let keyword of ['press', 'click']) {
+                            if (string.includes(keyword)) {
                                 this.info.guidingUser = true;
                                 break;
+                            }
+                        }
+                    }
+                    if (!this.info.family) {
+                        for (let keyword of family) {
+                            if (string.includes(keyword)) {
+                                this.info.family = true;
+                                break
                             }
                         }
                     }
@@ -141,6 +172,9 @@ module.exports = class {
         }
         this.requirements.usesTheThreeEvents.bool = (reqEvents.length === 3);
         this.requirements.hasThreeSprites.bool = (project.targets.length - 1 >= 3);
+        
+        delete this.info.strings;
+        this.info.score = Object.values(this.requirements).reduce((sum, r) => sum + (r.bool? 1 : 0), 0);
         
     }
 } 

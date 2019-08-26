@@ -15,9 +15,9 @@ module.exports = class {
     initReqs() {
         this.requirements.oneAphid = { bool: false, str: 'Ladybug eats at least one aphid using only blocks specified' };
         this.requirements.bothAphids = { bool: false, str: 'Ladybug eats both aphids using only blocks specified' };
-        // this.requirements.eatAphidBlock = { bool: false, str: '"Eat Aphid" block is used' };
+        this.requirements.eatAphidBlock = { bool: false, str: '"Eat Aphid" block is used' };
         this.requirements.ladybugInBounds = { bool: true, str: 'The ladybug stays on the branch' };
-        // this.requirements.changedProject = { bool: false, str: 'Project has been modified from the original project' };
+        this.requirements.changedProject = { bool: false, str: 'Project has been modified from the original project' };
         this.extensions.music = { bool: false, str: 'Background music added' };
         // this.extensions.changeAphidCode = { bool: false, str: 'Aphid code has been changed' };
         this.extensions.ladybugRedrawn = { bool: false, str: 'The ladybug has been redrawn in the costumes tab' };
@@ -43,7 +43,6 @@ module.exports = class {
     }
 
     blankTo0(input){
-        console.log('here');
 
         if (input===''){
             return 0;
@@ -52,21 +51,62 @@ module.exports = class {
         }
     }
 
-    updateBug(block) {
+    updateFromProc(block) {
         if (block.opcode === 'motion_gotoxy') {
+            console.log('motion go to xy')
             this.bug.locX = parseFloat(this.blankTo0(block.inputs.X[1][1]));
             this.bug.locY = parseFloat(this.blankTo0(block.inputs.Y[1][1]));
         }
         if (block.opcode === 'motion_pointindirection') {
+            console.log('motion point in direction');
             this.bug.dir = parseFloat(this.blankTo0(block.inputs.DIRECTION[1][1]));
         }
         if (block.opcode === 'motion_turnright') {
+            console.log('motion turn right');
             this.bug.dir -= parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
         }
+
         if (block.opcode === 'motion_turnleft') {
+            console.log('motion turn left');
             this.bug.dir += parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
         }
         if (block.opcode === 'motion_movesteps') {
+            console.log('motion move steps');
+            let radDir = (this.bug.dir - 90) * Math.PI / 180;
+            let steps = parseFloat(this.blankTo0(block.inputs.STEPS[1][1]));
+            this.bug.locX += Math.round(steps * Math.cos(radDir));
+            this.bug.locY += Math.round(steps * Math.sin(radDir));
+        }
+    }
+    updateBug(block) {
+
+        if (block.opcode === 'procedures_call') {
+            // move forward one square
+            // turn left
+            // turn right
+            // forward 2 blocks
+            // go to start position
+        }
+        if (block.opcode === 'motion_gotoxy') {
+            console.log('motion go to xy')
+            this.bug.locX = parseFloat(this.blankTo0(block.inputs.X[1][1]));
+            this.bug.locY = parseFloat(this.blankTo0(block.inputs.Y[1][1]));
+        }
+        if (block.opcode === 'motion_pointindirection') {
+            console.log('motion point in direction');
+            this.bug.dir = parseFloat(this.blankTo0(block.inputs.DIRECTION[1][1]));
+        }
+        if (block.opcode === 'motion_turnright') {
+            console.log('motion turn right');
+            this.bug.dir -= parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
+        }
+
+        if (block.opcode === 'motion_turnleft') {
+            console.log('motion turn left');
+            this.bug.dir += parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
+        }
+        if (block.opcode === 'motion_movesteps') {
+            console.log('motion move steps');
             let radDir = (this.bug.dir - 90) * Math.PI / 180;
             let steps = parseFloat(this.blankTo0(block.inputs.STEPS[1][1]));
             this.bug.locX += Math.round(steps * Math.cos(radDir));
@@ -87,7 +127,7 @@ module.exports = class {
 
         this.initReqs();
         if (!is(fileObj)) return;
-
+        if (is(fileObj.code)) return;
         var project = new Project(fileObj, null);
         var original = new Project(require('../act1-grading-scripts/original-ladybug'), null);
         if (!is(original)) return;
@@ -144,6 +184,7 @@ module.exports = class {
         let ogA2 = util.inspect(ogAphid2Blocks);
         let bb = util.inspect(bugBlocks);
         let ogBB = util.inspect(ogBugBlocks);
+        let len = 0;
         if ((a!==ogA)||(a2!==ogA2)){
             // this.extensions.changeAphidCode.bool=true;
         }
@@ -157,6 +198,21 @@ module.exports = class {
                 }
             }
             if (target.name === 'Ladybug1' || this.isLadybug(target)) {
+                // find all scripts in lady bug that start when green flag clicked
+                for (let script of target.scripts) {
+                    if (script.blocks[0].opcode === 'event_whenflagclicked') {
+                        if (script.blocks.length <= 1) {
+                            continue;
+                        }
+                        else if (script.blocks[1].opcode === 'control_forever') {
+                            continue;
+                        } else {
+                            len = script.blocks.length;
+                        }
+                       
+                    }
+                }
+                
                 for (let cost in target.costumes) {
                     if ((target.costumes[cost].assetId !== '7501580fb154fde8192a931f6cab472b')
                         && (target.costumes[cost].assetId !== '169c0efa8c094fdedddf8c19c36f0229')) {
@@ -168,7 +224,6 @@ module.exports = class {
                     
                     if (target.blocks[block].opcode === 'event_whenflagclicked') {
                         for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
-                            console.log(target.blocks[i].opcode);
                             this.updateBug(target.blocks[i]);
                             let onBranch = this.inBounds(this.bug.locX, this.bug.locY);
                             if (!onBranch) {
@@ -177,13 +232,7 @@ module.exports = class {
                             }
 
                             let onAphid = false;
-                            console.log("Bug Loc");
-                            console.log(this.bug.locX);
-                            console.log(this.bug.locY);
                             for (let aphidLoc of aphidLocations) {
-                                console.log('Aphid Loc');
-                                console.log(aphidLoc[0]);
-                                console.log(aphidLoc[1]);
                                 if ((Math.abs(aphidLoc[0] - this.bug.locX) <= 40) &&
                                     (Math.abs(aphidLoc[1] - this.bug.locY) <= 40)) {
                                     onAphid = true;
@@ -207,7 +256,7 @@ module.exports = class {
                     if (target.blocks[block].opcode === 'procedures_call') {
                         if (target.blocks[block].mutation.proccode === 'Eat Aphid') {
                             if (target.blocks[block].parent !== null) {
-                                // this.requirements.eatAphidBlock.bool = true;
+                                this.requirements.eatAphidBlock.bool = true;
                             }
                         }
                     }

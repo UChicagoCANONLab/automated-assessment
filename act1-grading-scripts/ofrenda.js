@@ -20,9 +20,15 @@ module.exports = class {
         this.requirements.speakingRight = { bool: false, str: 'Right sprite has a script with a say block in it' }; // done
         this.requirements.speakingMiddle = { bool: false, str: 'Middle sprite has a script with a say block in it' }; // done
 
-        this.requirements.newCostumes1 = { bool: false, str: '1/3 sprites has a new costume' };
-        this.requirements.speaking1 = { bool: false, str: '1/3 sprites uses the say block' };
-        this.requirements.interactive1 = { bool: false, str: '1/3 sprites is interactive' };
+        this.requirements.newCostumes1 = { bool: false, str: '1 sprite has a new costume' };
+        this.requirements.newCostumes2 = {bool: false, str: '2 sprites have a new costume'};
+        this.requirements.newCoastumes3 = {bool: false, str: '3 sprites have a new costume'};
+        this.requirements.speaking1 = { bool: false, str: '1 sprite uses the say block' };
+        this.requirements.speaking2 = {bool: false, str: '2 sprites use the say block'};
+        this.requirements.speaking3 = {bool: false, str: '3 sprites use the say block'};
+        this.requirements.interactive1 = { bool: false, str: '1 sprite is interactive' };
+        this.requirements.interactive2 = {bool: false, str: '2 sprites are interactie'};
+        
        
         // // extensions
         this.extensions.usesPlaySoundUntilDone = { bool: false, str: 'The project uses the "Play Sound Until" block in a script' };
