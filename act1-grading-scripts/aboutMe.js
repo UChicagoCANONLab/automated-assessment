@@ -1,6 +1,7 @@
 /*
 Act 1 About Me Grader
 Intital version and testing: Saranya Turimella, Summer 2019
+Updated to reflect new act 1 
 */
 require('../grading-scripts-s3/scratch3')
 
