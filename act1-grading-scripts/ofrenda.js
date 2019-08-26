@@ -20,6 +20,7 @@ module.exports = class {
         this.requirements.speakingRight = { bool: false, str: 'Right sprite has a script with a say block in it' }; // done
         this.requirements.speakingMiddle = { bool: false, str: 'Middle sprite has a script with a say block in it' }; // done
 
+        // fix this 
         this.requirements.newCostumes1 = { bool: false, str: '1 sprite has a new costume' };
         this.requirements.newCostumes2 = {bool: false, str: '2 sprites have a new costume'};
         this.requirements.newCoastumes3 = {bool: false, str: '3 sprites have a new costume'};
