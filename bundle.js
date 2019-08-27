@@ -12,7 +12,12 @@ module.exports = class {
     }
 
     initReqs() {
-        this.requirements.fiveBlocks = { bool: false, str: 'Used (only) 5 blocks specified' };
+        // this.requirements.fiveBlocksOld = { bool: false, str: 'Used 5 blocks specified - OLD REQ' };
+        this.requirements.oneBlock = { bool: false, str: 'Used at least one of the five blocks specified' };
+        this.extensions.twoBlocks = { bool: false, str: 'Used at least two of the five blocks specified' };
+        this.extensions.threeBlocks = { bool: false, str: 'Used at least three of the five blocks specified' };
+        this.extensions.fourBlocks = { bool: false, str: 'Used at least four of the five blocks specified' };
+        this.extensions.allFiveBlocks = { bool: false, str: 'Used all five blocks specified' }
         this.requirements.backdrop = { bool: false, str: 'Backdrop added' };
         this.requirements.oneSprite = { bool: false, str: 'At least one sprite is added' }
         this.requirements.twoSprites = { bool: false, str: 'At least two sprites chosen' };
@@ -50,11 +55,9 @@ module.exports = class {
                 numSprites++;
                 let spriteTalks = false;
 
-                for (let block in target.blocks) {
-                    if ((this.eventOpcodes.includes(target.blocks[block].opcode)
-                        || (this.otherOpcodes.includes(target.blocks[block].opcode)))) {
-                        this.requirements.fiveBlocks.bool = true;
-                    }
+                for (let script in target.scripts) {
+                    if (target.scripts[script].blocks[0].opcode.includes('event_')
+                    &&target.scripts[script].blocks.length>1){
 
                     for (let block in target.scripts[script].blocks) {
                         let opc = target.scripts[script].blocks[block].opcode;
@@ -153,6 +156,7 @@ module.exports = class {
 /*
 Act 1 About Me Grader
 Intital version and testing: Saranya Turimella, Summer 2019
+Updated to reflect new act 1 
 */
 require('../grading-scripts-s3/scratch3')
 
@@ -352,22 +356,6 @@ module.exports = class {
         //     }
         // }
 
-        var original = new Project(require('../act1-grading-scripts/original-band1'), null);
-
-        for (let target of original.targets){
-            if (target.name === 'Trumpet'){
-                ogTrumpetBlocks=target.blocks;
-            } else if (target.name === 'Drum-Bass'){
-                ogDrumBlocks=target.blocks;
-            }
-        }
-        for (let target of project.targets){
-            if (target.name === 'Trumpet'){
-                trumpetBlocks = target.blocks;
-            } else if (target.name === 'Drum-Bass'){
-                drumBlocks = target.blocks;
-            }
-        }
         let givenSpritesChanged = 0;
         // var util = require('util');
         // let tB = util.inspect(trumpetBlocks);
@@ -611,7 +599,7 @@ module.exports = class {
 }
 
 
-},{"../act1-grading-scripts/original-band1":9,"../grading-scripts-s3/scratch3":26,"util":31}],4:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],4:[function(require,module,exports){
 /*
 Act 1 Final Project Autograder
 Initial version and testing: Zipporah Klain
@@ -741,7 +729,42 @@ module.exports = class {
         }
     }
 
+    updateFromProc(block) {
+        if (block.opcode === 'motion_gotoxy') {
+            console.log('motion go to xy')
+            this.bug.locX = parseFloat(this.blankTo0(block.inputs.X[1][1]));
+            this.bug.locY = parseFloat(this.blankTo0(block.inputs.Y[1][1]));
+        }
+        if (block.opcode === 'motion_pointindirection') {
+            console.log('motion point in direction');
+            this.bug.dir = parseFloat(this.blankTo0(block.inputs.DIRECTION[1][1]));
+        }
+        if (block.opcode === 'motion_turnright') {
+            console.log('motion turn right');
+            this.bug.dir -= parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
+        }
+
+        if (block.opcode === 'motion_turnleft') {
+            console.log('motion turn left');
+            this.bug.dir += parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
+        }
+        if (block.opcode === 'motion_movesteps') {
+            console.log('motion move steps');
+            let radDir = (this.bug.dir - 90) * Math.PI / 180;
+            let steps = parseFloat(this.blankTo0(block.inputs.STEPS[1][1]));
+            this.bug.locX += Math.round(steps * Math.cos(radDir));
+            this.bug.locY += Math.round(steps * Math.sin(radDir));
+        }
+    }
     updateBug(block) {
+
+        if (block.opcode === 'procedures_call') {
+            // move forward one square
+            // turn left
+            // turn right
+            // forward 2 blocks
+            // go to start position
+        }
         if (block.opcode === 'motion_gotoxy') {
             console.log('motion go to xy')
             this.bug.locX = parseFloat(this.blankTo0(block.inputs.X[1][1]));
@@ -942,7 +965,7 @@ module.exports = class {
     }
 
 }
-},{"../act1-grading-scripts/original-ladybug":10,"../grading-scripts-s3/scratch3":26,"util":31}],6:[function(require,module,exports){
+},{"../act1-grading-scripts/original-ladybug":9,"../grading-scripts-s3/scratch3":25,"util":30}],6:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -2228,9 +2251,13 @@ module.exports = class {
         this.requirements.speakingRight = { bool: false, str: 'Right sprite has a script with a say block in it' }; // done
         this.requirements.speakingMiddle = { bool: false, str: 'Middle sprite has a script with a say block in it' }; // done
 
-        this.requirements.newCostumes1 = { bool: false, str: '1/3 sprites has a new costume' };
-        this.requirements.speaking1 = { bool: false, str: '1/3 sprites uses the say block' };
-        this.requirements.interactive1 = { bool: false, str: '1/3 sprites is interactive' };
+        // done
+        this.requirements.speaking1 = { bool: false, str: '1 sprite uses the say block' };
+        this.requirements.speaking2 = {bool: false, str: '2 sprites use the say block'};
+        this.requirements.speaking3 = {bool: false, str: '3 sprites use the say block'};
+        this.requirements.interactive1 = { bool: false, str: '1 sprite is interactive' };
+        this.requirements.interactive2 = {bool: false, str: '2 sprites are interactie'};
+        
        
         // // extensions
         this.extensions.usesPlaySoundUntilDone = { bool: false, str: 'The project uses the "Play Sound Until" block in a script' };
@@ -2387,27 +2414,29 @@ module.exports = class {
             }
         }
 
-        
-        if (JSON.stringify(oldCostumes) !== JSON.stringify(newCostumes)) {
-            if (project.sprites.length >0) {
-                this.requirements.newCostumes1.bool = true;
-            }
-           
-        }
 
         // --------------------------------------------------------------------------------------------------------- //
 
     
+        let speaks = false;
+        let interactive = false;
+        let numInteractive = 0;
+        let numSpeaking = 0;
 
         //f there is a say block in a sprite that is not named catrina, and that say block is not used in the same 
         //context as the original project (same parent and next block)
         for (let target of project.targets) {
+            speaks = false;
+            interactive = false;
             if (target.name === 'Catrina') {
                 continue;
-            } else {
+            } else if (target.isStage) { continue;}
+            else {
+                console.log(speaks);
                 for (let script in target.scripts) {
                     for (let block in target.scripts[script].blocks) {
                         if (soundOptions.includes(target.scripts[script].blocks[block].opcode)) {
+                            console.log(speaks);
                             if ((target.scripts[script].blocks[block].next === "Q.gGFO#r}[Z@fzClmRq-") &&
                                 (target.scripts[script].blocks[block].parent === "taz8m.4x_rVweL9%J@(3") &&
                                 (target.scripts[script].blocks[block].inputs.MESSAGE[1][1] === "I am Grandpa John.")) {
@@ -2418,10 +2447,13 @@ module.exports = class {
                                 continue;
                             }
                             else {
-                                    this.requirements.speaking1.bool = true;
+                                    
+                                    speaks = true;
                                 }
                         }
+
                         if (target.scripts[script].blocks[block].opcode === 'event_whenthisspriteclicked') {
+                           
                             if (target.scripts[script].blocks[block].next === "}VBgCH{K:oDh6pV0h.pi" && target.scripts[script].blocks[block].parent === null) {
                                 continue;
                             } else if (target.scripts[script].blocks[block].next === "/f[ltBij)7]5Jtg|W(1%" && target.scripts[script].blocks[block].parent === null) {
@@ -2431,7 +2463,8 @@ module.exports = class {
                                 continue;
                             }
                             else {
-                                    this.requirements.interactive1.bool = true;
+                                   
+                                    interactive = true;
                                 }
                         }
 
@@ -2447,7 +2480,7 @@ module.exports = class {
                             if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
                                 continue;
                             } else {
-                                this.extensions.useskeyCommand.bool = true;
+                                this.extensions.keyCommand.bool = true;
                             }
                         }
                         if (target.scripts[script].blocks[block].opcode === 'motion_gotoxy') {
@@ -2458,16 +2491,42 @@ module.exports = class {
                             }
                         }
                     }
+                    
                 }
+               
+                if (speaks === true) {
+                    numSpeaking ++;
+                }
+                
+                
+                if (interactive === true) {
+                    numInteractive ++;
+                }
+                
             }
+        }
+       
+       
+        if (numSpeaking >= 1) {
+            this.requirements.speaking1.bool = true;
+        }
+        if (numSpeaking >= 2) {
+            this.requirements.speaking2.bool = true;
+        }
+        if (numSpeaking >= 3) {
+            this.requirements.speaking3.bool = true;
+        }
+        if (numInteractive >= 1) {
+            this.requirements.interactive1.bool = true;
+        }
+        if (numInteractive >= 2) {
+            this.requirements.interactive2.bool = true;
         }
     }
 } 
-},{"../act1-grading-scripts/originalOfrenda-test":11,"../grading-scripts-s3/scratch3":26}],9:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":1,"costumes":[{"assetId":"24c3dbdd0a8f6f3fb0d65694462fdfa8","name":"backdrop1","bitmapResolution":2,"md5ext":"24c3dbdd0a8f6f3fb0d65694462fdfa8.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"dbc784b5312acd28ab2dd6f4a866771a","name":"spotlight-stage2","bitmapResolution":1,"md5ext":"dbc784b5312acd28ab2dd6f4a866771a.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Sprite2","variables":{},"lists":{},"broadcasts":{},"blocks":{"touSytqXbwcr^f[~p2G]":{"opcode":"event_whenflagclicked","next":"7wsPpD)2zfAbSQ?wV#/@","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":86,"y":378},"7wsPpD)2zfAbSQ?wV#/@":{"opcode":"looks_sayforsecs","next":null,"parent":"touSytqXbwcr^f[~p2G]","inputs":{"MESSAGE":[1,[10,"Click on an instrument to play some music!"]],"SECS":[1,[4,7]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"bcaaa8547a07cfe572c0967ba829e99d","name":"costume1","bitmapResolution":1,"md5ext":"bcaaa8547a07cfe572c0967ba829e99d.svg","dataFormat":"svg","rotationCenterX":47,"rotationCenterY":55},{"assetId":"11d6c5fbd91e433a1b85a00fd9dd43b6","name":"costume2","bitmapResolution":1,"md5ext":"11d6c5fbd91e433a1b85a00fd9dd43b6.svg","dataFormat":"svg","rotationCenterX":47,"rotationCenterY":55}],"sounds":[{"assetId":"83c36d806dc92327b9e7049a565c6bff","name":"meow","dataFormat":"wav","format":"","rate":44100,"sampleCount":37376,"md5ext":"83c36d806dc92327b9e7049a565c6bff.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":-14.400000000000006,"y":-109.3,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Trumpet","variables":{},"lists":{},"broadcasts":{},"blocks":{"r.(OmB[Nt?beMBIqcU,l":{"opcode":"event_whenthisspriteclicked","next":"Z-iE6dU;x`kyrGq,tr%B","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":48,"y":41},"Z-iE6dU;x`kyrGq,tr%B":{"opcode":"motion_turnright","next":"!]]WkM{|.inTOI1jVA9}","parent":"r.(OmB[Nt?beMBIqcU,l","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"!]]WkM{|.inTOI1jVA9}":{"opcode":"control_repeat","next":"-(x);wi|Gs1uy!SGqYE5","parent":"Z-iE6dU;x`kyrGq,tr%B","inputs":{"TIMES":[1,[6,2]],"SUBSTACK":[2,"0=:D8ohNB]8),V9ydBB~"]},"fields":{},"shadow":false,"topLevel":false},"0=:D8ohNB]8),V9ydBB~":{"opcode":"sound_playuntildone","next":"|X+KpE,~x5C@_Z[uLRIW","parent":"!]]WkM{|.inTOI1jVA9}","inputs":{"SOUND_MENU":[1,"m=[l.yy8hnmXm=d;Y~^u"]},"fields":{},"shadow":false,"topLevel":false},"m=[l.yy8hnmXm=d;Y~^u":{"opcode":"sound_sounds_menu","next":null,"parent":"0=:D8ohNB]8),V9ydBB~","inputs":{},"fields":{"SOUND_MENU":["C trumpet"]},"shadow":true,"topLevel":false},"|X+KpE,~x5C@_Z[uLRIW":{"opcode":"sound_playuntildone","next":"AEBH5{wim0lHU3xQ.RB8","parent":"0=:D8ohNB]8),V9ydBB~","inputs":{"SOUND_MENU":[1,"4QiP(6._r,nZ{2JNR%n7"]},"fields":{},"shadow":false,"topLevel":false},"4QiP(6._r,nZ{2JNR%n7":{"opcode":"sound_sounds_menu","next":null,"parent":"|X+KpE,~x5C@_Z[uLRIW","inputs":{},"fields":{"SOUND_MENU":["D trumpet"]},"shadow":true,"topLevel":false},"AEBH5{wim0lHU3xQ.RB8":{"opcode":"sound_playuntildone","next":null,"parent":"|X+KpE,~x5C@_Z[uLRIW","inputs":{"SOUND_MENU":[1,"n5pL+6t{/OK8r?aY9f7l"]},"fields":{},"shadow":false,"topLevel":false},"n5pL+6t{/OK8r?aY9f7l":{"opcode":"sound_sounds_menu","next":null,"parent":"AEBH5{wim0lHU3xQ.RB8","inputs":{},"fields":{"SOUND_MENU":["E trumpet"]},"shadow":true,"topLevel":false},"-(x);wi|Gs1uy!SGqYE5":{"opcode":"motion_turnleft","next":null,"parent":"!]]WkM{|.inTOI1jVA9}","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"l/FX3|:4|SIMGy}Kg`EL":{"opcode":"event_whenkeypressed","next":"W=ZZ6W}!iw^LVG%PV6XJ","parent":null,"inputs":{},"fields":{"KEY_OPTION":["1"]},"shadow":false,"topLevel":true,"x":44,"y":515},"W=ZZ6W}!iw^LVG%PV6XJ":{"opcode":"motion_turnright","next":"P%%2:wrsdAOLjd:AuVEB","parent":"l/FX3|:4|SIMGy}Kg`EL","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"P%%2:wrsdAOLjd:AuVEB":{"opcode":"sound_playuntildone","next":"-dcN-^aG:6RJj(s.bvY8","parent":"W=ZZ6W}!iw^LVG%PV6XJ","inputs":{"SOUND_MENU":[1,")RDQ5]2.UR?DDxGZUu(O"]},"fields":{},"shadow":false,"topLevel":false},")RDQ5]2.UR?DDxGZUu(O":{"opcode":"sound_sounds_menu","next":null,"parent":"P%%2:wrsdAOLjd:AuVEB","inputs":{},"fields":{"SOUND_MENU":["C trumpet"]},"shadow":true,"topLevel":false},"-dcN-^aG:6RJj(s.bvY8":{"opcode":"sound_playuntildone","next":"HwDeNP5NTN@g;99=EM`Z","parent":"P%%2:wrsdAOLjd:AuVEB","inputs":{"SOUND_MENU":[1,"B7;jw-ei`Hs,=!T%f/bV"]},"fields":{},"shadow":false,"topLevel":false},"B7;jw-ei`Hs,=!T%f/bV":{"opcode":"sound_sounds_menu","next":null,"parent":"-dcN-^aG:6RJj(s.bvY8","inputs":{},"fields":{"SOUND_MENU":["D trumpet"]},"shadow":true,"topLevel":false},"HwDeNP5NTN@g;99=EM`Z":{"opcode":"sound_playuntildone","next":"|H@.ZNAhK@VE4j3QlZts","parent":"-dcN-^aG:6RJj(s.bvY8","inputs":{"SOUND_MENU":[1,"QnOehim/uTLx;F/Mmw3?"]},"fields":{},"shadow":false,"topLevel":false},"QnOehim/uTLx;F/Mmw3?":{"opcode":"sound_sounds_menu","next":null,"parent":"HwDeNP5NTN@g;99=EM`Z","inputs":{},"fields":{"SOUND_MENU":["E trumpet"]},"shadow":true,"topLevel":false},"|H@.ZNAhK@VE4j3QlZts":{"opcode":"sound_playuntildone","next":"DPn]sU:CIZs^=da[RIz]","parent":"HwDeNP5NTN@g;99=EM`Z","inputs":{"SOUND_MENU":[1,"Fsp;L%66NsXLULw~9eYm"]},"fields":{},"shadow":false,"topLevel":false},"Fsp;L%66NsXLULw~9eYm":{"opcode":"sound_sounds_menu","next":null,"parent":"|H@.ZNAhK@VE4j3QlZts","inputs":{},"fields":{"SOUND_MENU":["C trumpet"]},"shadow":true,"topLevel":false},"DPn]sU:CIZs^=da[RIz]":{"opcode":"sound_playuntildone","next":"0gQI*U*NOg}K4*/huaG_","parent":"|H@.ZNAhK@VE4j3QlZts","inputs":{"SOUND_MENU":[1,";pC}ZSiu3Nf!6#vpC0Dt"]},"fields":{},"shadow":false,"topLevel":false},";pC}ZSiu3Nf!6#vpC0Dt":{"opcode":"sound_sounds_menu","next":null,"parent":"DPn]sU:CIZs^=da[RIz]","inputs":{},"fields":{"SOUND_MENU":["D trumpet"]},"shadow":true,"topLevel":false},"0gQI*U*NOg}K4*/huaG_":{"opcode":"sound_playuntildone","next":"kh-F+{ag7%;N@DRSx,D[","parent":"DPn]sU:CIZs^=da[RIz]","inputs":{"SOUND_MENU":[1,"@D)qbD|^`-m8Yn_@cA.+"]},"fields":{},"shadow":false,"topLevel":false},"@D)qbD|^`-m8Yn_@cA.+":{"opcode":"sound_sounds_menu","next":null,"parent":"0gQI*U*NOg}K4*/huaG_","inputs":{},"fields":{"SOUND_MENU":["E trumpet"]},"shadow":true,"topLevel":false},"kh-F+{ag7%;N@DRSx,D[":{"opcode":"motion_turnleft","next":null,"parent":"0gQI*U*NOg}K4*/huaG_","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"o|!A.u8tyo.K:53%@.`f":{"opcode":"event_whenkeypressed","next":"u0J)4Yxe`X@f|k@2Ez`L","parent":null,"inputs":{},"fields":{"KEY_OPTION":["2"]},"shadow":false,"topLevel":true,"x":428,"y":417},"u0J)4Yxe`X@f|k@2Ez`L":{"opcode":"motion_turnright","next":"sz]Vf{shOc}V^8etc?En","parent":"o|!A.u8tyo.K:53%@.`f","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"sz]Vf{shOc}V^8etc?En":{"opcode":"sound_playuntildone","next":"u|N?!{6qj/~(ny!Z,)L6","parent":"u0J)4Yxe`X@f|k@2Ez`L","inputs":{"SOUND_MENU":[1,"X8x]Im+f%@|lkGMufems"]},"fields":{},"shadow":false,"topLevel":false},"X8x]Im+f%@|lkGMufems":{"opcode":"sound_sounds_menu","next":null,"parent":"sz]Vf{shOc}V^8etc?En","inputs":{},"fields":{"SOUND_MENU":["C trumpet"]},"shadow":true,"topLevel":false},"u|N?!{6qj/~(ny!Z,)L6":{"opcode":"sound_playuntildone","next":"fK6u_ui+^}R||n9ZO:=D","parent":"sz]Vf{shOc}V^8etc?En","inputs":{"SOUND_MENU":[1,",*JXF=V+Fx0UQh?Ry=wa"]},"fields":{},"shadow":false,"topLevel":false},",*JXF=V+Fx0UQh?Ry=wa":{"opcode":"sound_sounds_menu","next":null,"parent":"u|N?!{6qj/~(ny!Z,)L6","inputs":{},"fields":{"SOUND_MENU":["D trumpet"]},"shadow":true,"topLevel":false},"fK6u_ui+^}R||n9ZO:=D":{"opcode":"sound_playuntildone","next":"V1Au`Lix4:HFc88*![|.","parent":"u|N?!{6qj/~(ny!Z,)L6","inputs":{"SOUND_MENU":[1,"9E)4,n9Wy0g4mhClv_B9"]},"fields":{},"shadow":false,"topLevel":false},"9E)4,n9Wy0g4mhClv_B9":{"opcode":"sound_sounds_menu","next":null,"parent":"fK6u_ui+^}R||n9ZO:=D","inputs":{},"fields":{"SOUND_MENU":["E trumpet"]},"shadow":true,"topLevel":false},"V1Au`Lix4:HFc88*![|.":{"opcode":"motion_turnleft","next":null,"parent":"fK6u_ui+^}R||n9ZO:=D","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":1,"costumes":[{"assetId":"b28891cc58cc6d2680f8cdc640eaf095","name":"trumpet-a","bitmapResolution":1,"md5ext":"b28891cc58cc6d2680f8cdc640eaf095.svg","dataFormat":"svg","rotationCenterX":84,"rotationCenterY":25},{"assetId":"00b36f9bba1ccf11cc38cb07981c842a","name":"trumpet-a2","bitmapResolution":1,"md5ext":"00b36f9bba1ccf11cc38cb07981c842a.svg","dataFormat":"svg","rotationCenterX":84,"rotationCenterY":25}],"sounds":[{"assetId":"5be75eaeffb43a9d4d028683dbffbdef","name":"C trumpet","dataFormat":"wav","format":"","rate":44100,"sampleCount":16320,"md5ext":"5be75eaeffb43a9d4d028683dbffbdef.wav"},{"assetId":"a8adcb651d7f9d4aa890a800ed21741f","name":"D trumpet","dataFormat":"wav","format":"","rate":44100,"sampleCount":16640,"md5ext":"a8adcb651d7f9d4aa890a800ed21741f.wav"},{"assetId":"dac852247dda7dbfa070fd8dcf7755a3","name":"E trumpet","dataFormat":"wav","format":"","rate":44100,"sampleCount":17472,"md5ext":"dac852247dda7dbfa070fd8dcf7755a3.wav"},{"assetId":"edf667e43ebf68967889e944f07464ec","name":"F trumpet","dataFormat":"wav","format":"","rate":44100,"sampleCount":17984,"md5ext":"edf667e43ebf68967889e944f07464ec.wav"},{"assetId":"5e19c11cfeb0cb1eb0f52907cb27aa9e","name":"G trumpet","dataFormat":"wav","format":"","rate":44100,"sampleCount":18816,"md5ext":"5e19c11cfeb0cb1eb0f52907cb27aa9e.wav"},{"assetId":"5a458ca02703818c729affd90de67276","name":"A trumpet","dataFormat":"wav","format":"","rate":44100,"sampleCount":17600,"md5ext":"5a458ca02703818c729affd90de67276.wav"},{"assetId":"dd8628a99a2a7b9f2fc5d268e7a7dd6e","name":"B trumpet","dataFormat":"wav","format":"","rate":44100,"sampleCount":18240,"md5ext":"dd8628a99a2a7b9f2fc5d268e7a7dd6e.wav"},{"assetId":"70681a3e39c28052eee823ba2f338ab6","name":"C2 trumpet","dataFormat":"wav","format":"","rate":44100,"sampleCount":18624,"md5ext":"70681a3e39c28052eee823ba2f338ab6.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-148.6,"y":-1.4000000000000057,"size":100,"direction":-15,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Drum-Bass","variables":{},"lists":{},"broadcasts":{},"blocks":{"WB.9#:J}HI}*Ml|ap=i^":{"opcode":"event_whenthisspriteclicked","next":"`oX9sYwGSYGXy?OS;NBZ","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"`oX9sYwGSYGXy?OS;NBZ":{"opcode":"control_repeat","next":null,"parent":"WB.9#:J}HI}*Ml|ap=i^","inputs":{"TIMES":[1,[6,3]],"SUBSTACK":[2,"ke,NVn[r,xJ#rf(qVm59"]},"fields":{},"shadow":false,"topLevel":false},"ke,NVn[r,xJ#rf(qVm59":{"opcode":"motion_turnright","next":"2#1CIRRk)+10%7.?T1_^","parent":"`oX9sYwGSYGXy?OS;NBZ","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"2#1CIRRk)+10%7.?T1_^":{"opcode":"sound_playuntildone","next":null,"parent":"ke,NVn[r,xJ#rf(qVm59","inputs":{"SOUND_MENU":[1,"a0A3yVKH{FFOXv-e_k{O"]},"fields":{},"shadow":false,"topLevel":false},"a0A3yVKH{FFOXv-e_k{O":{"opcode":"sound_sounds_menu","next":null,"parent":"2#1CIRRk)+10%7.?T1_^","inputs":{},"fields":{"SOUND_MENU":["drum bass3"]},"shadow":true,"topLevel":false},"jeFn,LH^!#rI,p?mD1]M":{"opcode":"event_whenkeypressed","next":"9jr.kvDF@9)Opj,M9]pf","parent":null,"inputs":{},"fields":{"KEY_OPTION":["3"]},"shadow":false,"topLevel":true,"x":23,"y":356},"9jr.kvDF@9)Opj,M9]pf":{"opcode":"motion_turnright","next":"wLM/{3t_}RvJH=z{pFil","parent":"jeFn,LH^!#rI,p?mD1]M","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"wLM/{3t_}RvJH=z{pFil":{"opcode":"motion_turnright","next":"1)%YZkr9]BkIu/{?db/h","parent":"9jr.kvDF@9)Opj,M9]pf","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"1)%YZkr9]BkIu/{?db/h":{"opcode":"motion_turnright","next":"Nm8uZ6u_:]juE}*3aTSU","parent":"wLM/{3t_}RvJH=z{pFil","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"Nm8uZ6u_:]juE}*3aTSU":{"opcode":"sound_playuntildone","next":"_s;C+w+t+q_-^vA4-AaQ","parent":"1)%YZkr9]BkIu/{?db/h","inputs":{"SOUND_MENU":[1,"e{l3EXZF9D*`yRhAx_v?"]},"fields":{},"shadow":false,"topLevel":false},"e{l3EXZF9D*`yRhAx_v?":{"opcode":"sound_sounds_menu","next":null,"parent":"Nm8uZ6u_:]juE}*3aTSU","inputs":{},"fields":{"SOUND_MENU":["drum bass3"]},"shadow":true,"topLevel":false},"_s;C+w+t+q_-^vA4-AaQ":{"opcode":"sound_playuntildone","next":"hu~UK2XfvmPC@,7^s5:/","parent":"Nm8uZ6u_:]juE}*3aTSU","inputs":{"SOUND_MENU":[1,"a-Nfi%Hc(Zpfe:9+I_/i"]},"fields":{},"shadow":false,"topLevel":false},"a-Nfi%Hc(Zpfe:9+I_/i":{"opcode":"sound_sounds_menu","next":null,"parent":"_s;C+w+t+q_-^vA4-AaQ","inputs":{},"fields":{"SOUND_MENU":["drum bass3"]},"shadow":true,"topLevel":false},"hu~UK2XfvmPC@,7^s5:/":{"opcode":"sound_playuntildone","next":null,"parent":"_s;C+w+t+q_-^vA4-AaQ","inputs":{"SOUND_MENU":[1,"9u%O9!az!OwD,n9KTY^Z"]},"fields":{},"shadow":false,"topLevel":false},"9u%O9!az!OwD,n9KTY^Z":{"opcode":"sound_sounds_menu","next":null,"parent":"hu~UK2XfvmPC@,7^s5:/","inputs":{},"fields":{"SOUND_MENU":["drum bass3"]},"shadow":true,"topLevel":false},"[ghg|9FR!Ws7mC{gHB2;":{"opcode":"event_whenkeypressed","next":"UL)9@,s/#B!G*5wl]h)u","parent":null,"inputs":{},"fields":{"KEY_OPTION":["4"]},"shadow":false,"topLevel":true,"x":356,"y":355},"UL)9@,s/#B!G*5wl]h)u":{"opcode":"motion_turnright","next":"RPc.q/H#rFrqs_lul:t9","parent":"[ghg|9FR!Ws7mC{gHB2;","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"RPc.q/H#rFrqs_lul:t9":{"opcode":"sound_playuntildone","next":"_,=GovufH.Ft+02ZEsgh","parent":"UL)9@,s/#B!G*5wl]h)u","inputs":{"SOUND_MENU":[1,"~+xF3/@nmP5N%GN#dZuQ"]},"fields":{},"shadow":false,"topLevel":false},"~+xF3/@nmP5N%GN#dZuQ":{"opcode":"sound_sounds_menu","next":null,"parent":"RPc.q/H#rFrqs_lul:t9","inputs":{},"fields":{"SOUND_MENU":["drum bass3"]},"shadow":true,"topLevel":false},"_,=GovufH.Ft+02ZEsgh":{"opcode":"motion_turnright","next":"#vo*kUh1TD!:7uw;Z3WS","parent":"RPc.q/H#rFrqs_lul:t9","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"#vo*kUh1TD!:7uw;Z3WS":{"opcode":"sound_playuntildone","next":"/byXavTX%~a%G!ZYY9-a","parent":"_,=GovufH.Ft+02ZEsgh","inputs":{"SOUND_MENU":[1,"Xpea%oCQa3.p+!K42Ux3"]},"fields":{},"shadow":false,"topLevel":false},"Xpea%oCQa3.p+!K42Ux3":{"opcode":"sound_sounds_menu","next":null,"parent":"#vo*kUh1TD!:7uw;Z3WS","inputs":{},"fields":{"SOUND_MENU":["drum bass3"]},"shadow":true,"topLevel":false},"/byXavTX%~a%G!ZYY9-a":{"opcode":"motion_turnright","next":"U6Sh|a]a=8HR~;?r!vQJ","parent":"#vo*kUh1TD!:7uw;Z3WS","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},"U6Sh|a]a=8HR~;?r!vQJ":{"opcode":"sound_playuntildone","next":null,"parent":"/byXavTX%~a%G!ZYY9-a","inputs":{"SOUND_MENU":[1,"UyUGGM7?v)L?BN46(aV5"]},"fields":{},"shadow":false,"topLevel":false},"UyUGGM7?v)L?BN46(aV5":{"opcode":"sound_sounds_menu","next":null,"parent":"U6Sh|a]a=8HR~;?r!vQJ","inputs":{},"fields":{"SOUND_MENU":["drum bass3"]},"shadow":true,"topLevel":false},"_nG|-e/YH#Z052em4iMx":{"opcode":"event_whenkeypressed","next":".CI6tlRz@=Aia8LA%#?V","parent":null,"inputs":{},"fields":{"KEY_OPTION":["5"]},"shadow":false,"topLevel":true,"x":29,"y":808},".CI6tlRz@=Aia8LA%#?V":{"opcode":"motion_turnright","next":".1/#hCdL_?^Het}vFf%o","parent":"_nG|-e/YH#Z052em4iMx","inputs":{"DEGREES":[1,[4,15]]},"fields":{},"shadow":false,"topLevel":false},".1/#hCdL_?^Het}vFf%o":{"opcode":"sound_playuntildone","next":null,"parent":".CI6tlRz@=Aia8LA%#?V","inputs":{"SOUND_MENU":[1,"siAXAj?:2uS~VX9rOD]V"]},"fields":{},"shadow":false,"topLevel":false},"siAXAj?:2uS~VX9rOD]V":{"opcode":"sound_sounds_menu","next":null,"parent":".1/#hCdL_?^Het}vFf%o","inputs":{},"fields":{"SOUND_MENU":["drum bass3"]},"shadow":true,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"3845cea6b3f0e0b89ee6ce01d5373d14","name":"drum bass-a","bitmapResolution":1,"md5ext":"3845cea6b3f0e0b89ee6ce01d5373d14.svg","dataFormat":"svg","rotationCenterX":57,"rotationCenterY":54},{"assetId":"990e3b0fbd2cec833bb80efdb8143958","name":"drum bass-b","bitmapResolution":1,"md5ext":"990e3b0fbd2cec833bb80efdb8143958.svg","dataFormat":"svg","rotationCenterX":36,"rotationCenterY":46}],"sounds":[{"assetId":"48328c874353617451e4c7902cc82817","name":"drum bass1","dataFormat":"wav","format":"","rate":44100,"sampleCount":13056,"md5ext":"48328c874353617451e4c7902cc82817.wav"},{"assetId":"711a1270d1cf2e5de9b145ee539213e4","name":"drum bass2","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":4065,"md5ext":"711a1270d1cf2e5de9b145ee539213e4.wav"},{"assetId":"a3759c50b3ed8c3e8c2859de44531a4b","name":"drum bass3","dataFormat":"wav","format":"","rate":44100,"sampleCount":13888,"md5ext":"a3759c50b3ed8c3e8c2859de44531a4b.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":4.699999999999989,"y":32.44999999999999,"size":100,"direction":105,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Guitar-Electric","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"22c8f31810d0e13a6deefbad4d8b0f89","name":"guitar electric","bitmapResolution":1,"md5ext":"22c8f31810d0e13a6deefbad4d8b0f89.svg","dataFormat":"svg","rotationCenterX":37,"rotationCenterY":114}],"sounds":[{"assetId":"f5bb45a10a05f7f05a48ceec70680be1","name":"C elec guitar","dataFormat":"wav","format":"","rate":44100,"sampleCount":32768,"md5ext":"f5bb45a10a05f7f05a48ceec70680be1.wav"},{"assetId":"aa2096d9f388b48237d1f23c8f0b82cc","name":"D elec guitar","dataFormat":"wav","format":"","rate":44100,"sampleCount":35648,"md5ext":"aa2096d9f388b48237d1f23c8f0b82cc.wav"},{"assetId":"7f1c4a822e7ad9a65da11cc2a27fde69","name":"E elec guitar","dataFormat":"wav","format":"","rate":44100,"sampleCount":35520,"md5ext":"7f1c4a822e7ad9a65da11cc2a27fde69.wav"},{"assetId":"a6050e838170f9ecbe085e2c5c6b9494","name":"F elec guitar","dataFormat":"wav","format":"","rate":44100,"sampleCount":34816,"md5ext":"a6050e838170f9ecbe085e2c5c6b9494.wav"},{"assetId":"f96cfa1c91a04ba5218f2ed1e8a76017","name":"G elec guitar","dataFormat":"wav","format":"","rate":44100,"sampleCount":36032,"md5ext":"f96cfa1c91a04ba5218f2ed1e8a76017.wav"},{"assetId":"ed3c75589b7a08de8b4d4b95eeef6646","name":"A elec guitar","dataFormat":"wav","format":"","rate":44100,"sampleCount":36864,"md5ext":"ed3c75589b7a08de8b4d4b95eeef6646.wav"},{"assetId":"d2b3f959e386a81b9e481fa312a4cb00","name":"B elec guitar","dataFormat":"wav","format":"","rate":44100,"sampleCount":41664,"md5ext":"d2b3f959e386a81b9e481fa312a4cb00.wav"},{"assetId":"3dff509a56f19d8278258a07a779aa17","name":"C2 elec guitar","dataFormat":"wav","format":"","rate":44100,"sampleCount":41088,"md5ext":"3dff509a56f19d8278258a07a779aa17.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":146,"y":12.300000000000011,"size":100,"direction":120,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"}}
-},{}],10:[function(require,module,exports){
+},{"../act1-grading-scripts/originalOfrenda-test":10,"../grading-scripts-s3/scratch3":25}],9:[function(require,module,exports){
 module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{"broadcastMsgId-munch":"munch"},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"6bbe43392c0dbffe7d7c63cc5bd08aa3","name":"backdrop1","bitmapResolution":1,"md5ext":"6bbe43392c0dbffe7d7c63cc5bd08aa3.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Ladybug1","variables":{},"lists":{},"broadcasts":{},"blocks":{"U7gIJGYi2sEQ1R~Q#Y(x":{"opcode":"event_whenflagclicked","next":"F@9g]aRRb1sq*2qa!%ng","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":264,"y":24},"F@9g]aRRb1sq*2qa!%ng":{"opcode":"motion_gotoxy","next":"Sfc=i0}1cnoDpchs?.Uq","parent":"U7gIJGYi2sEQ1R~Q#Y(x","inputs":{"X":[1,[4,-175]],"Y":[1,[4,-24]]},"fields":{},"shadow":false,"topLevel":false},"Sfc=i0}1cnoDpchs?.Uq":{"opcode":"motion_pointindirection","next":"^)NnU+Yxi6BeEWyh3in`","parent":"F@9g]aRRb1sq*2qa!%ng","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},"^)NnU+Yxi6BeEWyh3in`":{"opcode":"control_wait","next":"{*nT,|Un;N}8m)P0wAVC","parent":"Sfc=i0}1cnoDpchs?.Uq","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"{*nT,|Un;N}8m)P0wAVC":{"opcode":"motion_movesteps","next":"Qjej.|{eUe=~o*uAuRF,","parent":"^)NnU+Yxi6BeEWyh3in`","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"Qjej.|{eUe=~o*uAuRF,":{"opcode":"control_wait","next":"lDrR0@W5G`|K9EW2^U=0","parent":"{*nT,|Un;N}8m)P0wAVC","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"lDrR0@W5G`|K9EW2^U=0":{"opcode":"motion_turnright","next":"R%7gnK]7!DF4`qpYfccd","parent":"Qjej.|{eUe=~o*uAuRF,","inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":false},"R%7gnK]7!DF4`qpYfccd":{"opcode":"control_wait","next":"1?YefC;{nn1p+6x[y7=p","parent":"lDrR0@W5G`|K9EW2^U=0","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"1?YefC;{nn1p+6x[y7=p":{"opcode":"motion_movesteps","next":null,"parent":"R%7gnK]7!DF4`qpYfccd","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"iQ]xjD_RSjVU39KKi+D+":{"opcode":"event_whenflagclicked","next":"03[Ml=XIME[mlM`[oI,{","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":1117,"y":41},"03[Ml=XIME[mlM`[oI,{":{"opcode":"control_forever","next":null,"parent":"iQ]xjD_RSjVU39KKi+D+","inputs":{"SUBSTACK":[2,"{eG]NNI}y+`9w8~P-Y@w"]},"fields":{},"shadow":false,"topLevel":false},"{eG]NNI}y+`9w8~P-Y@w":{"opcode":"control_if","next":null,"parent":"03[Ml=XIME[mlM`[oI,{","inputs":{"CONDITION":[2,"HJ?{4{KV1xCg#k7UhPC6"],"SUBSTACK":[2,"kQKB.w^V0`:QX38gKYzf"]},"fields":{},"shadow":false,"topLevel":false},"HJ?{4{KV1xCg#k7UhPC6":{"opcode":"sensing_touchingcolor","next":null,"parent":"{eG]NNI}y+`9w8~P-Y@w","inputs":{"COLOR":[1,[9,"#00ffff"]]},"fields":{},"shadow":false,"topLevel":false},"kQKB.w^V0`:QX38gKYzf":{"opcode":"control_stop","next":";Dm1;gL:ROwhL*^;y!zp","parent":"{eG]NNI}y+`9w8~P-Y@w","inputs":{},"fields":{"STOP_OPTION":["other scripts in sprite"]},"shadow":false,"topLevel":false,"mutation":{"tagName":"mutation","hasnext":"true","children":[]}},";Dm1;gL:ROwhL*^;y!zp":{"opcode":"looks_sayforsecs","next":"H#v_fC4p1{^Dy]J98),R","parent":"kQKB.w^V0`:QX38gKYzf","inputs":{"MESSAGE":[1,[10,"Aaaaah! I fell off the branch!!!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"H#v_fC4p1{^Dy]J98),R":{"opcode":"control_repeat","next":"eO]JO},91+03]-,-p.kW","parent":";Dm1;gL:ROwhL*^;y!zp","inputs":{"TIMES":[1,[6,3]],"SUBSTACK":[2,"Hfkes2)|!Awk/*Iir#]f"]},"fields":{},"shadow":false,"topLevel":false},"Hfkes2)|!Awk/*Iir#]f":{"opcode":"looks_hide","next":"NdsT}^o2UI(D_trv9KW9","parent":"H#v_fC4p1{^Dy]J98),R","inputs":{},"fields":{},"shadow":false,"topLevel":false},"NdsT}^o2UI(D_trv9KW9":{"opcode":"control_wait","next":"Rp7XGUXIMwRD^e4J2IZy","parent":"Hfkes2)|!Awk/*Iir#]f","inputs":{"DURATION":[1,[5,0.5]]},"fields":{},"shadow":false,"topLevel":false},"Rp7XGUXIMwRD^e4J2IZy":{"opcode":"looks_show","next":"k7:X0JW7;CDuX8ZM[`|-","parent":"NdsT}^o2UI(D_trv9KW9","inputs":{},"fields":{},"shadow":false,"topLevel":false},"k7:X0JW7;CDuX8ZM[`|-":{"opcode":"control_wait","next":null,"parent":"Rp7XGUXIMwRD^e4J2IZy","inputs":{"DURATION":[1,[5,0.5]]},"fields":{},"shadow":false,"topLevel":false},"eO]JO},91+03]-,-p.kW":{"opcode":"motion_gotoxy","next":"I3gZVQ)z)SV7w[OezvsL","parent":"H#v_fC4p1{^Dy]J98),R","inputs":{"X":[1,[4,-175]],"Y":[1,[4,-24]]},"fields":{},"shadow":false,"topLevel":false},"I3gZVQ)z)SV7w[OezvsL":{"opcode":"motion_pointindirection","next":null,"parent":"eO]JO},91+03]-,-p.kW","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},":g/E[3PXa}d6Cve2Swk2":{"opcode":"motion_movesteps","next":null,"parent":null,"inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":33},"M1gwhU_QVGXM)kQF*L`{":{"opcode":"procedures_definition","next":"@,~#(h4pJpg}jA2}_/R[","parent":null,"inputs":{"custom_block":[1,"+d7X?d`DBq2~x0}OHSC/"]},"fields":{},"shadow":false,"topLevel":true,"x":1136,"y":820},"+d7X?d`DBq2~x0}OHSC/":{"opcode":"procedures_prototype","next":null,"inputs":{},"fields":{},"shadow":true,"topLevel":false,"mutation":{"tagName":"mutation","proccode":"Eat Aphid","argumentnames":"[]","argumentids":"[]","argumentdefaults":"[]","warp":false,"children":[]}},"@,~#(h4pJpg}jA2}_/R[":{"opcode":"event_broadcast","next":null,"parent":"M1gwhU_QVGXM)kQF*L`{","inputs":{"BROADCAST_INPUT":[1,[11,"Munch","broadcastMsgId-munch"]]},"fields":{},"shadow":false,"topLevel":false},"%vAkoQPRX5(5~AohGy*u":{"opcode":"motion_turnright","next":null,"parent":null,"inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":109},"~)q`N2jinQ]:/zs,-.s1":{"opcode":"motion_turnleft","next":null,"parent":null,"inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":true,"x":7,"y":188},"nZ1!J1WTOAWy}Af(z1#c":{"opcode":"control_wait","next":null,"parent":null,"inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":268},"Yl_GU18WZdM(iSO=,FM~":{"opcode":"procedures_call","next":null,"parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":10,"y":366,"mutation":{"tagName":"mutation","children":[],"proccode":"Eat Aphid","argumentids":"[]"}}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"7501580fb154fde8192a931f6cab472b","name":"ladybug3","bitmapResolution":1,"md5ext":"7501580fb154fde8192a931f6cab472b.svg","dataFormat":"svg","rotationCenterX":41,"rotationCenterY":43},{"assetId":"169c0efa8c094fdedddf8c19c36f0229","name":"ladybug2","bitmapResolution":1,"md5ext":"169c0efa8c094fdedddf8c19c36f0229.svg","dataFormat":"svg","rotationCenterX":41,"rotationCenterY":43}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-175,"y":-24,"size":50,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Sprite1","variables":{},"lists":{},"broadcasts":{},"blocks":{"g{X}coEAM3Ta^+%(=s^s":{"opcode":"event_whenflagclicked","next":"3S,1y@;w+[,tG`(EZCAt","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":68,"y":35},"3S,1y@;w+[,tG`(EZCAt":{"opcode":"looks_show","next":"_LYbp}EcsXWoN1ppLxcv","parent":"g{X}coEAM3Ta^+%(=s^s","inputs":{},"fields":{},"shadow":false,"topLevel":false},"_LYbp}EcsXWoN1ppLxcv":{"opcode":"motion_pointindirection","next":"4Q5;gsz5+/bgWS(:Rag,","parent":"3S,1y@;w+[,tG`(EZCAt","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},"4Q5;gsz5+/bgWS(:Rag,":{"opcode":"motion_gotoxy","next":"4L~#s_w.KLA*F5Xc`{C`","parent":"_LYbp}EcsXWoN1ppLxcv","inputs":{"X":[1,[4,0]],"Y":[1,[4,-150]]},"fields":{},"shadow":false,"topLevel":false},"4L~#s_w.KLA*F5Xc`{C`":{"opcode":"control_repeat","next":"Vb38^m9i^P8Qx=K`.+Yh","parent":"4Q5;gsz5+/bgWS(:Rag,","inputs":{"TIMES":[1,[6,6]],"SUBSTACK":[2,"56{t%hej8N*pk`S3%Nrj"]},"fields":{},"shadow":false,"topLevel":false},"56{t%hej8N*pk`S3%Nrj":{"opcode":"pen_stamp","next":"UyBZkQkw+i|j3]/7K`[%","parent":"4L~#s_w.KLA*F5Xc`{C`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"UyBZkQkw+i|j3]/7K`[%":{"opcode":"motion_changeyby","next":null,"parent":"56{t%hej8N*pk`S3%Nrj","inputs":{"DY":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"Vb38^m9i^P8Qx=K`.+Yh":{"opcode":"pen_stamp","next":"#I:55@rxBustg@:0CNW,","parent":"4L~#s_w.KLA*F5Xc`{C`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"#I:55@rxBustg@:0CNW,":{"opcode":"motion_gotoxy","next":"c?Rcii^r7j{3zIKlPCY7","parent":"Vb38^m9i^P8Qx=K`.+Yh","inputs":{"X":[1,[4,-200]],"Y":[1,[4,0]]},"fields":{},"shadow":false,"topLevel":false},"c?Rcii^r7j{3zIKlPCY7":{"opcode":"motion_pointindirection","next":"Ev;g}Py1-pZ#SpwkoO~I","parent":"#I:55@rxBustg@:0CNW,","inputs":{"DIRECTION":[1,[8,0]]},"fields":{},"shadow":false,"topLevel":false},"Ev;g}Py1-pZ#SpwkoO~I":{"opcode":"control_repeat","next":"1R95jS-gQRcWy1!()qDX","parent":"c?Rcii^r7j{3zIKlPCY7","inputs":{"TIMES":[1,[6,8]],"SUBSTACK":[2,"C+]}-*OqPzGDND@[I`!`"]},"fields":{},"shadow":false,"topLevel":false},"C+]}-*OqPzGDND@[I`!`":{"opcode":"pen_stamp","next":"vf~MRj8GONdu)xTW+`sX","parent":"Ev;g}Py1-pZ#SpwkoO~I","inputs":{},"fields":{},"shadow":false,"topLevel":false},"vf~MRj8GONdu)xTW+`sX":{"opcode":"motion_changexby","next":null,"parent":"C+]}-*OqPzGDND@[I`!`","inputs":{"DX":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"1R95jS-gQRcWy1!()qDX":{"opcode":"pen_stamp","next":"!]hy8aHujpmLSmfwgk7+","parent":"Ev;g}Py1-pZ#SpwkoO~I","inputs":{},"fields":{},"shadow":false,"topLevel":false},"!]hy8aHujpmLSmfwgk7+":{"opcode":"looks_hide","next":null,"parent":"1R95jS-gQRcWy1!()qDX","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"098ac26af75d9b14546ba423f0376c78","name":"costume1","bitmapResolution":1,"md5ext":"098ac26af75d9b14546ba423f0376c78.svg","dataFormat":"svg","rotationCenterX":247,"rotationCenterY":2}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":false,"x":200,"y":0,"size":100,"direction":0,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Aphid","variables":{},"lists":{},"broadcasts":{},"blocks":{"Al/9-=x`PHo)+1K4Jsw2":{"opcode":"event_whenflagclicked","next":"|FY,izak`W47{j*=KnG5","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":37,"y":46},"|FY,izak`W47{j*=KnG5":{"opcode":"looks_show","next":null,"parent":"Al/9-=x`PHo)+1K4Jsw2","inputs":{},"fields":{},"shadow":false,"topLevel":false},"se5y3M`e{qYhvvplydn.":{"opcode":"event_whenbroadcastreceived","next":"?ec)oOeZLY5LfeL(D5QB","parent":null,"inputs":{},"fields":{"BROADCAST_OPTION":["Munch","broadcastMsgId-munch"]},"shadow":false,"topLevel":true,"x":45,"y":264},"?ec)oOeZLY5LfeL(D5QB":{"opcode":"control_if","next":null,"parent":"se5y3M`e{qYhvvplydn.","inputs":{"CONDITION":[2,".[;R|zxb)eHrP+bfg`JR"],"SUBSTACK":[2,"@:tiv_aA#I^^`0sQ%}O1"]},"fields":{},"shadow":false,"topLevel":false},".[;R|zxb)eHrP+bfg`JR":{"opcode":"sensing_touchingobject","next":null,"parent":"?ec)oOeZLY5LfeL(D5QB","inputs":{"TOUCHINGOBJECTMENU":[1,"cB1l?RjX4g=!:@^[I(X?"]},"fields":{},"shadow":false,"topLevel":false},"cB1l?RjX4g=!:@^[I(X?":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":".[;R|zxb)eHrP+bfg`JR","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Ladybug1"]},"shadow":true,"topLevel":false},"@:tiv_aA#I^^`0sQ%}O1":{"opcode":"looks_sayforsecs","next":"d4JFINYQk,`yV3Hd5Rz3","parent":"?ec)oOeZLY5LfeL(D5QB","inputs":{"MESSAGE":[1,[10,"Oh, no!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"d4JFINYQk,`yV3Hd5Rz3":{"opcode":"looks_hide","next":null,"parent":"@:tiv_aA#I^^`0sQ%}O1","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b3b7ab6b68e1d72f5f0246bd5246e35","name":"beetle","bitmapResolution":1,"md5ext":"2b3b7ab6b68e1d72f5f0246bd5246e35.svg","dataFormat":"svg","rotationCenterX":43,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-24,"y":77,"size":30,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Aphid2","variables":{},"lists":{},"broadcasts":{},"blocks":{"|*E4bHy6(tUyNr_FpiHL":{"opcode":"event_whenbroadcastreceived","next":"@I467Tz-PCo,~F~{tDEl","parent":null,"inputs":{},"fields":{"BROADCAST_OPTION":["Munch","broadcastMsgId-munch"]},"shadow":false,"topLevel":true,"x":31,"y":393},"@I467Tz-PCo,~F~{tDEl":{"opcode":"control_if","next":null,"parent":"|*E4bHy6(tUyNr_FpiHL","inputs":{"CONDITION":[2,"uT8k:bk6A^umen=_kL-m"],"SUBSTACK":[2,"LBQ7xhpD3hzBGz^u~MW`"]},"fields":{},"shadow":false,"topLevel":false},"uT8k:bk6A^umen=_kL-m":{"opcode":"sensing_touchingobject","next":null,"parent":"@I467Tz-PCo,~F~{tDEl","inputs":{"TOUCHINGOBJECTMENU":[1,"w.R6uBYuAjg(y#K#YJx*"]},"fields":{},"shadow":false,"topLevel":false},"w.R6uBYuAjg(y#K#YJx*":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"uT8k:bk6A^umen=_kL-m","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Ladybug1"]},"shadow":true,"topLevel":false},"LBQ7xhpD3hzBGz^u~MW`":{"opcode":"looks_sayforsecs","next":"XO!5H:??cO_M~G2fB;}l","parent":"@I467Tz-PCo,~F~{tDEl","inputs":{"MESSAGE":[1,[10,"Oh, no!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"XO!5H:??cO_M~G2fB;}l":{"opcode":"looks_hide","next":null,"parent":"LBQ7xhpD3hzBGz^u~MW`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"|pG9oKkH+F.OL|36O0Lp":{"opcode":"event_whenflagclicked","next":"t:(!q?g_}9!~)wm!FUIP","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":39,"y":50},"t:(!q?g_}9!~)wm!FUIP":{"opcode":"looks_show","next":null,"parent":"|pG9oKkH+F.OL|36O0Lp","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b3b7ab6b68e1d72f5f0246bd5246e35","name":"beetle","bitmapResolution":1,"md5ext":"2b3b7ab6b68e1d72f5f0246bd5246e35.svg","dataFormat":"svg","rotationCenterX":43,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":75,"y":-123,"size":30,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":["pen"],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190619042313","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"}}
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -3313,7 +3372,7 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"
     }
 }
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 require('./scratch3');
 
 let loops = ['control_forever', 'control_repeat', 'control_repeat_until'];
@@ -4723,6 +4782,21 @@ Reformatting and bug fixes: Marco Anaya, Summer 2019
 */
 require('./scratch3');
 
+const holidays = {
+    christmas: ['christmas', 'chrismas', 'xmas', 'santa', 'x-mas', 'december 2'],
+    halloween: ['halloween', 'scary', 'trick or treat', 'hollween', 'costumeb'],
+    birthday: ['birthday', 'b-day', 'brithday', 'birth day'],
+    july: ['july'],
+    thanksgiving: ['thanksgiving'],
+    ['chinese new years']: ['chinese new'],
+    ['new years']: ['new year'],
+    valentines: ['valentine'],
+    easter: ['easter'],
+    ['national _ day']: ['national'],
+    other: ['day']
+}
+const family = ['mom', 'dad', 'father', 'mother', 'sister', 'brother', 'uncle', 'aunt','grandpa', 'grandma', 'cousin', 'famil', 'sibling', 'child'];
+
 module.exports = class {
     init() {
         this.requirements = {
@@ -4749,7 +4823,10 @@ module.exports = class {
             spritesWith2Scripts: 0,
             holiday: null,
             guidingUser: false,
+            family: false,
             blockTypes: new Set([]),
+            strings: [],
+            score: 0
         }
     }
     
@@ -4769,25 +4846,38 @@ module.exports = class {
                 if (opcode in this.info.blockTypes) {
                     
                 } else {
-                    this.info.blockTypes.add(opcode)
+                    this.info.blockTypes.add(opcode);
                     this.info.blocks++;
                 }
                 if (opcode.includes('say')) {
                     let string = block.inputs.MESSAGE[1][1].toLowerCase();
-                    if (!this.info.holiday) {
-                        for (let holiday of ['christmas', 'halloween', 'july', 'birthday', 'day']) {
+
+
+                    this.info.strings.push(string);
+
+                    if (!this.info.holiday || this.info.holiday == 'other') {
+                        for (let [holiday, keywords] of Object.entries(holidays)) {
                             
-                            if (string.includes(holiday)) {
+                            if (keywords.some(k => string.includes(k))) {
                                 this.info.holiday = holiday;
-                                break;
+                                if (holiday != 'other')
+                                    break;
                             }
                         }
                     }
                     if (!this.info.guidingUser) {
-                        for (let keyWord of ['press', 'click']) {
-                            if (string.includes(keyWord)) {
+                        for (let keyword of ['press', 'click']) {
+                            if (string.includes(keyword)) {
                                 this.info.guidingUser = true;
                                 break;
+                            }
+                        }
+                    }
+                    if (!this.info.family) {
+                        for (let keyword of family) {
+                            if (string.includes(keyword)) {
+                                this.info.family = true;
+                                break
                             }
                         }
                     }
@@ -4860,6 +4950,9 @@ module.exports = class {
         }
         this.requirements.usesTheThreeEvents.bool = (reqEvents.length === 3);
         this.requirements.hasThreeSprites.bool = (project.targets.length - 1 >= 3);
+        
+        delete this.info.strings;
+        this.info.score = Object.values(this.requirements).reduce((sum, r) => sum + (r.bool? 1 : 0), 0);
         
     }
 } 
