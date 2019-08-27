@@ -13,10 +13,10 @@ module.exports = class {
     initReqs() {
         // this.requirements.fiveBlocksOld = { bool: false, str: 'Used 5 blocks specified - OLD REQ' };
         this.requirements.oneBlock = { bool: false, str: 'Used at least one of the five blocks specified' };
-        this.extensions.twoBlocks = { bool: false, str: 'Used at least two of the five blocks specified' };
-        this.extensions.threeBlocks = { bool: false, str: 'Used at least three of the five blocks specified' };
-        this.extensions.fourBlocks = { bool: false, str: 'Used at least four of the five blocks specified' };
-        this.extensions.allFiveBlocks = { bool: false, str: 'Used all five blocks specified' }
+        this.requirements.twoBlocks = { bool: false, str: 'Used at least two of the five blocks specified' };
+        this.requirements.threeBlocks = { bool: false, str: 'Used at least three of the five blocks specified' };
+        this.requirements.fourBlocks = { bool: false, str: 'Used at least four of the five blocks specified' };
+        this.requirements.allFiveBlocks = { bool: false, str: 'Used all five blocks specified' }
         this.requirements.backdrop = { bool: false, str: 'Backdrop added' };
         this.requirements.oneSprite = { bool: false, str: 'At least one sprite is added' }
         this.requirements.twoSprites = { bool: false, str: 'At least two sprites chosen' };
