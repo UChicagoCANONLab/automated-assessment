@@ -14,6 +14,7 @@ var graders = {
   decompL2:        { name: 'Decomp. by Sequence L2', file: require('./grading-scripts-s3/decomp-L2')         },
   oneWaySyncL1:    { name: 'One-Way Sync L1',        file: require('./grading-scripts-s3/one-way-sync-L1')   },
   oneWaySyncL2:    { name: 'One-Way Sync L2',        file: require('./grading-scripts-s3/one-way-sync-L2')   },
+  twoWaySyncL1:    { name: 'Two-Way Sync L1',        file: require('./grading-scripts-s3/two-way-sync-L1')   },
   complexConditionalsL1: {name: 'Complex Conditionals L1', file: require('./grading-scripts-s3/complex-conditionals-L1')},
 };
 
@@ -190,7 +191,7 @@ async function crawl(studioID, offset, projectIdentifiers) {
         if (studioResponse.length === 0) {
             keepGoing = false;
             if (!project_count) {
-              document.getElementById('wait_time').innerHTML = 
+              document.getElementById('wait_time').innerHTML =
                 'No Scratch 3.0+ projects found. Did you enter a valid Scratch studio URL?';
               IS_LOADING = false;
             }
@@ -232,15 +233,16 @@ function gradeProject(projectIdentifier) {
 
 function analyze(fileObj, user, id) {
   try {
-      gradeObj.grade(fileObj, id);     
+      gradeObj.grade(fileObj, id);
   }
   catch (err) {
       console.log('Error grading project ' + id);
+      console.log(err);
   }
   report(id, gradeObj.requirements, gradeObj.extensions, user);
   project_count++;
   console.log(project_count);
-  
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -361,7 +363,7 @@ function report(pID, reqs, exts, user) {
 
   /* Adjusts class progress globals. */
   if (project_complete) complete_projects++;
-  else if (passed_reqs_count >= (Object.keys(reqs).length / 2)) passing_projects++;        
+  else if (passed_reqs_count >= (Object.keys(reqs).length / 2)) passing_projects++;
 }
 
 /* Checks if process is done.  */
