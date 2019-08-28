@@ -20,9 +20,13 @@ module.exports = class {
         this.requirements.speakingRight = { bool: false, str: 'Right sprite has a script with a say block in it' }; // done
         this.requirements.speakingMiddle = { bool: false, str: 'Middle sprite has a script with a say block in it' }; // done
 
-        this.requirements.newCostumes1 = { bool: false, str: '1/3 sprites has a new costume' };
-        this.requirements.speaking1 = { bool: false, str: '1/3 sprites uses the say block' };
-        this.requirements.interactive1 = { bool: false, str: '1/3 sprites is interactive' };
+        // done
+        this.requirements.speaking1 = { bool: false, str: '1 sprite uses the say block' };
+        this.requirements.speaking2 = {bool: false, str: '2 sprites use the say block'};
+        this.requirements.speaking3 = {bool: false, str: '3 sprites use the say block'};
+        this.requirements.interactive1 = { bool: false, str: '1 sprite is interactive' };
+        this.requirements.interactive2 = {bool: false, str: '2 sprites are interactie'};
+        
        
         // // extensions
         this.extensions.usesPlaySoundUntilDone = { bool: false, str: 'The project uses the "Play Sound Until" block in a script' };
@@ -179,27 +183,29 @@ module.exports = class {
             }
         }
 
-        
-        if (JSON.stringify(oldCostumes) !== JSON.stringify(newCostumes)) {
-            if (project.sprites.length >0) {
-                this.requirements.newCostumes1.bool = true;
-            }
-           
-        }
 
         // --------------------------------------------------------------------------------------------------------- //
 
     
+        let speaks = false;
+        let interactive = false;
+        let numInteractive = 0;
+        let numSpeaking = 0;
 
         //f there is a say block in a sprite that is not named catrina, and that say block is not used in the same 
         //context as the original project (same parent and next block)
         for (let target of project.targets) {
+            speaks = false;
+            interactive = false;
             if (target.name === 'Catrina') {
                 continue;
-            } else {
+            } else if (target.isStage) { continue;}
+            else {
+                console.log(speaks);
                 for (let script in target.scripts) {
                     for (let block in target.scripts[script].blocks) {
                         if (soundOptions.includes(target.scripts[script].blocks[block].opcode)) {
+                            console.log(speaks);
                             if ((target.scripts[script].blocks[block].next === "Q.gGFO#r}[Z@fzClmRq-") &&
                                 (target.scripts[script].blocks[block].parent === "taz8m.4x_rVweL9%J@(3") &&
                                 (target.scripts[script].blocks[block].inputs.MESSAGE[1][1] === "I am Grandpa John.")) {
@@ -210,17 +216,24 @@ module.exports = class {
                                 continue;
                             }
                             else {
-                                    this.requirements.speaking1.bool = true;
+                                    
+                                    speaks = true;
                                 }
                         }
+
                         if (target.scripts[script].blocks[block].opcode === 'event_whenthisspriteclicked') {
+                           
                             if (target.scripts[script].blocks[block].next === "}VBgCH{K:oDh6pV0h.pi" && target.scripts[script].blocks[block].parent === null) {
                                 continue;
                             } else if (target.scripts[script].blocks[block].next === "/f[ltBij)7]5Jtg|W(1%" && target.scripts[script].blocks[block].parent === null) {
                                 continue;
-                            } else {
-                                
-                                    this.requirements.interactive1.bool = true;
+                               
+                            }  else if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
+                                continue;
+                            }
+                            else {
+                                   
+                                    interactive = true;
                                 }
                         }
 
@@ -236,7 +249,7 @@ module.exports = class {
                             if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
                                 continue;
                             } else {
-                                this.extensions.useskeyCommand.bool = true;
+                                this.extensions.keyCommand.bool = true;
                             }
                         }
                         if (target.scripts[script].blocks[block].opcode === 'motion_gotoxy') {
@@ -247,8 +260,36 @@ module.exports = class {
                             }
                         }
                     }
+                    
                 }
+               
+                if (speaks === true) {
+                    numSpeaking ++;
+                }
+                
+                
+                if (interactive === true) {
+                    numInteractive ++;
+                }
+                
             }
+        }
+       
+       
+        if (numSpeaking >= 1) {
+            this.requirements.speaking1.bool = true;
+        }
+        if (numSpeaking >= 2) {
+            this.requirements.speaking2.bool = true;
+        }
+        if (numSpeaking >= 3) {
+            this.requirements.speaking3.bool = true;
+        }
+        if (numInteractive >= 1) {
+            this.requirements.interactive1.bool = true;
+        }
+        if (numInteractive >= 2) {
+            this.requirements.interactive2.bool = true;
         }
     }
 } 

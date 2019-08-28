@@ -10,7 +10,6 @@ module.exports = class {
     constructor() {
         this.requirements = {};
         this.extensions = {};
-        this.bug = { dir: 0, locX: -200, locY: -25 }
     }
 
     initReqs() {
@@ -20,8 +19,9 @@ module.exports = class {
         this.requirements.ladybugInBounds = { bool: true, str: 'The ladybug stays on the branch' };
         this.requirements.changedProject = { bool: false, str: 'Project has been modified from the original project' };
         this.extensions.music = { bool: false, str: 'Background music added' };
-        this.extensions.changeAphidCode = { bool: false, str: 'Aphid code has been changed' };
+        // this.extensions.changeAphidCode = { bool: false, str: 'Aphid code has been changed' };
         this.extensions.ladybugRedrawn = { bool: false, str: 'The ladybug has been redrawn in the costumes tab' };
+        this.bug = { dir: 0, locX: -200, locY: -25 };
     }
 
     //helper functions
@@ -42,24 +42,73 @@ module.exports = class {
         return false;
     }
 
-    updateBug(block) {
+    blankTo0(input){
 
+        if (input===''){
+            return 0;
+        }else{
+            return input;
+        }
+    }
+
+    updateFromProc(block) {
         if (block.opcode === 'motion_gotoxy') {
-            this.bug.locX = parseFloat(block.inputs.X[1][1]);
-            this.bug.locY = parseFloat(block.inputs.Y[1][1]);
+            console.log('motion go to xy')
+            this.bug.locX = parseFloat(this.blankTo0(block.inputs.X[1][1]));
+            this.bug.locY = parseFloat(this.blankTo0(block.inputs.Y[1][1]));
         }
         if (block.opcode === 'motion_pointindirection') {
-            this.bug.dir = parseFloat(block.inputs.DIRECTION[1][1]);
+            console.log('motion point in direction');
+            this.bug.dir = parseFloat(this.blankTo0(block.inputs.DIRECTION[1][1]));
         }
         if (block.opcode === 'motion_turnright') {
-            this.bug.dir -= parseFloat(block.inputs.DEGREES[1][1]);
+            console.log('motion turn right');
+            this.bug.dir -= parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
         }
+
         if (block.opcode === 'motion_turnleft') {
-            this.bug.dir += parseFloat(block.inputs.DEGREES[1][1]);
+            console.log('motion turn left');
+            this.bug.dir += parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
         }
         if (block.opcode === 'motion_movesteps') {
+            console.log('motion move steps');
             let radDir = (this.bug.dir - 90) * Math.PI / 180;
-            let steps = parseFloat(block.inputs.STEPS[1][1]);
+            let steps = parseFloat(this.blankTo0(block.inputs.STEPS[1][1]));
+            this.bug.locX += Math.round(steps * Math.cos(radDir));
+            this.bug.locY += Math.round(steps * Math.sin(radDir));
+        }
+    }
+    updateBug(block) {
+
+        if (block.opcode === 'procedures_call') {
+            // move forward one square
+            // turn left
+            // turn right
+            // forward 2 blocks
+            // go to start position
+        }
+        if (block.opcode === 'motion_gotoxy') {
+            console.log('motion go to xy')
+            this.bug.locX = parseFloat(this.blankTo0(block.inputs.X[1][1]));
+            this.bug.locY = parseFloat(this.blankTo0(block.inputs.Y[1][1]));
+        }
+        if (block.opcode === 'motion_pointindirection') {
+            console.log('motion point in direction');
+            this.bug.dir = parseFloat(this.blankTo0(block.inputs.DIRECTION[1][1]));
+        }
+        if (block.opcode === 'motion_turnright') {
+            console.log('motion turn right');
+            this.bug.dir -= parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
+        }
+
+        if (block.opcode === 'motion_turnleft') {
+            console.log('motion turn left');
+            this.bug.dir += parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
+        }
+        if (block.opcode === 'motion_movesteps') {
+            console.log('motion move steps');
+            let radDir = (this.bug.dir - 90) * Math.PI / 180;
+            let steps = parseFloat(this.blankTo0(block.inputs.STEPS[1][1]));
             this.bug.locX += Math.round(steps * Math.cos(radDir));
             this.bug.locY += Math.round(steps * Math.sin(radDir));
         }
@@ -76,11 +125,14 @@ module.exports = class {
 
     grade(fileObj, user) {
 
-        var project = new Project(fileObj, null);
-        var original = new Project(require('../act1-grading-scripts/original-ladybug'), null);
-
         this.initReqs();
         if (!is(fileObj)) return;
+        if (is(fileObj.code)) return;
+        var project = new Project(fileObj, null);
+        var original = new Project(require('../act1-grading-scripts/original-ladybug'), null);
+        if (!is(original)) return;
+
+        
 
         let aphidLocations = [];
         let aphidsEaten = 0;
@@ -119,6 +171,9 @@ module.exports = class {
                 aphid2Blocks = target.blocks;
             }else if ((target.name === 'Ladybug1')||this.isLadybug(target)){
                 bugBlocks=target.blocks;
+                this.bug.locX=target.x;
+                this.bug.locY=target.y;
+                this.bug.dir=target.direction;
             }
         }
 
@@ -129,29 +184,44 @@ module.exports = class {
         let ogA2 = util.inspect(ogAphid2Blocks);
         let bb = util.inspect(bugBlocks);
         let ogBB = util.inspect(ogBugBlocks);
+        let len = 0;
         if ((a!==ogA)||(a2!==ogA2)){
-            this.extensions.changeAphidCode.bool=true;
+            // this.extensions.changeAphidCode.bool=true;
         }
-        if (bb!==ogBB){ this.requirements.changedProject.bool=true;}
+        // if (bb!==ogBB){ this.requirements.changedProject.bool=true;}
 
         for (let target of project.targets) {
             for (let block in target.blocks) {
                 if ((target.blocks[block].opcode === 'sound_playuntildone')
                     || (target.blocks[block].opcode === 'sound_play')) {
                     this.extensions.music.bool = true;
-                    break;
                 }
             }
             if (target.name === 'Ladybug1' || this.isLadybug(target)) {
+                // find all scripts in lady bug that start when green flag clicked
+                for (let script of target.scripts) {
+                    if (script.blocks[0].opcode === 'event_whenflagclicked') {
+                        if (script.blocks.length <= 1) {
+                            continue;
+                        }
+                        else if (script.blocks[1].opcode === 'control_forever') {
+                            continue;
+                        } else {
+                            len = script.blocks.length;
+                        }
+                       
+                    }
+                }
+                
                 for (let cost in target.costumes) {
                     if ((target.costumes[cost].assetId !== '7501580fb154fde8192a931f6cab472b')
                         && (target.costumes[cost].assetId !== '169c0efa8c094fdedddf8c19c36f0229')) {
                         this.extensions.ladybugRedrawn.bool = true;
-                        break;
                     }
                 }
+                
                 for (let block in target.blocks) {
-
+                    
                     if (target.blocks[block].opcode === 'event_whenflagclicked') {
                         for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
                             this.updateBug(target.blocks[i]);
@@ -204,7 +274,6 @@ module.exports = class {
                         }
                     }
                 }
-                break;
             }
 
         }

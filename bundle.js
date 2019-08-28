@@ -816,17 +816,25 @@ module.exports = class {
         this.avgScriptLength = 0;
         this.eventOpcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked'];
         this.otherOpcodes = ['motion_glidesecstoxy', 'looks_sayforsecs', 'control_wait'];
+        this.blocksUsed = 0;
     }
 
     initReqs() {
-        this.requirements.fiveBlocks = { bool: false, str: 'Used (only) 5 blocks specified' };
+        // this.requirements.fiveBlocksOld = { bool: false, str: 'Used 5 blocks specified - OLD REQ' };
+        this.requirements.oneBlock = { bool: false, str: 'Used at least one of the five blocks specified' };
+        this.requirements.twoBlocks = { bool: false, str: 'Used at least two of the five blocks specified' };
+        this.requirements.threeBlocks = { bool: false, str: 'Used at least three of the five blocks specified' };
+        this.requirements.fourBlocks = { bool: false, str: 'Used at least four of the five blocks specified' };
+        this.requirements.allFiveBlocks = { bool: false, str: 'Used all five blocks specified' }
         this.requirements.backdrop = { bool: false, str: 'Backdrop added' };
+        this.requirements.oneSprite = { bool: false, str: 'At least one sprite is added' }
         this.requirements.twoSprites = { bool: false, str: 'At least two sprites chosen' };
-        this.extensions.moreSprites = {bool: false, str: 'More sprites added'};
-        this.extensions.convo = {bool: false, str: 'Sprites have a conversation (at least two sprites say something)'};
-        this.extensions.three = {bool: false, str: 'Average script length is at least three'};
-        this.extensions.four = {bool: false, str: 'Average script length is at least four'};
-        this.extensions.five = {bool: false, str: 'Average script length is at least five'};
+        this.extensions.moreSprites = { bool: false, str: 'More sprites added' };
+        this.extensions.convo = { bool: false, str: 'Sprites have a conversation (at least two sprites say something)' };
+        this.extensions.three = { bool: false, str: 'Average script length is at least three' };
+        this.extensions.four = { bool: false, str: 'Average script length is at least four' };
+        this.extensions.five = { bool: false, str: 'Average script length is at least five' };
+        this.avgScriptLength = 0;
     }
 
     grade(fileObj, user) {
@@ -838,6 +846,12 @@ module.exports = class {
         let scriptLengths = [];
         let spritesTalking = 0;
 
+        let usesFlagClicked = 0;
+        let usesSpriteClicked = 0;
+        let usesGlide = 0;
+        let usesSays = 0;
+        let usesWait = 0;
+
         for (let target of project.targets) {
             if (target.isStage) {
                 if ((target.costumes.length > 1) ||
@@ -845,71 +859,104 @@ module.exports = class {
                     this.requirements.backdrop.bool = true;
                 }
             } else {
+                
                 numSprites++;
                 let spriteTalks = false;
 
-                for (let block in target.blocks) {
-                    if ((this.eventOpcodes.includes(target.blocks[block].opcode)
-                        || (this.otherOpcodes.includes(target.blocks[block].opcode)))) {
-                        this.requirements.fiveBlocks.bool = true;
-                    }
+                for (let script in target.scripts) {
+                    if (target.scripts[script].blocks[0].opcode.includes('event_')
+                    &&target.scripts[script].blocks.length>1){
 
-                    if (target.blocks[block].opcode==='looks_sayforsecs'){
-                        spriteTalks = true;
-                    }
+                    for (let block in target.scripts[script].blocks) {
+                        let opc = target.scripts[script].blocks[block].opcode;
+                        switch (opc) {
+                            case 'event_whenflagclicked':
+                                usesFlagClicked = 1;
+                                break;
+                            case 'event_whenthisspriteclicked':
+                                usesSpriteClicked = 1;
+                                break;
+                            case 'motion_glidesecstoxy':
+                                usesGlide = 1;
+                                break;
+                            case 'looks_sayforsecs':
+                                usesSays = 1;
+                                spriteTalks = true;
+                                break;
+                            case 'control_wait':
+                                usesWait = 1;
+                                break;
+                        }
 
-                    if ((target.blocks[block].opcode==='event_whenflagclicked')
-                        || (target.blocks[block].opcode==='event_whenthisspriteclicked')){
+                        if ((this.eventOpcodes.includes(opc)
+                            || (this.otherOpcodes.includes(opc)))) {
+                         //   this.requirements.fiveBlocksOld.bool = true;
+                        }
+
+                        if ((opc === 'event_whenflagclicked')
+                            || (opc === 'event_whenthisspriteclicked')) {
                             let scriptLength = 1;
-                            for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next){
+                            for (let i = target.scripts[script].blocks[block].id; target.blocks[i].next !== null; i = target.blocks[i].next) {
                                 scriptLength++;
                             }
                             scriptLengths.push(scriptLength);
-                        }
+                        } 
+                    }
+                    }
                 }
 
-                if (spriteTalks) {spritesTalking++};
+                if (spriteTalks) { spritesTalking++ };
             }
+        }
+        if (numSprites >= 1) {
+            this.requirements.oneSprite.bool = true;
         }
         if (numSprites >= 2) {
             this.requirements.twoSprites.bool = true;
         }
-        if (numSprites >= 3){
-            this.extensions.moreSprites.bool = true;
+        if (numSprites >= 3) {
+           this.extensions.moreSprites.bool = true;
         }
-        if (spritesTalking>=2){
-            this.extensions.convo.bool = true;
+        if (spritesTalking >= 2) {
+           this.extensions.convo.bool = true;
         }
 
         const reducer = (accumulator, currentValue) => accumulator + currentValue;
-        let total = scriptLengths.reduce(reducer,0);
-        if (scriptLengths.length === 0){
+        let total = scriptLengths.reduce(reducer, 0);
+        if (scriptLengths.length === 0) {
             this.avgScriptLength = 0;
-        }else{
-            this.avgScriptLength=total/scriptLengths.length;
+        } else {
+            this.avgScriptLength = total / scriptLengths.length;
         }
-        console.log('Average Script Length (including event block):');
-        console.log(this.avgScriptLength);
+        // console.log('Average Script Length (including event block):');
+        // console.log(this.avgScriptLength);
 
-        if (this.avgScriptLength>=3){
-            this.extensions.three.bool=true;
+        if (this.avgScriptLength >= 3) {
+            this.extensions.three.bool = true;
         }
-        if (this.avgScriptLength>=4){
-            this.extensions.four.bool=true;
+        if (this.avgScriptLength >= 4) {
+            this.extensions.four.bool = true;
         }
-        if (this.avgScriptLength>=5){
-            this.extensions.five.bool=true;
+        if (this.avgScriptLength >= 5) {
+            this.extensions.five.bool = true;
         }
 
         let longestLength = scriptLengths[0];
-        for (let i = 1; i < scriptLengths.length; i++){
-            if (scriptLengths[i]>longestLength){
-                longestLength=scriptLengths[i];
+        for (let i = 1; i < scriptLengths.length; i++) {
+            if (scriptLengths[i] > longestLength) {
+                longestLength = scriptLengths[i];
             }
         }
 
-        console.log('Longest Script Length (including event block):');
-        console.log(longestLength);
+        // console.log('Longest Script Length (including event block):');
+        // console.log(longestLength);
+
+        let blocksUsed = usesFlagClicked + usesGlide + usesSays + usesSpriteClicked + usesWait;
+        if (blocksUsed >= 1) {this.requirements.oneBlock.bool=true;}
+        if (blocksUsed >= 2) {this.requirements.twoBlocks.bool=true;}
+        if (blocksUsed >= 3) {this.requirements.threeBlocks.bool=true;}
+        if (blocksUsed >= 4) {this.requirements.fourBlocks.bool=true;}
+        if (blocksUsed >= 5) {this.requirements.allFiveBlocks.bool=true;}
 
     }
 }
@@ -917,6 +964,7 @@ module.exports = class {
 /*
 Act 1 About Me Grader
 Intital version and testing: Saranya Turimella, Summer 2019
+Updated to reflect new act 1 
 */
 require('../grading-scripts-s3/scratch3')
 
@@ -927,13 +975,32 @@ module.exports = class {
     }
 
     initReqs() {
+        // sprites - done
         this.requirements.hasOneSprite = { bool: false, str: 'Project has at least one sprite' };
-        this.requirements.interactiveSprite = { bool: false, str: 'Project has at least one interactive sprite with a multi-block script attached' };
-        //this.requirements.nonInteractiveSprite = { bool: false, str: 'Proejct has at least one non-interactive sprite with a multi-block script attached to it' };
-        this.extensions.multipleSprites = { bool: false, str: 'This project uses more than one sprite' }; // done
-        this.extensions.additionalBackdrop = { bool: false, str: 'This project has an additional backdrop' };
-        this.extensions.movingSprites = { bool: false, str: 'This project has a moving sprite' };
-        this.extensions.hasBackgroundMusic = { bool: false, str: 'This project has background music' };
+        this.requirements.hasTwoSprites = { bool: false, str: 'Project has at least two sprites' };
+        this.requirements.hasThreeSprites = { bool: false, str: 'Project has at least three sprites' };
+        // interaction - done
+        this.requirements.hasOneInteractiveSprite = { bool: false, str: 'Project has at least one interactive sprite' };
+        this.requirements.hasTwoInteractiveSprites = { bool: false, str: 'Project has at least two interactive sprites' };
+        this.requirements.hasThreeInteractiveSprites = { bool: false, str: 'Project has at least three interactive sprites' };
+        // interactive and speaking  - done
+        this.requirements.hasOneSpeakingInteractive = { bool: false, str: 'Project has one interactive sprite that speaks' };
+        this.requirements.hasTwoSpeakingInteractive = { bool: false, str: 'Project has two interactive sprites that speak' };
+        this.requirements.hasThreeSpeakingInteractive = { bool: false, str: 'Project has three interactive sprites that speak' };
+        // background - done
+        this.requirements.hasBackdrop = { bool: false, str: 'This project has a backdrop' };
+        // speaking - done
+        this.requirements.usesSayBlock = {bool: false, str: 'This project uses a say block'};
+      
+
+        // check for block usage - done 
+        this.extensions.usesThinkBlock = { bool: false, str: 'Project uses the think block' };
+        this.extensions.changeSize = { bool: false, str: 'Project uses change size block' };
+        this.extensions.playSound = { bool: false, str: 'Project uses play sound until done' };
+        this.extensions.moveSteps = { bool: false, str: 'Project uses a move block' };
+        
+
+
     }
 
     grade(fileObj, user) {
@@ -942,57 +1009,90 @@ module.exports = class {
         this.initReqs();
         if (!is(fileObj)) return;
 
-        let scriptLengthInteractive = 0;
-        let scriptLengthNotInteractive = 0;
-        let isInteractive = false;
-        let numSprites = project.sprites.length;
+
+        let isInteractiveAndSpeaks = false;
+        let numInteractiveAndSpeaks = 0;
+        let numInteractive = 0;
 
         for (let target of project.targets) {
             if (target.isStage) {
                 for (let cost in target.costumes) {
                     if ((target.costumes.length > 1) || (cost.assetID !== "cd21514d0531fdffb22204e0ec5ed84a")) {
-                        this.extensions.additionalBackdrop.bool = true;
+                        this.requirements.hasBackdrop.bool = true;
                     }
                 }
             }
             else {
-                for (let block in target.blocks) {
+
+                for (let script of target.scripts) {
+                    if (script.blocks[0].opcode === 'event_whenthisspriteclicked') {
+                        if (script.blocks.length > 1) {
+                            numInteractive++;
+                        }
+                        for (let i = 0; i < script.blocks.length; i++) {
+                            if ((script.blocks[i].opcode === 'looks_say') ||
+                                (script.blocks[i].opcode === 'looks_sayforsecs')) {
+                                isInteractiveAndSpeaks = true;
+                            }
+                        }
+                    }
+
+                    for (let i = 0; i < script.blocks.length; i++) {
+                        if (script.blocks[i].opcode === 'looks_thinkforsecs') {
+                            this.extensions.usesThinkBlock.bool = true;
+                        }
+                        if (script.blocks[i].opcode === 'looks_changesizeby') {
+                            this.extensions.changeSize.bool = true;
+                        }
+                        if (script.blocks[i].opcode === 'sound_playuntildone') {
+                            this.extensions.playSound.bool = true;
+                        }
+                        if (script.blocks[i].opcode === 'motion_movesteps') {
+                            this.extensions.moveSteps.bool = true;
+                        }
+                        if ((script.blocks[i].opcode === 'looks_say') || (script.blocks[i].opcode === 'looks_sayforsecs')) {
+                            this.requirements.usesSayBlock.bool = true;
+                        }
                     
-                    if (target.blocks[block].opcode === "event_whenthisspriteclicked") {
-
-                        for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
-                            scriptLengthInteractive++;
-                        }
-                        if (scriptLengthInteractive > 1) {
-                            this.requirements.interactiveSprite.bool = true;
-                            
-                        }
                     }
-
-                    else if ((target.blocks[block].opcode === 'motion_gotoxy') ||
-                    target.blocks[block].opcode === 'motion_glidesecstoxy' ||
-                    target.blocks[block].opcode === 'motion_movesteps') {
-                        this.extensions.movingSprites.bool = true;
-                    }
-
-                    else if ((target.blocks[block].opcode === 'sound_playuntildone') ||
-                    (target.blocks[block].opcode === 'sound_play')) {
-                        this.extensions.hasBackgroundMusic.bool = true;
+                    if (isInteractiveAndSpeaks) {
+                        numInteractiveAndSpeaks ++;
                     }
                 }
             }
         }
 
-        if (this.requirements.interactiveSprite.bool === true) {
-            this.requirements.nonInteractiveSprite.bool = true;
-        }
-        
-        if (numSprites >= 1) {
+        // number of sprites
+        if (project.sprites.length >= 1) {
             this.requirements.hasOneSprite.bool = true;
+        } 
+        if (project.sprites.length >= 2) {
+            this.requirements.hasTwoSprites.bool = true;
+        } 
+        if (project.sprites.length >= 3) {
+            this.requirements.hasThreeSprites.bool = true;
         }
 
-        if (numSprites > 1) {
-            this.extensions.multipleSprites.bool = true;
+        // number of interactive sprites
+        if (numInteractive >= 1) {
+            this.requirements.hasOneInteractiveSprite.bool = true;
+        } 
+        if (numInteractive >= 2) {
+            this.requirements.hasTwoInteractiveSprites.bool = true;
+        } 
+        if (numInteractive >= 3) {
+            this.requirements.hasThreeInteractiveSprites.bool = true;
+        }
+
+        // number of interactive and speaking sprites
+        if (numInteractiveAndSpeaks >= 1) {
+            this.requirements.hasOneSpeakingInteractive.bool = true;
+        }
+        if (numInteractiveAndSpeaks >= 2) {
+            this.requirements.hasTwoSpeakingInteractive.bool = true;
+        } 
+        if (numInteractiveAndSpeaks >= 3) {
+            this.requirements.hasThreeSpeakingInteractive.bool = true;
         }
 
     }
@@ -1013,21 +1113,234 @@ module.exports = class {
     }
 
     initReqs() {
-        this.requirements.guitar = { bool: false, str: 'Script added for guitar (including event and action block)' }
+        // this.requirements.guitar = { bool: false, str: 'Script added for guitar (including event and action block)' }
         this.requirements.sprite = { bool: false, str: 'Added at least one new sprite' };
         this.requirements.script = { bool: false, str: 'At least one of the new sprites has a script' };
+        this.requirements.changed1 = { bool: false, str: "Either the trumpet or the drum's code has been changed"};
+        this.requirements.changed = { bool: false, str: "Both the trumpet and the drum's code have been changed"};
+        this.requirements.cat1 = { bool: false, str: "The cat's code has been changed"};
         this.requirements.cat = { bool: false, str: 'Cat animated using loop with wait block and motion (including changing costumes and size)' };
     }
+
+    // makeArray(target){
+    //     let arr = [];
+    //     for (let block in target.blocks){
+    //         arr.push(target.blocks[block].opcode);
+    //         arr.push(target.blocks[block].next);
+    //         arr.push(target.blocks[block].parent);
+    //     }
+    // }
 
     grade(fileObj, user) {
         var project = new Project(fileObj, null);
         this.initReqs();
         if (!is(fileObj)) return;
 
+        let ogTrumpetBlocks = null;
+        let trumpetBlocks = null;
+        let ogDrumBlocks = null;
+        let drumBlocks = null;
+        let ogSpriteBlocks = null;
+        let spriteBlocks = null;
+
+  //      var original = new Project(require('../act1-grading-scripts/real-original-band'), null);
+
+        // for (let target of original.targets){
+        //     if (target.name === 'Trumpet'){
+        //         ogTrumpetBlocks=target.blocks;
+        //     } else if (target.name === 'Drum-Bass'){
+        //         ogDrumBlocks=target.blocks;
+        //     } else if (target.name === 'Sprite2'){
+        //         ogSpriteBlocks=target.blocks;
+        //     }
+        // }
+        // for (let target of project.targets){
+        //     if (target.name === 'Trumpet'){
+        //         trumpetBlocks = target.blocks;
+        //     } else if (target.name === 'Drum-Bass'){
+        //         drumBlocks = target.blocks;
+        //     } else if (target.name === 'Sprite2'){
+        //         spriteBlocks=target.blocks;
+        //     }
+        // }
+
+        let givenSpritesChanged = 0;
+        // var util = require('util');
+        // let tB = util.inspect(trumpetBlocks);
+        // let ogTB = util.inspect(ogTrumpetBlocks);
+        // let dB = util.inspect(drumBlocks);
+        // let ogDB = util.inspect(ogDrumBlocks);
+        // let sB = util.inspect(spriteBlocks);
+        // let ogSB = util.inspect(ogSpriteBlocks);
+        // if (tB!==ogTB){givenSpritesChanged++;}
+        // if (dB!==ogDB){givenSpritesChanged++;}
+
+        
+        // if (givenSpritesChanged){
+        //     this.requirements.changed1.bool=true;
+        // }
+        // if (givenSpritesChanged>1){
+        //     this.requirements.changed.bool=true;
+        // }
+        // if (sB!==ogSB){this.requirements.cat1.bool=true;}
+
+        let trumpetChanged = false;
+        let drumChanged = false;
         for (let target of project.targets) {
             if (!target.isStage) {
+                if (target.name === 'Trumpet'){
+                    if (target.scripts.length!=3) {trumpetChanged = true;}
+                    for (let block in target.blocks){
+                        if ((target.blocks[block].opcode=='motion_turnright' || target.blocks[block].opcode=='motion_turnleft')
+                        && target.blocks[block].inputs.DEGREES[1][1]!=15){
+                            trumpetChanged = true;
+                        }
+                        if (target.blocks[block].opcode=='control_repeat'
+                        && target.blocks[block].inputs.TIMES[1][1]!=2){
+                            trumpetChanged=true;
+                        }
+                    }
+                    for (let script of target.scripts){
+                        if (script.blocks[0].opcode==='event_whenthisspriteclicked'){
+                            if (script.blocks.length!=4){
+                                trumpetChanged = true;
+                            } else if (script.blocks[1].opcode!=='motion_turnright'
+                            || script.blocks[2].opcode!=='control_repeat'
+                            || script.blocks[3].opcode!=='motion_turnleft'){
+                                trumpetChanged = true;
+                            } else if (script.blocks[2].subscripts[0].blocks[0].opcode != 'sound_playuntildone'
+                            || target.blocks[script.blocks[2].subscripts[0].blocks[0].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='C trumpet'
+                            || script.blocks[2].subscripts[0].blocks[1].opcode != 'sound_playuntildone'
+                            || target.blocks[script.blocks[2].subscripts[0].blocks[1].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='D trumpet'
+                            || script.blocks[2].subscripts[0].blocks[2].opcode != 'sound_playuntildone'
+                            || target.blocks[script.blocks[2].subscripts[0].blocks[2].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='E trumpet') {
+                                trumpetChanged = true;
+                            }
+                        } else if (script.blocks[0].opcode==='event_whenkeypressed'
+                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==1){
+                            if (script.blocks.length!=9) {
+                                trumpetChanged = true;
+                            } else if (script.blocks[1].opcode!=='motion_turnright'
+                            || script.blocks[2].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[2].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='C trumpet'
+                            || script.blocks[3].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[3].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='D trumpet'
+                            || script.blocks[4].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[4].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='E trumpet'
+                            || script.blocks[5].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[5].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='C trumpet'
+                            || script.blocks[6].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[6].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='D trumpet'
+                            || script.blocks[7].opcode!=='sound_playuntildone' 
+                            || target.blocks[target.blocks[script.blocks[7].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='E trumpet'
+                            || script.blocks[8].opcode!=='motion_turnleft'){
+                                trumpetChanged = true;
+                            }
+                        } else if (script.blocks[0].opcode==='event_whenkeypressed'
+                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==2){
+                            if (script.blocks.length!=6){
+                                trumpetChanged = true;
+                            }else if (script.blocks[1].opcode!=='motion_turnright'
+                            || script.blocks[2].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[2].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='C trumpet'
+                            || script.blocks[3].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[3].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='D trumpet'
+                            || script.blocks[4].opcode!=='sound_playuntildone'
+                            || target.blocks[target.blocks[script.blocks[4].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='E trumpet'
+                            || script.blocks[5].opcode!=='motion_turnleft'){
+                                trumpetChanged = true;
+                            }
+                        }
+                    }
+                }
+                if (target.name == 'Drum-Bass'){
+                    if (target.scripts.length!=4) {drumChanged=true;}
+                    for (let block in target.blocks){
+                        if (target.blocks[block].opcode=='motion_turnright' && target.blocks[block].inputs.DEGREES[1][1]!=15){
+                            drumChanged=true;
+                        }
+                        if (target.blocks[block].opcode=='control_repeat' && target.blocks[block].inputs.TIMES[1][1]!=3){
+                            drumChanged=true;
+                        }
+                        if (target.blocks[block].opcode=='sound_playuntildone'
+                        && target.blocks[target.blocks[block].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='drum bass3'){
+                            drumChanged=true;
+                        }
+                    }
+                    for (let script of target.scripts){
+                        if (script.blocks[0].opcode=='event_whenthisspriteclicked'){
+                            if (script.blocks.length!=2){
+                                drumChanged = true;
+                            } else if (script.blocks[1].opcode!='control_repeat'
+                            || script.blocks[1].subscripts[0].blocks[0].opcode != 'motion_turnright'
+                            || script.blocks[1].subscripts[0].blocks[1].opcode != 'sound_playuntildone'){
+                                drumChanged = true;
+                            } 
+                        } else if (script.blocks[0].opcode == 'event_whenkeypressed'
+                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==3){
+                            if (script.blocks.length!=7){
+                                drumChanged = true;
+                            } else if (script.blocks[1].opcode!='motion_turnright'
+                            || script.blocks[2].opcode!='motion_turnright'
+                            || script.blocks[3].opcode!='motion_turnright'
+                            || script.blocks[4].opcode!='sound_playuntildone'
+                            || script.blocks[5].opcode!='sound_playuntildone'
+                            || script.blocks[6].opcode!='sound_playuntildone') {
+                                drumChanged=true;
+                            }
+                        } else if (script.blocks[0].opcode=='event_whenkeypressed'
+                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==4){
+                            if (script.blocks.length!=7){
+                                drumChanged = true;
+                            } else if (script.blocks[1].opcode!='motion_turnright'
+                            || script.blocks[2].opcode!='sound_playuntildone'
+                            || script.blocks[3].opcode!='motion_turnright'
+                            || script.blocks[4].opcode!='sound_playuntildone'
+                            || script.blocks[5].opcode!='motion_turnright'
+                            || script.blocks[6].opcode!='sound_playuntildone') {
+                                drumChanged=true;
+                            }
+                        } else if (script.blocks[0].opcode=='event_whenkeypressed'
+                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==5){
+                            if (script.blocks.length!=3){
+                                drumChanged = true;
+                            } else if (script.blocks[1].opcode!='motion_turnright'
+                            || script.blocks[2].opcode!='sound_playuntildone') {
+                                drumChanged=true;
+                            }
+                        }
+                    }
+                }
+              
+
                 if (target.name === 'Sprite2') {
                     for (let block in target.blocks) {
+                        let oldCode = false;
+                        if (target.blocks[block].opcode==='event_whenflagclicked'){
+                            let next = target.blocks[block].next;
+                            if (next === '-=c~#;5EEGjK{HrhxCUC'){
+                                if (target.blocks[next].inputs.MESSAGE[1][1]==='Click on an instrument to play some music!'){
+                                    let secs = target.blocks[next].inputs.SECS[1][1];
+                                    if (secs==7){
+                                        oldCode = true;
+                                    }
+                                }
+                            }
+                        }
+                        if (target.blocks[block].opcode==='looks_sayforsecs'){
+                            let parent = target.blocks[block].parent;
+                            if (parent === 'r5{d*2~:^,9ShD5in?er'){
+                                if (target.blocks[block].next === null){
+                                    if (target.blocks[block].inputs.MESSAGE[1][1]==='Click on an instrument to play some music!'){
+                                        if (target.blocks[block].inputs.SECS[1][1]==7){
+                                            oldCode = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                       if (!oldCode) {this.requirements.cat1.bool=true;}
+
                         if (target.blocks[block].opcode.includes('event_')) {
                             for (let i = block; i !== null; i = target.blocks[i].next) {
                                 let opc = target.blocks[i].opcode;
@@ -1052,7 +1365,7 @@ module.exports = class {
 
                                             }
                                         if (wait && (nextCostChangeSize || motion || (switchCostSize > 1))) {
-                                            this.requirements.cat.bool = true;
+                                           this.requirements.cat.bool = true;
                                         }
                                     }
                                 }
@@ -1061,31 +1374,35 @@ module.exports = class {
                     }
                 }
 
-                if (target.name === 'Guitar-Electric') {
-                    for (let block in target.blocks) {
-                        if (target.blocks[block].opcode.includes('event_')) {
-                            if (target.blocks[block].next != null) {
-                                this.requirements.guitar.bool = true;
-                            }
-                        }
-                    }
-                }
+                // if (target.name === 'Guitar-Electric') {
+                //     for (let block in target.blocks) {
+                //         if (target.blocks[block].opcode.includes('event_')) {
+                //             if (target.blocks[block].next != null) {
+                //                 this.requirements.guitar.bool = true;
+                //             }
+                //         }
+                //     }
+                // }
 
                 if ((target.name != 'Sprite2') &&
                     (target.name != 'Trumpet') &&
                     (target.name != 'Drum-Bass') &&
                     (target.name != 'Guitar-Electric')) {
-                    this.requirements.sprite.bool = true;
+                   this.requirements.sprite.bool = true;
                     for (let block in target.blocks) {
                         if (target.blocks[block].opcode.includes('event_')) {
                             if (target.blocks[block].next != null) {
-                                this.requirements.script.bool = true;
+                               this.requirements.script.bool = true;
                             }
                         }
                     }
                 }
             }
         }
+        if (trumpetChanged) {givenSpritesChanged++;}
+        if (drumChanged) {givenSpritesChanged++;}
+        if (givenSpritesChanged) {this.requirements.changed1.bool=true;}
+        if (givenSpritesChanged>1) {this.requirements.changed.bool=true;}
     }
 }
 
@@ -1111,7 +1428,20 @@ module.exports = class {
         this.requirements.backdrop = {bool: false, str: 'Scene changes'};
         this.extensions.threeBackdrops = {bool: false, str: 'Uses 3 different backdrops'};
         this.extensions.showHide = {bool: false, str: 'Uses "show" or "hide"'};
-        this.extensions.music = {bool: false, str: 'Background music added'};
+        this.extensions.music = {bool: false, str: 'Sounds added'};
+        
+        /////
+        // this.requirements.one = { bool: false, str: 'at least 1 unique block'};
+        // this.requirements.two = { bool: false, str: 'at least 2 unique blocks'};
+        // this.requirements.three = { bool: false, str: 'at least 3 unique blocks'};
+        // this.requirements.four = { bool: false, str: 'at least 4 unique blocks'};
+        // this.requirements.five = { bool: false, str: 'at least 5 unique blocks'};
+        // this.requirements.six = { bool: false, str: 'at least 6 unique blocks'};
+        // this.requirements.seven = { bool: false, str: 'at least 7 unique blocks'};
+        // this.requirements.eight = { bool: false, str: 'at least 8 unique blocks'};
+        // this.requirements.nine = { bool: false, str: 'at least 9 unique blocks'};
+        // this.requirements.ten = { bool: false, str: 'at least 10+ unique blocks'};
+        /////
     }
 
     grade(fileObj,user){
@@ -1119,11 +1449,27 @@ module.exports = class {
         this.initReqs();
         if (!is(fileObj)) return;
 
+        let uniqueBlocksArr = [];
+        let uniqueBlocks = 0;
+
         for (let target of project.targets){
 
             if (target.isStage){
                 if (target.costumes.length>=3){
-                    this.extensions.threeBackdrops.bool=true;
+                    // this.extensions.threeBackdrops.bool=true;
+                }
+            }  
+
+
+            for (let script in target.scripts) {
+                if (target.scripts[script].blocks[0].opcode.includes('event_')){
+                    for (let block of target.scripts[script].blocks) {
+                        let opc = block.opcode;
+                        if (!uniqueBlocksArr.includes(opc)){
+                            uniqueBlocksArr.push(opc);
+                            uniqueBlocks++;
+                        }
+                    }
                 }
             }
 
@@ -1152,7 +1498,7 @@ module.exports = class {
                     this.extensions.showHide.bool=true;
                 }
                 if ((opc==='sound_playuntildone')
-                ||(opc==='sound_sounds_menu')){
+                ||(opc==='sound_play')){
                     this.extensions.music.bool=true;
                 }
 
@@ -1162,6 +1508,17 @@ module.exports = class {
 
             }
         }
+
+        // if (uniqueBlocks>=1) this.requirements.one.bool=true;
+        // if (uniqueBlocks>=2) this.requirements.two.bool=true;
+        // if (uniqueBlocks>=3) this.requirements.three.bool=true;
+        // if (uniqueBlocks>=4) this.requirements.four.bool=true;
+        // if (uniqueBlocks>=5) this.requirements.five.bool=true;
+        // if (uniqueBlocks>=6) this.requirements.six.bool=true;
+        // if (uniqueBlocks>=7) this.requirements.seven.bool=true;
+        // if (uniqueBlocks>=8) this.requirements.eight.bool=true;
+        // if (uniqueBlocks>=9) this.requirements.nine.bool=true;
+        // if (uniqueBlocks>=10) this.requirements.ten.bool=true;
 
     }
 
@@ -1179,7 +1536,6 @@ module.exports = class {
     constructor() {
         this.requirements = {};
         this.extensions = {};
-        this.bug = { dir: 0, locX: -200, locY: -25 }
     }
 
     initReqs() {
@@ -1189,8 +1545,9 @@ module.exports = class {
         this.requirements.ladybugInBounds = { bool: true, str: 'The ladybug stays on the branch' };
         this.requirements.changedProject = { bool: false, str: 'Project has been modified from the original project' };
         this.extensions.music = { bool: false, str: 'Background music added' };
-        this.extensions.changeAphidCode = { bool: false, str: 'Aphid code has been changed' };
+        // this.extensions.changeAphidCode = { bool: false, str: 'Aphid code has been changed' };
         this.extensions.ladybugRedrawn = { bool: false, str: 'The ladybug has been redrawn in the costumes tab' };
+        this.bug = { dir: 0, locX: -200, locY: -25 };
     }
 
     //helper functions
@@ -1211,24 +1568,73 @@ module.exports = class {
         return false;
     }
 
-    updateBug(block) {
+    blankTo0(input){
 
+        if (input===''){
+            return 0;
+        }else{
+            return input;
+        }
+    }
+
+    updateFromProc(block) {
         if (block.opcode === 'motion_gotoxy') {
-            this.bug.locX = parseFloat(block.inputs.X[1][1]);
-            this.bug.locY = parseFloat(block.inputs.Y[1][1]);
+            console.log('motion go to xy')
+            this.bug.locX = parseFloat(this.blankTo0(block.inputs.X[1][1]));
+            this.bug.locY = parseFloat(this.blankTo0(block.inputs.Y[1][1]));
         }
         if (block.opcode === 'motion_pointindirection') {
-            this.bug.dir = parseFloat(block.inputs.DIRECTION[1][1]);
+            console.log('motion point in direction');
+            this.bug.dir = parseFloat(this.blankTo0(block.inputs.DIRECTION[1][1]));
         }
         if (block.opcode === 'motion_turnright') {
-            this.bug.dir -= parseFloat(block.inputs.DEGREES[1][1]);
+            console.log('motion turn right');
+            this.bug.dir -= parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
         }
+
         if (block.opcode === 'motion_turnleft') {
-            this.bug.dir += parseFloat(block.inputs.DEGREES[1][1]);
+            console.log('motion turn left');
+            this.bug.dir += parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
         }
         if (block.opcode === 'motion_movesteps') {
+            console.log('motion move steps');
             let radDir = (this.bug.dir - 90) * Math.PI / 180;
-            let steps = parseFloat(block.inputs.STEPS[1][1]);
+            let steps = parseFloat(this.blankTo0(block.inputs.STEPS[1][1]));
+            this.bug.locX += Math.round(steps * Math.cos(radDir));
+            this.bug.locY += Math.round(steps * Math.sin(radDir));
+        }
+    }
+    updateBug(block) {
+
+        if (block.opcode === 'procedures_call') {
+            // move forward one square
+            // turn left
+            // turn right
+            // forward 2 blocks
+            // go to start position
+        }
+        if (block.opcode === 'motion_gotoxy') {
+            console.log('motion go to xy')
+            this.bug.locX = parseFloat(this.blankTo0(block.inputs.X[1][1]));
+            this.bug.locY = parseFloat(this.blankTo0(block.inputs.Y[1][1]));
+        }
+        if (block.opcode === 'motion_pointindirection') {
+            console.log('motion point in direction');
+            this.bug.dir = parseFloat(this.blankTo0(block.inputs.DIRECTION[1][1]));
+        }
+        if (block.opcode === 'motion_turnright') {
+            console.log('motion turn right');
+            this.bug.dir -= parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
+        }
+
+        if (block.opcode === 'motion_turnleft') {
+            console.log('motion turn left');
+            this.bug.dir += parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
+        }
+        if (block.opcode === 'motion_movesteps') {
+            console.log('motion move steps');
+            let radDir = (this.bug.dir - 90) * Math.PI / 180;
+            let steps = parseFloat(this.blankTo0(block.inputs.STEPS[1][1]));
             this.bug.locX += Math.round(steps * Math.cos(radDir));
             this.bug.locY += Math.round(steps * Math.sin(radDir));
         }
@@ -1245,11 +1651,14 @@ module.exports = class {
 
     grade(fileObj, user) {
 
-        var project = new Project(fileObj, null);
-        var original = new Project(require('../act1-grading-scripts/original-ladybug'), null);
-
         this.initReqs();
         if (!is(fileObj)) return;
+        if (is(fileObj.code)) return;
+        var project = new Project(fileObj, null);
+        var original = new Project(require('../act1-grading-scripts/original-ladybug'), null);
+        if (!is(original)) return;
+
+        
 
         let aphidLocations = [];
         let aphidsEaten = 0;
@@ -1288,6 +1697,9 @@ module.exports = class {
                 aphid2Blocks = target.blocks;
             }else if ((target.name === 'Ladybug1')||this.isLadybug(target)){
                 bugBlocks=target.blocks;
+                this.bug.locX=target.x;
+                this.bug.locY=target.y;
+                this.bug.dir=target.direction;
             }
         }
 
@@ -1298,29 +1710,44 @@ module.exports = class {
         let ogA2 = util.inspect(ogAphid2Blocks);
         let bb = util.inspect(bugBlocks);
         let ogBB = util.inspect(ogBugBlocks);
+        let len = 0;
         if ((a!==ogA)||(a2!==ogA2)){
-            this.extensions.changeAphidCode.bool=true;
+            // this.extensions.changeAphidCode.bool=true;
         }
-        if (bb!==ogBB){ this.requirements.changedProject.bool=true;}
+        // if (bb!==ogBB){ this.requirements.changedProject.bool=true;}
 
         for (let target of project.targets) {
             for (let block in target.blocks) {
                 if ((target.blocks[block].opcode === 'sound_playuntildone')
                     || (target.blocks[block].opcode === 'sound_play')) {
                     this.extensions.music.bool = true;
-                    break;
                 }
             }
             if (target.name === 'Ladybug1' || this.isLadybug(target)) {
+                // find all scripts in lady bug that start when green flag clicked
+                for (let script of target.scripts) {
+                    if (script.blocks[0].opcode === 'event_whenflagclicked') {
+                        if (script.blocks.length <= 1) {
+                            continue;
+                        }
+                        else if (script.blocks[1].opcode === 'control_forever') {
+                            continue;
+                        } else {
+                            len = script.blocks.length;
+                        }
+                       
+                    }
+                }
+                
                 for (let cost in target.costumes) {
                     if ((target.costumes[cost].assetId !== '7501580fb154fde8192a931f6cab472b')
                         && (target.costumes[cost].assetId !== '169c0efa8c094fdedddf8c19c36f0229')) {
                         this.extensions.ladybugRedrawn.bool = true;
-                        break;
                     }
                 }
+                
                 for (let block in target.blocks) {
-
+                    
                     if (target.blocks[block].opcode === 'event_whenflagclicked') {
                         for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
                             this.updateBug(target.blocks[i]);
@@ -1373,7 +1800,6 @@ module.exports = class {
                         }
                     }
                 }
-                break;
             }
 
         }
@@ -2673,9 +3099,13 @@ module.exports = class {
         this.requirements.speakingRight = { bool: false, str: 'Right sprite has a script with a say block in it' }; // done
         this.requirements.speakingMiddle = { bool: false, str: 'Middle sprite has a script with a say block in it' }; // done
 
-        this.requirements.newCostumes1 = { bool: false, str: '1/3 sprites has a new costume' };
-        this.requirements.speaking1 = { bool: false, str: '1/3 sprites uses the say block' };
-        this.requirements.interactive1 = { bool: false, str: '1/3 sprites is interactive' };
+        // done
+        this.requirements.speaking1 = { bool: false, str: '1 sprite uses the say block' };
+        this.requirements.speaking2 = {bool: false, str: '2 sprites use the say block'};
+        this.requirements.speaking3 = {bool: false, str: '3 sprites use the say block'};
+        this.requirements.interactive1 = { bool: false, str: '1 sprite is interactive' };
+        this.requirements.interactive2 = {bool: false, str: '2 sprites are interactie'};
+        
        
         // // extensions
         this.extensions.usesPlaySoundUntilDone = { bool: false, str: 'The project uses the "Play Sound Until" block in a script' };
@@ -2832,27 +3262,29 @@ module.exports = class {
             }
         }
 
-        
-        if (JSON.stringify(oldCostumes) !== JSON.stringify(newCostumes)) {
-            if (project.sprites.length >0) {
-                this.requirements.newCostumes1.bool = true;
-            }
-           
-        }
 
         // --------------------------------------------------------------------------------------------------------- //
 
     
+        let speaks = false;
+        let interactive = false;
+        let numInteractive = 0;
+        let numSpeaking = 0;
 
         //f there is a say block in a sprite that is not named catrina, and that say block is not used in the same 
         //context as the original project (same parent and next block)
         for (let target of project.targets) {
+            speaks = false;
+            interactive = false;
             if (target.name === 'Catrina') {
                 continue;
-            } else {
+            } else if (target.isStage) { continue;}
+            else {
+                console.log(speaks);
                 for (let script in target.scripts) {
                     for (let block in target.scripts[script].blocks) {
                         if (soundOptions.includes(target.scripts[script].blocks[block].opcode)) {
+                            console.log(speaks);
                             if ((target.scripts[script].blocks[block].next === "Q.gGFO#r}[Z@fzClmRq-") &&
                                 (target.scripts[script].blocks[block].parent === "taz8m.4x_rVweL9%J@(3") &&
                                 (target.scripts[script].blocks[block].inputs.MESSAGE[1][1] === "I am Grandpa John.")) {
@@ -2863,17 +3295,24 @@ module.exports = class {
                                 continue;
                             }
                             else {
-                                    this.requirements.speaking1.bool = true;
+                                    
+                                    speaks = true;
                                 }
                         }
+
                         if (target.scripts[script].blocks[block].opcode === 'event_whenthisspriteclicked') {
+                           
                             if (target.scripts[script].blocks[block].next === "}VBgCH{K:oDh6pV0h.pi" && target.scripts[script].blocks[block].parent === null) {
                                 continue;
                             } else if (target.scripts[script].blocks[block].next === "/f[ltBij)7]5Jtg|W(1%" && target.scripts[script].blocks[block].parent === null) {
                                 continue;
-                            } else {
-                                
-                                    this.requirements.interactive1.bool = true;
+                               
+                            }  else if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
+                                continue;
+                            }
+                            else {
+                                   
+                                    interactive = true;
                                 }
                         }
 
@@ -2889,7 +3328,7 @@ module.exports = class {
                             if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
                                 continue;
                             } else {
-                                this.extensions.useskeyCommand.bool = true;
+                                this.extensions.keyCommand.bool = true;
                             }
                         }
                         if (target.scripts[script].blocks[block].opcode === 'motion_gotoxy') {
@@ -2900,8 +3339,36 @@ module.exports = class {
                             }
                         }
                     }
+                    
                 }
+               
+                if (speaks === true) {
+                    numSpeaking ++;
+                }
+                
+                
+                if (interactive === true) {
+                    numInteractive ++;
+                }
+                
             }
+        }
+       
+       
+        if (numSpeaking >= 1) {
+            this.requirements.speaking1.bool = true;
+        }
+        if (numSpeaking >= 2) {
+            this.requirements.speaking2.bool = true;
+        }
+        if (numSpeaking >= 3) {
+            this.requirements.speaking3.bool = true;
+        }
+        if (numInteractive >= 1) {
+            this.requirements.interactive1.bool = true;
+        }
+        if (numInteractive >= 2) {
+            this.requirements.interactive2.bool = true;
         }
     }
 } 
@@ -5162,6 +5629,21 @@ Reformatting and bug fixes: Marco Anaya, Summer 2019
 */
 require('./scratch3');
 
+const holidays = {
+    christmas: ['christmas', 'chrismas', 'xmas', 'santa', 'x-mas', 'december 2'],
+    halloween: ['halloween', 'scary', 'trick or treat', 'hollween', 'costumeb'],
+    birthday: ['birthday', 'b-day', 'brithday', 'birth day'],
+    july: ['july'],
+    thanksgiving: ['thanksgiving'],
+    ['chinese new years']: ['chinese new'],
+    ['new years']: ['new year'],
+    valentines: ['valentine'],
+    easter: ['easter'],
+    ['national _ day']: ['national'],
+    other: ['day']
+}
+const family = ['mom', 'dad', 'father', 'mother', 'sister', 'brother', 'uncle', 'aunt','grandpa', 'grandma', 'cousin', 'famil', 'sibling', 'child'];
+
 module.exports = class {
     init() {
         this.requirements = {
@@ -5188,7 +5670,10 @@ module.exports = class {
             spritesWith2Scripts: 0,
             holiday: null,
             guidingUser: false,
+            family: false,
             blockTypes: new Set([]),
+            strings: [],
+            score: 0
         }
     }
     
@@ -5208,25 +5693,38 @@ module.exports = class {
                 if (opcode in this.info.blockTypes) {
                     
                 } else {
-                    this.info.blockTypes.add(opcode)
+                    this.info.blockTypes.add(opcode);
                     this.info.blocks++;
                 }
                 if (opcode.includes('say')) {
                     let string = block.inputs.MESSAGE[1][1].toLowerCase();
-                    if (!this.info.holiday) {
-                        for (let holiday of ['christmas', 'halloween', 'july', 'birthday', 'day']) {
+
+
+                    this.info.strings.push(string);
+
+                    if (!this.info.holiday || this.info.holiday == 'other') {
+                        for (let [holiday, keywords] of Object.entries(holidays)) {
                             
-                            if (string.includes(holiday)) {
+                            if (keywords.some(k => string.includes(k))) {
                                 this.info.holiday = holiday;
-                                break;
+                                if (holiday != 'other')
+                                    break;
                             }
                         }
                     }
                     if (!this.info.guidingUser) {
-                        for (let keyWord of ['press', 'click']) {
-                            if (string.includes(keyWord)) {
+                        for (let keyword of ['press', 'click']) {
+                            if (string.includes(keyword)) {
                                 this.info.guidingUser = true;
                                 break;
+                            }
+                        }
+                    }
+                    if (!this.info.family) {
+                        for (let keyword of family) {
+                            if (string.includes(keyword)) {
+                                this.info.family = true;
+                                break
                             }
                         }
                     }
@@ -5299,6 +5797,9 @@ module.exports = class {
         }
         this.requirements.usesTheThreeEvents.bool = (reqEvents.length === 3);
         this.requirements.hasThreeSprites.bool = (project.targets.length - 1 >= 3);
+        
+        delete this.info.strings;
+        this.info.score = Object.values(this.requirements).reduce((sum, r) => sum + (r.bool? 1 : 0), 0);
         
     }
 } 
