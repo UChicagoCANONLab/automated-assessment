@@ -71,7 +71,7 @@ global.Block = class {
         }
         return array;
     }
-    /// Checks if the 
+    /// Checks if the
     isWithin(compareBlock=(block => true)) {
         var outerBlock = this.within;
         while(outerBlock) {
@@ -81,7 +81,7 @@ global.Block = class {
             outerBlock = outerBlock.within;
         }
         return null;
-    } 
+    }
 }
 
 /// Container class for Scratch scripts.
@@ -114,7 +114,7 @@ global.Script = class {
         }
         return allSubscripts;
     }
-    /// Recursively visits each block in a scrip and its subscripts, 
+    /// Recursively visits each block in a scrip and its subscripts,
     ///  noting at which level of nestedness it is in within control blocks of ones choosing.
     traverseBlocks(func, targetBlocks=null) {
         const parentBlocks = ['control_forever', 'control_if', 'control_if_else', 'control_repeat', 'control_repeat_until'];
@@ -131,7 +131,7 @@ global.Script = class {
                             traverse(block.subscripts, level + 1);
                         }
                     }
-                    
+
                 }
             }
         }
@@ -176,3 +176,48 @@ global.Project = class {
         }
     }
 }
+
+/// Identify which strand the project belongs to.
+global.detectStrand(project, templates) {
+    var strand = 'generic';
+    /// Format for templates
+    /*
+    var templates = {
+        multicultural: require('./templates/events-L1-multicultural'),
+        youthCulture:  require('./templates/events-L1-youth-culture'),
+        gaming:        require('./templates/events-L1-gaming')
+    };
+    */
+    var projectAssetIDs = [];
+    for (var target of project.targets) {
+        for (var costume of target.costumes) {
+            projectAssetIDs.push(costume.assetId);
+        }
+        for (var sound of target.sounds) {
+            projectAssetIDs.push(sound.assetId);
+        }
+    }
+    var highScore = 0;
+    for (var template in templates) {
+        var templateFile = templates[template];
+        var templateAssetIDs = [];
+        for (var target of templateFile.targets) {
+            for (var costume of target.costumes) {
+                templateAssetIDs.push(costume.assetId);
+            }
+            for (var sound of target.sounds) {
+                templateAssetIDs.push(sound.assetId);
+            }
+        }
+        var templateScore = 0;
+        for (var projectAssetID of projectAssetIDs) {
+            if (templateAssetIDs.includes(projectAssetID)) {
+                templateScore++;
+            }
+            if (templateScore > highScore) {
+                strand = template;
+                highScore = templateScore;
+            }
+        }
+        return strand;
+    }
