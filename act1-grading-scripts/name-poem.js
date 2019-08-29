@@ -15,8 +15,6 @@ module.exports = class {
     }
 
     initReqs() {
-        //this.requirements.hasOneSprite = { bool: false, str: 'Project has at least one sprite' };//done
-        //this.requirements.scripts = { bool: false, str: 'At least half of the sprites have a script using the 11 blocks given (with at least one event block and at least one other block)' };//done
         this.requirements.costumes1 = {bool: false, str: 'At least one sprite has a new costume'};
         this.requirements.costumes = { bool: false, str: 'At least half of the sprites have new costumes' };//done
         this.requirements.dialogue1 = { bool: false, str: 'At least one sprite has new dialogue' };
@@ -24,8 +22,6 @@ module.exports = class {
         this.requirements.movement1 = { bool: false, str: 'At least one sprite has new movement'};
         this.requirements.movement = { bool: false, str: 'At least half of the sprites have new movement using blocks specified' };//to fix
         this.requirements.backdrop = { bool: false, str: 'The background has been changed' };//done
-        //     this.extensions.allReqs = { bool: false, str: 'All requirements are fulfilled' };
-        //     this.extensions.oneSprite = { bool: false, str: 'At least one sprite has a new costume, dialogue, and movement using 11 blocks given (fulfills spirit)' };
     }
 
     grade(fileObj, user) {
@@ -33,11 +29,6 @@ module.exports = class {
         var original = new Project(require('../act1-grading-scripts/name-poem-original-test'), null);
         this.initReqs();
         if (!is(fileObj)) return;
-
-        //checks if there's at least one sprite
-        // if (project.sprites.length > 0) {
-        //     this.requirements.hasOneSprite.bool = true;
-        // }
 
         //instantiate counters for requirements
         let spritesWithScripts = 0;
@@ -88,18 +79,16 @@ module.exports = class {
                         }
                     }
                 }
-                this.requirements.backdrop.bool = newBackdrop;
+               this.requirements.backdrop.bool = newBackdrop;
             } else {
 
                 let hasMovement = false;
 
-                        // console.log('before');
                 for (let script in target.scripts) {
                     for (let block in target.scripts[script].blocks) {
                         let opc = target.scripts[script].blocks[block].opcode;
                         let bool = true;
                         if (this.otherOpcodes.includes(opc) && opc !== 'looks_sayforsecs') {
-                            //                  console.log(opc);
                             if (opc === 'sound_playuntildone') {
                                 let soundMenu = target.scripts[script].blocks[block].inputs.SOUND_MENU[1];
                                 if (target.name === 'D-Glow') {
@@ -140,26 +129,7 @@ module.exports = class {
                                     bool = false;
                                 }
                             }
-                            // if (opc === 'motion_glidesecstoxy' && target.name === 'A-Glow') {
-                            //     let paramSecs = target.scripts[script].blocks[block].inputs.SECS[1][1];
-                            //     let paramX = target.scripts[script].blocks[block].inputs.X[1][1];
-                            //     let paramY = target.scripts[script].blocks[block].inputs.Y[1][1];
-                            //     if (paramSecs === '1' && paramX === '55' && paramY === '25'
-                            //         && target.scripts[script].blocks[block].next === '^6iWa|d-|jw!SQI#e(Jr'
-                            //         && target.scripts[script].blocks[block].parent === 'n]cy4r^o3t_m{{lMaGoY') {
-                            //         bool = false;
-                            //     }
-                            //     if (paramSecs === '1' && paramX === '-204' && paramY === '14'
-                            //         && target.scripts[script].blocks[block].next === null
-                            //         && target.scripts[script].blocks[block].parent === '^6iWa|d-|jw!SQI#e(Jr') {
-                            //         bool = false;
-                            //     }
-                            //     if (paramSecs === '1' && paramX === '-204' && paramY === '14'
-                            //         && target.scripts[script].blocks[block].next === null
-                            //         && target.scripts[script].blocks[block].parent === 'i[0P|D4q:tdG3Q{3hR`N') {
-                            //         bool = false;
-                            //     }
-                            // }
+
                             if (opc === 'motion_glidesecstoxy') {
                                 let paramSecs = target.scripts[script].blocks[block].inputs.SECS[1][1];
                                 let paramX = target.scripts[script].blocks[block].inputs.X[1][1];
@@ -220,22 +190,18 @@ module.exports = class {
                             }
                             if (bool) {
                                 hasMovement = true;
-                           //     console.log('Sprite with new movement:');
-                             //   console.log(target.name);
                             }
                         }
                     }
                 }
                 if (hasMovement) { spritesWithNewMovement++; }
-                // console.log('after');
 
                 mapProject.set(target.name, target.blocks);
                 let hasDialogue = false;
                 for (let block in target.blocks) {
 
                     if (target.blocks[block].opcode==='looks_say'){
-                       // console.log('ere');
-                        this.requirements.dialogue1.bool=true;
+                       this.requirements.dialogue1.bool=true;
                     }
                     let opcode = target.blocks[block].opcode;
                     if ((opcode.includes('motion_') || opcode.includes('looks_'))
@@ -282,62 +248,20 @@ module.exports = class {
             }
         }
 
-        //checking movement
-        //   let inDIANE = false;
-        //   for (let v of mapProject.values()) {
-        //       for (let w of mapOriginal.values()) {
-        //           var util = require('util');
-        //           v = util.inspect(v);
-        //           w = util.inspect(w);
-        //           if (v === w) {
-        //               inDIANE = true;
-        //           };
-        //       }
-        //       if (!inDIANE) {
-        //           spritesWithNewMovement++;
-        //       }
-        //   }
-
-        // > 1/2 of sprites fulfill requirement + TESTING
-        //  console.log('sprites with scripts');
-        //console.log(spritesWithScripts);
-        // if (spritesWithScripts >= project.sprites.length / 2) {
-        //     this.requirements.scripts.bool = true;
-        // }
-
-        //   console.log('sprites with dialogue');
-        //   console.log(spritesWithNewDialogue);
-        //   console.log(this.requirements.dialogue1.bool);
-        if (spritesWithNewDialogue) {this.requirements.dialogue1.bool=true;}
-        if (spritesWithNewDialogue >= project.sprites.length / 2) {
-            this.requirements.dialogue.bool = true;
+       if (spritesWithNewDialogue) {this.requirements.dialogue1.bool=true;}
+        if ((spritesWithNewDialogue >= project.sprites.length / 2)&&spritesWithNewDialogue) {
+           this.requirements.dialogue.bool = true;
         }
 
-        //  console.log('sprite with new costumes');
-        //  console.log(spritesWithNewCostumes);
-        if (spritesWithNewCostumes) {this.requirements.costumes1.bool=true;}
-        if (spritesWithNewCostumes >= project.sprites.length / 2) {
-            this.requirements.costumes.bool = true;
+       if (spritesWithNewCostumes) {this.requirements.costumes1.bool=true;}
+        if ((spritesWithNewCostumes >= project.sprites.length / 2)&&spritesWithNewCostumes) {
+           this.requirements.costumes.bool = true;
         }
 
-        // console.log('sprites with new movement');
-        // console.log(spritesWithNewMovement);
-        if (spritesWithNewMovement) {this.requirements.movement1.bool=true;}
-        if (spritesWithNewMovement >= project.sprites.length / 2) {
-            this.requirements.movement.bool = true;
+      if (spritesWithNewMovement) {this.requirements.movement1.bool=true;}
+        if ((spritesWithNewMovement >= project.sprites.length / 2)&&spritesWithNewMovement) {
+          this.requirements.movement.bool = true;
         }
-
-        // if (spritesWithNewCostumes && spritesWithNewDialogue && spritesWithNewMovement) {
-        //     this.extensions.oneSprite = true;
-        // }
-        // if (this.requirements.movement.bool &&
-        //     this.requirements.dialogue.bool &&
-        //     this.requirements.backdrop.bool &&
-        //     this.requirements.costumes.bool &&
-        //     this.requirements.scripts.bool &&
-        //     this.requirements.hasOneSprite.bool) {
-        //     this.extensions.allReqs.bool = true;
-        // }
     }
 }
 
