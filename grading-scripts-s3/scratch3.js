@@ -13,24 +13,25 @@ global.no = function(x) {
 
 /// Container class for Scratch blocks.
 global.Block = class {
-    constructor(target, block) {
+    constructor(target, block, within=null) {
         Object.assign(this, target.blocks[block]);
         this.id = block;
         this.context = new Context(target.context, false);
         this.target = target;
         this.subscripts = this.subScripts();
+        this.within = within;
     }
 
     /// Internal function that converts a block to a Block.
-    toBlock(x) {
-        return new Block(this.target, x);
+    toBlock(x, within=null) {
+        return new Block(this.target, x, within);
     }
 
     /// Returns the next block in the script.
-    nextBlock() {
+    nextBlock(within=null) {
         if (no(this.next)) return null;
 
-        return this.toBlock(this.next);
+        return this.toBlock(this.next, within);
     }
 
     /// Returns the previous block in the script.
@@ -43,16 +44,16 @@ global.Block = class {
     /// Returns the conditional statement of the block, if it exists.
     conditionBlock() {
         if (no(this.inputs.CONDITION)) return null;
-        return this.toBlock(this.inputs.CONDITION[1]);
+        return this.toBlock(this.inputs.CONDITION[1], this);
     }
 
     /// Returns an array representing the script that contains the block.
-    childBlocks() {
+    childBlocks(within=null) {
         var array = [];
         var x = this;
         while (x) {
             array.push(x);
-            x = x.nextBlock();
+            x = x.nextBlock(within);
         }
         return array;
     }
@@ -63,20 +64,31 @@ global.Block = class {
         var array = [];
 
         if (is(this.inputs.SUBSTACK) && is(this.inputs.SUBSTACK[1])) {
-            array.push(new Script(this.toBlock(this.inputs.SUBSTACK[1]), this.target));
+            array.push(new Script(this.toBlock(this.inputs.SUBSTACK[1], this), this.target));
         }
         if (is(this.inputs.SUBSTACK2) && is(this.inputs.SUBSTACK2[1])) {
-            array.push(new Script(this.toBlock(this.inputs.SUBSTACK2[1]), this.target));
+            array.push(new Script(this.toBlock(this.inputs.SUBSTACK2[1], this), this.target));
         }
         return array;
     }
+    /// Checks if the 
+    isWithin(compareBlock=(block => true)) {
+        var outerBlock = this.within;
+        while(outerBlock) {
+            if (compareBlock(outerBlock)) {
+                return outerBlock;
+            }
+            outerBlock = outerBlock.within;
+        }
+        return null;
+    } 
 }
 
 /// Container class for Scratch scripts.
 global.Script = class {
 /// Pass this a Block object!
     constructor(block, target) {
-        this.blocks  = block.childBlocks();
+        this.blocks  = block.childBlocks(block.within);
         this.target  = target;
         this.context = new Context(target.context, false);
         for (var block of this.blocks) {
@@ -104,13 +116,22 @@ global.Script = class {
     }
     /// Recursively visits each block in a scrip and its subscripts, 
     ///  noting at which level of nestedness it is in within control blocks of ones choosing.
-    traverseBlocks(func, parentBlocks=['control_forever', 'control_if', 'control_if_else', 'control_repeat', 'control_repeat_until']) {
+    traverseBlocks(func, targetBlocks=null) {
+        const parentBlocks = ['control_forever', 'control_if', 'control_if_else', 'control_repeat', 'control_repeat_until'];
         const traverse = (scripts, level) => {
+
             if (!is(scripts) || scripts === [[]]) return;
             for (let script of scripts) {
                 for (let block of script.blocks) {
                     func(block, level);
-                    traverse(block.subScripts(), level + parentBlocks.includes(block.opcode));
+                    if (parentBlocks.includes(block.opcode)) {
+                        if (targetBlocks && !targetBlocks.includes(block.opcode)) {
+                            traverse(block.subscripts, level);
+                        } else {
+                            traverse(block.subscripts, level + 1);
+                        }
+                    }
+                    
                 }
             }
         }
