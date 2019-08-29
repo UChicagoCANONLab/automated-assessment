@@ -14,10 +14,10 @@ module.exports = class {
     initReqs() {
         // this.requirements.fiveBlocksOld = { bool: false, str: 'Used 5 blocks specified - OLD REQ' };
         this.requirements.oneBlock = { bool: false, str: 'Used at least one of the five blocks specified' };
-        this.requirements.twoBlocks = { bool: false, str: 'Used at least two of the five blocks specified' };
-        this.requirements.threeBlocks = { bool: false, str: 'Used at least three of the five blocks specified' };
-        this.requirements.fourBlocks = { bool: false, str: 'Used at least four of the five blocks specified' };
-        this.requirements.allFiveBlocks = { bool: false, str: 'Used all five blocks specified' }
+        this.extensions.twoBlocks = { bool: false, str: 'Used at least two of the five blocks specified' };
+        this.extensions.threeBlocks = { bool: false, str: 'Used at least three of the five blocks specified' };
+        this.extensions.fourBlocks = { bool: false, str: 'Used at least four of the five blocks specified' };
+        this.extensions.allFiveBlocks = { bool: false, str: 'Used all five blocks specified' }
         this.requirements.backdrop = { bool: false, str: 'Backdrop added' };
         this.requirements.oneSprite = { bool: false, str: 'At least one sprite is added' }
         this.requirements.twoSprites = { bool: false, str: 'At least two sprites chosen' };
@@ -152,7 +152,7 @@ module.exports = class {
 
     }
 }
-},{"../grading-scripts-s3/scratch3":27}],2:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],2:[function(require,module,exports){
 /*
 Act 1 About Me Grader
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -290,7 +290,7 @@ module.exports = class {
     }
 }
 
-},{"../grading-scripts-s3/scratch3":27}],3:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],3:[function(require,module,exports){
 /*
 Act 1 Build-a-Band Project Autograder
 Initial version and testing: Zipporah Klain
@@ -599,7 +599,7 @@ module.exports = class {
 }
 
 
-},{"../grading-scripts-s3/scratch3":27}],4:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],4:[function(require,module,exports){
 /*
 Act 1 Final Project Autograder
 Initial version and testing: Zipporah Klain
@@ -614,25 +614,25 @@ module.exports = class {
     }
 
     initReqs(){
-        this.requirements.event = {bool: false, str: 'Project uses at least one event block'};
-        this.requirements.loop = {bool: false, str: 'Project has a functional loop'};
-        this.requirements.sprite = {bool: false, str: 'Project has at least one sprite with a script'};
-        this.requirements.backdrop = {bool: false, str: 'Scene changes'};
-        this.extensions.threeBackdrops = {bool: false, str: 'Uses 3 different backdrops'};
-        this.extensions.showHide = {bool: false, str: 'Uses "show" or "hide"'};
-        this.extensions.music = {bool: false, str: 'Sounds added'};
+        // this.requirements.event = {bool: false, str: 'Project uses at least one event block'};
+        // this.requirements.loop = {bool: false, str: 'Project has a functional loop'};
+        // this.requirements.sprite = {bool: false, str: 'Project has at least one sprite with a script'};
+        // this.requirements.backdrop = {bool: false, str: 'Scene changes'};
+        // this.extensions.threeBackdrops = {bool: false, str: 'Uses 3 different backdrops'};
+        // this.extensions.showHide = {bool: false, str: 'Uses "show" or "hide"'};
+        // this.extensions.music = {bool: false, str: 'Sounds added'};
         
         /////
-        // this.requirements.one = { bool: false, str: 'at least 1 unique block'};
-        // this.requirements.two = { bool: false, str: 'at least 2 unique blocks'};
-        // this.requirements.three = { bool: false, str: 'at least 3 unique blocks'};
-        // this.requirements.four = { bool: false, str: 'at least 4 unique blocks'};
-        // this.requirements.five = { bool: false, str: 'at least 5 unique blocks'};
-        // this.requirements.six = { bool: false, str: 'at least 6 unique blocks'};
-        // this.requirements.seven = { bool: false, str: 'at least 7 unique blocks'};
-        // this.requirements.eight = { bool: false, str: 'at least 8 unique blocks'};
-        // this.requirements.nine = { bool: false, str: 'at least 9 unique blocks'};
-        // this.requirements.ten = { bool: false, str: 'at least 10+ unique blocks'};
+        this.requirements.one = { bool: false, str: 'at least 1 unique block'};
+        this.requirements.two = { bool: false, str: 'at least 2 unique blocks'};
+        this.requirements.three = { bool: false, str: 'at least 3 unique blocks'};
+        this.requirements.four = { bool: false, str: 'at least 4 unique blocks'};
+        this.requirements.five = { bool: false, str: 'at least 5 unique blocks'};
+        this.requirements.six = { bool: false, str: 'at least 6 unique blocks'};
+        this.requirements.seven = { bool: false, str: 'at least 7 unique blocks'};
+        this.requirements.eight = { bool: false, str: 'at least 8 unique blocks'};
+        this.requirements.nine = { bool: false, str: 'at least 9 unique blocks'};
+        this.requirements.ten = { bool: false, str: 'at least 10+ unique blocks'};
         /////
     }
 
@@ -668,54 +668,54 @@ module.exports = class {
             for (let block in target.blocks){
 
                 if (target.blocks[block].opcode.includes('event_')){
-                    this.requirements.event.bool=true;
+                    // this.requirements.event.bool=true;
 
                     for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next){
                         let opc = target.blocks[i].opcode;
                         if ((opc==='control_forever')
                         ||(opc.includes('control_repeat'))){
                             if (target.blocks[i].inputs.SUBSTACK[1]!==null){
-                                this.requirements.loop.bool=true;
+                                // this.requirements.loop.bool=true;
                             }
                         }
                     }
                 }
 
-                let opc = target.blocks[block].opcode;
-                if (opc.includes('backdrop')){
-                    this.requirements.backdrop.bool=true;
-                }
-                if ((opc.includes('show'))
-                ||opc.includes('hide')){
-                    this.extensions.showHide.bool=true;
-                }
-                if ((opc==='sound_playuntildone')
-                ||(opc==='sound_play')){
-                    this.extensions.music.bool=true;
-                }
+                // let opc = target.blocks[block].opcode;
+                // if (opc.includes('backdrop')){
+                //     this.requirements.backdrop.bool=true;
+                // }
+                // if ((opc.includes('show'))
+                // ||opc.includes('hide')){
+                //     this.extensions.showHide.bool=true;
+                // }
+                // if ((opc==='sound_playuntildone')
+                // ||(opc==='sound_play')){
+                //     this.extensions.music.bool=true;
+                // }
 
-                if (!target.isStage){
-                    this.requirements.sprite.bool=true;
-                }
+                // if (!target.isStage){
+                //     this.requirements.sprite.bool=true;
+                // }
 
             }
         }
 
-        // if (uniqueBlocks>=1) this.requirements.one.bool=true;
-        // if (uniqueBlocks>=2) this.requirements.two.bool=true;
-        // if (uniqueBlocks>=3) this.requirements.three.bool=true;
-        // if (uniqueBlocks>=4) this.requirements.four.bool=true;
-        // if (uniqueBlocks>=5) this.requirements.five.bool=true;
-        // if (uniqueBlocks>=6) this.requirements.six.bool=true;
-        // if (uniqueBlocks>=7) this.requirements.seven.bool=true;
-        // if (uniqueBlocks>=8) this.requirements.eight.bool=true;
-        // if (uniqueBlocks>=9) this.requirements.nine.bool=true;
-        // if (uniqueBlocks>=10) this.requirements.ten.bool=true;
+        if (uniqueBlocks>=1) this.requirements.one.bool=true;
+        if (uniqueBlocks>=2) this.requirements.two.bool=true;
+        if (uniqueBlocks>=3) this.requirements.three.bool=true;
+        if (uniqueBlocks>=4) this.requirements.four.bool=true;
+        if (uniqueBlocks>=5) this.requirements.five.bool=true;
+        if (uniqueBlocks>=6) this.requirements.six.bool=true;
+        if (uniqueBlocks>=7) this.requirements.seven.bool=true;
+        if (uniqueBlocks>=8) this.requirements.eight.bool=true;
+        if (uniqueBlocks>=9) this.requirements.nine.bool=true;
+        if (uniqueBlocks>=10) this.requirements.ten.bool=true;
 
     }
 
 }
-},{"../grading-scripts-s3/scratch3":27}],5:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],5:[function(require,module,exports){
 /*
 Act 1 Ladybug Scramble Autograder
 Initial version and testing: Saranya Turimella and Zipporah Klain, 2019
@@ -846,10 +846,8 @@ module.exports = class {
         this.initReqs();
         if (!is(fileObj)) return;
         if (is(fileObj.code)) return;
-
         var project = new Project(fileObj, null);
         var original = new Project(require('../act1-grading-scripts/original-ladybug'), null);
-        
         if (!is(original)) return;
 
         
@@ -1007,7 +1005,7 @@ module.exports = class {
     }
 
 }
-},{"../act1-grading-scripts/original-ladybug":9,"../grading-scripts-s3/scratch3":27,"util":33}],6:[function(require,module,exports){
+},{"../act1-grading-scripts/original-ladybug":9,"../grading-scripts-s3/scratch3":25,"util":30}],6:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -2270,7 +2268,7 @@ module.exports = class {
 
 
 
-},{"../act1-grading-scripts/name-poem-original-test":6,"../grading-scripts-s3/scratch3":27}],8:[function(require,module,exports){
+},{"../act1-grading-scripts/name-poem-original-test":6,"../grading-scripts-s3/scratch3":25}],8:[function(require,module,exports){
 /*
 Act 1 Events Ofrenda Autograder
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -2566,7 +2564,7 @@ module.exports = class {
         }
     }
 } 
-},{"../act1-grading-scripts/originalOfrenda-test":10,"../grading-scripts-s3/scratch3":27}],9:[function(require,module,exports){
+},{"../act1-grading-scripts/originalOfrenda-test":10,"../grading-scripts-s3/scratch3":25}],9:[function(require,module,exports){
 module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{"broadcastMsgId-munch":"munch"},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"6bbe43392c0dbffe7d7c63cc5bd08aa3","name":"backdrop1","bitmapResolution":1,"md5ext":"6bbe43392c0dbffe7d7c63cc5bd08aa3.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Ladybug1","variables":{},"lists":{},"broadcasts":{},"blocks":{"U7gIJGYi2sEQ1R~Q#Y(x":{"opcode":"event_whenflagclicked","next":"F@9g]aRRb1sq*2qa!%ng","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":264,"y":24},"F@9g]aRRb1sq*2qa!%ng":{"opcode":"motion_gotoxy","next":"Sfc=i0}1cnoDpchs?.Uq","parent":"U7gIJGYi2sEQ1R~Q#Y(x","inputs":{"X":[1,[4,-175]],"Y":[1,[4,-24]]},"fields":{},"shadow":false,"topLevel":false},"Sfc=i0}1cnoDpchs?.Uq":{"opcode":"motion_pointindirection","next":"^)NnU+Yxi6BeEWyh3in`","parent":"F@9g]aRRb1sq*2qa!%ng","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},"^)NnU+Yxi6BeEWyh3in`":{"opcode":"control_wait","next":"{*nT,|Un;N}8m)P0wAVC","parent":"Sfc=i0}1cnoDpchs?.Uq","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"{*nT,|Un;N}8m)P0wAVC":{"opcode":"motion_movesteps","next":"Qjej.|{eUe=~o*uAuRF,","parent":"^)NnU+Yxi6BeEWyh3in`","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"Qjej.|{eUe=~o*uAuRF,":{"opcode":"control_wait","next":"lDrR0@W5G`|K9EW2^U=0","parent":"{*nT,|Un;N}8m)P0wAVC","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"lDrR0@W5G`|K9EW2^U=0":{"opcode":"motion_turnright","next":"R%7gnK]7!DF4`qpYfccd","parent":"Qjej.|{eUe=~o*uAuRF,","inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":false},"R%7gnK]7!DF4`qpYfccd":{"opcode":"control_wait","next":"1?YefC;{nn1p+6x[y7=p","parent":"lDrR0@W5G`|K9EW2^U=0","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"1?YefC;{nn1p+6x[y7=p":{"opcode":"motion_movesteps","next":null,"parent":"R%7gnK]7!DF4`qpYfccd","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"iQ]xjD_RSjVU39KKi+D+":{"opcode":"event_whenflagclicked","next":"03[Ml=XIME[mlM`[oI,{","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":1117,"y":41},"03[Ml=XIME[mlM`[oI,{":{"opcode":"control_forever","next":null,"parent":"iQ]xjD_RSjVU39KKi+D+","inputs":{"SUBSTACK":[2,"{eG]NNI}y+`9w8~P-Y@w"]},"fields":{},"shadow":false,"topLevel":false},"{eG]NNI}y+`9w8~P-Y@w":{"opcode":"control_if","next":null,"parent":"03[Ml=XIME[mlM`[oI,{","inputs":{"CONDITION":[2,"HJ?{4{KV1xCg#k7UhPC6"],"SUBSTACK":[2,"kQKB.w^V0`:QX38gKYzf"]},"fields":{},"shadow":false,"topLevel":false},"HJ?{4{KV1xCg#k7UhPC6":{"opcode":"sensing_touchingcolor","next":null,"parent":"{eG]NNI}y+`9w8~P-Y@w","inputs":{"COLOR":[1,[9,"#00ffff"]]},"fields":{},"shadow":false,"topLevel":false},"kQKB.w^V0`:QX38gKYzf":{"opcode":"control_stop","next":";Dm1;gL:ROwhL*^;y!zp","parent":"{eG]NNI}y+`9w8~P-Y@w","inputs":{},"fields":{"STOP_OPTION":["other scripts in sprite"]},"shadow":false,"topLevel":false,"mutation":{"tagName":"mutation","hasnext":"true","children":[]}},";Dm1;gL:ROwhL*^;y!zp":{"opcode":"looks_sayforsecs","next":"H#v_fC4p1{^Dy]J98),R","parent":"kQKB.w^V0`:QX38gKYzf","inputs":{"MESSAGE":[1,[10,"Aaaaah! I fell off the branch!!!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"H#v_fC4p1{^Dy]J98),R":{"opcode":"control_repeat","next":"eO]JO},91+03]-,-p.kW","parent":";Dm1;gL:ROwhL*^;y!zp","inputs":{"TIMES":[1,[6,3]],"SUBSTACK":[2,"Hfkes2)|!Awk/*Iir#]f"]},"fields":{},"shadow":false,"topLevel":false},"Hfkes2)|!Awk/*Iir#]f":{"opcode":"looks_hide","next":"NdsT}^o2UI(D_trv9KW9","parent":"H#v_fC4p1{^Dy]J98),R","inputs":{},"fields":{},"shadow":false,"topLevel":false},"NdsT}^o2UI(D_trv9KW9":{"opcode":"control_wait","next":"Rp7XGUXIMwRD^e4J2IZy","parent":"Hfkes2)|!Awk/*Iir#]f","inputs":{"DURATION":[1,[5,0.5]]},"fields":{},"shadow":false,"topLevel":false},"Rp7XGUXIMwRD^e4J2IZy":{"opcode":"looks_show","next":"k7:X0JW7;CDuX8ZM[`|-","parent":"NdsT}^o2UI(D_trv9KW9","inputs":{},"fields":{},"shadow":false,"topLevel":false},"k7:X0JW7;CDuX8ZM[`|-":{"opcode":"control_wait","next":null,"parent":"Rp7XGUXIMwRD^e4J2IZy","inputs":{"DURATION":[1,[5,0.5]]},"fields":{},"shadow":false,"topLevel":false},"eO]JO},91+03]-,-p.kW":{"opcode":"motion_gotoxy","next":"I3gZVQ)z)SV7w[OezvsL","parent":"H#v_fC4p1{^Dy]J98),R","inputs":{"X":[1,[4,-175]],"Y":[1,[4,-24]]},"fields":{},"shadow":false,"topLevel":false},"I3gZVQ)z)SV7w[OezvsL":{"opcode":"motion_pointindirection","next":null,"parent":"eO]JO},91+03]-,-p.kW","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},":g/E[3PXa}d6Cve2Swk2":{"opcode":"motion_movesteps","next":null,"parent":null,"inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":33},"M1gwhU_QVGXM)kQF*L`{":{"opcode":"procedures_definition","next":"@,~#(h4pJpg}jA2}_/R[","parent":null,"inputs":{"custom_block":[1,"+d7X?d`DBq2~x0}OHSC/"]},"fields":{},"shadow":false,"topLevel":true,"x":1136,"y":820},"+d7X?d`DBq2~x0}OHSC/":{"opcode":"procedures_prototype","next":null,"inputs":{},"fields":{},"shadow":true,"topLevel":false,"mutation":{"tagName":"mutation","proccode":"Eat Aphid","argumentnames":"[]","argumentids":"[]","argumentdefaults":"[]","warp":false,"children":[]}},"@,~#(h4pJpg}jA2}_/R[":{"opcode":"event_broadcast","next":null,"parent":"M1gwhU_QVGXM)kQF*L`{","inputs":{"BROADCAST_INPUT":[1,[11,"Munch","broadcastMsgId-munch"]]},"fields":{},"shadow":false,"topLevel":false},"%vAkoQPRX5(5~AohGy*u":{"opcode":"motion_turnright","next":null,"parent":null,"inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":109},"~)q`N2jinQ]:/zs,-.s1":{"opcode":"motion_turnleft","next":null,"parent":null,"inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":true,"x":7,"y":188},"nZ1!J1WTOAWy}Af(z1#c":{"opcode":"control_wait","next":null,"parent":null,"inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":268},"Yl_GU18WZdM(iSO=,FM~":{"opcode":"procedures_call","next":null,"parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":10,"y":366,"mutation":{"tagName":"mutation","children":[],"proccode":"Eat Aphid","argumentids":"[]"}}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"7501580fb154fde8192a931f6cab472b","name":"ladybug3","bitmapResolution":1,"md5ext":"7501580fb154fde8192a931f6cab472b.svg","dataFormat":"svg","rotationCenterX":41,"rotationCenterY":43},{"assetId":"169c0efa8c094fdedddf8c19c36f0229","name":"ladybug2","bitmapResolution":1,"md5ext":"169c0efa8c094fdedddf8c19c36f0229.svg","dataFormat":"svg","rotationCenterX":41,"rotationCenterY":43}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-175,"y":-24,"size":50,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Sprite1","variables":{},"lists":{},"broadcasts":{},"blocks":{"g{X}coEAM3Ta^+%(=s^s":{"opcode":"event_whenflagclicked","next":"3S,1y@;w+[,tG`(EZCAt","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":68,"y":35},"3S,1y@;w+[,tG`(EZCAt":{"opcode":"looks_show","next":"_LYbp}EcsXWoN1ppLxcv","parent":"g{X}coEAM3Ta^+%(=s^s","inputs":{},"fields":{},"shadow":false,"topLevel":false},"_LYbp}EcsXWoN1ppLxcv":{"opcode":"motion_pointindirection","next":"4Q5;gsz5+/bgWS(:Rag,","parent":"3S,1y@;w+[,tG`(EZCAt","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},"4Q5;gsz5+/bgWS(:Rag,":{"opcode":"motion_gotoxy","next":"4L~#s_w.KLA*F5Xc`{C`","parent":"_LYbp}EcsXWoN1ppLxcv","inputs":{"X":[1,[4,0]],"Y":[1,[4,-150]]},"fields":{},"shadow":false,"topLevel":false},"4L~#s_w.KLA*F5Xc`{C`":{"opcode":"control_repeat","next":"Vb38^m9i^P8Qx=K`.+Yh","parent":"4Q5;gsz5+/bgWS(:Rag,","inputs":{"TIMES":[1,[6,6]],"SUBSTACK":[2,"56{t%hej8N*pk`S3%Nrj"]},"fields":{},"shadow":false,"topLevel":false},"56{t%hej8N*pk`S3%Nrj":{"opcode":"pen_stamp","next":"UyBZkQkw+i|j3]/7K`[%","parent":"4L~#s_w.KLA*F5Xc`{C`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"UyBZkQkw+i|j3]/7K`[%":{"opcode":"motion_changeyby","next":null,"parent":"56{t%hej8N*pk`S3%Nrj","inputs":{"DY":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"Vb38^m9i^P8Qx=K`.+Yh":{"opcode":"pen_stamp","next":"#I:55@rxBustg@:0CNW,","parent":"4L~#s_w.KLA*F5Xc`{C`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"#I:55@rxBustg@:0CNW,":{"opcode":"motion_gotoxy","next":"c?Rcii^r7j{3zIKlPCY7","parent":"Vb38^m9i^P8Qx=K`.+Yh","inputs":{"X":[1,[4,-200]],"Y":[1,[4,0]]},"fields":{},"shadow":false,"topLevel":false},"c?Rcii^r7j{3zIKlPCY7":{"opcode":"motion_pointindirection","next":"Ev;g}Py1-pZ#SpwkoO~I","parent":"#I:55@rxBustg@:0CNW,","inputs":{"DIRECTION":[1,[8,0]]},"fields":{},"shadow":false,"topLevel":false},"Ev;g}Py1-pZ#SpwkoO~I":{"opcode":"control_repeat","next":"1R95jS-gQRcWy1!()qDX","parent":"c?Rcii^r7j{3zIKlPCY7","inputs":{"TIMES":[1,[6,8]],"SUBSTACK":[2,"C+]}-*OqPzGDND@[I`!`"]},"fields":{},"shadow":false,"topLevel":false},"C+]}-*OqPzGDND@[I`!`":{"opcode":"pen_stamp","next":"vf~MRj8GONdu)xTW+`sX","parent":"Ev;g}Py1-pZ#SpwkoO~I","inputs":{},"fields":{},"shadow":false,"topLevel":false},"vf~MRj8GONdu)xTW+`sX":{"opcode":"motion_changexby","next":null,"parent":"C+]}-*OqPzGDND@[I`!`","inputs":{"DX":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"1R95jS-gQRcWy1!()qDX":{"opcode":"pen_stamp","next":"!]hy8aHujpmLSmfwgk7+","parent":"Ev;g}Py1-pZ#SpwkoO~I","inputs":{},"fields":{},"shadow":false,"topLevel":false},"!]hy8aHujpmLSmfwgk7+":{"opcode":"looks_hide","next":null,"parent":"1R95jS-gQRcWy1!()qDX","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"098ac26af75d9b14546ba423f0376c78","name":"costume1","bitmapResolution":1,"md5ext":"098ac26af75d9b14546ba423f0376c78.svg","dataFormat":"svg","rotationCenterX":247,"rotationCenterY":2}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":false,"x":200,"y":0,"size":100,"direction":0,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Aphid","variables":{},"lists":{},"broadcasts":{},"blocks":{"Al/9-=x`PHo)+1K4Jsw2":{"opcode":"event_whenflagclicked","next":"|FY,izak`W47{j*=KnG5","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":37,"y":46},"|FY,izak`W47{j*=KnG5":{"opcode":"looks_show","next":null,"parent":"Al/9-=x`PHo)+1K4Jsw2","inputs":{},"fields":{},"shadow":false,"topLevel":false},"se5y3M`e{qYhvvplydn.":{"opcode":"event_whenbroadcastreceived","next":"?ec)oOeZLY5LfeL(D5QB","parent":null,"inputs":{},"fields":{"BROADCAST_OPTION":["Munch","broadcastMsgId-munch"]},"shadow":false,"topLevel":true,"x":45,"y":264},"?ec)oOeZLY5LfeL(D5QB":{"opcode":"control_if","next":null,"parent":"se5y3M`e{qYhvvplydn.","inputs":{"CONDITION":[2,".[;R|zxb)eHrP+bfg`JR"],"SUBSTACK":[2,"@:tiv_aA#I^^`0sQ%}O1"]},"fields":{},"shadow":false,"topLevel":false},".[;R|zxb)eHrP+bfg`JR":{"opcode":"sensing_touchingobject","next":null,"parent":"?ec)oOeZLY5LfeL(D5QB","inputs":{"TOUCHINGOBJECTMENU":[1,"cB1l?RjX4g=!:@^[I(X?"]},"fields":{},"shadow":false,"topLevel":false},"cB1l?RjX4g=!:@^[I(X?":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":".[;R|zxb)eHrP+bfg`JR","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Ladybug1"]},"shadow":true,"topLevel":false},"@:tiv_aA#I^^`0sQ%}O1":{"opcode":"looks_sayforsecs","next":"d4JFINYQk,`yV3Hd5Rz3","parent":"?ec)oOeZLY5LfeL(D5QB","inputs":{"MESSAGE":[1,[10,"Oh, no!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"d4JFINYQk,`yV3Hd5Rz3":{"opcode":"looks_hide","next":null,"parent":"@:tiv_aA#I^^`0sQ%}O1","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b3b7ab6b68e1d72f5f0246bd5246e35","name":"beetle","bitmapResolution":1,"md5ext":"2b3b7ab6b68e1d72f5f0246bd5246e35.svg","dataFormat":"svg","rotationCenterX":43,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-24,"y":77,"size":30,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Aphid2","variables":{},"lists":{},"broadcasts":{},"blocks":{"|*E4bHy6(tUyNr_FpiHL":{"opcode":"event_whenbroadcastreceived","next":"@I467Tz-PCo,~F~{tDEl","parent":null,"inputs":{},"fields":{"BROADCAST_OPTION":["Munch","broadcastMsgId-munch"]},"shadow":false,"topLevel":true,"x":31,"y":393},"@I467Tz-PCo,~F~{tDEl":{"opcode":"control_if","next":null,"parent":"|*E4bHy6(tUyNr_FpiHL","inputs":{"CONDITION":[2,"uT8k:bk6A^umen=_kL-m"],"SUBSTACK":[2,"LBQ7xhpD3hzBGz^u~MW`"]},"fields":{},"shadow":false,"topLevel":false},"uT8k:bk6A^umen=_kL-m":{"opcode":"sensing_touchingobject","next":null,"parent":"@I467Tz-PCo,~F~{tDEl","inputs":{"TOUCHINGOBJECTMENU":[1,"w.R6uBYuAjg(y#K#YJx*"]},"fields":{},"shadow":false,"topLevel":false},"w.R6uBYuAjg(y#K#YJx*":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"uT8k:bk6A^umen=_kL-m","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Ladybug1"]},"shadow":true,"topLevel":false},"LBQ7xhpD3hzBGz^u~MW`":{"opcode":"looks_sayforsecs","next":"XO!5H:??cO_M~G2fB;}l","parent":"@I467Tz-PCo,~F~{tDEl","inputs":{"MESSAGE":[1,[10,"Oh, no!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"XO!5H:??cO_M~G2fB;}l":{"opcode":"looks_hide","next":null,"parent":"LBQ7xhpD3hzBGz^u~MW`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"|pG9oKkH+F.OL|36O0Lp":{"opcode":"event_whenflagclicked","next":"t:(!q?g_}9!~)wm!FUIP","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":39,"y":50},"t:(!q?g_}9!~)wm!FUIP":{"opcode":"looks_show","next":null,"parent":"|pG9oKkH+F.OL|36O0Lp","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b3b7ab6b68e1d72f5f0246bd5246e35","name":"beetle","bitmapResolution":1,"md5ext":"2b3b7ab6b68e1d72f5f0246bd5246e35.svg","dataFormat":"svg","rotationCenterX":43,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":75,"y":-123,"size":30,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":["pen"],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190619042313","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"}}
 },{}],10:[function(require,module,exports){
 module.exports={
@@ -3584,7 +3582,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":27}],12:[function(require,module,exports){
+},{"./scratch3":25}],12:[function(require,module,exports){
 /* Animation L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and minor bug fixes: Marco Anaya, Summer 2019
@@ -3728,7 +3726,7 @@ module.exports = class {
         this.extensions.moreThanOneAnimation.bool = (this.animationTypes.length > 1)
     }
 }
-},{"./scratch3":27}],13:[function(require,module,exports){
+},{"./scratch3":25}],13:[function(require,module,exports){
 /* Complex Conditionals L1(TIPP&SEE Modify) Autograder
  * Scratch 3 (original) version: Anna Zipp, Summer 2019
  */
@@ -3970,7 +3968,7 @@ module.exports = class {
         }
     }    
 }
-},{"./scratch3":27}],14:[function(require,module,exports){
+},{"./scratch3":25}],14:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -4084,7 +4082,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":27}],15:[function(require,module,exports){
+},{"./scratch3":25}],15:[function(require,module,exports){
 /* Conditional Loops L2 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -4165,7 +4163,7 @@ module.exports = class {
 }
 
 
-},{"../grading-scripts-s3/scratch3":27}],16:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],16:[function(require,module,exports){
 (function (global){
 /// Info layer template
 global.Context = class {
@@ -4511,7 +4509,7 @@ module.exports = class {
     }    
 }
 
-},{"./scratch3":27}],18:[function(require,module,exports){
+},{"./scratch3":25}],18:[function(require,module,exports){
 /* Decomposition by Sequence L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -4754,7 +4752,7 @@ module.exports = class {
         }
     }
 }
-},{"./scratch3":27}],19:[function(require,module,exports){
+},{"./scratch3":25}],19:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -4817,7 +4815,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":27}],20:[function(require,module,exports){
+},{"./scratch3":25}],20:[function(require,module,exports){
 /* Events L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and bug fixes: Marco Anaya, Summer 2019
@@ -4998,11 +4996,7 @@ module.exports = class {
         
     }
 } 
-},{"./scratch3":27}],21:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b0bddaf727e6bb95131290ae2549ac4","name":"background3","bitmapResolution":2,"md5ext":"2b0bddaf727e6bb95131290ae2549ac4.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Carl the Cloud","variables":{},"lists":{},"broadcasts":{},"blocks":{"*bF;3|^5/zs4N0xR-o)Z":{"opcode":"event_whenflagclicked","next":"0*OA)5OE]%a]*%IA%B{6","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":18,"y":46},"0*OA)5OE]%a]*%IA%B{6":{"opcode":"motion_gotoxy","next":"`4;L4Q?o6CqFmdbH?:ms","parent":"*bF;3|^5/zs4N0xR-o)Z","inputs":{"X":[1,[4,"-200"]],"Y":[1,[4,"80"]]},"fields":{},"shadow":false,"topLevel":false},"`4;L4Q?o6CqFmdbH?:ms":{"opcode":"motion_movesteps","next":"ksrg)n@E2SyN{;oWEX7E","parent":"0*OA)5OE]%a]*%IA%B{6","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"ksrg)n@E2SyN{;oWEX7E":{"opcode":"looks_sayforsecs","next":"ahLTJjNBf`+1#.[qNZE4","parent":"`4;L4Q?o6CqFmdbH?:ms","inputs":{"MESSAGE":[1,[10,"Hello!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"ahLTJjNBf`+1#.[qNZE4":{"opcode":"motion_movesteps","next":"d7d]Z%r*QDEp-ajssm0T","parent":"ksrg)n@E2SyN{;oWEX7E","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"d7d]Z%r*QDEp-ajssm0T":{"opcode":"looks_sayforsecs","next":"=n_7]#{Cxj6pf!BUV,OP","parent":"ahLTJjNBf`+1#.[qNZE4","inputs":{"MESSAGE":[1,[10,"Welcome to Scratch!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"=n_7]#{Cxj6pf!BUV,OP":{"opcode":"motion_movesteps","next":"8K5Ak(+XsZvwjx2V0~D)","parent":"d7d]Z%r*QDEp-ajssm0T","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"8K5Ak(+XsZvwjx2V0~D)":{"opcode":"looks_sayforsecs","next":null,"parent":"=n_7]#{Cxj6pf!BUV,OP","inputs":{"MESSAGE":[1,[10,"Click the Space Bar to see Helen the Amazing Color Changing Hedgehog."]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"be898107fe99d3c8a66152520abfcc9b","name":"costume1","bitmapResolution":2,"md5ext":"be898107fe99d3c8a66152520abfcc9b.png","dataFormat":"png","rotationCenterX":80,"rotationCenterY":57}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-50,"y":80,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Helen the Hedgehog","variables":{},"lists":{},"broadcasts":{},"blocks":{"XYmoOsQpwwb~bRU[WtDb":{"opcode":"event_whenkeypressed","next":"NX*(%@1qK}o{lJ)1dp(L","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":56,"y":66},"NX*(%@1qK}o{lJ)1dp(L":{"opcode":"looks_switchcostumeto","next":"A*?(6=CMw!5NQvy3GoJz","parent":"XYmoOsQpwwb~bRU[WtDb","inputs":{"COSTUME":[1,"uxs{_T(3Fk%RETANj%^X"]},"fields":{},"shadow":false,"topLevel":false},"uxs{_T(3Fk%RETANj%^X":{"opcode":"looks_costume","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{},"fields":{"COSTUME":["hedgehog_red",null]},"shadow":true,"topLevel":false},"A*?(6=CMw!5NQvy3GoJz":{"opcode":"control_repeat","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{"TIMES":[1,[6,"6"]],"SUBSTACK":[2,"*i@~ROBKeTP[#l_7v/_-"]},"fields":{},"shadow":false,"topLevel":false},"*i@~ROBKeTP[#l_7v/_-":{"opcode":"control_wait","next":"MkZ9YIg7M,WuN@FR]l:o","parent":"A*?(6=CMw!5NQvy3GoJz","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"MkZ9YIg7M,WuN@FR]l:o":{"opcode":"looks_nextcostume","next":null,"parent":"*i@~ROBKeTP[#l_7v/_-","inputs":{},"fields":{},"shadow":false,"topLevel":false},"3?,1QT}D[0#@^jvT!J*^":{"opcode":"event_whenthisspriteclicked","next":"gPD.*ilWONI2U7F-SE[}","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":51,"y":455},"gPD.*ilWONI2U7F-SE[}":{"opcode":"looks_sayforsecs","next":null,"parent":"3?,1QT}D[0#@^jvT!J*^","inputs":{"MESSAGE":[1,[10,"Ouch!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"6a7187ad3551e84cd59e1afc3def9e33","name":"hedgehog_red","bitmapResolution":2,"md5ext":"6a7187ad3551e84cd59e1afc3def9e33.png","dataFormat":"png","rotationCenterX":11,"rotationCenterY":128},{"assetId":"7aa13cc8e70535af7ce3eb7e2c837ac9","name":"hedgehog_orange","bitmapResolution":2,"md5ext":"7aa13cc8e70535af7ce3eb7e2c837ac9.png","dataFormat":"png","rotationCenterX":13,"rotationCenterY":129},{"assetId":"26cd02f23af4877b70065edd86d0654a","name":"hedgehog_yellow","bitmapResolution":2,"md5ext":"26cd02f23af4877b70065edd86d0654a.png","dataFormat":"png","rotationCenterX":12,"rotationCenterY":130},{"assetId":"6d13e86dd79531c19d03c25cdee8bee5","name":"hedgehog_green","bitmapResolution":2,"md5ext":"6d13e86dd79531c19d03c25cdee8bee5.png","dataFormat":"png","rotationCenterX":13,"rotationCenterY":128},{"assetId":"4047bdbf75d8b7076268f7779b833d18","name":"hedgehog_blue","bitmapResolution":2,"md5ext":"4047bdbf75d8b7076268f7779b833d18.png","dataFormat":"png","rotationCenterX":12,"rotationCenterY":128},{"assetId":"7b435be3a639d4d937c9653fbb72382d","name":"hedgehog_purple","bitmapResolution":2,"md5ext":"7b435be3a639d4d937c9653fbb72382d.png","dataFormat":"png","rotationCenterX":13,"rotationCenterY":129}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":99,"y":-50.99999999999998,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[{"id":"undefined_costumenumbername_number","mode":"default","opcode":"looks_costumenumbername","params":{"NUMBER_NAME":"number"},"spriteName":"Helen","value":"","width":0,"height":0,"x":5,"y":5,"visible":false,"sliderMin":0,"sliderMax":100,"isDiscrete":true}],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
-},{}],22:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"e6bf56f64eb4e7e6c97ec6c97e90d023","name":"Holi Background","bitmapResolution":1,"md5ext":"e6bf56f64eb4e7e6c97ec6c97e90d023.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Neha","variables":{},"lists":{},"broadcasts":{},"blocks":{"6*c`Xv=UPZ2te:JB2+U*":{"opcode":"event_whenflagclicked","next":"1,sGaB#:WD/!fp4ecgw=","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-67,"y":-587},"1,sGaB#:WD/!fp4ecgw=":{"opcode":"motion_gotoxy","next":"0*gfG!}+dNBRamr1EdBt","parent":"6*c`Xv=UPZ2te:JB2+U*","inputs":{"X":[1,[4,"28"]],"Y":[1,[4,"-51"]]},"fields":{},"shadow":false,"topLevel":false},"0*gfG!}+dNBRamr1EdBt":{"opcode":"looks_switchcostumeto","next":"y;SD_2:1H=d-=o]rf3Nq","parent":"1,sGaB#:WD/!fp4ecgw=","inputs":{"COSTUME":[1,"-XUo5ONrDRD76UyvwKL?"]},"fields":{},"shadow":false,"topLevel":false},"-XUo5ONrDRD76UyvwKL?":{"opcode":"looks_costume","next":null,"parent":"0*gfG!}+dNBRamr1EdBt","inputs":{},"fields":{"COSTUME":["Neha1",null]},"shadow":true,"topLevel":false},"y;SD_2:1H=d-=o]rf3Nq":{"opcode":"control_wait","next":"#;GgQ}*l)tV4E{1NPadV","parent":"0*gfG!}+dNBRamr1EdBt","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"#;GgQ}*l)tV4E{1NPadV":{"opcode":"looks_sayforsecs","next":"GBVU3I7+QD=TSfHx]bhU","parent":"y;SD_2:1H=d-=o]rf3Nq","inputs":{"MESSAGE":[1,[10,"Hi, I'm Neha!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"GBVU3I7+QD=TSfHx]bhU":{"opcode":"looks_sayforsecs","next":"lTPM~|:Xs,_if#cv*}5O","parent":"#;GgQ}*l)tV4E{1NPadV","inputs":{"MESSAGE":[1,[10,"We are celebrating Holi, a traditional Hindu festival from India!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false},"lTPM~|:Xs,_if#cv*}5O":{"opcode":"looks_sayforsecs","next":"n%]__?|Z8]rI5Nb?gViq","parent":"GBVU3I7+QD=TSfHx]bhU","inputs":{"MESSAGE":[1,[10,"We use colorful powders and pastes to celebrate the beginning of Spring!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false},"n%]__?|Z8]rI5Nb?gViq":{"opcode":"looks_sayforsecs","next":",M3195%JsXVXc(d1Zg:L","parent":"lTPM~|:Xs,_if#cv*}5O","inputs":{"MESSAGE":[1,[10,"I'm holding some gulal!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},",M3195%JsXVXc(d1Zg:L":{"opcode":"looks_sayforsecs","next":null,"parent":"n%]__?|Z8]rI5Nb?gViq","inputs":{"MESSAGE":[1,[10,"Press the space bar to meet my friends!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},"|0_-JyE+)[h*:1fdtiA4":{"opcode":"event_whenthisspriteclicked","next":"^oA(iul1kHd(0wr^6Bw{","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-69,"y":-82},"^oA(iul1kHd(0wr^6Bw{":{"opcode":"looks_switchcostumeto","next":"|7PoJdXk{ra2Uw|t`GbT","parent":"|0_-JyE+)[h*:1fdtiA4","inputs":{"COSTUME":[1,"N9bZPF:pJOq6u.zxph*s"]},"fields":{},"shadow":false,"topLevel":false},"N9bZPF:pJOq6u.zxph*s":{"opcode":"looks_costume","next":null,"parent":"^oA(iul1kHd(0wr^6Bw{","inputs":{},"fields":{"COSTUME":["Neha1",null]},"shadow":true,"topLevel":false},"|7PoJdXk{ra2Uw|t`GbT":{"opcode":"looks_sayforsecs","next":"Om]!9q+lw!s+4zF:/CG!","parent":"^oA(iul1kHd(0wr^6Bw{","inputs":{"MESSAGE":[1,[10,"3..."]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"Om]!9q+lw!s+4zF:/CG!":{"opcode":"looks_sayforsecs","next":"J6bm|w{z^q-RA%hf)afc","parent":"|7PoJdXk{ra2Uw|t`GbT","inputs":{"MESSAGE":[1,[10,"2..."]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"J6bm|w{z^q-RA%hf)afc":{"opcode":"looks_sayforsecs","next":"dBNdJtA%:m:n8TAUuL^K","parent":"Om]!9q+lw!s+4zF:/CG!","inputs":{"MESSAGE":[1,[10,"1!"]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"dBNdJtA%:m:n8TAUuL^K":{"opcode":"control_repeat","next":"GV:wKN`D#AUVaKS?5jmD","parent":"J6bm|w{z^q-RA%hf)afc","inputs":{"TIMES":[1,[6,"4"]],"SUBSTACK":[2,"x@m(|CWR`%*`#b~;!2OT"]},"fields":{},"shadow":false,"topLevel":false},"x@m(|CWR`%*`#b~;!2OT":{"opcode":"control_wait","next":".Z=GpTw~p|F,B38JSn^t","parent":"dBNdJtA%:m:n8TAUuL^K","inputs":{"DURATION":[1,[5,"0.7"]]},"fields":{},"shadow":false,"topLevel":false},".Z=GpTw~p|F,B38JSn^t":{"opcode":"looks_nextcostume","next":null,"parent":"x@m(|CWR`%*`#b~;!2OT","inputs":{},"fields":{},"shadow":false,"topLevel":false},"GV:wKN`D#AUVaKS?5jmD":{"opcode":"looks_say","next":null,"parent":"dBNdJtA%:m:n8TAUuL^K","inputs":{"MESSAGE":[1,[10,"Happy Holi!"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"588e1905e5323f75328276def2ac0116","name":"Neha1","bitmapResolution":1,"md5ext":"588e1905e5323f75328276def2ac0116.svg","dataFormat":"svg","rotationCenterX":45.99999113010236,"rotationCenterY":87},{"assetId":"8a174573e7d4a7885954acd2afad19ea","name":"Neha2","bitmapResolution":1,"md5ext":"8a174573e7d4a7885954acd2afad19ea.svg","dataFormat":"svg","rotationCenterX":123.41460248739168,"rotationCenterY":114.40293820688679},{"assetId":"500b791f9f077dd2377bc56033912b9a","name":"Neha3","bitmapResolution":1,"md5ext":"500b791f9f077dd2377bc56033912b9a.svg","dataFormat":"svg","rotationCenterX":133.59915850034727,"rotationCenterY":174.0481588381853},{"assetId":"c53eeb50bcdf509cb1522d378c9e380b","name":"Neha4","bitmapResolution":1,"md5ext":"c53eeb50bcdf509cb1522d378c9e380b.svg","dataFormat":"svg","rotationCenterX":128.6803772733968,"rotationCenterY":116.40943091603478},{"assetId":"9d660677a26fe0b657bc3e43da838c8e","name":"Neha5","bitmapResolution":1,"md5ext":"9d660677a26fe0b657bc3e43da838c8e.svg","dataFormat":"svg","rotationCenterX":90.9947,"rotationCenterY":85.4763088644717}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":28,"y":-51,"size":139.99999999999997,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Brad","variables":{},"lists":{},"broadcasts":{},"blocks":{"CBEwU.S^!3v*m}+l(2:*":{"opcode":"event_whenflagclicked","next":"R|3)LWe?;VLJtzxlX@8}","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"R|3)LWe?;VLJtzxlX@8}":{"opcode":"motion_gotoxy","next":"9sO:y?e(89=wDBQEX*84","parent":"CBEwU.S^!3v*m}+l(2:*","inputs":{"X":[1,[4,220]],"Y":[1,[4,-13]]},"fields":{},"shadow":false,"topLevel":false},"9sO:y?e(89=wDBQEX*84":{"opcode":"looks_switchcostumeto","next":null,"parent":"R|3)LWe?;VLJtzxlX@8}","inputs":{"COSTUME":[1,"4!H7s8i9Lh.C(?SHMT_O"]},"fields":{},"shadow":false,"topLevel":false},"4!H7s8i9Lh.C(?SHMT_O":{"opcode":"looks_costume","next":null,"parent":"9sO:y?e(89=wDBQEX*84","inputs":{},"fields":{"COSTUME":["Brad1"]},"shadow":true,"topLevel":false},"7rU;-waLK?7n!U94pB].":{"opcode":"event_whenkeypressed","next":"BYyQeX2S2e2l[UHn#0bq","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":32,"y":304},"BYyQeX2S2e2l[UHn#0bq":{"opcode":"motion_movesteps","next":"SpljqntHJxfGDV;.4%#M","parent":"7rU;-waLK?7n!U94pB].","inputs":{"STEPS":[1,[4,-64]]},"fields":{},"shadow":false,"topLevel":false},"SpljqntHJxfGDV;.4%#M":{"opcode":"looks_sayforsecs","next":"m+[^4mRsSN%SjOXJ}+_t","parent":"BYyQeX2S2e2l[UHn#0bq","inputs":{"MESSAGE":[1,[10,"Hello, I'm Brad!"]],"SECS":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"m+[^4mRsSN%SjOXJ}+_t":{"opcode":"looks_sayforsecs","next":null,"parent":"SpljqntHJxfGDV;.4%#M","inputs":{"MESSAGE":[1,[10,"I'm holding a pichkari, a water squirter filled with colored water!"]],"SECS":[1,[4,6]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"dae278db1e4c65e9b70d966aa9a40429","name":"Brad1","bitmapResolution":1,"md5ext":"dae278db1e4c65e9b70d966aa9a40429.svg","dataFormat":"svg","rotationCenterX":37.99999373388661,"rotationCenterY":86.99998370205938}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":220,"y":-13,"size":135.00000000000003,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Kristen","variables":{},"lists":{},"broadcasts":{},"blocks":{"[M~hMK`q/NYs#*-;ZiuH":{"opcode":"event_whenflagclicked","next":"H~_UJ8~bO+^zXvT^^^le","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"H~_UJ8~bO+^zXvT^^^le":{"opcode":"motion_gotoxy","next":"@DsqwPSbeqW_?Pi{uYT]","parent":"[M~hMK`q/NYs#*-;ZiuH","inputs":{"X":[1,[4,-215]],"Y":[1,[4,-13]]},"fields":{},"shadow":false,"topLevel":false},"@DsqwPSbeqW_?Pi{uYT]":{"opcode":"looks_switchcostumeto","next":null,"parent":"H~_UJ8~bO+^zXvT^^^le","inputs":{"COSTUME":[1,"?+RpBU3RL5~YKwsi/rIw"]},"fields":{},"shadow":false,"topLevel":false},"?+RpBU3RL5~YKwsi/rIw":{"opcode":"looks_costume","next":null,"parent":"@DsqwPSbeqW_?Pi{uYT]","inputs":{},"fields":{"COSTUME":["Kristen1"]},"shadow":true,"topLevel":false},"Jf4;4?`|e1udP=94]ErE":{"opcode":"event_whenkeypressed","next":"9aY%RY8/M5ayiAqP@a7U","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":27,"y":261},"9aY%RY8/M5ayiAqP@a7U":{"opcode":"control_wait","next":"Pz:xDRpqyDJNLlR5?;,0","parent":"Jf4;4?`|e1udP=94]ErE","inputs":{"DURATION":[1,[5,"10"]]},"fields":{},"shadow":false,"topLevel":false},"Pz:xDRpqyDJNLlR5?;,0":{"opcode":"motion_movesteps","next":"-n-db;lg-!(lyaGFo;AQ","parent":"9aY%RY8/M5ayiAqP@a7U","inputs":{"STEPS":[1,[4,64]]},"fields":{},"shadow":false,"topLevel":false},"-n-db;lg-!(lyaGFo;AQ":{"opcode":"looks_sayforsecs","next":"4*Ly{a-GE~GGb~khP7#P","parent":"Pz:xDRpqyDJNLlR5?;,0","inputs":{"MESSAGE":[1,[10,"Hi, I'm Kristen!"]],"SECS":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"4*Ly{a-GE~GGb~khP7#P":{"opcode":"looks_sayforsecs","next":"(P/J:UdY/Q,8|p4}V!P=","parent":"-n-db;lg-!(lyaGFo;AQ","inputs":{"MESSAGE":[1,[10,"I'm using squeeze bottles."]],"SECS":[1,[4,4]]},"fields":{},"shadow":false,"topLevel":false},"(P/J:UdY/Q,8|p4}V!P=":{"opcode":"looks_sayforsecs","next":null,"parent":"4*Ly{a-GE~GGb~khP7#P","inputs":{"MESSAGE":[1,[10,"Click on Neha to see her celebrate!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"5c740972a1f49202719b50e896bd0cf6","name":"Kristen1","bitmapResolution":1,"md5ext":"5c740972a1f49202719b50e896bd0cf6.svg","dataFormat":"svg","rotationCenterX":62.000001871426775,"rotationCenterY":87.08308115522249}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-215,"y":-13,"size":135.00000000000003,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
-},{}],23:[function(require,module,exports){
+},{"./scratch3":25}],21:[function(require,module,exports){
 /* One Way Sync L1 Autograder
  * Marco Anaya, Summer 2019
  */
@@ -5161,7 +5155,7 @@ module.exports = class {
 		return reqs;
 	}
 }
-},{"./scratch3":27}],24:[function(require,module,exports){
+},{"./scratch3":25}],22:[function(require,module,exports){
 /* One Way Sync L2 Autograder
  * Marco Anaya, Summer 2019
  */
@@ -5273,7 +5267,7 @@ module.exports = class {
 	}
 }
 
-},{"./scratch3":27}],25:[function(require,module,exports){
+},{"./scratch3":25}],23:[function(require,module,exports){
 /* Scratch Basics L1 Autograder
 Updated Version: Saranya Turimella, Summer 2019
 */
@@ -5281,347 +5275,63 @@ Updated Version: Saranya Turimella, Summer 2019
 require('../grading-scripts-s3/scratch3')
 
 module.exports = class {
-    
-
-    initReqsGaming() {
+    constructor() {
         this.requirements = {};
         this.extensions = {};
-        this.requirements.addSayCarl = { bool: false, str: 'A say block is added after Carl says "Click the Space Bar to see Helen the Amazing Color Changing Hedgehog' }; // done
-        this.extensions.helenSpeaks = { bool: false, str: 'Helen says something else' }; // done
-        this.extensions.carlMoves = { bool: false, str: 'Carl the Cloud moves 10 steps when he is finished talking' }; // done
     }
 
-    initReqsMulticultural() {
-        this.requirements = {};
-        this.extensions = {};
-        this.requirements.addSayNeha = { bool: false, str: 'A say block is added after Neha says "Happy Holi!"' }; // done
-        this.extensions.bradSpeaks = { bool: false, str: 'Brad says something else' }; // done
-        this.extensions.nehaMoves = { bool: false, str: 'Neha moves 10 steps when she is finished jumping and talking' }; // done
+    initReqs() {
+        this.requirements.addSay = { bool: false, str: 'A say block is added after a sprite says “Click the Space Bar.”' }
+        this.extensions.addedHelenSpeech = { bool: false, str: 'The sprite that is changing costumes says something else' };
+        this.extensions.carlMoves10Steps = { bool: false, str: "A sprite moves 10 steps when it is finished talking" };
     }
-
-    initReqsYouthCulture() {
-        this.requirements = {};
-        this.extensions = {};
-        this.requirements.addSayIndia = { bool: false, str: 'A say block is added after India says "Click the Space Bar to see some of the things I like' }; // done
-        this.extensions.easelSaysSomethingElse = { bool: false, str: 'The easel sprite says something else' }; // done
-        this.extensions.indiaMoves = { bool: false, str: 'India moves 10 steps when she is finished talking' }; // done
-        this.extensions.changeCostumeEasel = { bool: false, str: "The easel sprite's costume is changed to show something about the student's community" }; // done
-    }
-
-    arraysMatch(arr1, arr2) {
-
-        console.log(
-            'in array match'
-        );
-        console.log('arr1')
-        console.log(arr1);
-        console.log('arr2');
-        console.log(arr2);
-        // Check if the arrays are the same length
-        if (arr1.length !== arr2.length) {
-            console.log(arr1.length);
-            console.log(arr2.length);
-            console.log('len issue');
-            return false;
-        }
-
-        // Check if all items exist and are in the same order
-        for (var i = 0; arr1.length < i; i++) {
-            if (arr1[i] !== arr2[i]) {
-                console.log('elements dont match');
-                return false;
-            }
-        }
-
-    };
-
-    // function that decides what strand the project is, returns a string
-    whichStrand(projBackdrops) {
-
-
-        let strand = '';
-        let gamingOrig = new Project(require('../grading-scripts-s3/gamingOriginal'));
-        let multiOrig = new Project(require('../grading-scripts-s3/multiculturalOriginal'));
-        let youthOrig = new Project(require('../grading-scripts-s3/youthOriginal'));
-
-        // gets the asset id's of the original gaming project (backdrops)
-        let gamingBackdrops = [];
-        for (let target of gamingOrig.targets) {
-            if (target.isStage) {
-                for (let costume of target.costumes) {
-                    gamingBackdrops.push(costume.assetId);
-                }
-            }
-        }
-
-        // gets the asset id's of the original multicultural project (backdrops)
-        let multiBackdrops = [];
-        for (let target of multiOrig.targets) {
-            if (target.isStage) {
-                for (let costume of target.costumes) {
-                    multiBackdrops.push(costume.assetId);
-                }
-            }
-        }
-
-        // gets the asset id's of the original youth culture project (backdrops)
-        let youthBackdrops = [];
-        for (let target of youthOrig.targets) {
-            if (target.isStage) {
-                for (let costume of target.costumes) {
-                    youthBackdrops.push(costume.assetId);
-                }
-            }
-        }
-
-        var util = require('util');
-        let origUtil = util.inspect(projBackdrops);
-        let gamingUtil = util.inspect(gamingBackdrops);
-        let multiUtil = util.inspect(multiBackdrops);
-        let youthUtil = util.inspect(youthBackdrops);
-
-        if (origUtil === gamingUtil) {
-            return 'gaming';
-        }
-        else if (origUtil === multiUtil) {
-            return 'multicultural'
-        }
-        else if (origUtil === youthUtil) {
-            return 'youthculture';
-        } else {
-            return 'gaming';
-        }
-
-
-    };
-
 
     grade(fileObj, user) {
-
         var project = new Project(fileObj, null);
-        // call function that takes in the project, decides what strand it is in, that function returns a string
 
+        this.initReqs();
 
-        let projBackdrops = [];
+        var numSayBlocks = 0;
         for (let target of project.targets) {
-            if (target.isStage) {
-                for (let costume of target.costumes) {
-                    projBackdrops.push(costume.assetId);
-                }
-            }
-        }
-
-
-        let strand = this.whichStrand(projBackdrops);
-
-
-        // gaming strand 
-        if (strand === 'gaming') {
-
-            this.initReqsGaming();
-            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
-
-            let sayBlocksGaming = 0;
-
-            for (let target of project.targets) {
-                if (target.isStage) { continue; }
-                else {
-
-
-                    for (let script of target.scripts) {
-                        for (let i = 0; i < script.blocks.length; i++) {
-
-
-                            // makes sure that the script starts with an event block
-                            if (script.blocks[0].opcode.includes('event_')) {
-                                if (script.blocks[i].opcode === 'looks_sayforsecs') {
-
-                                    // finds the block with specified message
-                                    if (script.blocks[i].inputs.MESSAGE[1][1] === 'Click the Space Bar to see Helen the Amazing Color Changing Hedgehog.') {
-                                        let next = i + 1;
-
-                                        // checks the next block to make sure it is not undefined, if it is not, checks to see if it is a say block
-                                        if (script.blocks[next] !== undefined) {
-                                            if (sayBlocks.includes(script.blocks[next].opcode)) {
-                                                this.requirements.addSayCarl.bool = true;
-                                            }
-                                        }
-                                    }
+            if (target.isStage) { continue; }
+            else {
+                for (let script of target.scripts) {
+                    for (let i = 0; i < script.blocks.length; i++) {
+                        // checks to see if there is a say block after the one where Carl the Cloud says to click on the sapce bar to see helen
+                        // change color
+                        if (script.blocks[i].opcode === 'looks_sayforsecs') {
+                            if (script.blocks[i].parent === "8K5Ak(+XsZvwjx2V0~D)") {
+                                this.requirements.addSay.bool = true;
+                            }
+                        }
+                        
+                        // if there is a say block in a script that has a sprite moving 10 steps, the requirement is met
+                        if (script.blocks[i].opcode === 'motion_movesteps') {
+                            {
+                                if (script.blocks[i].inputs.STEPS[1][1] == 10) {
+                                    this.extensions.carlMoves10Steps.bool = true;
                                 }
-
-                                // checks to see if there is any block that moves 10 steps
-                                if (script.blocks[i].opcode === 'motion_movesteps') {
-
-
-                                    if (script.blocks[i].inputs.STEPS[1][1] === '10') {
-                                        this.extensions.carlMoves.bool = true;
-                                    }
-                                }
-
-                                if (sayBlocks.includes(script.blocks[i].opcode)) {
-                                    sayBlocksGaming++;
-                                }
+                            }
+                        }
+                        // if the block is not one of the original say blocks, and it is not the say block that has been added after 
+                        // carl the cloud says to click to see the changing colors
+                        if (script.blocks[i].opcode === 'looks_sayforsecs') {
+                            if (script.blocks[i].next === "ahLTJjNBf`+1#.[qNZE4" && script.blocks[i].parent === "`4;L4Q?o6CqFmdbH?:ms") { continue; }
+                            else if (script.blocks[i].next === "=n_7]#{Cxj6pf!BUV,OP" && script.blocks[i].parent === "ahLTJjNBf`+1#.[qNZE4") { continue; }
+                            else if (script.blocks[i].next === null && script.blocks[i].parent === "=n_7]#{Cxj6pf!BUV,OP") { continue; }
+                            else if (script.blocks[i].next === null && script.blocks[i].parent === "3?,1QT}D[0#@^jvT!J*^") { continue; }
+                            else if (script.blocks[i].next === null && script.blocks[i].parent === "8K5Ak(+XsZvwjx2V0~D)") { continue; }
+                            else {
+                                this.extensions.addedHelenSpeech.bool = true;
                             }
                         }
                     }
                 }
-            }
-            // checks to see if a
-            if (sayBlocksGaming > 5) {
-                this.extensions.helenSpeaks.bool = true;
-            }
-        }
-
-
-        if (strand === 'multicultural') {
-            console.log('in multicultural');
-            this.initReqsMulticultural();
-            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
-            let sayBlocksMulticultural = 0;
-
-            for (let target of project.targets) {
-                if (target.isStage) { continue; }
-                else {
-                    for (let script of target.scripts) {
-
-                        for (let i = 0; i < script.blocks.length; i++) {
-
-                            // makes sure that the script starts with an event block
-                            if (script.blocks[0].opcode.includes('event_')) {
-                                if (script.blocks[i].opcode === 'looks_say') {
-
-
-                                    // finds the block with the specified message
-                                    if (script.blocks[i].inputs.MESSAGE[1][1] === 'Happy Holi!') {
-                                        let next = i + 1;
-
-                                        // checks the next block to make sure it is not undefined, if it not, checks to see if it is a say block
-                                        if (script.blocks[next] !== undefined) {
-                                            if (sayBlocks.includes(script.blocks[next].opcode)) {
-                                                this.requirements.addSayNeha.bool = true;
-                                            }
-                                        }
-                                    }
-                                }
-
-                                // checks to see if there is a block that moves 10 steps
-                                if (script.blocks[i].opcode === 'motion_movesteps') {
-                                    if (script.blocks[i].inputs.STEPS[1][1] === '10') {
-                                        this.extensions.nehaMoves.bool = true;
-                                    }
-                                }
-
-                                // if there is a say block in the sprite that is brad and the message is different from what he says
-                                if (sayBlocks.includes(script.blocks[i].opcode)) {
-                                    sayBlocksMulticultural++;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            if (sayBlocksMulticultural > 10) {
-                this.extensions.bradSpeaks.bool = true;
-            }
-        }
-
-
-
-
-
-
-        if (strand === 'youthculture') {
-
-            // make an array of the original costumes from the original project
-            this.initReqsYouthCulture();
-            let origCostumes = [];
-            let newCostumes = [];
-            var originalYouth = new Project(require('../grading-scripts-s3/youthOriginal'), null);
-            for (let target of originalYouth.targets) {
-                if (target.name === 'easel') {
-                    for (let costume of target.costumes) {
-                        origCostumes.push(costume.assetId);
-                    }
-                }
-            }
-
-            for (let target of project.targets) {
-                if (target.name === 'easel') {
-                    for (let costume of target.costumes) {
-                        newCostumes.push(costume.assetId);
-                    }
-                }
-            }
-
-
-            if (origCostumes.length !== newCostumes.length) {
-                this.extensions.changeCostumeEasel.bool = true;
-            } else {
-                for (let i = 0; i < origCostumes.length; i++) {
-                    if (origCostumes[i] !== newCostumes[i]) {
-                        this.extensions.changeCostumeEasel.bool = true;
-                        break;
-                    }
-                }
-            }
-
-
-            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
-            let easel = false;
-            let sayBlocksYouthCulture = 0;
-
-            for (let target of project.targets) {
-                if (target.isStage) { continue; }
-                else {
-
-
-                    for (let script of target.scripts) {
-                        for (let i = 0; i < script.blocks.length; i++) {
-
-                            //makes sure that the script starts with an event block
-                            if (script.blocks[0].opcode.includes('event_')) {
-                                if (script.blocks[i].opcode === 'looks_sayforsecs') {
-
-                                    // find the block with the specified message
-                                    if (script.blocks[i].inputs.MESSAGE[1][1] === 'Click the Space Bar to see some of the things I like.') {
-                                        let next = i + 1;
-
-                                        // checks the next block to make sure it is not undefined, if it is not, checks to see that the block after that is a say block
-                                        if (script.blocks[next] !== undefined) {
-                                            if (sayBlocks.includes(script.blocks[next].opcode)) {
-                                                this.requirements.addSayIndia.bool = true;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            // checks to see if there is a block that moves 10 steps
-                            if (script.blocks[i].opcode === 'motion_movesteps') {
-                                if (script.blocks[i].inputs.STEPS[1][1] === '10') {
-                                    this.extensions.indiaMoves.bool = true;
-                                }
-                            }
-
-                            // counts the number of say blocks
-                            if (sayBlocks.includes(script.blocks[i].opcode)) {
-                                sayBlocksYouthCulture++;
-                            }
-
-                        }
-                    }
-
-
-                }
-            }
-            // number of say blocks should be greater than 2 
-            if (sayBlocksYouthCulture > 5) {
-                this.extensions.easelSaysSomethingElse.bool = true;
             }
         }
     }
 }
-},{"../grading-scripts-s3/gamingOriginal":21,"../grading-scripts-s3/multiculturalOriginal":22,"../grading-scripts-s3/scratch3":27,"../grading-scripts-s3/youthOriginal":28,"util":33}],26:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":25}],24:[function(require,module,exports){
 /* Scratch Basics L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -5820,7 +5530,7 @@ module.exports = class {
         
     }
 }
-},{"./scratch3":27}],27:[function(require,module,exports){
+},{"./scratch3":25}],25:[function(require,module,exports){
 (function (global){
 /// Scratch 3 helper functions
 require('./context');
@@ -5981,9 +5691,7 @@ global.Project = class {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./context":16}],28:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":3,"costumes":[{"assetId":"2b0bddaf727e6bb95131290ae2549ac4","name":"background3","bitmapResolution":2,"md5ext":"2b0bddaf727e6bb95131290ae2549ac4.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"a81668321aa3dcc0fc185d3e36ae76f6","name":"Room 1","bitmapResolution":2,"md5ext":"a81668321aa3dcc0fc185d3e36ae76f6.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"e5f794c8756ca0cead5cb7e7fe354c41","name":"Playground","bitmapResolution":2,"md5ext":"e5f794c8756ca0cead5cb7e7fe354c41.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"38be88e8026768d4606fe1932b05d258","name":"backdrop","bitmapResolution":2,"md5ext":"38be88e8026768d4606fe1932b05d258.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"India","variables":{},"lists":{},"broadcasts":{},"blocks":{"{?%H[3PODtzIOzw3NUAD":{"opcode":"event_whenflagclicked","next":"X9F`sK3d.L!x-cTWVaGz","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":0,"y":0},"X9F`sK3d.L!x-cTWVaGz":{"opcode":"motion_gotoxy","next":"kBZo|n~NnzgG!crdI1E;","parent":"{?%H[3PODtzIOzw3NUAD","inputs":{"X":[1,[4,"-215"]],"Y":[1,[4,"-145"]]},"fields":{},"shadow":false,"topLevel":false},"kBZo|n~NnzgG!crdI1E;":{"opcode":"motion_movesteps","next":"u=@^[0kNfQx.2*Xvk0TX","parent":"X9F`sK3d.L!x-cTWVaGz","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"u=@^[0kNfQx.2*Xvk0TX":{"opcode":"looks_sayforsecs","next":"C;QZb9TtC1(Ov9vkC+$f","parent":"kBZo|n~NnzgG!crdI1E;","inputs":{"MESSAGE":[1,[10,"Hello! My name is India."]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},"C;QZb9TtC1(Ov9vkC+$f":{"opcode":"motion_movesteps","next":"=6=T6QR$yee::D$b8~s{","parent":"u=@^[0kNfQx.2*Xvk0TX","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"=6=T6QR$yee::D$b8~s{":{"opcode":"looks_sayforsecs","next":",`%kTB=!2Lz#4m!W2OpL","parent":"C;QZb9TtC1(Ov9vkC+$f","inputs":{"MESSAGE":[1,[10,"Welcome to Scratch!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},",`%kTB=!2Lz#4m!W2OpL":{"opcode":"motion_movesteps","next":"{Ipink+*Ul#QILZqGvdF","parent":"=6=T6QR$yee::D$b8~s{","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"{Ipink+*Ul#QILZqGvdF":{"opcode":"looks_sayforsecs","next":null,"parent":",`%kTB=!2Lz#4m!W2OpL","inputs":{"MESSAGE":[1,[10,"Click the Space Bar to see some of the things I like."]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"fec9549b732165ec6d09991de08b69cd","name":"character (1)","bitmapResolution":1,"md5ext":"fec9549b732165ec6d09991de08b69cd.svg","dataFormat":"svg","rotationCenterX":78.87000274658203,"rotationCenterY":165.80999755859375}],"sounds":[],"volume":100,"layerOrder":2,"visible":true,"x":-165,"y":-145,"size":162.8369844855632,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"easel","variables":{},"lists":{},"broadcasts":{},"blocks":{"XYmoOsQpwwb~bRU[WtDb":{"opcode":"event_whenkeypressed","next":"NX*(%@1qK}o{lJ)1dp(L","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":56,"y":66},"NX*(%@1qK}o{lJ)1dp(L":{"opcode":"looks_switchcostumeto","next":"A*?(6=CMw!5NQvy3GoJz","parent":"XYmoOsQpwwb~bRU[WtDb","inputs":{"COSTUME":[1,"uxs{_T(3Fk%RETANj%^X"]},"fields":{},"shadow":false,"topLevel":false},"uxs{_T(3Fk%RETANj%^X":{"opcode":"looks_costume","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{},"fields":{"COSTUME":["easel-music",null]},"shadow":true,"topLevel":false},"A*?(6=CMw!5NQvy3GoJz":{"opcode":"control_repeat","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{"TIMES":[1,[6,"7"]],"SUBSTACK":[2,"MkZ9YIg7M,WuN@FR]l:o"]},"fields":{},"shadow":false,"topLevel":false},"MkZ9YIg7M,WuN@FR]l:o":{"opcode":"looks_nextcostume","next":"*i@~ROBKeTP[#l_7v/_-","parent":"A*?(6=CMw!5NQvy3GoJz","inputs":{},"fields":{},"shadow":false,"topLevel":false},"*i@~ROBKeTP[#l_7v/_-":{"opcode":"control_wait","next":null,"parent":"MkZ9YIg7M,WuN@FR]l:o","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"3?,1QT}D[0#@^jvT!J*^":{"opcode":"event_whenthisspriteclicked","next":"gPD.*ilWONI2U7F-SE[}","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":51,"y":455},"gPD.*ilWONI2U7F-SE[}":{"opcode":"looks_sayforsecs","next":null,"parent":"3?,1QT}D[0#@^jvT!J*^","inputs":{"MESSAGE":[1,[10,"Tada!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":7,"costumes":[{"assetId":"47a257ec82df9b221a9c8a0da1174652","name":"easel","bitmapResolution":1,"md5ext":"47a257ec82df9b221a9c8a0da1174652.svg","dataFormat":"svg","rotationCenterX":72,"rotationCenterY":100.5},{"assetId":"f80c9c273a7542f28fc0a0aa16f80532","name":"easel-sports","bitmapResolution":1,"md5ext":"f80c9c273a7542f28fc0a0aa16f80532.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"25fc936818594e0f67f48ffd39ee06b2","name":"easel-animals","bitmapResolution":1,"md5ext":"25fc936818594e0f67f48ffd39ee06b2.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"6a904db737d12cc410bd18e0e3837f1a","name":"easel-music","bitmapResolution":1,"md5ext":"6a904db737d12cc410bd18e0e3837f1a.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"eb955b9d6d17d5358e1c66ca5dbc4648","name":"easel-neighborhood","bitmapResolution":1,"md5ext":"eb955b9d6d17d5358e1c66ca5dbc4648.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"4c0e56f2cc17d497d76070033ab08654","name":"easel-travel","bitmapResolution":1,"md5ext":"4c0e56f2cc17d497d76070033ab08654.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"ba4d4b1af1eafdda9b882c0f51ced3ff","name":"easel-astronomy","bitmapResolution":1,"md5ext":"ba4d4b1af1eafdda9b882c0f51ced3ff.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"b0841fa4e9ea101a530022a9b4758d14","name":"easel-video-games","bitmapResolution":1,"md5ext":"b0841fa4e9ea101a530022a9b4758d14.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422}],"sounds":[],"volume":100,"layerOrder":1,"visible":true,"x":144,"y":-52,"size":150,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[{"id":"undefined_costumenumbername_number","mode":"default","opcode":"looks_costumenumbername","params":{"NUMBER_NAME":"number"},"spriteName":"Helen","value":"","width":0,"height":0,"x":5,"y":5,"visible":false,"sliderMin":0,"sliderMax":100,"isDiscrete":true}],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
-},{}],29:[function(require,module,exports){
+},{"./context":16}],26:[function(require,module,exports){
 /// Provides necessary scripts for index.html.
 
 /// Requirements (scripts)
@@ -6396,7 +6104,7 @@ function noError() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-},{"./act1-grading-scripts/5-block-challenge":1,"./act1-grading-scripts/aboutMe":2,"./act1-grading-scripts/build-a-band":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/ladybug":5,"./act1-grading-scripts/name-poem":7,"./act1-grading-scripts/ofrenda":8,"./grading-scripts-s3/animation-L1":11,"./grading-scripts-s3/animation-L2":12,"./grading-scripts-s3/complex-conditionals-L1":13,"./grading-scripts-s3/cond-loops-L1":14,"./grading-scripts-s3/cond-loops-L2":15,"./grading-scripts-s3/decomp-L1":17,"./grading-scripts-s3/decomp-L2":18,"./grading-scripts-s3/events-L1":19,"./grading-scripts-s3/events-L2":20,"./grading-scripts-s3/one-way-sync-L1":23,"./grading-scripts-s3/one-way-sync-L2":24,"./grading-scripts-s3/scratch-basics-L1":25,"./grading-scripts-s3/scratch-basics-L2":26}],30:[function(require,module,exports){
+},{"./act1-grading-scripts/5-block-challenge":1,"./act1-grading-scripts/aboutMe":2,"./act1-grading-scripts/build-a-band":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/ladybug":5,"./act1-grading-scripts/name-poem":7,"./act1-grading-scripts/ofrenda":8,"./grading-scripts-s3/animation-L1":11,"./grading-scripts-s3/animation-L2":12,"./grading-scripts-s3/complex-conditionals-L1":13,"./grading-scripts-s3/cond-loops-L1":14,"./grading-scripts-s3/cond-loops-L2":15,"./grading-scripts-s3/decomp-L1":17,"./grading-scripts-s3/decomp-L2":18,"./grading-scripts-s3/events-L1":19,"./grading-scripts-s3/events-L2":20,"./grading-scripts-s3/one-way-sync-L1":21,"./grading-scripts-s3/one-way-sync-L2":22,"./grading-scripts-s3/scratch-basics-L1":23,"./grading-scripts-s3/scratch-basics-L2":24}],27:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -6582,7 +6290,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],31:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -6607,14 +6315,14 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],32:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],33:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -7204,4 +6912,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":32,"_process":30,"inherits":31}]},{},[29]);
+},{"./support/isBuffer":29,"_process":27,"inherits":28}]},{},[26]);
