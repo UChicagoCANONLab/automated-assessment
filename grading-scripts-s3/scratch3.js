@@ -219,5 +219,6 @@ global.detectStrand(project, templates) {
                 highScore = templateScore;
             }
         }
-        return strand;
     }
+    return strand;
+}
