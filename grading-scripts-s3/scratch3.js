@@ -178,7 +178,7 @@ global.Project = class {
 }
 
 /// Identify which strand the project belongs to.
-global.detectStrand(project, templates) {
+global.detectStrand = function(project, templates) {
     var strand = 'generic';
     /// Format for templates
     /*
