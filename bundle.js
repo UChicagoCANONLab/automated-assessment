@@ -5645,7 +5645,7 @@ module.exports = class GradeEventsL1 {
                 str: 'Bork moves to the left when the left arrow key is pressed.'
             }
         }
-        return;z
+        return;
     }
 }
 
