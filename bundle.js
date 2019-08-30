@@ -960,7 +960,7 @@ module.exports = class {
 
     }
 }
-},{"../grading-scripts-s3/scratch3":29}],6:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":31}],6:[function(require,module,exports){
 /*
 Act 1 About Me Grader
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -1098,7 +1098,7 @@ module.exports = class {
     }
 }
 
-},{"../grading-scripts-s3/scratch3":29}],7:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":31}],7:[function(require,module,exports){
 /*
 Act 1 Build-a-Band Project Autograder
 Initial version and testing: Zipporah Klain
@@ -1407,7 +1407,7 @@ module.exports = class {
 }
 
 
-},{"../grading-scripts-s3/scratch3":29}],8:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":31}],8:[function(require,module,exports){
 /*
 Act 1 Final Project Autograder
 Initial version and testing: Zipporah Klain
@@ -1523,7 +1523,7 @@ module.exports = class {
     }
 
 }
-},{"../grading-scripts-s3/scratch3":29}],9:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":31}],9:[function(require,module,exports){
 /*
 Act 1 Ladybug Scramble Autograder
 Initial version and testing: Saranya Turimella and Zipporah Klain, 2019
@@ -1813,7 +1813,7 @@ module.exports = class {
     }
 
 }
-},{"../act1-grading-scripts/original-ladybug":13,"../grading-scripts-s3/scratch3":29,"util":4}],10:[function(require,module,exports){
+},{"../act1-grading-scripts/original-ladybug":13,"../grading-scripts-s3/scratch3":31,"util":4}],10:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -2743,8 +2743,6 @@ module.exports = class {
     }
 
     initReqs() {
-        //this.requirements.hasOneSprite = { bool: false, str: 'Project has at least one sprite' };//done
-        //this.requirements.scripts = { bool: false, str: 'At least half of the sprites have a script using the 11 blocks given (with at least one event block and at least one other block)' };//done
         this.requirements.costumes1 = {bool: false, str: 'At least one sprite has a new costume'};
         this.requirements.costumes = { bool: false, str: 'At least half of the sprites have new costumes' };//done
         this.requirements.dialogue1 = { bool: false, str: 'At least one sprite has new dialogue' };
@@ -2752,8 +2750,6 @@ module.exports = class {
         this.requirements.movement1 = { bool: false, str: 'At least one sprite has new movement'};
         this.requirements.movement = { bool: false, str: 'At least half of the sprites have new movement using blocks specified' };//to fix
         this.requirements.backdrop = { bool: false, str: 'The background has been changed' };//done
-        //     this.extensions.allReqs = { bool: false, str: 'All requirements are fulfilled' };
-        //     this.extensions.oneSprite = { bool: false, str: 'At least one sprite has a new costume, dialogue, and movement using 11 blocks given (fulfills spirit)' };
     }
 
     grade(fileObj, user) {
@@ -2761,11 +2757,6 @@ module.exports = class {
         var original = new Project(require('../act1-grading-scripts/name-poem-original-test'), null);
         this.initReqs();
         if (!is(fileObj)) return;
-
-        //checks if there's at least one sprite
-        // if (project.sprites.length > 0) {
-        //     this.requirements.hasOneSprite.bool = true;
-        // }
 
         //instantiate counters for requirements
         let spritesWithScripts = 0;
@@ -2816,18 +2807,16 @@ module.exports = class {
                         }
                     }
                 }
-                this.requirements.backdrop.bool = newBackdrop;
+               this.requirements.backdrop.bool = newBackdrop;
             } else {
 
                 let hasMovement = false;
 
-                        // console.log('before');
                 for (let script in target.scripts) {
                     for (let block in target.scripts[script].blocks) {
                         let opc = target.scripts[script].blocks[block].opcode;
                         let bool = true;
                         if (this.otherOpcodes.includes(opc) && opc !== 'looks_sayforsecs') {
-                            //                  console.log(opc);
                             if (opc === 'sound_playuntildone') {
                                 let soundMenu = target.scripts[script].blocks[block].inputs.SOUND_MENU[1];
                                 if (target.name === 'D-Glow') {
@@ -2868,26 +2857,7 @@ module.exports = class {
                                     bool = false;
                                 }
                             }
-                            // if (opc === 'motion_glidesecstoxy' && target.name === 'A-Glow') {
-                            //     let paramSecs = target.scripts[script].blocks[block].inputs.SECS[1][1];
-                            //     let paramX = target.scripts[script].blocks[block].inputs.X[1][1];
-                            //     let paramY = target.scripts[script].blocks[block].inputs.Y[1][1];
-                            //     if (paramSecs === '1' && paramX === '55' && paramY === '25'
-                            //         && target.scripts[script].blocks[block].next === '^6iWa|d-|jw!SQI#e(Jr'
-                            //         && target.scripts[script].blocks[block].parent === 'n]cy4r^o3t_m{{lMaGoY') {
-                            //         bool = false;
-                            //     }
-                            //     if (paramSecs === '1' && paramX === '-204' && paramY === '14'
-                            //         && target.scripts[script].blocks[block].next === null
-                            //         && target.scripts[script].blocks[block].parent === '^6iWa|d-|jw!SQI#e(Jr') {
-                            //         bool = false;
-                            //     }
-                            //     if (paramSecs === '1' && paramX === '-204' && paramY === '14'
-                            //         && target.scripts[script].blocks[block].next === null
-                            //         && target.scripts[script].blocks[block].parent === 'i[0P|D4q:tdG3Q{3hR`N') {
-                            //         bool = false;
-                            //     }
-                            // }
+
                             if (opc === 'motion_glidesecstoxy') {
                                 let paramSecs = target.scripts[script].blocks[block].inputs.SECS[1][1];
                                 let paramX = target.scripts[script].blocks[block].inputs.X[1][1];
@@ -2948,22 +2918,18 @@ module.exports = class {
                             }
                             if (bool) {
                                 hasMovement = true;
-                           //     console.log('Sprite with new movement:');
-                             //   console.log(target.name);
                             }
                         }
                     }
                 }
                 if (hasMovement) { spritesWithNewMovement++; }
-                // console.log('after');
 
                 mapProject.set(target.name, target.blocks);
                 let hasDialogue = false;
                 for (let block in target.blocks) {
 
                     if (target.blocks[block].opcode==='looks_say'){
-                       // console.log('ere');
-                        this.requirements.dialogue1.bool=true;
+                       this.requirements.dialogue1.bool=true;
                     }
                     let opcode = target.blocks[block].opcode;
                     if ((opcode.includes('motion_') || opcode.includes('looks_'))
@@ -3010,62 +2976,20 @@ module.exports = class {
             }
         }
 
-        //checking movement
-        //   let inDIANE = false;
-        //   for (let v of mapProject.values()) {
-        //       for (let w of mapOriginal.values()) {
-        //           var util = require('util');
-        //           v = util.inspect(v);
-        //           w = util.inspect(w);
-        //           if (v === w) {
-        //               inDIANE = true;
-        //           };
-        //       }
-        //       if (!inDIANE) {
-        //           spritesWithNewMovement++;
-        //       }
-        //   }
-
-        // > 1/2 of sprites fulfill requirement + TESTING
-        //  console.log('sprites with scripts');
-        //console.log(spritesWithScripts);
-        // if (spritesWithScripts >= project.sprites.length / 2) {
-        //     this.requirements.scripts.bool = true;
-        // }
-
-        //   console.log('sprites with dialogue');
-        //   console.log(spritesWithNewDialogue);
-        //   console.log(this.requirements.dialogue1.bool);
-        if (spritesWithNewDialogue) {this.requirements.dialogue1.bool=true;}
-        if (spritesWithNewDialogue >= project.sprites.length / 2) {
-            this.requirements.dialogue.bool = true;
+       if (spritesWithNewDialogue) {this.requirements.dialogue1.bool=true;}
+        if ((spritesWithNewDialogue >= project.sprites.length / 2)&&spritesWithNewDialogue) {
+           this.requirements.dialogue.bool = true;
         }
 
-        //  console.log('sprite with new costumes');
-        //  console.log(spritesWithNewCostumes);
-        if (spritesWithNewCostumes) {this.requirements.costumes1.bool=true;}
-        if (spritesWithNewCostumes >= project.sprites.length / 2) {
-            this.requirements.costumes.bool = true;
+       if (spritesWithNewCostumes) {this.requirements.costumes1.bool=true;}
+        if ((spritesWithNewCostumes >= project.sprites.length / 2)&&spritesWithNewCostumes) {
+           this.requirements.costumes.bool = true;
         }
 
-        // console.log('sprites with new movement');
-        // console.log(spritesWithNewMovement);
-        if (spritesWithNewMovement) {this.requirements.movement1.bool=true;}
-        if (spritesWithNewMovement >= project.sprites.length / 2) {
-            this.requirements.movement.bool = true;
+      if (spritesWithNewMovement) {this.requirements.movement1.bool=true;}
+        if ((spritesWithNewMovement >= project.sprites.length / 2)&&spritesWithNewMovement) {
+          this.requirements.movement.bool = true;
         }
-
-        // if (spritesWithNewCostumes && spritesWithNewDialogue && spritesWithNewMovement) {
-        //     this.extensions.oneSprite = true;
-        // }
-        // if (this.requirements.movement.bool &&
-        //     this.requirements.dialogue.bool &&
-        //     this.requirements.backdrop.bool &&
-        //     this.requirements.costumes.bool &&
-        //     this.requirements.scripts.bool &&
-        //     this.requirements.hasOneSprite.bool) {
-        //     this.extensions.allReqs.bool = true;
-        // }
     }
 }
 
@@ -3076,7 +3000,7 @@ module.exports = class {
 
 
 
-},{"../act1-grading-scripts/name-poem-original-test":10,"../grading-scripts-s3/scratch3":29}],12:[function(require,module,exports){
+},{"../act1-grading-scripts/name-poem-original-test":10,"../grading-scripts-s3/scratch3":31}],12:[function(require,module,exports){
 /*
 Act 1 Events Ofrenda Autograder
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -3372,7 +3296,7 @@ module.exports = class {
         }
     }
 } 
-},{"../act1-grading-scripts/originalOfrenda-test":14,"../grading-scripts-s3/scratch3":29}],13:[function(require,module,exports){
+},{"../act1-grading-scripts/originalOfrenda-test":14,"../grading-scripts-s3/scratch3":31}],13:[function(require,module,exports){
 module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{"broadcastMsgId-munch":"munch"},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"6bbe43392c0dbffe7d7c63cc5bd08aa3","name":"backdrop1","bitmapResolution":1,"md5ext":"6bbe43392c0dbffe7d7c63cc5bd08aa3.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Ladybug1","variables":{},"lists":{},"broadcasts":{},"blocks":{"U7gIJGYi2sEQ1R~Q#Y(x":{"opcode":"event_whenflagclicked","next":"F@9g]aRRb1sq*2qa!%ng","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":264,"y":24},"F@9g]aRRb1sq*2qa!%ng":{"opcode":"motion_gotoxy","next":"Sfc=i0}1cnoDpchs?.Uq","parent":"U7gIJGYi2sEQ1R~Q#Y(x","inputs":{"X":[1,[4,-175]],"Y":[1,[4,-24]]},"fields":{},"shadow":false,"topLevel":false},"Sfc=i0}1cnoDpchs?.Uq":{"opcode":"motion_pointindirection","next":"^)NnU+Yxi6BeEWyh3in`","parent":"F@9g]aRRb1sq*2qa!%ng","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},"^)NnU+Yxi6BeEWyh3in`":{"opcode":"control_wait","next":"{*nT,|Un;N}8m)P0wAVC","parent":"Sfc=i0}1cnoDpchs?.Uq","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"{*nT,|Un;N}8m)P0wAVC":{"opcode":"motion_movesteps","next":"Qjej.|{eUe=~o*uAuRF,","parent":"^)NnU+Yxi6BeEWyh3in`","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"Qjej.|{eUe=~o*uAuRF,":{"opcode":"control_wait","next":"lDrR0@W5G`|K9EW2^U=0","parent":"{*nT,|Un;N}8m)P0wAVC","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"lDrR0@W5G`|K9EW2^U=0":{"opcode":"motion_turnright","next":"R%7gnK]7!DF4`qpYfccd","parent":"Qjej.|{eUe=~o*uAuRF,","inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":false},"R%7gnK]7!DF4`qpYfccd":{"opcode":"control_wait","next":"1?YefC;{nn1p+6x[y7=p","parent":"lDrR0@W5G`|K9EW2^U=0","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"1?YefC;{nn1p+6x[y7=p":{"opcode":"motion_movesteps","next":null,"parent":"R%7gnK]7!DF4`qpYfccd","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"iQ]xjD_RSjVU39KKi+D+":{"opcode":"event_whenflagclicked","next":"03[Ml=XIME[mlM`[oI,{","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":1117,"y":41},"03[Ml=XIME[mlM`[oI,{":{"opcode":"control_forever","next":null,"parent":"iQ]xjD_RSjVU39KKi+D+","inputs":{"SUBSTACK":[2,"{eG]NNI}y+`9w8~P-Y@w"]},"fields":{},"shadow":false,"topLevel":false},"{eG]NNI}y+`9w8~P-Y@w":{"opcode":"control_if","next":null,"parent":"03[Ml=XIME[mlM`[oI,{","inputs":{"CONDITION":[2,"HJ?{4{KV1xCg#k7UhPC6"],"SUBSTACK":[2,"kQKB.w^V0`:QX38gKYzf"]},"fields":{},"shadow":false,"topLevel":false},"HJ?{4{KV1xCg#k7UhPC6":{"opcode":"sensing_touchingcolor","next":null,"parent":"{eG]NNI}y+`9w8~P-Y@w","inputs":{"COLOR":[1,[9,"#00ffff"]]},"fields":{},"shadow":false,"topLevel":false},"kQKB.w^V0`:QX38gKYzf":{"opcode":"control_stop","next":";Dm1;gL:ROwhL*^;y!zp","parent":"{eG]NNI}y+`9w8~P-Y@w","inputs":{},"fields":{"STOP_OPTION":["other scripts in sprite"]},"shadow":false,"topLevel":false,"mutation":{"tagName":"mutation","hasnext":"true","children":[]}},";Dm1;gL:ROwhL*^;y!zp":{"opcode":"looks_sayforsecs","next":"H#v_fC4p1{^Dy]J98),R","parent":"kQKB.w^V0`:QX38gKYzf","inputs":{"MESSAGE":[1,[10,"Aaaaah! I fell off the branch!!!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"H#v_fC4p1{^Dy]J98),R":{"opcode":"control_repeat","next":"eO]JO},91+03]-,-p.kW","parent":";Dm1;gL:ROwhL*^;y!zp","inputs":{"TIMES":[1,[6,3]],"SUBSTACK":[2,"Hfkes2)|!Awk/*Iir#]f"]},"fields":{},"shadow":false,"topLevel":false},"Hfkes2)|!Awk/*Iir#]f":{"opcode":"looks_hide","next":"NdsT}^o2UI(D_trv9KW9","parent":"H#v_fC4p1{^Dy]J98),R","inputs":{},"fields":{},"shadow":false,"topLevel":false},"NdsT}^o2UI(D_trv9KW9":{"opcode":"control_wait","next":"Rp7XGUXIMwRD^e4J2IZy","parent":"Hfkes2)|!Awk/*Iir#]f","inputs":{"DURATION":[1,[5,0.5]]},"fields":{},"shadow":false,"topLevel":false},"Rp7XGUXIMwRD^e4J2IZy":{"opcode":"looks_show","next":"k7:X0JW7;CDuX8ZM[`|-","parent":"NdsT}^o2UI(D_trv9KW9","inputs":{},"fields":{},"shadow":false,"topLevel":false},"k7:X0JW7;CDuX8ZM[`|-":{"opcode":"control_wait","next":null,"parent":"Rp7XGUXIMwRD^e4J2IZy","inputs":{"DURATION":[1,[5,0.5]]},"fields":{},"shadow":false,"topLevel":false},"eO]JO},91+03]-,-p.kW":{"opcode":"motion_gotoxy","next":"I3gZVQ)z)SV7w[OezvsL","parent":"H#v_fC4p1{^Dy]J98),R","inputs":{"X":[1,[4,-175]],"Y":[1,[4,-24]]},"fields":{},"shadow":false,"topLevel":false},"I3gZVQ)z)SV7w[OezvsL":{"opcode":"motion_pointindirection","next":null,"parent":"eO]JO},91+03]-,-p.kW","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},":g/E[3PXa}d6Cve2Swk2":{"opcode":"motion_movesteps","next":null,"parent":null,"inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":33},"M1gwhU_QVGXM)kQF*L`{":{"opcode":"procedures_definition","next":"@,~#(h4pJpg}jA2}_/R[","parent":null,"inputs":{"custom_block":[1,"+d7X?d`DBq2~x0}OHSC/"]},"fields":{},"shadow":false,"topLevel":true,"x":1136,"y":820},"+d7X?d`DBq2~x0}OHSC/":{"opcode":"procedures_prototype","next":null,"inputs":{},"fields":{},"shadow":true,"topLevel":false,"mutation":{"tagName":"mutation","proccode":"Eat Aphid","argumentnames":"[]","argumentids":"[]","argumentdefaults":"[]","warp":false,"children":[]}},"@,~#(h4pJpg}jA2}_/R[":{"opcode":"event_broadcast","next":null,"parent":"M1gwhU_QVGXM)kQF*L`{","inputs":{"BROADCAST_INPUT":[1,[11,"Munch","broadcastMsgId-munch"]]},"fields":{},"shadow":false,"topLevel":false},"%vAkoQPRX5(5~AohGy*u":{"opcode":"motion_turnright","next":null,"parent":null,"inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":109},"~)q`N2jinQ]:/zs,-.s1":{"opcode":"motion_turnleft","next":null,"parent":null,"inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":true,"x":7,"y":188},"nZ1!J1WTOAWy}Af(z1#c":{"opcode":"control_wait","next":null,"parent":null,"inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":268},"Yl_GU18WZdM(iSO=,FM~":{"opcode":"procedures_call","next":null,"parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":10,"y":366,"mutation":{"tagName":"mutation","children":[],"proccode":"Eat Aphid","argumentids":"[]"}}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"7501580fb154fde8192a931f6cab472b","name":"ladybug3","bitmapResolution":1,"md5ext":"7501580fb154fde8192a931f6cab472b.svg","dataFormat":"svg","rotationCenterX":41,"rotationCenterY":43},{"assetId":"169c0efa8c094fdedddf8c19c36f0229","name":"ladybug2","bitmapResolution":1,"md5ext":"169c0efa8c094fdedddf8c19c36f0229.svg","dataFormat":"svg","rotationCenterX":41,"rotationCenterY":43}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-175,"y":-24,"size":50,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Sprite1","variables":{},"lists":{},"broadcasts":{},"blocks":{"g{X}coEAM3Ta^+%(=s^s":{"opcode":"event_whenflagclicked","next":"3S,1y@;w+[,tG`(EZCAt","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":68,"y":35},"3S,1y@;w+[,tG`(EZCAt":{"opcode":"looks_show","next":"_LYbp}EcsXWoN1ppLxcv","parent":"g{X}coEAM3Ta^+%(=s^s","inputs":{},"fields":{},"shadow":false,"topLevel":false},"_LYbp}EcsXWoN1ppLxcv":{"opcode":"motion_pointindirection","next":"4Q5;gsz5+/bgWS(:Rag,","parent":"3S,1y@;w+[,tG`(EZCAt","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},"4Q5;gsz5+/bgWS(:Rag,":{"opcode":"motion_gotoxy","next":"4L~#s_w.KLA*F5Xc`{C`","parent":"_LYbp}EcsXWoN1ppLxcv","inputs":{"X":[1,[4,0]],"Y":[1,[4,-150]]},"fields":{},"shadow":false,"topLevel":false},"4L~#s_w.KLA*F5Xc`{C`":{"opcode":"control_repeat","next":"Vb38^m9i^P8Qx=K`.+Yh","parent":"4Q5;gsz5+/bgWS(:Rag,","inputs":{"TIMES":[1,[6,6]],"SUBSTACK":[2,"56{t%hej8N*pk`S3%Nrj"]},"fields":{},"shadow":false,"topLevel":false},"56{t%hej8N*pk`S3%Nrj":{"opcode":"pen_stamp","next":"UyBZkQkw+i|j3]/7K`[%","parent":"4L~#s_w.KLA*F5Xc`{C`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"UyBZkQkw+i|j3]/7K`[%":{"opcode":"motion_changeyby","next":null,"parent":"56{t%hej8N*pk`S3%Nrj","inputs":{"DY":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"Vb38^m9i^P8Qx=K`.+Yh":{"opcode":"pen_stamp","next":"#I:55@rxBustg@:0CNW,","parent":"4L~#s_w.KLA*F5Xc`{C`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"#I:55@rxBustg@:0CNW,":{"opcode":"motion_gotoxy","next":"c?Rcii^r7j{3zIKlPCY7","parent":"Vb38^m9i^P8Qx=K`.+Yh","inputs":{"X":[1,[4,-200]],"Y":[1,[4,0]]},"fields":{},"shadow":false,"topLevel":false},"c?Rcii^r7j{3zIKlPCY7":{"opcode":"motion_pointindirection","next":"Ev;g}Py1-pZ#SpwkoO~I","parent":"#I:55@rxBustg@:0CNW,","inputs":{"DIRECTION":[1,[8,0]]},"fields":{},"shadow":false,"topLevel":false},"Ev;g}Py1-pZ#SpwkoO~I":{"opcode":"control_repeat","next":"1R95jS-gQRcWy1!()qDX","parent":"c?Rcii^r7j{3zIKlPCY7","inputs":{"TIMES":[1,[6,8]],"SUBSTACK":[2,"C+]}-*OqPzGDND@[I`!`"]},"fields":{},"shadow":false,"topLevel":false},"C+]}-*OqPzGDND@[I`!`":{"opcode":"pen_stamp","next":"vf~MRj8GONdu)xTW+`sX","parent":"Ev;g}Py1-pZ#SpwkoO~I","inputs":{},"fields":{},"shadow":false,"topLevel":false},"vf~MRj8GONdu)xTW+`sX":{"opcode":"motion_changexby","next":null,"parent":"C+]}-*OqPzGDND@[I`!`","inputs":{"DX":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"1R95jS-gQRcWy1!()qDX":{"opcode":"pen_stamp","next":"!]hy8aHujpmLSmfwgk7+","parent":"Ev;g}Py1-pZ#SpwkoO~I","inputs":{},"fields":{},"shadow":false,"topLevel":false},"!]hy8aHujpmLSmfwgk7+":{"opcode":"looks_hide","next":null,"parent":"1R95jS-gQRcWy1!()qDX","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"098ac26af75d9b14546ba423f0376c78","name":"costume1","bitmapResolution":1,"md5ext":"098ac26af75d9b14546ba423f0376c78.svg","dataFormat":"svg","rotationCenterX":247,"rotationCenterY":2}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":false,"x":200,"y":0,"size":100,"direction":0,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Aphid","variables":{},"lists":{},"broadcasts":{},"blocks":{"Al/9-=x`PHo)+1K4Jsw2":{"opcode":"event_whenflagclicked","next":"|FY,izak`W47{j*=KnG5","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":37,"y":46},"|FY,izak`W47{j*=KnG5":{"opcode":"looks_show","next":null,"parent":"Al/9-=x`PHo)+1K4Jsw2","inputs":{},"fields":{},"shadow":false,"topLevel":false},"se5y3M`e{qYhvvplydn.":{"opcode":"event_whenbroadcastreceived","next":"?ec)oOeZLY5LfeL(D5QB","parent":null,"inputs":{},"fields":{"BROADCAST_OPTION":["Munch","broadcastMsgId-munch"]},"shadow":false,"topLevel":true,"x":45,"y":264},"?ec)oOeZLY5LfeL(D5QB":{"opcode":"control_if","next":null,"parent":"se5y3M`e{qYhvvplydn.","inputs":{"CONDITION":[2,".[;R|zxb)eHrP+bfg`JR"],"SUBSTACK":[2,"@:tiv_aA#I^^`0sQ%}O1"]},"fields":{},"shadow":false,"topLevel":false},".[;R|zxb)eHrP+bfg`JR":{"opcode":"sensing_touchingobject","next":null,"parent":"?ec)oOeZLY5LfeL(D5QB","inputs":{"TOUCHINGOBJECTMENU":[1,"cB1l?RjX4g=!:@^[I(X?"]},"fields":{},"shadow":false,"topLevel":false},"cB1l?RjX4g=!:@^[I(X?":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":".[;R|zxb)eHrP+bfg`JR","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Ladybug1"]},"shadow":true,"topLevel":false},"@:tiv_aA#I^^`0sQ%}O1":{"opcode":"looks_sayforsecs","next":"d4JFINYQk,`yV3Hd5Rz3","parent":"?ec)oOeZLY5LfeL(D5QB","inputs":{"MESSAGE":[1,[10,"Oh, no!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"d4JFINYQk,`yV3Hd5Rz3":{"opcode":"looks_hide","next":null,"parent":"@:tiv_aA#I^^`0sQ%}O1","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b3b7ab6b68e1d72f5f0246bd5246e35","name":"beetle","bitmapResolution":1,"md5ext":"2b3b7ab6b68e1d72f5f0246bd5246e35.svg","dataFormat":"svg","rotationCenterX":43,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-24,"y":77,"size":30,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Aphid2","variables":{},"lists":{},"broadcasts":{},"blocks":{"|*E4bHy6(tUyNr_FpiHL":{"opcode":"event_whenbroadcastreceived","next":"@I467Tz-PCo,~F~{tDEl","parent":null,"inputs":{},"fields":{"BROADCAST_OPTION":["Munch","broadcastMsgId-munch"]},"shadow":false,"topLevel":true,"x":31,"y":393},"@I467Tz-PCo,~F~{tDEl":{"opcode":"control_if","next":null,"parent":"|*E4bHy6(tUyNr_FpiHL","inputs":{"CONDITION":[2,"uT8k:bk6A^umen=_kL-m"],"SUBSTACK":[2,"LBQ7xhpD3hzBGz^u~MW`"]},"fields":{},"shadow":false,"topLevel":false},"uT8k:bk6A^umen=_kL-m":{"opcode":"sensing_touchingobject","next":null,"parent":"@I467Tz-PCo,~F~{tDEl","inputs":{"TOUCHINGOBJECTMENU":[1,"w.R6uBYuAjg(y#K#YJx*"]},"fields":{},"shadow":false,"topLevel":false},"w.R6uBYuAjg(y#K#YJx*":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"uT8k:bk6A^umen=_kL-m","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Ladybug1"]},"shadow":true,"topLevel":false},"LBQ7xhpD3hzBGz^u~MW`":{"opcode":"looks_sayforsecs","next":"XO!5H:??cO_M~G2fB;}l","parent":"@I467Tz-PCo,~F~{tDEl","inputs":{"MESSAGE":[1,[10,"Oh, no!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"XO!5H:??cO_M~G2fB;}l":{"opcode":"looks_hide","next":null,"parent":"LBQ7xhpD3hzBGz^u~MW`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"|pG9oKkH+F.OL|36O0Lp":{"opcode":"event_whenflagclicked","next":"t:(!q?g_}9!~)wm!FUIP","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":39,"y":50},"t:(!q?g_}9!~)wm!FUIP":{"opcode":"looks_show","next":null,"parent":"|pG9oKkH+F.OL|36O0Lp","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b3b7ab6b68e1d72f5f0246bd5246e35","name":"beetle","bitmapResolution":1,"md5ext":"2b3b7ab6b68e1d72f5f0246bd5246e35.svg","dataFormat":"svg","rotationCenterX":43,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":75,"y":-123,"size":30,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":["pen"],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190619042313","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"}}
 },{}],14:[function(require,module,exports){
 module.exports={
@@ -4225,37 +4149,34 @@ require('./scratch3');
 
 let loops = ['control_forever', 'control_repeat', 'control_repeat_until'];
 
-let within = (x, range) => x >= range[0] && x <= range[1];
-
 module.exports = class {
 
     init() {
         this.requirements = {
-            goodStartPosition: {bool: false, str: 'Bee starts at the beginning of the track.'},
-            handlesDownArrow: {bool:false, str:'Bee has an event block for the down arrow.'},
-            downArrowCostumeChange: {bool:false, str:'Bee changes costume on the down arrow.'},
-            downArrowWaitBlock: {bool:false, str:'Bee wait block on down arrow.'},
-            handlesSpaceBar: {bool:false, str:'Bee has an event block for the space bar.'},
-            spaceBarLoop: {bool:false, str:'Bee loops on the space bar event.'},
-            spaceBarMovement: {bool:false, str:'Bee moves within the loop.'},
-            spaceBarCostumeChange: {bool:false, str:'Bee changes costume within the loop.'},
-            spaceBarWaitBlock: {bool:false, str:'Bee has a wait block within the loop.'},
-            beeFinishes: {bool:false, str:'Bee reaches the finish line through animation.'}
+            handlesDownArrow: {bool:false, str:'Both racing sprites have an event block for the down arrow.'},
+            downArrowCostumeChange: {bool:false, str:'Both racing sprites switch costumes on the down arrow.'},
+            downArrowWaitBlock: {bool:false, str:'Both racing sprites have a wait block on down arrow.'},
+            bugFixed: {bool:false, str:'Bug fixed: both racing sprites finish the race when the space bar is pressed.'}
         };
-        // this.extensions = {
-        //     HasWinner: {bool: false, str:'There is a true winner to the race.'},
-        //     WinnerVictoryDanceCostume: {bool:false, str:'Winner changes costume during victory dance.'},
-        //     WinnerVictoryDanceTurn: {bool:false, str:'Winner uses turn block during victory dance.'},
-        //     BeeWiggle: {bool:false, str:'Made the Bee take a wiggly path.'},
-        //     AddedKangaroo: {bool:false, str:'Added Kangaroo.'},
-        //     KangarooHop: {bool:false, str:'Made the Kangaroo hop.'},       
-        //     AddedFourthSprite: {bool: false, str: 'Added a sprite'},
-        //     AnimatedFourthSprite: {bool: false, str: 'Animated the addded sprite'}
-        // };
+        this.extensions = {
+            HasWinner: {bool: false, str:'There is a true winner to the race.'},
+            wigglyPath: {bool: false, str: 'A sprite moves in a wiggly path.'},
+            showFourthSprite: {bool: false, str: 'The fourth sprite is shown and animated'},
+            animateNewSprite: {bool: false, str: 'A new sprite animated'}
+        };
+    }
+
+    strandIdentifier() {
+        this.strand = null;
+
+
+
+
+
     }
 
     grade(fileObj, user) {
-        this.init()
+        this.init();
         const project = new Project(fileObj);
 
         // iterate through sprites, compute a report for each, and add that to an array
@@ -4264,35 +4185,15 @@ module.exports = class {
         let reports = project.sprites.map(sprite => this.gradeSprite(sprite));
 
         // sort from highest to lowest score
-        reports = reports.sort((a, b) => b.score - a.score);
-        
-        // filter to those that were identified as a bee
-        let beeishReports = reports.filter(report => report.likelyName === 'bee')
-        
-        // if for some reason they have sprites that can do all of the things required, 
-        // but are visibly unlike the default ones
-        for (let n in [2, 3])
-            if (reports.length >= n && !['bee', 'monkey', 'snake'].includes(reports[n].likelyName)) {
-                beeishReports.push(reports[n]);
-                break;
-            }
-        // re-sort
-        beeishReports.sort((a, b) => b.score - a.score);
+        let racingSprites = reports.filter(r => r.space.handles && r.down.handles);
+        console.log(racingSprites);
+        this.requirements.handlesDownArrow.bool = racingSprites.length >= 2;
+        this.requirements.downArrowCostumeChange.bool = racingSprites.filter(r => r.down.costume).length >= 2;
+        this.requirements.downArrowWaitBlock.bool = racingSprites.filter(r => r.down.wait).length >= 2;
+        this.requirements.bugFixed.bool = racingSprites.filter(r => r.stats.finished).length >= 2;
 
-        // scores sprite most likely to be a bee, or the best bee, if there are multiple
-        if (beeishReports.length >= 1) {
-            const bee = beeishReports[0];
-            this.requirements.goodStartPosition.bool = is(bee.stats.start);
-            this.requirements.handlesDownArrow.bool = bee.down.handles;
-            this.requirements.downArrowCostumeChange.bool = bee.down.costume;
-            this.requirements.downArrowWaitBlock.bool = bee.down.wait;
-            this.requirements.handlesSpaceBar.bool = bee.space.handles;
-            this.requirements.spaceBarLoop.bool = bee.space.loop;
-            this.requirements.spaceBarMovement.bool = bee.space.move;
-            this.requirements.spaceBarCostumeChange.bool = bee.space.costume;
-            this.requirements.spaceBarWaitBlock.bool = bee.space.wait;
-            this.requirements.beeFinishes.bool = bee.stats.finished;
-        }
+        this.extensions.wigglyPath.bool = racingSprites.filter(r => r.stats.wiggle).length > 0
+    
         // sort by speed
         reports.sort((a, b) => b.stats.speed - a.stats.speed);
         reports = reports.filter(r => r.stats.finished);
@@ -4300,66 +4201,53 @@ module.exports = class {
     }    
     // helper method for grading each sprite
     gradeSprite(sprite) {
-        
-        // checks if sprites name or costume names allude to any of the default sprites
-        let nameScores = {bee: 0, snake: 0, monkey: 0, kangaroo: 0};
+        let stats = {start: null, loops: {}, wiggle: false};
+        let down = {handles: false, wait: false, costume: false};
+        let space = {handles: false, loop: false, wait: false, move: false, costume: false};
 
-        for (let givenSprite of Object.keys(nameScores)) {
-            if (sprite.costumes.map(c => c.name).some(name => name.toLowerCase().includes(givenSprite)))
-                nameScores[givenSprite]++;
-            if (sprite.name.toLowerCase().includes(givenSprite))
-                nameScores[givenSprite]++;
-        }
-        // start checking off requirements. firstly, what the start position was
-        // additionally, check if the default positions are met
-        let stats = {start: null, speed: {}, finished: {}, wiggle: false};
-        
         for (let script of sprite.scripts.filter(s => s.blocks[0].opcode === 'event_whenflagclicked'))
             script.traverseBlocks((block, level) => {
                 if (block.opcode === 'motion_gotoxy') {
-                    // checks if sprite starts before finish line
-                    if (within(block.inputs.X[1][1], [-271, 115]))
-                        stats.start = block.inputs.X[1][1];
-                    // checks default start positions
-                    const defaultPositions = {bee: [-174, -10], snake: [-211, -133], monkey: [-12, 83]}
-                    for (const [name, pos] of Object.entries(defaultPositions)) {
-                        if (block.inputs.X[1][1] === pos[0]) nameScores[name]++;
-                        if (block.inputs.Y[1][1] === pos[1]) nameScores[name]++;
-                    }
+                    stats.start = block.inputs.X[1][1];
                 }
             });
+        if (!stats.start) {
+            stats.start = sprite.x;
+        }
         // iterating through each script, checking if the sprite meets the requirements for
         // the down arrow and space key events
-        let space = {handles: false, loop: false, wait: false, move: false, costume: false};
-        let down = {handles: false, wait: false, costume: false};
 
-        for (let script of sprite.scripts.filter(s => s.blocks[0].opcode=== 'event_whenkeypressed')) {
-            let event = script.blocks[0];
-            let eventID = event.id;
-            let key = event.fields.KEY_OPTION[0];
-            stats.speed[eventID] = stats.finished[eventID] = {};
+        for (let script of sprite.scripts.filter(s => s.blocks[0].opcode === 'event_whenkeypressed')) {
+            let key = script.blocks[0].fields.KEY_OPTION[0];
             
             if (key === 'space') {
                 space.handles = true;
                 script.traverseBlocks((block, level) => {
-                    //check for loop
                     if(loops.includes(block.opcode)) {
                         space.loop = true;
-                        stats.speed[eventID].repeats = (block.opcode === 'control_repeat') ? Number(block.inputs.TIMES[1][1]) : 1000000;
+                        let loopID = block.id;
+                        stats.loops[loopID] = {
+                            repeats: (block.opcode === 'control_repeat') ? Number(block.inputs.TIMES[1][1]) : 1000000,
+                            wait: 0,
+                            move: 0
+                        };
                     } else if (level > 1) {
                         if (block.opcode == 'control_wait') {
                             space.wait = true;
-                            stats.speed[eventID].wait = Number(block.inputs.DURATION[1][1]);
+                            stats.loops[block.within.id].wait = Number(block.inputs.DURATION[1][1]);
                         } else if (block.opcode.includes('motion_turn')) {
                             stats.wiggle = true;
                         } else if (block.opcode == 'motion_movesteps') {
                             space.move = true;
-                            stats.speed[eventID].move = Number(block.inputs.STEPS[1][1]);
+                            stats.loops[block.within.id].move = Number(block.inputs.STEPS[1][1]);
                         } else if (['looks_switchcostumeto', 'looks_nextcostume'].includes(block.opcode)) {
                             space.costume = true;
                         }
+                    } else if (block.opcode === 'looks_sayforsecs' && block.inputs.MESSAGE[1][1] === 'Go!') {
+                        space.handles = false;
                     }
-                }, loops);
+                    
+                });
             } else if (key === 'down arrow') {
                 down.handles = true;
                 script.traverseBlocks((block, level) => {
@@ -4373,24 +4261,17 @@ module.exports = class {
         }
         // calculating speed and whether the sprite crossed the finish line from wait, move, and repeat blocks
         // accounts for multiple loops
-        const calc = (func) => Object.values(stats.speed).reduce((sum, s) => 
+        const calc = (func) => Object.values(stats.loops).reduce((sum, s) => 
             (Object.keys(s).length === 3) ? sum + func(s) : sum, 0);
-        
+
         stats.finished = calc(s => s.move * s.repeats) > 119 - stats.start;
         stats.speed = calc(s => s.move / s.wait);
-
-        // summing all true values in the report
-        let score = Number(is(stats.start));
-        score += Object.values(space).concat(Object.values(down)).reduce((sum, val) => sum + Number(val), 0);
-        score += Number(is(stats.finished));
-        
-        let likelyName = Object.entries(nameScores).reduce((ret, nameScore) => (ret[1] > nameScore[1]) ? ret : nameScore, [null, 0])[0];
-
-        return {score, likelyName, space, down, stats};
+        console.log(stats.loops);
+        return {name: sprite.name, space, down, stats};
     }
 }
 
-},{"./scratch3":29}],16:[function(require,module,exports){
+},{"./scratch3":31}],16:[function(require,module,exports){
 /* Animation L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and minor bug fixes: Marco Anaya, Summer 2019
@@ -4534,7 +4415,7 @@ module.exports = class {
         this.extensions.moreThanOneAnimation.bool = (this.animationTypes.length > 1)
     }
 }
-},{"./scratch3":29}],17:[function(require,module,exports){
+},{"./scratch3":31}],17:[function(require,module,exports){
 /* Complex Conditionals L1(TIPP&SEE Modify) Autograder
  * Scratch 3 (original) version: Anna Zipp, Summer 2019
  */
@@ -4776,7 +4657,7 @@ module.exports = class {
         }
     }    
 }
-},{"./scratch3":29}],18:[function(require,module,exports){
+},{"./scratch3":31}],18:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -4890,7 +4771,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":29}],19:[function(require,module,exports){
+},{"./scratch3":31}],19:[function(require,module,exports){
 /* Conditional Loops L2 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -4970,7 +4851,7 @@ module.exports = class {
 }
 
 
-},{"../grading-scripts-s3/scratch3":29}],20:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":31}],20:[function(require,module,exports){
 (function (global){
 /// Info layer template
 global.Context = class {
@@ -5316,7 +5197,7 @@ module.exports = class {
     }    
 }
 
-},{"./scratch3":29}],22:[function(require,module,exports){
+},{"./scratch3":31}],22:[function(require,module,exports){
 /* Decomposition by Sequence L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -5559,70 +5440,216 @@ module.exports = class {
         }
     }
 }
-},{"./scratch3":29}],23:[function(require,module,exports){
+},{"./scratch3":31}],23:[function(require,module,exports){
 require('./scratch3');
 
-module.exports = class {
+module.exports = class GradeEventsL1 {
 
-    init() {
-        this.requirements = {
-            reactToClick: { bool: false, str: 'Three sprites react to being clicked.'                          },
-            getBigger:    { bool: false, str: 'Three sprites get bigger when clicked.'                         },
-            talkTwice:    { bool: false, str: 'After getting bigger the sprites talk twice.'                  },
-            resetSize:    { bool: false, str: 'After talking twice the sprites reset to their original size.' }
-        };
-        this.extensions = {
-            changedName:  { bool: false, str: 'At least one sprite\'s name has been changed.'                  },
-            addedSpin:    { bool: false, str: 'At least one sprite spins using turn and wait blocks.'          },
-            addedEvent:   { bool: false, str: 'At least one sprite reacts to a different event.'               }
-        };
-    }
-
-    grade(json, user) {
-        this.init();
-        if (no(json)) return;
-        var project = new Project(json, this);
-        for (var sprite of project.sprites) {
-            for (var script of sprite.scripts.filter(script => script.blocks[0].opcode.includes('event_when'))) {
-                script.context.spriteSize = script.context.initialSpriteSize = parseFloat(sprite.size);
-                for (var block of script.blocks) {
-                    if (block.opcode === 'looks_changesizeby') {
-                        if (block.inputs.CHANGE[1][1] > 0) script.context.getBigger = 1;
-                        script.context.spriteSize += parseFloat(block.inputs.CHANGE[1][1]);
+    /// Identify all subscripts of a block, recursively.
+    subscriptsRecursive(block, array) {
+        if (block.subscripts.length) {
+            for (var subscript of block.subscripts) {
+                array.push(subscript);
+                if (subscript.blocks.length) {
+                    for (var block_ of subscript.blocks) {
+                        this.subscriptsRecursive(block_, array);
                     }
-                    else if (block.opcode === 'looks_setsizeto') {
-                        if (block.inputs.SIZE[1][1] > script.context.initialSpriteSize) script.context.getBigger = 1;
-                        script.context.spriteSize = parseFloat(block.inputs.SIZE[1][1]);
-                    }
-                    if (block.opcode.includes('looks_say') && script.context.spriteSize > script.context.initialSpriteSize) {
-                        script.context.talkTwice++;
-                    }
-                }
-                if (script.context.getBigger && Math.abs(script.context.spriteSize - script.context.initialSpriteSize) < 0.05) {
-                    script.context.resetSize = 1;
-                }
-                if (script.blocks[0].opcode === 'event_whenthisspriteclicked' && script.blocks.length > 1) {
-                    script.context.reactToClick = 1;
-                }
-                else if (script.blocks[0].opcode !== 'event_whenflagclicked' && script.blocks.length > 1) {
-                    script.context.addedEvent = 1;
-                }
-                if (script.blocks.some(block => block.opcode.includes('motion_turn')) &&
-                        script.blocks.some(block => block.opcode === 'control_wait')) {
-                    script.context.addedSpin = 1;
                 }
             }
-            sprite.context.changedName = !['Left', 'Middle', 'Right', 'Catrina'].includes(sprite.name);
-            sprite.context.pull(['reactToClick', 'getBigger', 'resetSize', 'addedEvent', 'addedSpin'], 1, false);
-            sprite.context.pull(['talkTwice'], 2, false);
         }
-        project.context.pull(['reactToClick', 'getBigger', 'talkTwice', 'resetSize'], 3, true);
-        project.context.pull(['changedName', 'addedSpin', 'addedEvent'], 1, false);
-        project.context.makeGrade(this);
+        return array;
+    }
+
+    /// Counts the number of sprites that get larger, speak, and reset size when clicked.
+    clickPassing(project) {
+        var spritesPassing = 0;
+        for (var sprite of project.sprites) {
+            var scriptsPassing = 0;
+            for (var script of sprite.scripts.filter(
+                script => script.blocks[0].opcode === 'event_whenthisspriteclicked' && script.blocks.length > 1
+            )) {
+                var spriteSize = parseFloat(sprite.size);
+                var initialSpriteSize = spriteSize;
+                var gotBigger = false;
+                var spoke = false;
+                var reset = false;
+                for (var block of script.blocks) {
+                    if (block.opcode === 'looks_changesizeby') {
+                        if (block.inputs.CHANGE[1][1] > 0) gotBigger = true;
+                        spriteSize += parseFloat(block.inputs.CHANGE[1][1]);
+                    }
+                    else if (block.opcode === 'looks_setsizeto') {
+                        if (block.inputs.SIZE[1][1] > initialSpriteSize) gotBigger = true;
+                        spriteSize = parseFloat(block.inputs.SIZE[1][1]);
+                    }
+                    else if (block.opcode.includes('looks_say') && spriteSize > initialSpriteSize) spoke = true;
+                }
+                if (gotBigger && Math.abs(spriteSize - initialSpriteSize) < 0.05) reset = true;
+                if (gotBigger && spoke && reset) scriptsPassing++;
+            }
+            if (scriptsPassing > 0) spritesPassing++;
+        }
+        return spritesPassing;
+    }
+
+    /// Counts the number of sprites with a correctly modeled green flag script.
+    greenFlagPassing(project) {
+        var spritesPassing = 0;
+        for (var sprite of project.sprites) {
+            var scriptsPassing = 0;
+            for (var script of sprite.scripts.filter(
+                script => script.blocks[0].opcode === 'event_whenflagclicked' && script.blocks.length > 1
+            )) {
+                var containsGoTo = false;
+                var containsSetSize = false;
+                for (var block of script.blocks) {
+                    if (block.opcode === 'motion_gotoxy' || this.strand === 'multicultural')  containsGoTo = true;
+                    if (block.opcode === 'looks_setsizeto') containsSetSize = true;
+                }
+                if (containsGoTo && containsSetSize) scriptsPassing++;
+            }
+            if (scriptsPassing > 0) spritesPassing++;
+        }
+        return spritesPassing;
+    }
+
+    /// Counts the number of sprites with a correct right or left arrow script.
+    keyPassing(project, directionString) {
+        var spritesPassing = 0;
+        for (var sprite of project.sprites) {
+            var scriptsPassing = 0;
+            for (var script of sprite.scripts.filter(
+                script => script.blocks[0].opcode === 'event_whenkeypressed' && script.blocks.length > 1
+            )) {
+                var containsMove = false;
+                for (var block of script.blocks) {
+                    if (block.opcode === 'motion_movesteps') {
+                        var key = script.blocks[0].fields.KEY_OPTION[0];
+                        var steps = block.inputs.STEPS[1][1];
+                        if (directionString === 'left' && key === 'left arrow' && steps < 0) containsMove = true;
+                        else if (directionString === 'right' && key === 'right arrow' && steps > 0) containsMove = true;
+                    }
+                    if (directionString === 'any' && block.opcode.includes('motion_')) containsMove = true;
+                }
+                if (containsMove) scriptsPassing++;
+            }
+            if (scriptsPassing > 0) spritesPassing++;
+        }
+        return spritesPassing;
+    }
+
+    /// Counts the number of sprites that spin around using turn and wait blocks in a loop.
+    spinPassing(project) {
+        var spritesPassing = 0;
+        for (var sprite of project.sprites) {
+            var scriptsPassing = 0;
+            for (var script of sprite.scripts.filter (
+                script => script.blocks[0].opcode.includes('event_when') && script.blocks.length > 1
+            )) {
+                var containsSpin = false;
+                for (var block of script.blocks) {
+                    if (['control_repeat', 'control_repeat_until', 'control_forever'].includes(block.opcode)) {
+                        var subscripts = [];
+                        subscripts = this.subscriptsRecursive(block, subscripts);
+                        var containsTurn = false;
+                        var containsWait = false;
+                        for (var subscript of subscripts) {
+                            for (var block of subscript.blocks) {
+                                if (block.opcode.includes('motion_turn')) containsTurn = true;
+                                else if (block.opcode === 'control_wait') containsWait = true;
+                            }
+                        }
+                        if (containsTurn && containsWait) containsSpin = true;
+                    }
+                }
+                if (containsSpin) scriptsPassing++;
+            }
+            if (scriptsPassing > 0) spritesPassing++;
+        }
+        return spritesPassing;
+    }
+
+    /// Counts the number of sprites with changed names.
+    namePassing(project) {
+        var defaultNames = [];
+        if (this.strand === 'multicultural') defaultNames = ['Catrina', 'Left', 'Middle', 'Right'];
+        else if (this.strand === 'youthCulture') defaultNames = ['Jamal', 'Monster', 'Cat'];
+        else if (this.strand === 'gaming') defaultNames = ['Beep', 'Bop', 'Planet X', 'Bork'];
+        var spritesPassing = 0;
+        for (var sprite of project.sprites) {
+            if (!defaultNames.includes(sprite.name)) spritesPassing++;
+        }
+        return spritesPassing;
+    }
+
+    /// Evaluate the completion of the requirements and extensions for a given JSON representation of a project.
+    grade(json, user) {
+        if (no(json)) {
+            this.requirements = {
+                noFile: {
+                    bool: false,
+                    str: 'File not valid.'
+                }
+            }
+            return;
+        };
+        var project = new Project(json, this);
+        this.requirements = {};
+        this.extensions = {};
+        var templates = {
+            multicultural: require('./templates/events-L1-multicultural'),
+            youthCulture:  require('./templates/events-L1-youth-culture'),
+            gaming:        require('./templates/events-L1-gaming')
+        };
+        this.strand = detectStrand(project, templates);
+        console.log(this.strand);
+        this.requirements.click1 = {
+            bool: this.clickPassing(project) >= 1,
+            str: 'One sprite gets larger, speaks, and goes back to its original size when clicked.'
+        };
+        this.requirements.click2 = {
+            bool: this.clickPassing(project) >= 2,
+            str: 'Two sprites get larger, speak, and go back to their original sizes when clicked.'
+        };
+        this.requirements.click3 = {
+            bool: this.clickPassing(project) >= 3,
+            str: 'Three sprites get larger, speak, and go back to their original sizes when clicked.'
+        };
+        this.requirements.greenFlag = {
+            bool: this.greenFlagPassing(project) >= 3,
+            str: 'These three sprites all reset their sizes when the green flag is clicked.'
+        };
+        this.extensions.spin = {
+            bool: this.spinPassing(project) >= 1,
+            str: 'At least one sprite spins around using turn and wait blocks in a loop.'
+        };
+        if (this.strand === 'multicultural') {
+            this.extensions.name = {
+                bool: this.namePassing(project) >= 1,
+                str: 'At least one sprite\'s name has been customized.'
+            };
+        }
+        else if (this.strand === 'youthCulture') {
+            this.extensions.key = {
+                bool: this.keyPassing(project, 'left') >= 1,
+                str: 'The cat moves to the left when the left arrow key is pressed.'
+            };
+        }
+        else if (this.strand === 'gaming') {
+            this.requirements.key = {
+                bool: this.keyPassing(project, 'right') >= 1,
+                str: 'Bop moves to the right when the right arrow key is pressed.'
+            };
+            this.extensions.key = {
+                bool: this.keyPassing(project, 'left') >= 1,
+                str: 'Bork moves to the left when the left arrow key is pressed.'
+            }
+        }
+        return;z
     }
 }
 
-},{"./scratch3":29}],24:[function(require,module,exports){
+},{"./scratch3":31,"./templates/events-L1-gaming":32,"./templates/events-L1-multicultural":33,"./templates/events-L1-youth-culture":34}],24:[function(require,module,exports){
 /* Events L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and bug fixes: Marco Anaya, Summer 2019
@@ -5803,7 +5830,11 @@ module.exports = class {
         
     }
 } 
-},{"./scratch3":29}],25:[function(require,module,exports){
+},{"./scratch3":31}],25:[function(require,module,exports){
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b0bddaf727e6bb95131290ae2549ac4","name":"background3","bitmapResolution":2,"md5ext":"2b0bddaf727e6bb95131290ae2549ac4.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Carl the Cloud","variables":{},"lists":{},"broadcasts":{},"blocks":{"*bF;3|^5/zs4N0xR-o)Z":{"opcode":"event_whenflagclicked","next":"0*OA)5OE]%a]*%IA%B{6","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":18,"y":46},"0*OA)5OE]%a]*%IA%B{6":{"opcode":"motion_gotoxy","next":"`4;L4Q?o6CqFmdbH?:ms","parent":"*bF;3|^5/zs4N0xR-o)Z","inputs":{"X":[1,[4,"-200"]],"Y":[1,[4,"80"]]},"fields":{},"shadow":false,"topLevel":false},"`4;L4Q?o6CqFmdbH?:ms":{"opcode":"motion_movesteps","next":"ksrg)n@E2SyN{;oWEX7E","parent":"0*OA)5OE]%a]*%IA%B{6","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"ksrg)n@E2SyN{;oWEX7E":{"opcode":"looks_sayforsecs","next":"ahLTJjNBf`+1#.[qNZE4","parent":"`4;L4Q?o6CqFmdbH?:ms","inputs":{"MESSAGE":[1,[10,"Hello!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"ahLTJjNBf`+1#.[qNZE4":{"opcode":"motion_movesteps","next":"d7d]Z%r*QDEp-ajssm0T","parent":"ksrg)n@E2SyN{;oWEX7E","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"d7d]Z%r*QDEp-ajssm0T":{"opcode":"looks_sayforsecs","next":"=n_7]#{Cxj6pf!BUV,OP","parent":"ahLTJjNBf`+1#.[qNZE4","inputs":{"MESSAGE":[1,[10,"Welcome to Scratch!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"=n_7]#{Cxj6pf!BUV,OP":{"opcode":"motion_movesteps","next":"8K5Ak(+XsZvwjx2V0~D)","parent":"d7d]Z%r*QDEp-ajssm0T","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"8K5Ak(+XsZvwjx2V0~D)":{"opcode":"looks_sayforsecs","next":null,"parent":"=n_7]#{Cxj6pf!BUV,OP","inputs":{"MESSAGE":[1,[10,"Click the Space Bar to see Helen the Amazing Color Changing Hedgehog."]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"be898107fe99d3c8a66152520abfcc9b","name":"costume1","bitmapResolution":2,"md5ext":"be898107fe99d3c8a66152520abfcc9b.png","dataFormat":"png","rotationCenterX":80,"rotationCenterY":57}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-50,"y":80,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Helen the Hedgehog","variables":{},"lists":{},"broadcasts":{},"blocks":{"XYmoOsQpwwb~bRU[WtDb":{"opcode":"event_whenkeypressed","next":"NX*(%@1qK}o{lJ)1dp(L","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":56,"y":66},"NX*(%@1qK}o{lJ)1dp(L":{"opcode":"looks_switchcostumeto","next":"A*?(6=CMw!5NQvy3GoJz","parent":"XYmoOsQpwwb~bRU[WtDb","inputs":{"COSTUME":[1,"uxs{_T(3Fk%RETANj%^X"]},"fields":{},"shadow":false,"topLevel":false},"uxs{_T(3Fk%RETANj%^X":{"opcode":"looks_costume","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{},"fields":{"COSTUME":["hedgehog_red",null]},"shadow":true,"topLevel":false},"A*?(6=CMw!5NQvy3GoJz":{"opcode":"control_repeat","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{"TIMES":[1,[6,"6"]],"SUBSTACK":[2,"*i@~ROBKeTP[#l_7v/_-"]},"fields":{},"shadow":false,"topLevel":false},"*i@~ROBKeTP[#l_7v/_-":{"opcode":"control_wait","next":"MkZ9YIg7M,WuN@FR]l:o","parent":"A*?(6=CMw!5NQvy3GoJz","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"MkZ9YIg7M,WuN@FR]l:o":{"opcode":"looks_nextcostume","next":null,"parent":"*i@~ROBKeTP[#l_7v/_-","inputs":{},"fields":{},"shadow":false,"topLevel":false},"3?,1QT}D[0#@^jvT!J*^":{"opcode":"event_whenthisspriteclicked","next":"gPD.*ilWONI2U7F-SE[}","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":51,"y":455},"gPD.*ilWONI2U7F-SE[}":{"opcode":"looks_sayforsecs","next":null,"parent":"3?,1QT}D[0#@^jvT!J*^","inputs":{"MESSAGE":[1,[10,"Ouch!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"6a7187ad3551e84cd59e1afc3def9e33","name":"hedgehog_red","bitmapResolution":2,"md5ext":"6a7187ad3551e84cd59e1afc3def9e33.png","dataFormat":"png","rotationCenterX":11,"rotationCenterY":128},{"assetId":"7aa13cc8e70535af7ce3eb7e2c837ac9","name":"hedgehog_orange","bitmapResolution":2,"md5ext":"7aa13cc8e70535af7ce3eb7e2c837ac9.png","dataFormat":"png","rotationCenterX":13,"rotationCenterY":129},{"assetId":"26cd02f23af4877b70065edd86d0654a","name":"hedgehog_yellow","bitmapResolution":2,"md5ext":"26cd02f23af4877b70065edd86d0654a.png","dataFormat":"png","rotationCenterX":12,"rotationCenterY":130},{"assetId":"6d13e86dd79531c19d03c25cdee8bee5","name":"hedgehog_green","bitmapResolution":2,"md5ext":"6d13e86dd79531c19d03c25cdee8bee5.png","dataFormat":"png","rotationCenterX":13,"rotationCenterY":128},{"assetId":"4047bdbf75d8b7076268f7779b833d18","name":"hedgehog_blue","bitmapResolution":2,"md5ext":"4047bdbf75d8b7076268f7779b833d18.png","dataFormat":"png","rotationCenterX":12,"rotationCenterY":128},{"assetId":"7b435be3a639d4d937c9653fbb72382d","name":"hedgehog_purple","bitmapResolution":2,"md5ext":"7b435be3a639d4d937c9653fbb72382d.png","dataFormat":"png","rotationCenterX":13,"rotationCenterY":129}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":99,"y":-50.99999999999998,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[{"id":"undefined_costumenumbername_number","mode":"default","opcode":"looks_costumenumbername","params":{"NUMBER_NAME":"number"},"spriteName":"Helen","value":"","width":0,"height":0,"x":5,"y":5,"visible":false,"sliderMin":0,"sliderMax":100,"isDiscrete":true}],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
+},{}],26:[function(require,module,exports){
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"e6bf56f64eb4e7e6c97ec6c97e90d023","name":"Holi Background","bitmapResolution":1,"md5ext":"e6bf56f64eb4e7e6c97ec6c97e90d023.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Neha","variables":{},"lists":{},"broadcasts":{},"blocks":{"6*c`Xv=UPZ2te:JB2+U*":{"opcode":"event_whenflagclicked","next":"1,sGaB#:WD/!fp4ecgw=","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-67,"y":-587},"1,sGaB#:WD/!fp4ecgw=":{"opcode":"motion_gotoxy","next":"0*gfG!}+dNBRamr1EdBt","parent":"6*c`Xv=UPZ2te:JB2+U*","inputs":{"X":[1,[4,"28"]],"Y":[1,[4,"-51"]]},"fields":{},"shadow":false,"topLevel":false},"0*gfG!}+dNBRamr1EdBt":{"opcode":"looks_switchcostumeto","next":"y;SD_2:1H=d-=o]rf3Nq","parent":"1,sGaB#:WD/!fp4ecgw=","inputs":{"COSTUME":[1,"-XUo5ONrDRD76UyvwKL?"]},"fields":{},"shadow":false,"topLevel":false},"-XUo5ONrDRD76UyvwKL?":{"opcode":"looks_costume","next":null,"parent":"0*gfG!}+dNBRamr1EdBt","inputs":{},"fields":{"COSTUME":["Neha1",null]},"shadow":true,"topLevel":false},"y;SD_2:1H=d-=o]rf3Nq":{"opcode":"control_wait","next":"#;GgQ}*l)tV4E{1NPadV","parent":"0*gfG!}+dNBRamr1EdBt","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"#;GgQ}*l)tV4E{1NPadV":{"opcode":"looks_sayforsecs","next":"GBVU3I7+QD=TSfHx]bhU","parent":"y;SD_2:1H=d-=o]rf3Nq","inputs":{"MESSAGE":[1,[10,"Hi, I'm Neha!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"GBVU3I7+QD=TSfHx]bhU":{"opcode":"looks_sayforsecs","next":"lTPM~|:Xs,_if#cv*}5O","parent":"#;GgQ}*l)tV4E{1NPadV","inputs":{"MESSAGE":[1,[10,"We are celebrating Holi, a traditional Hindu festival from India!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false},"lTPM~|:Xs,_if#cv*}5O":{"opcode":"looks_sayforsecs","next":"n%]__?|Z8]rI5Nb?gViq","parent":"GBVU3I7+QD=TSfHx]bhU","inputs":{"MESSAGE":[1,[10,"We use colorful powders and pastes to celebrate the beginning of Spring!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false},"n%]__?|Z8]rI5Nb?gViq":{"opcode":"looks_sayforsecs","next":",M3195%JsXVXc(d1Zg:L","parent":"lTPM~|:Xs,_if#cv*}5O","inputs":{"MESSAGE":[1,[10,"I'm holding some gulal!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},",M3195%JsXVXc(d1Zg:L":{"opcode":"looks_sayforsecs","next":null,"parent":"n%]__?|Z8]rI5Nb?gViq","inputs":{"MESSAGE":[1,[10,"Press the space bar to meet my friends!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},"|0_-JyE+)[h*:1fdtiA4":{"opcode":"event_whenthisspriteclicked","next":"^oA(iul1kHd(0wr^6Bw{","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-69,"y":-82},"^oA(iul1kHd(0wr^6Bw{":{"opcode":"looks_switchcostumeto","next":"|7PoJdXk{ra2Uw|t`GbT","parent":"|0_-JyE+)[h*:1fdtiA4","inputs":{"COSTUME":[1,"N9bZPF:pJOq6u.zxph*s"]},"fields":{},"shadow":false,"topLevel":false},"N9bZPF:pJOq6u.zxph*s":{"opcode":"looks_costume","next":null,"parent":"^oA(iul1kHd(0wr^6Bw{","inputs":{},"fields":{"COSTUME":["Neha1",null]},"shadow":true,"topLevel":false},"|7PoJdXk{ra2Uw|t`GbT":{"opcode":"looks_sayforsecs","next":"Om]!9q+lw!s+4zF:/CG!","parent":"^oA(iul1kHd(0wr^6Bw{","inputs":{"MESSAGE":[1,[10,"3..."]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"Om]!9q+lw!s+4zF:/CG!":{"opcode":"looks_sayforsecs","next":"J6bm|w{z^q-RA%hf)afc","parent":"|7PoJdXk{ra2Uw|t`GbT","inputs":{"MESSAGE":[1,[10,"2..."]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"J6bm|w{z^q-RA%hf)afc":{"opcode":"looks_sayforsecs","next":"dBNdJtA%:m:n8TAUuL^K","parent":"Om]!9q+lw!s+4zF:/CG!","inputs":{"MESSAGE":[1,[10,"1!"]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"dBNdJtA%:m:n8TAUuL^K":{"opcode":"control_repeat","next":"GV:wKN`D#AUVaKS?5jmD","parent":"J6bm|w{z^q-RA%hf)afc","inputs":{"TIMES":[1,[6,"4"]],"SUBSTACK":[2,"x@m(|CWR`%*`#b~;!2OT"]},"fields":{},"shadow":false,"topLevel":false},"x@m(|CWR`%*`#b~;!2OT":{"opcode":"control_wait","next":".Z=GpTw~p|F,B38JSn^t","parent":"dBNdJtA%:m:n8TAUuL^K","inputs":{"DURATION":[1,[5,"0.7"]]},"fields":{},"shadow":false,"topLevel":false},".Z=GpTw~p|F,B38JSn^t":{"opcode":"looks_nextcostume","next":null,"parent":"x@m(|CWR`%*`#b~;!2OT","inputs":{},"fields":{},"shadow":false,"topLevel":false},"GV:wKN`D#AUVaKS?5jmD":{"opcode":"looks_say","next":null,"parent":"dBNdJtA%:m:n8TAUuL^K","inputs":{"MESSAGE":[1,[10,"Happy Holi!"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"588e1905e5323f75328276def2ac0116","name":"Neha1","bitmapResolution":1,"md5ext":"588e1905e5323f75328276def2ac0116.svg","dataFormat":"svg","rotationCenterX":45.99999113010236,"rotationCenterY":87},{"assetId":"8a174573e7d4a7885954acd2afad19ea","name":"Neha2","bitmapResolution":1,"md5ext":"8a174573e7d4a7885954acd2afad19ea.svg","dataFormat":"svg","rotationCenterX":123.41460248739168,"rotationCenterY":114.40293820688679},{"assetId":"500b791f9f077dd2377bc56033912b9a","name":"Neha3","bitmapResolution":1,"md5ext":"500b791f9f077dd2377bc56033912b9a.svg","dataFormat":"svg","rotationCenterX":133.59915850034727,"rotationCenterY":174.0481588381853},{"assetId":"c53eeb50bcdf509cb1522d378c9e380b","name":"Neha4","bitmapResolution":1,"md5ext":"c53eeb50bcdf509cb1522d378c9e380b.svg","dataFormat":"svg","rotationCenterX":128.6803772733968,"rotationCenterY":116.40943091603478},{"assetId":"9d660677a26fe0b657bc3e43da838c8e","name":"Neha5","bitmapResolution":1,"md5ext":"9d660677a26fe0b657bc3e43da838c8e.svg","dataFormat":"svg","rotationCenterX":90.9947,"rotationCenterY":85.4763088644717}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":28,"y":-51,"size":139.99999999999997,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Brad","variables":{},"lists":{},"broadcasts":{},"blocks":{"CBEwU.S^!3v*m}+l(2:*":{"opcode":"event_whenflagclicked","next":"R|3)LWe?;VLJtzxlX@8}","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"R|3)LWe?;VLJtzxlX@8}":{"opcode":"motion_gotoxy","next":"9sO:y?e(89=wDBQEX*84","parent":"CBEwU.S^!3v*m}+l(2:*","inputs":{"X":[1,[4,220]],"Y":[1,[4,-13]]},"fields":{},"shadow":false,"topLevel":false},"9sO:y?e(89=wDBQEX*84":{"opcode":"looks_switchcostumeto","next":null,"parent":"R|3)LWe?;VLJtzxlX@8}","inputs":{"COSTUME":[1,"4!H7s8i9Lh.C(?SHMT_O"]},"fields":{},"shadow":false,"topLevel":false},"4!H7s8i9Lh.C(?SHMT_O":{"opcode":"looks_costume","next":null,"parent":"9sO:y?e(89=wDBQEX*84","inputs":{},"fields":{"COSTUME":["Brad1"]},"shadow":true,"topLevel":false},"7rU;-waLK?7n!U94pB].":{"opcode":"event_whenkeypressed","next":"BYyQeX2S2e2l[UHn#0bq","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":32,"y":304},"BYyQeX2S2e2l[UHn#0bq":{"opcode":"motion_movesteps","next":"SpljqntHJxfGDV;.4%#M","parent":"7rU;-waLK?7n!U94pB].","inputs":{"STEPS":[1,[4,-64]]},"fields":{},"shadow":false,"topLevel":false},"SpljqntHJxfGDV;.4%#M":{"opcode":"looks_sayforsecs","next":"m+[^4mRsSN%SjOXJ}+_t","parent":"BYyQeX2S2e2l[UHn#0bq","inputs":{"MESSAGE":[1,[10,"Hello, I'm Brad!"]],"SECS":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"m+[^4mRsSN%SjOXJ}+_t":{"opcode":"looks_sayforsecs","next":null,"parent":"SpljqntHJxfGDV;.4%#M","inputs":{"MESSAGE":[1,[10,"I'm holding a pichkari, a water squirter filled with colored water!"]],"SECS":[1,[4,6]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"dae278db1e4c65e9b70d966aa9a40429","name":"Brad1","bitmapResolution":1,"md5ext":"dae278db1e4c65e9b70d966aa9a40429.svg","dataFormat":"svg","rotationCenterX":37.99999373388661,"rotationCenterY":86.99998370205938}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":220,"y":-13,"size":135.00000000000003,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Kristen","variables":{},"lists":{},"broadcasts":{},"blocks":{"[M~hMK`q/NYs#*-;ZiuH":{"opcode":"event_whenflagclicked","next":"H~_UJ8~bO+^zXvT^^^le","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"H~_UJ8~bO+^zXvT^^^le":{"opcode":"motion_gotoxy","next":"@DsqwPSbeqW_?Pi{uYT]","parent":"[M~hMK`q/NYs#*-;ZiuH","inputs":{"X":[1,[4,-215]],"Y":[1,[4,-13]]},"fields":{},"shadow":false,"topLevel":false},"@DsqwPSbeqW_?Pi{uYT]":{"opcode":"looks_switchcostumeto","next":null,"parent":"H~_UJ8~bO+^zXvT^^^le","inputs":{"COSTUME":[1,"?+RpBU3RL5~YKwsi/rIw"]},"fields":{},"shadow":false,"topLevel":false},"?+RpBU3RL5~YKwsi/rIw":{"opcode":"looks_costume","next":null,"parent":"@DsqwPSbeqW_?Pi{uYT]","inputs":{},"fields":{"COSTUME":["Kristen1"]},"shadow":true,"topLevel":false},"Jf4;4?`|e1udP=94]ErE":{"opcode":"event_whenkeypressed","next":"9aY%RY8/M5ayiAqP@a7U","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":27,"y":261},"9aY%RY8/M5ayiAqP@a7U":{"opcode":"control_wait","next":"Pz:xDRpqyDJNLlR5?;,0","parent":"Jf4;4?`|e1udP=94]ErE","inputs":{"DURATION":[1,[5,"10"]]},"fields":{},"shadow":false,"topLevel":false},"Pz:xDRpqyDJNLlR5?;,0":{"opcode":"motion_movesteps","next":"-n-db;lg-!(lyaGFo;AQ","parent":"9aY%RY8/M5ayiAqP@a7U","inputs":{"STEPS":[1,[4,64]]},"fields":{},"shadow":false,"topLevel":false},"-n-db;lg-!(lyaGFo;AQ":{"opcode":"looks_sayforsecs","next":"4*Ly{a-GE~GGb~khP7#P","parent":"Pz:xDRpqyDJNLlR5?;,0","inputs":{"MESSAGE":[1,[10,"Hi, I'm Kristen!"]],"SECS":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"4*Ly{a-GE~GGb~khP7#P":{"opcode":"looks_sayforsecs","next":"(P/J:UdY/Q,8|p4}V!P=","parent":"-n-db;lg-!(lyaGFo;AQ","inputs":{"MESSAGE":[1,[10,"I'm using squeeze bottles."]],"SECS":[1,[4,4]]},"fields":{},"shadow":false,"topLevel":false},"(P/J:UdY/Q,8|p4}V!P=":{"opcode":"looks_sayforsecs","next":null,"parent":"4*Ly{a-GE~GGb~khP7#P","inputs":{"MESSAGE":[1,[10,"Click on Neha to see her celebrate!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"5c740972a1f49202719b50e896bd0cf6","name":"Kristen1","bitmapResolution":1,"md5ext":"5c740972a1f49202719b50e896bd0cf6.svg","dataFormat":"svg","rotationCenterX":62.000001871426775,"rotationCenterY":87.08308115522249}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-215,"y":-13,"size":135.00000000000003,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
+},{}],27:[function(require,module,exports){
 /* One Way Sync L1 Autograder
  * Marco Anaya, Summer 2019
  */
@@ -5962,7 +5993,7 @@ module.exports = class {
 		return reqs;
 	}
 }
-},{"./scratch3":29}],26:[function(require,module,exports){
+},{"./scratch3":31}],28:[function(require,module,exports){
 /* One Way Sync L2 Autograder
  * Marco Anaya, Summer 2019
  */
@@ -6074,7 +6105,7 @@ module.exports = class {
 	}
 }
 
-},{"./scratch3":29}],27:[function(require,module,exports){
+},{"./scratch3":31}],29:[function(require,module,exports){
 /* Scratch Basics L1 Autograder
 Updated Version: Saranya Turimella, Summer 2019
 */
@@ -6082,63 +6113,347 @@ Updated Version: Saranya Turimella, Summer 2019
 require('../grading-scripts-s3/scratch3')
 
 module.exports = class {
-    constructor() {
+    
+
+    initReqsGaming() {
         this.requirements = {};
         this.extensions = {};
+        this.requirements.addSayCarl = { bool: false, str: 'A say block is added after Carl says "Click the Space Bar to see Helen the Amazing Color Changing Hedgehog' }; // done
+        this.extensions.helenSpeaks = { bool: false, str: 'Helen says something else' }; // done
+        this.extensions.carlMoves = { bool: false, str: 'Carl the Cloud moves 10 steps when he is finished talking' }; // done
     }
 
-    initReqs() {
-        this.requirements.addSay = { bool: false, str: 'A say block is added after a sprite says “Click the Space Bar.”' }
-        this.extensions.addedHelenSpeech = { bool: false, str: 'The sprite that is changing costumes says something else' };
-        this.extensions.carlMoves10Steps = { bool: false, str: "A sprite moves 10 steps when it is finished talking" };
+    initReqsMulticultural() {
+        this.requirements = {};
+        this.extensions = {};
+        this.requirements.addSayNeha = { bool: false, str: 'A say block is added after Neha says "Happy Holi!"' }; // done
+        this.extensions.bradSpeaks = { bool: false, str: 'Brad says something else' }; // done
+        this.extensions.nehaMoves = { bool: false, str: 'Neha moves 10 steps when she is finished jumping and talking' }; // done
     }
+
+    initReqsYouthCulture() {
+        this.requirements = {};
+        this.extensions = {};
+        this.requirements.addSayIndia = { bool: false, str: 'A say block is added after India says "Click the Space Bar to see some of the things I like' }; // done
+        this.extensions.easelSaysSomethingElse = { bool: false, str: 'The easel sprite says something else' }; // done
+        this.extensions.indiaMoves = { bool: false, str: 'India moves 10 steps when she is finished talking' }; // done
+        this.extensions.changeCostumeEasel = { bool: false, str: "The easel sprite's costume is changed to show something about the student's community" }; // done
+    }
+
+    arraysMatch(arr1, arr2) {
+
+        console.log(
+            'in array match'
+        );
+        console.log('arr1')
+        console.log(arr1);
+        console.log('arr2');
+        console.log(arr2);
+        // Check if the arrays are the same length
+        if (arr1.length !== arr2.length) {
+            console.log(arr1.length);
+            console.log(arr2.length);
+            console.log('len issue');
+            return false;
+        }
+
+        // Check if all items exist and are in the same order
+        for (var i = 0; arr1.length < i; i++) {
+            if (arr1[i] !== arr2[i]) {
+                console.log('elements dont match');
+                return false;
+            }
+        }
+
+    };
+
+    // function that decides what strand the project is, returns a string
+    whichStrand(projBackdrops) {
+
+
+        let strand = '';
+        let gamingOrig = new Project(require('../grading-scripts-s3/gamingOriginal'));
+        let multiOrig = new Project(require('../grading-scripts-s3/multiculturalOriginal'));
+        let youthOrig = new Project(require('../grading-scripts-s3/youthOriginal'));
+
+        // gets the asset id's of the original gaming project (backdrops)
+        let gamingBackdrops = [];
+        for (let target of gamingOrig.targets) {
+            if (target.isStage) {
+                for (let costume of target.costumes) {
+                    gamingBackdrops.push(costume.assetId);
+                }
+            }
+        }
+
+        // gets the asset id's of the original multicultural project (backdrops)
+        let multiBackdrops = [];
+        for (let target of multiOrig.targets) {
+            if (target.isStage) {
+                for (let costume of target.costumes) {
+                    multiBackdrops.push(costume.assetId);
+                }
+            }
+        }
+
+        // gets the asset id's of the original youth culture project (backdrops)
+        let youthBackdrops = [];
+        for (let target of youthOrig.targets) {
+            if (target.isStage) {
+                for (let costume of target.costumes) {
+                    youthBackdrops.push(costume.assetId);
+                }
+            }
+        }
+
+        var util = require('util');
+        let origUtil = util.inspect(projBackdrops);
+        let gamingUtil = util.inspect(gamingBackdrops);
+        let multiUtil = util.inspect(multiBackdrops);
+        let youthUtil = util.inspect(youthBackdrops);
+
+        if (origUtil === gamingUtil) {
+            return 'gaming';
+        }
+        else if (origUtil === multiUtil) {
+            return 'multicultural'
+        }
+        else if (origUtil === youthUtil) {
+            return 'youthculture';
+        } else {
+            return 'gaming';
+        }
+
+
+    };
+
 
     grade(fileObj, user) {
+
         var project = new Project(fileObj, null);
+        // call function that takes in the project, decides what strand it is in, that function returns a string
 
-        this.initReqs();
 
-        var numSayBlocks = 0;
+        let projBackdrops = [];
         for (let target of project.targets) {
-            if (target.isStage) { continue; }
-            else {
-                for (let script of target.scripts) {
-                    for (let i = 0; i < script.blocks.length; i++) {
-                        // checks to see if there is a say block after the one where Carl the Cloud says to click on the sapce bar to see helen
-                        // change color
-                        if (script.blocks[i].opcode === 'looks_sayforsecs') {
-                            if (script.blocks[i].parent === "8K5Ak(+XsZvwjx2V0~D)") {
-                                this.requirements.addSay.bool = true;
-                            }
-                        }
-                        
-                        // if there is a say block in a script that has a sprite moving 10 steps, the requirement is met
-                        if (script.blocks[i].opcode === 'motion_movesteps') {
-                            {
-                                if (script.blocks[i].inputs.STEPS[1][1] == 10) {
-                                    this.extensions.carlMoves10Steps.bool = true;
+            if (target.isStage) {
+                for (let costume of target.costumes) {
+                    projBackdrops.push(costume.assetId);
+                }
+            }
+        }
+
+
+        let strand = this.whichStrand(projBackdrops);
+
+
+        // gaming strand 
+        if (strand === 'gaming') {
+
+            this.initReqsGaming();
+            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
+
+            let sayBlocksGaming = 0;
+
+            for (let target of project.targets) {
+                if (target.isStage) { continue; }
+                else {
+
+
+                    for (let script of target.scripts) {
+                        for (let i = 0; i < script.blocks.length; i++) {
+
+
+                            // makes sure that the script starts with an event block
+                            if (script.blocks[0].opcode.includes('event_')) {
+                                if (script.blocks[i].opcode === 'looks_sayforsecs') {
+
+                                    // finds the block with specified message
+                                    if (script.blocks[i].inputs.MESSAGE[1][1] === 'Click the Space Bar to see Helen the Amazing Color Changing Hedgehog.') {
+                                        let next = i + 1;
+
+                                        // checks the next block to make sure it is not undefined, if it is not, checks to see if it is a say block
+                                        if (script.blocks[next] !== undefined) {
+                                            if (sayBlocks.includes(script.blocks[next].opcode)) {
+                                                this.requirements.addSayCarl.bool = true;
+                                            }
+                                        }
+                                    }
                                 }
-                            }
-                        }
-                        // if the block is not one of the original say blocks, and it is not the say block that has been added after 
-                        // carl the cloud says to click to see the changing colors
-                        if (script.blocks[i].opcode === 'looks_sayforsecs') {
-                            if (script.blocks[i].next === "ahLTJjNBf`+1#.[qNZE4" && script.blocks[i].parent === "`4;L4Q?o6CqFmdbH?:ms") { continue; }
-                            else if (script.blocks[i].next === "=n_7]#{Cxj6pf!BUV,OP" && script.blocks[i].parent === "ahLTJjNBf`+1#.[qNZE4") { continue; }
-                            else if (script.blocks[i].next === null && script.blocks[i].parent === "=n_7]#{Cxj6pf!BUV,OP") { continue; }
-                            else if (script.blocks[i].next === null && script.blocks[i].parent === "3?,1QT}D[0#@^jvT!J*^") { continue; }
-                            else if (script.blocks[i].next === null && script.blocks[i].parent === "8K5Ak(+XsZvwjx2V0~D)") { continue; }
-                            else {
-                                this.extensions.addedHelenSpeech.bool = true;
+
+                                // checks to see if there is any block that moves 10 steps
+                                if (script.blocks[i].opcode === 'motion_movesteps') {
+
+
+                                    if (script.blocks[i].inputs.STEPS[1][1] === '10') {
+                                        this.extensions.carlMoves.bool = true;
+                                    }
+                                }
+
+                                if (sayBlocks.includes(script.blocks[i].opcode)) {
+                                    sayBlocksGaming++;
+                                }
                             }
                         }
                     }
                 }
             }
+            // checks to see if a
+            if (sayBlocksGaming > 5) {
+                this.extensions.helenSpeaks.bool = true;
+            }
+        }
+
+
+        if (strand === 'multicultural') {
+            console.log('in multicultural');
+            this.initReqsMulticultural();
+            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
+            let sayBlocksMulticultural = 0;
+
+            for (let target of project.targets) {
+                if (target.isStage) { continue; }
+                else {
+                    for (let script of target.scripts) {
+
+                        for (let i = 0; i < script.blocks.length; i++) {
+
+                            // makes sure that the script starts with an event block
+                            if (script.blocks[0].opcode.includes('event_')) {
+                                if (script.blocks[i].opcode === 'looks_say') {
+
+
+                                    // finds the block with the specified message
+                                    if (script.blocks[i].inputs.MESSAGE[1][1] === 'Happy Holi!') {
+                                        let next = i + 1;
+
+                                        // checks the next block to make sure it is not undefined, if it not, checks to see if it is a say block
+                                        if (script.blocks[next] !== undefined) {
+                                            if (sayBlocks.includes(script.blocks[next].opcode)) {
+                                                this.requirements.addSayNeha.bool = true;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // checks to see if there is a block that moves 10 steps
+                                if (script.blocks[i].opcode === 'motion_movesteps') {
+                                    if (script.blocks[i].inputs.STEPS[1][1] === '10') {
+                                        this.extensions.nehaMoves.bool = true;
+                                    }
+                                }
+
+                                // if there is a say block in the sprite that is brad and the message is different from what he says
+                                if (sayBlocks.includes(script.blocks[i].opcode)) {
+                                    sayBlocksMulticultural++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (sayBlocksMulticultural > 10) {
+                this.extensions.bradSpeaks.bool = true;
+            }
+        }
+
+
+
+
+
+
+        if (strand === 'youthculture') {
+
+            // make an array of the original costumes from the original project
+            this.initReqsYouthCulture();
+            let origCostumes = [];
+            let newCostumes = [];
+            var originalYouth = new Project(require('../grading-scripts-s3/youthOriginal'), null);
+            for (let target of originalYouth.targets) {
+                if (target.name === 'easel') {
+                    for (let costume of target.costumes) {
+                        origCostumes.push(costume.assetId);
+                    }
+                }
+            }
+
+            for (let target of project.targets) {
+                if (target.name === 'easel') {
+                    for (let costume of target.costumes) {
+                        newCostumes.push(costume.assetId);
+                    }
+                }
+            }
+
+
+            if (origCostumes.length !== newCostumes.length) {
+                this.extensions.changeCostumeEasel.bool = true;
+            } else {
+                for (let i = 0; i < origCostumes.length; i++) {
+                    if (origCostumes[i] !== newCostumes[i]) {
+                        this.extensions.changeCostumeEasel.bool = true;
+                        break;
+                    }
+                }
+            }
+
+
+            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
+            let easel = false;
+            let sayBlocksYouthCulture = 0;
+
+            for (let target of project.targets) {
+                if (target.isStage) { continue; }
+                else {
+
+
+                    for (let script of target.scripts) {
+                        for (let i = 0; i < script.blocks.length; i++) {
+
+                            //makes sure that the script starts with an event block
+                            if (script.blocks[0].opcode.includes('event_')) {
+                                if (script.blocks[i].opcode === 'looks_sayforsecs') {
+
+                                    // find the block with the specified message
+                                    if (script.blocks[i].inputs.MESSAGE[1][1] === 'Click the Space Bar to see some of the things I like.') {
+                                        let next = i + 1;
+
+                                        // checks the next block to make sure it is not undefined, if it is not, checks to see that the block after that is a say block
+                                        if (script.blocks[next] !== undefined) {
+                                            if (sayBlocks.includes(script.blocks[next].opcode)) {
+                                                this.requirements.addSayIndia.bool = true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // checks to see if there is a block that moves 10 steps
+                            if (script.blocks[i].opcode === 'motion_movesteps') {
+                                if (script.blocks[i].inputs.STEPS[1][1] === '10') {
+                                    this.extensions.indiaMoves.bool = true;
+                                }
+                            }
+
+                            // counts the number of say blocks
+                            if (sayBlocks.includes(script.blocks[i].opcode)) {
+                                sayBlocksYouthCulture++;
+                            }
+
+                        }
+                    }
+
+
+                }
+            }
+            // number of say blocks should be greater than 2 
+            if (sayBlocksYouthCulture > 5) {
+                this.extensions.easelSaysSomethingElse.bool = true;
+            }
         }
     }
 }
-},{"../grading-scripts-s3/scratch3":29}],28:[function(require,module,exports){
+},{"../grading-scripts-s3/gamingOriginal":25,"../grading-scripts-s3/multiculturalOriginal":26,"../grading-scripts-s3/scratch3":31,"../grading-scripts-s3/youthOriginal":36,"util":4}],30:[function(require,module,exports){
 /* Scratch Basics L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -6337,7 +6652,7 @@ module.exports = class {
         
     }
 }
-},{"./scratch3":29}],29:[function(require,module,exports){
+},{"./scratch3":31}],31:[function(require,module,exports){
 (function (global){
 /// Scratch 3 helper functions
 require('./context');
@@ -6354,24 +6669,25 @@ global.no = function(x) {
 
 /// Container class for Scratch blocks.
 global.Block = class {
-    constructor(target, block) {
+    constructor(target, block, within=null) {
         Object.assign(this, target.blocks[block]);
         this.id = block;
         this.context = new Context(target.context, false);
         this.target = target;
         this.subscripts = this.subScripts();
+        this.within = within;
     }
 
     /// Internal function that converts a block to a Block.
-    toBlock(x) {
-        return new Block(this.target, x);
+    toBlock(x, within=null) {
+        return new Block(this.target, x, within);
     }
 
     /// Returns the next block in the script.
-    nextBlock() {
+    nextBlock(within=null) {
         if (no(this.next)) return null;
 
-        return this.toBlock(this.next);
+        return this.toBlock(this.next, within);
     }
 
     /// Returns the previous block in the script.
@@ -6384,16 +6700,16 @@ global.Block = class {
     /// Returns the conditional statement of the block, if it exists.
     conditionBlock() {
         if (no(this.inputs.CONDITION)) return null;
-        return this.toBlock(this.inputs.CONDITION[1]);
+        return this.toBlock(this.inputs.CONDITION[1], this);
     }
 
     /// Returns an array representing the script that contains the block.
-    childBlocks() {
+    childBlocks(within=null) {
         var array = [];
         var x = this;
         while (x) {
             array.push(x);
-            x = x.nextBlock();
+            x = x.nextBlock(within);
         }
         return array;
     }
@@ -6404,12 +6720,23 @@ global.Block = class {
         var array = [];
 
         if (is(this.inputs.SUBSTACK) && is(this.inputs.SUBSTACK[1])) {
-            array.push(new Script(this.toBlock(this.inputs.SUBSTACK[1]), this.target));
+            array.push(new Script(this.toBlock(this.inputs.SUBSTACK[1], this), this.target));
         }
         if (is(this.inputs.SUBSTACK2) && is(this.inputs.SUBSTACK2[1])) {
-            array.push(new Script(this.toBlock(this.inputs.SUBSTACK2[1]), this.target));
+            array.push(new Script(this.toBlock(this.inputs.SUBSTACK2[1], this), this.target));
         }
         return array;
+    }
+    /// Checks if the
+    isWithin(compareBlock=(block => true)) {
+        var outerBlock = this.within;
+        while(outerBlock) {
+            if (compareBlock(outerBlock)) {
+                return outerBlock;
+            }
+            outerBlock = outerBlock.within;
+        }
+        return null;
     }
 }
 
@@ -6417,7 +6744,7 @@ global.Block = class {
 global.Script = class {
 /// Pass this a Block object!
     constructor(block, target) {
-        this.blocks  = block.childBlocks();
+        this.blocks  = block.childBlocks(block.within);
         this.target  = target;
         this.context = new Context(target.context, false);
         for (var block of this.blocks) {
@@ -6443,15 +6770,24 @@ global.Script = class {
         }
         return allSubscripts;
     }
-    /// Recursively visits each block in a scrip and its subscripts, 
+    /// Recursively visits each block in a scrip and its subscripts,
     ///  noting at which level of nestedness it is in within control blocks of ones choosing.
-    traverseBlocks(func, parentBlocks=['control_forever', 'control_if', 'control_if_else', 'control_repeat', 'control_repeat_until']) {
+    traverseBlocks(func, targetBlocks=null) {
+        const parentBlocks = ['control_forever', 'control_if', 'control_if_else', 'control_repeat', 'control_repeat_until'];
         const traverse = (scripts, level) => {
+
             if (!is(scripts) || scripts === [[]]) return;
             for (let script of scripts) {
                 for (let block of script.blocks) {
                     func(block, level);
-                    traverse(block.subScripts(), level + parentBlocks.includes(block.opcode));
+                    if (parentBlocks.includes(block.opcode)) {
+                        if (targetBlocks && !targetBlocks.includes(block.opcode)) {
+                            traverse(block.subscripts, level);
+                        } else {
+                            traverse(block.subscripts, level + 1);
+                        }
+                    }
+
                 }
             }
         }
@@ -6497,8 +6833,2355 @@ global.Project = class {
     }
 }
 
+/// Identify which strand the project belongs to.
+global.detectStrand = function(project, templates) {
+    var strand = 'generic';
+    /// Format for templates:
+    /*
+    var templates = {
+        multicultural: require('./templates/events-L1-multicultural'),
+        youthCulture:  require('./templates/events-L1-youth-culture'),
+        gaming:        require('./templates/events-L1-gaming')
+    };
+    */
+    var projectAssetIDs = [];
+    for (var target of project.targets) {
+        for (var costume of target.costumes) {
+            projectAssetIDs.push(costume.assetId);
+        }
+        for (var sound of target.sounds) {
+            projectAssetIDs.push(sound.assetId);
+        }
+    }
+    var highScore = 0;
+    for (var template in templates) {
+        var templateFile = templates[template];
+        var templateAssetIDs = [];
+        for (var target of templateFile.targets) {
+            for (var costume of target.costumes) {
+                templateAssetIDs.push(costume.assetId);
+            }
+            for (var sound of target.sounds) {
+                templateAssetIDs.push(sound.assetId);
+            }
+        }
+        var templateScore = 0;
+        for (var projectAssetID of projectAssetIDs) {
+            if (templateAssetIDs.includes(projectAssetID)) {
+                templateScore++;
+            }
+            if (templateScore > highScore) {
+                strand = template;
+                highScore = templateScore;
+            }
+        }
+    }
+    return strand;
+}
+
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./context":20}],30:[function(require,module,exports){
+},{"./context":20}],32:[function(require,module,exports){
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {
+                "`jEk@4|i[#Fk?(8x)AV.-my variable": [
+                    "my variable",
+                    0
+                ]
+            },
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 1,
+            "costumes": [
+                {
+                    "assetId": "47282ff0f7047c6fab9c94b531abf721",
+                    "name": "Stars",
+                    "bitmapResolution": 2,
+                    "md5ext": "47282ff0f7047c6fab9c94b531abf721.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                },
+                {
+                    "assetId": "dba17f2fe831a28e41afd2f16b3993bd",
+                    "name": "backdrop1",
+                    "bitmapResolution": 1,
+                    "md5ext": "dba17f2fe831a28e41afd2f16b3993bd.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 265.064915,
+                    "rotationCenterY": 190.96325000000002
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "on",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Beep",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                ")Hw|G=u4#L%Zd-93?klR": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "?u,_biB+AH,,#qg:~vqd",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 107,
+                    "y": 62
+                },
+                "?u,_biB+AH,,#qg:~vqd": {
+                    "opcode": "looks_setsizeto",
+                    "next": "jy`M@`#/cIa[J^J,VT=1",
+                    "parent": ")Hw|G=u4#L%Zd-93?klR",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "jy`M@`#/cIa[J^J,VT=1": {
+                    "opcode": "motion_gotoxy",
+                    "next": null,
+                    "parent": "?u,_biB+AH,,#qg:~vqd",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-186"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "18"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "t|bmz5;Q}:rNy[co)*O2": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "n,Jx3PAt=U)^.LI%r*:0",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 339,
+                    "y": 456
+                },
+                "n,Jx3PAt=U)^.LI%r*:0": {
+                    "opcode": "motion_movesteps",
+                    "next": "Y{ZPTfuuH$48xsUu:gm.",
+                    "parent": "t|bmz5;Q}:rNy[co)*O2",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "10"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "Y{ZPTfuuH$48xsUu:gm.": {
+                    "opcode": "looks_gotofrontback",
+                    "next": null,
+                    "parent": "n,Jx3PAt=U)^.LI%r*:0",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "LS]=|K@nurX.X+[H[Zp.": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "K!ln[rllBL6TJO,Rl@(t",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 353,
+                    "y": 68
+                },
+                "K!ln[rllBL6TJO,Rl@(t": {
+                    "opcode": "looks_changesizeby",
+                    "next": "vnjYUZ`7:zZdj)Rur0bj",
+                    "parent": "LS]=|K@nurX.X+[H[Zp.",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                "30"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "vnjYUZ`7:zZdj)Rur0bj": {
+                    "opcode": "looks_gotofrontback",
+                    "next": "w?z$I6Xd^b{Oi}r|[eGk",
+                    "parent": "K!ln[rllBL6TJO,Rl@(t",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "w?z$I6Xd^b{Oi}r|[eGk": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "9z*ZOpKlm~n~tlIZmPOD",
+                    "parent": "vnjYUZ`7:zZdj)Rur0bj",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "I'm Beep!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "9z*ZOpKlm~n~tlIZmPOD": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "4u|V)g0~q^SQG=Zv_0+$",
+                    "parent": "w?z$I6Xd^b{Oi}r|[eGk",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Press the space bar so that I'll win!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "4u|V)g0~q^SQG=Zv_0+$": {
+                    "opcode": "looks_changesizeby",
+                    "next": null,
+                    "parent": "9z*ZOpKlm~n~tlIZmPOD",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                "-30"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "1fe9913ae93d928a15df521a051d7eea",
+                    "name": "ship1",
+                    "bitmapResolution": 1,
+                    "md5ext": "1fe9913ae93d928a15df521a051d7eea.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 171,
+                    "rotationCenterY": 62.89999999999988
+                },
+                {
+                    "assetId": "c032dfbd8bbcd1123cf9c8c9c42c0645",
+                    "name": "ship2",
+                    "bitmapResolution": 1,
+                    "md5ext": "c032dfbd8bbcd1123cf9c8c9c42c0645.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 171,
+                    "rotationCenterY": 129.33301078616773
+                },
+                {
+                    "assetId": "9dde9bb4f9ecbe50edadc7fcda466b58",
+                    "name": "beep1",
+                    "bitmapResolution": 1,
+                    "md5ext": "9dde9bb4f9ecbe50edadc7fcda466b58.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 45.56039300326347,
+                    "rotationCenterY": 69.33720008723701
+                },
+                {
+                    "assetId": "c85a3e6d7729cda3f818e8fc7570eb8f",
+                    "name": "beep2",
+                    "bitmapResolution": 1,
+                    "md5ext": "c85a3e6d7729cda3f818e8fc7570eb8f.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 56.01039300326346,
+                    "rotationCenterY": 69.77782508723702
+                },
+                {
+                    "assetId": "518be59a39827d405a5cd0da55d9e875",
+                    "name": "sled1",
+                    "bitmapResolution": 1,
+                    "md5ext": "518be59a39827d405a5cd0da55d9e875.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 88.98236,
+                    "rotationCenterY": 82.19345008723701
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": -186,
+            "y": 18,
+            "size": 50,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Bop",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "IK9aK;Oy{S~RKlL@`/?v": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "AR:)++|{,CX=MXlPW7A@",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 119,
+                    "y": 26
+                },
+                "AR:)++|{,CX=MXlPW7A@": {
+                    "opcode": "motion_gotoxy",
+                    "next": "qs?R^0_~bvbVh+vA6Rk;",
+                    "parent": "IK9aK;Oy{S~RKlL@`/?v",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-191"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-25"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "qs?R^0_~bvbVh+vA6Rk;": {
+                    "opcode": "looks_setsizeto",
+                    "next": "G7ctbN^~.TcWF!904;bQ",
+                    "parent": "AR:)++|{,CX=MXlPW7A@",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "G7ctbN^~.TcWF!904;bQ": {
+                    "opcode": "looks_gotofrontback",
+                    "next": null,
+                    "parent": "qs?R^0_~bvbVh+vA6Rk;",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "bab12501f87e1c00e953379a18307c56",
+                    "name": "ship1",
+                    "bitmapResolution": 1,
+                    "md5ext": "bab12501f87e1c00e953379a18307c56.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 176,
+                    "rotationCenterY": 24.5
+                },
+                {
+                    "assetId": "eb33c13405d8ece7d42825eb37e381e3",
+                    "name": "ship2",
+                    "bitmapResolution": 1,
+                    "md5ext": "eb33c13405d8ece7d42825eb37e381e3.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 175.804685,
+                    "rotationCenterY": 81.357469606723
+                },
+                {
+                    "assetId": "d04e62a14da7cd53c6b23e0bd7003c78",
+                    "name": "bop1",
+                    "bitmapResolution": 1,
+                    "md5ext": "d04e62a14da7cd53c6b23e0bd7003c78.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 76.59364512826346,
+                    "rotationCenterY": 46.51863602473705
+                },
+                {
+                    "assetId": "504e016eed3bff1bbe8a227f3df53f09",
+                    "name": "bop2",
+                    "bitmapResolution": 1,
+                    "md5ext": "504e016eed3bff1bbe8a227f3df53f09.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 76.59364300326348,
+                    "rotationCenterY": 46.518635087237016
+                },
+                {
+                    "assetId": "18a46c151425df3ce265da8cfa406489",
+                    "name": "sled1",
+                    "bitmapResolution": 1,
+                    "md5ext": "18a46c151425df3ce265da8cfa406489.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 119.28115943750001,
+                    "rotationCenterY": 79.377367337237
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 4,
+            "visible": true,
+            "x": -191,
+            "y": -25,
+            "size": 50,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Planet X",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "cmh7xhE`E:+upjW4lIm[": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "wUiTg*%taA~OmVyHl.Y~",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 108,
+                    "y": 115
+                },
+                "wUiTg*%taA~OmVyHl.Y~": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "_usXI:FR8i8usSlD,/{)",
+                    "parent": "cmh7xhE`E:+upjW4lIm[",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Who can rescue Bork first?"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "_usXI:FR8i8usSlD,/{)": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "wUiTg*%taA~OmVyHl.Y~",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click on the purple spaceship for instructions."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 7,
+            "costumes": [
+                {
+                    "assetId": "3b79be8b6ef90f241ce0df0de5687e38",
+                    "name": "costume1 ",
+                    "bitmapResolution": 1,
+                    "md5ext": "3b79be8b6ef90f241ce0df0de5687e38.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 138.71355034962338,
+                    "rotationCenterY": 131.1600067607962
+                },
+                {
+                    "assetId": "9a35721ea22d7866ce7e2424bec55dec",
+                    "name": "costume2",
+                    "bitmapResolution": 1,
+                    "md5ext": "9a35721ea22d7866ce7e2424bec55dec.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 138.71354821113795,
+                    "rotationCenterY": 131.1600091352506
+                },
+                {
+                    "assetId": "dd8dd572064baacfd4c997287b471ae5",
+                    "name": "costume3",
+                    "bitmapResolution": 1,
+                    "md5ext": "dd8dd572064baacfd4c997287b471ae5.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 138.71354607265252,
+                    "rotationCenterY": 131.160011509705
+                },
+                {
+                    "assetId": "1bf472a6abe923dcfef3f24fdcbdfe31",
+                    "name": "costume4",
+                    "bitmapResolution": 1,
+                    "md5ext": "1bf472a6abe923dcfef3f24fdcbdfe31.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 138.71354286151458,
+                    "rotationCenterY": 131.1600123744544
+                },
+                {
+                    "assetId": "ac482dc9abd0d65f08e3eae8e177565a",
+                    "name": "costume5",
+                    "bitmapResolution": 1,
+                    "md5ext": "ac482dc9abd0d65f08e3eae8e177565a.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 138.71354072302915,
+                    "rotationCenterY": 131.1600147489088
+                },
+                {
+                    "assetId": "c31201968e2a3fa435610cb91aea3888",
+                    "name": "costume6",
+                    "bitmapResolution": 1,
+                    "md5ext": "c31201968e2a3fa435610cb91aea3888.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 138.71353858454376,
+                    "rotationCenterY": 131.1600171233632
+                },
+                {
+                    "assetId": "8f89a526a1dfad2baaf46ed3a2d7a748",
+                    "name": "costume7",
+                    "bitmapResolution": 1,
+                    "md5ext": "8f89a526a1dfad2baaf46ed3a2d7a748.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 138.71353644605836,
+                    "rotationCenterY": 131.16000949781758
+                },
+                {
+                    "assetId": "653079912256ec68d2b130232d172e04",
+                    "name": "costume8",
+                    "bitmapResolution": 1,
+                    "md5ext": "653079912256ec68d2b130232d172e04.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 112,
+                    "rotationCenterY": 126
+                },
+                {
+                    "assetId": "a5cbfd13c5efaaed99a9253eac258bb1",
+                    "name": "costume9",
+                    "bitmapResolution": 1,
+                    "md5ext": "a5cbfd13c5efaaed99a9253eac258bb1.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 134,
+                    "rotationCenterY": 125
+                },
+                {
+                    "assetId": "a53f10e8da56d38de783ce4d2750d7bf",
+                    "name": "costume10",
+                    "bitmapResolution": 1,
+                    "md5ext": "a53f10e8da56d38de783ce4d2750d7bf.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 127,
+                    "rotationCenterY": 130
+                },
+                {
+                    "assetId": "6930e1a6307b5c9ed9bbef3bde266b54",
+                    "name": "costume11",
+                    "bitmapResolution": 1,
+                    "md5ext": "6930e1a6307b5c9ed9bbef3bde266b54.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 129,
+                    "rotationCenterY": 127
+                },
+                {
+                    "assetId": "a6a297e536e0ee8bdc64eab8ac12d2aa",
+                    "name": "costume12",
+                    "bitmapResolution": 1,
+                    "md5ext": "a6a297e536e0ee8bdc64eab8ac12d2aa.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 145.86591931239406,
+                    "rotationCenterY": 157.6903320812774
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": 174.00000000000003,
+            "y": 8,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Bork",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 5,
+            "costumes": [
+                {
+                    "assetId": "a355064d89d776d706ce73ea63768d53",
+                    "name": "ship1",
+                    "bitmapResolution": 1,
+                    "md5ext": "a355064d89d776d706ce73ea63768d53.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 146.3331508280487,
+                    "rotationCenterY": 145.765020900729
+                },
+                {
+                    "assetId": "29861b82c8949aca5afa5d36b6feaae8",
+                    "name": "ship2",
+                    "bitmapResolution": 1,
+                    "md5ext": "29861b82c8949aca5afa5d36b6feaae8.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 127.18394470641091,
+                    "rotationCenterY": 182.09893330507907
+                },
+                {
+                    "assetId": "f291559ece9109053d03a62fcbf9af33",
+                    "name": "ship3",
+                    "bitmapResolution": 1,
+                    "md5ext": "f291559ece9109053d03a62fcbf9af33.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 126.7879248948387,
+                    "rotationCenterY": 140
+                },
+                {
+                    "assetId": "7614d9b95b24d012d72ed6d4f1ad6e3f",
+                    "name": "bork1",
+                    "bitmapResolution": 1,
+                    "md5ext": "7614d9b95b24d012d72ed6d4f1ad6e3f.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 66.59362797680515,
+                    "rotationCenterY": 38.51862212869321
+                },
+                {
+                    "assetId": "90b27333efdd829b010fc36f94a068b2",
+                    "name": "bork2",
+                    "bitmapResolution": 1,
+                    "md5ext": "90b27333efdd829b010fc36f94a068b2.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 66.5936334271878,
+                    "rotationCenterY": 41.71125196320858
+                },
+                {
+                    "assetId": "d71c685913a2a2e1bd1c0a561e169a35",
+                    "name": "bork3",
+                    "bitmapResolution": 1,
+                    "md5ext": "d71c685913a2a2e1bd1c0a561e169a35.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 77.89664936195814,
+                    "rotationCenterY": 45.51862270055594
+                },
+                {
+                    "assetId": "2e801a9b114912e0050e9b52ef923379",
+                    "name": "sled1",
+                    "bitmapResolution": 1,
+                    "md5ext": "2e801a9b114912e0050e9b52ef923379.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 119.28116,
+                    "rotationCenterY": 91.51862135027797
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": 131,
+            "y": 17.999999999999986,
+            "size": 60.00000000000001,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190813192748",
+        "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
+    }
+}
+
+},{}],33:[function(require,module,exports){
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "0fdc016498ad18ef64083324fc555e07",
+                    "name": "Ofrenda",
+                    "bitmapResolution": 2,
+                    "md5ext": "0fdc016498ad18ef64083324fc555e07.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Catrina",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "hhI-UM#;XV/}FN!T75=O": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "n.v*p~!1x;LzrE#aVJn=",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 16,
+                    "y": 18
+                },
+                "n.v*p~!1x;LzrE#aVJn=": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "_JN(d|ySH,Mh2muwwiu;",
+                    "parent": "hhI-UM#;XV/}FN!T75=O",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "This is an Ofrenda. It is a traditional ritual for the Mexican Día de los Muertos celebration. "
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                6
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "_JN(d|ySH,Mh2muwwiu;": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "n.v*p~!1x;LzrE#aVJn=",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click on the space bar key to learn more about Día de los Muertos."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                5
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "jyoFe@W21fl/YG4-K0HV": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "0Tpp4fyP/cwt]Xci4%c}",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 16,
+                    "y": 271
+                },
+                "0Tpp4fyP/cwt]Xci4%c}": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "!Q|p9#+:C8i8N^IuIr?h",
+                    "parent": "jyoFe@W21fl/YG4-K0HV",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Día de los Muertos is celebrated on November 1st and 2nd. It is a time to celebrate our ancestors and be with our families."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                7
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "!Q|p9#+:C8i8N^IuIr?h": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "BYR*l6tNynN^zR?hlMCo",
+                    "parent": "0Tpp4fyP/cwt]Xci4%c}",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Photos of loved ones who have died as well as their favorite foods are left out to welcome them home for the night.  "
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                7
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "BYR*l6tNynN^zR?hlMCo": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "!Q|p9#+:C8i8N^IuIr?h",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click on one of the pictures of my family members to learn about them."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                6
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "647ed8ab0fc6dcbc70e9aa3eda75edbb",
+                    "name": "Catrina",
+                    "bitmapResolution": 2,
+                    "md5ext": "647ed8ab0fc6dcbc70e9aa3eda75edbb.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 192,
+                    "rotationCenterY": 228
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": -181.3,
+            "y": -28.80000000000001,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Left",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "kM%BH#W(*9LZtQa]U(V.": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "cg=pg0XvI1*3~}~TY*;%",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 15,
+                    "y": 22
+                },
+                "cg=pg0XvI1*3~}~TY*;%": {
+                    "opcode": "looks_setsizeto",
+                    "next": null,
+                    "parent": "kM%BH#W(*9LZtQa]U(V.",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "8+onh*iCmBn~5GY(sy;p": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "}VBgCH{K:oDh6pV0h.pi",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 15,
+                    "y": 275
+                },
+                "}VBgCH{K:oDh6pV0h.pi": {
+                    "opcode": "looks_gotofrontback",
+                    "next": "taz8m.4x_rVweL9%J@(3",
+                    "parent": "8+onh*iCmBn~5GY(sy;p",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "taz8m.4x_rVweL9%J@(3": {
+                    "opcode": "looks_changesizeby",
+                    "next": "Y5!LLf.Gqemqe/6!)t=e",
+                    "parent": "}VBgCH{K:oDh6pV0h.pi",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "Y5!LLf.Gqemqe/6!)t=e": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "Q.gGFO#r}[Z@fzClmRq-",
+                    "parent": "taz8m.4x_rVweL9%J@(3",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "I am Grandpa John."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                2
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "Q.gGFO#r}[Z@fzClmRq-": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "sPl?mFlNaaD_l]+QJ.CW",
+                    "parent": "Y5!LLf.Gqemqe/6!)t=e",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "I loved to cook with my grandchildren."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                4
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "sPl?mFlNaaD_l]+QJ.CW": {
+                    "opcode": "looks_changesizeby",
+                    "next": null,
+                    "parent": "Q.gGFO#r}[Z@fzClmRq-",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                -100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 3,
+            "costumes": [
+                {
+                    "assetId": "7f24161f04680291faeb630df4dd5085",
+                    "name": "person1",
+                    "bitmapResolution": 2,
+                    "md5ext": "7f24161f04680291faeb630df4dd5085.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 66,
+                    "rotationCenterY": 86
+                },
+                {
+                    "assetId": "5eb6486c7167f691023e24b52a1b88f9",
+                    "name": "person2",
+                    "bitmapResolution": 1,
+                    "md5ext": "5eb6486c7167f691023e24b52a1b88f9.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 31,
+                    "rotationCenterY": 42
+                },
+                {
+                    "assetId": "d09a00414b05cee69c76d00585b8d66b",
+                    "name": "person3",
+                    "bitmapResolution": 1,
+                    "md5ext": "d09a00414b05cee69c76d00585b8d66b.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 33,
+                    "rotationCenterY": 42
+                },
+                {
+                    "assetId": "8900e1f586f49453f2e7501e3fe4cfdd",
+                    "name": "person4",
+                    "bitmapResolution": 2,
+                    "md5ext": "8900e1f586f49453f2e7501e3fe4cfdd.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 64,
+                    "rotationCenterY": 86
+                },
+                {
+                    "assetId": "08ab2e17ccc33f08537f0c83fcc7fb94",
+                    "name": "person5",
+                    "bitmapResolution": 2,
+                    "md5ext": "08ab2e17ccc33f08537f0c83fcc7fb94.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 60,
+                    "rotationCenterY": 90
+                },
+                {
+                    "assetId": "c15dd7c24b82019df099416b5bea68d6",
+                    "name": "person6",
+                    "bitmapResolution": 1,
+                    "md5ext": "c15dd7c24b82019df099416b5bea68d6.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 32,
+                    "rotationCenterY": 46
+                },
+                {
+                    "assetId": "a815e04689a83e14ccf2422c600cfe4c",
+                    "name": "person7",
+                    "bitmapResolution": 1,
+                    "md5ext": "a815e04689a83e14ccf2422c600cfe4c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 43
+                },
+                {
+                    "assetId": "09c1ba15733f0c6377ef36cff5e6a0e5",
+                    "name": "person8",
+                    "bitmapResolution": 1,
+                    "md5ext": "09c1ba15733f0c6377ef36cff5e6a0e5.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 32,
+                    "rotationCenterY": 43
+                },
+                {
+                    "assetId": "b26fdbf0cbee8d0b2766f3cd2ea7a490",
+                    "name": "pet1",
+                    "bitmapResolution": 1,
+                    "md5ext": "b26fdbf0cbee8d0b2766f3cd2ea7a490.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 31,
+                    "rotationCenterY": 41
+                },
+                {
+                    "assetId": "11fba26009af8c1b36cdb07527d37f1c",
+                    "name": "pet2",
+                    "bitmapResolution": 1,
+                    "md5ext": "11fba26009af8c1b36cdb07527d37f1c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 40
+                },
+                {
+                    "assetId": "3bab46e52650e819aae5e5c57edb3b0e",
+                    "name": "pet3",
+                    "bitmapResolution": 1,
+                    "md5ext": "3bab46e52650e819aae5e5c57edb3b0e.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 19,
+                    "rotationCenterY": 37
+                },
+                {
+                    "assetId": "25daceea601ed530456bc6fa24a26c15",
+                    "name": "pet4",
+                    "bitmapResolution": 1,
+                    "md5ext": "25daceea601ed530456bc6fa24a26c15.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 20,
+                    "rotationCenterY": 37
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": -71,
+            "y": 56,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Middle",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "6vO}g1Tn]HuzZYGP8=y2": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "4G]%`kG5j!MdWz97Y1}e",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 15,
+                    "y": 22
+                },
+                "4G]%`kG5j!MdWz97Y1}e": {
+                    "opcode": "looks_setsizeto",
+                    "next": null,
+                    "parent": "6vO}g1Tn]HuzZYGP8=y2",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "e?qr@5tmZQxY(E0,M{59": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "/f[ltBij)7]5Jtg|W(1%",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 18,
+                    "y": 241
+                },
+                "/f[ltBij)7]5Jtg|W(1%": {
+                    "opcode": "looks_gotofrontback",
+                    "next": null,
+                    "parent": "e?qr@5tmZQxY(E0,M{59",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "4ba11d5f6d1ed2d208d17715d130cb9e",
+                    "name": "pet3",
+                    "bitmapResolution": 2,
+                    "md5ext": "4ba11d5f6d1ed2d208d17715d130cb9e.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 50,
+                    "rotationCenterY": 84
+                },
+                {
+                    "assetId": "087dd33db6c7d5eeaad4150ab881d9d1",
+                    "name": "pet4",
+                    "bitmapResolution": 1,
+                    "md5ext": "087dd33db6c7d5eeaad4150ab881d9d1.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 24,
+                    "rotationCenterY": 43
+                },
+                {
+                    "assetId": "0c5b40f70385fcc1f8f53954f818f2ed",
+                    "name": "pet1",
+                    "bitmapResolution": 1,
+                    "md5ext": "0c5b40f70385fcc1f8f53954f818f2ed.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "6b6d55f95a4d13f6c132b29d96e1a11e",
+                    "name": "pet2",
+                    "bitmapResolution": 1,
+                    "md5ext": "6b6d55f95a4d13f6c132b29d96e1a11e.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 41
+                },
+                {
+                    "assetId": "42f79997429705f763eb27b9b05ba5bb",
+                    "name": "person6",
+                    "bitmapResolution": 1,
+                    "md5ext": "42f79997429705f763eb27b9b05ba5bb.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "44cf3ec60b8282766ae03dc5565889f2",
+                    "name": "person8",
+                    "bitmapResolution": 1,
+                    "md5ext": "44cf3ec60b8282766ae03dc5565889f2.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 37,
+                    "rotationCenterY": 47
+                },
+                {
+                    "assetId": "d3c271339a5e31d67571a6fc2f16daba",
+                    "name": "person5",
+                    "bitmapResolution": 1,
+                    "md5ext": "d3c271339a5e31d67571a6fc2f16daba.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 37,
+                    "rotationCenterY": 46
+                },
+                {
+                    "assetId": "e2df341a1cb5a6c47b74ba64d6f84d57",
+                    "name": "person7",
+                    "bitmapResolution": 1,
+                    "md5ext": "e2df341a1cb5a6c47b74ba64d6f84d57.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 46
+                },
+                {
+                    "assetId": "e162f14bec31f175c2064fb245159c7c",
+                    "name": "person1",
+                    "bitmapResolution": 1,
+                    "md5ext": "e162f14bec31f175c2064fb245159c7c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "d9bd6a50ef48f3b0ebd402c8d75f4cb1",
+                    "name": "person2",
+                    "bitmapResolution": 1,
+                    "md5ext": "d9bd6a50ef48f3b0ebd402c8d75f4cb1.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 44
+                },
+                {
+                    "assetId": "67de18ea5831da13fba2dd9a7e07827c",
+                    "name": "person4",
+                    "bitmapResolution": 1,
+                    "md5ext": "67de18ea5831da13fba2dd9a7e07827c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 38,
+                    "rotationCenterY": 46
+                },
+                {
+                    "assetId": "b7862ddeff16907801331ec1598b835e",
+                    "name": "person3",
+                    "bitmapResolution": 1,
+                    "md5ext": "b7862ddeff16907801331ec1598b835e.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 37,
+                    "rotationCenterY": 44
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 4,
+            "visible": true,
+            "x": 6,
+            "y": 53,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Right",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 2,
+            "costumes": [
+                {
+                    "assetId": "49c12ffb44165bb3f3fda8d202a046b8",
+                    "name": "person5",
+                    "bitmapResolution": 2,
+                    "md5ext": "49c12ffb44165bb3f3fda8d202a046b8.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 60,
+                    "rotationCenterY": 90
+                },
+                {
+                    "assetId": "f2483e067cdfd2c35b613fea24980a30",
+                    "name": "person6",
+                    "bitmapResolution": 1,
+                    "md5ext": "f2483e067cdfd2c35b613fea24980a30.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 32,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "d8a943604322f0f5f2f435d3cd940b85",
+                    "name": "person8",
+                    "bitmapResolution": 1,
+                    "md5ext": "d8a943604322f0f5f2f435d3cd940b85.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 29,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "04adcf04fb8d1026d62f5ee9c3ad7d42",
+                    "name": "person7",
+                    "bitmapResolution": 1,
+                    "md5ext": "04adcf04fb8d1026d62f5ee9c3ad7d42.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 29,
+                    "rotationCenterY": 47
+                },
+                {
+                    "assetId": "1356d2e5866dc1daff05814408c1167c",
+                    "name": "pet2",
+                    "bitmapResolution": 1,
+                    "md5ext": "1356d2e5866dc1daff05814408c1167c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 42
+                },
+                {
+                    "assetId": "6a108c4dbd2c2265c2bb5908f9a79398",
+                    "name": "pet1",
+                    "bitmapResolution": 1,
+                    "md5ext": "6a108c4dbd2c2265c2bb5908f9a79398.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 29,
+                    "rotationCenterY": 44
+                },
+                {
+                    "assetId": "07166695718b3712d36435cef0bfa346",
+                    "name": "pet4",
+                    "bitmapResolution": 1,
+                    "md5ext": "07166695718b3712d36435cef0bfa346.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 17,
+                    "rotationCenterY": 40
+                },
+                {
+                    "assetId": "71b02eaaab47f60b1bc94579213d1d18",
+                    "name": "pet3",
+                    "bitmapResolution": 1,
+                    "md5ext": "71b02eaaab47f60b1bc94579213d1d18.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 18,
+                    "rotationCenterY": 41
+                },
+                {
+                    "assetId": "bc2691b6a5df3c506d69a4966dfb3628",
+                    "name": "person2",
+                    "bitmapResolution": 1,
+                    "md5ext": "bc2691b6a5df3c506d69a4966dfb3628.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 32,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "721091c90a3ea19d1c8bd85f7fdf4824",
+                    "name": "person1",
+                    "bitmapResolution": 1,
+                    "md5ext": "721091c90a3ea19d1c8bd85f7fdf4824.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "60425642ecdb9faed9feb69e178dcdd2",
+                    "name": "person3",
+                    "bitmapResolution": 1,
+                    "md5ext": "60425642ecdb9faed9feb69e178dcdd2.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "07c3da9d5c02aaee8092d19642f94e3c",
+                    "name": "person4",
+                    "bitmapResolution": 1,
+                    "md5ext": "07c3da9d5c02aaee8092d19642f94e3c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 31,
+                    "rotationCenterY": 45
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": 71,
+            "y": 54,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190813192748",
+        "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
+    }
+}
+
+},{}],34:[function(require,module,exports){
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "a362161676714e6cd5c6d720547817d5",
+                    "name": "courtyard",
+                    "bitmapResolution": 2,
+                    "md5ext": "a362161676714e6cd5c6d720547817d5.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Jamal",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "73/K=FP)GVQLI-wUsnJ|": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "}%6,]+;TseI8:@asB9eH",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 46,
+                    "y": 74
+                },
+                "0z1!lZDenX,SZ:4QWkF:": {
+                    "opcode": "looks_setsizeto",
+                    "next": "(5[hu{1=uH.J?E^4r(~)",
+                    "parent": "}%6,]+;TseI8:@asB9eH",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                "60"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "i`x-8yLimj(13c3dzjIw": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "!aXre*as=;7wZ4l-jAC_",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 91,
+                    "y": 340
+                },
+                "!aXre*as=;7wZ4l-jAC_": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "i`x-8yLimj(13c3dzjIw",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Minimo!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "KDzF~kf,]OocH8gZN2IE": {
+                    "opcode": "looks_gotofrontback",
+                    "next": "=~@BIdz=vjjZL/Di~o(*",
+                    "parent": "xf21f|F9gQ2s=s%FzM)P",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "cyB#IOz:/lCBZdFq27nJ": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "xf21f|F9gQ2s=s%FzM)P",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 538,
+                    "y": 122
+                },
+                "xf21f|F9gQ2s=s%FzM)P": {
+                    "opcode": "looks_changesizeby",
+                    "next": "KDzF~kf,]OocH8gZN2IE",
+                    "parent": "cyB#IOz:/lCBZdFq27nJ",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "QCnmWw~%2`su?71YfD)r": {
+                    "opcode": "looks_changesizeby",
+                    "next": null,
+                    "parent": "=~@BIdz=vjjZL/Di~o(*",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                "-50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "=~@BIdz=vjjZL/Di~o(*": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "QCnmWw~%2`su?71YfD)r",
+                    "parent": "KDzF~kf,]OocH8gZN2IE",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Press the space bar to do some magic. "
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "(5[hu{1=uH.J?E^4r(~)": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "0z1!lZDenX,SZ:4QWkF:",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click on me for instructions."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "}%6,]+;TseI8:@asB9eH": {
+                    "opcode": "motion_gotoxy",
+                    "next": "0z1!lZDenX,SZ:4QWkF:",
+                    "parent": "73/K=FP)GVQLI-wUsnJ|",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-25"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-41"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 8,
+            "costumes": [
+                {
+                    "assetId": "693c376e737af6eb9be6cd7115c893e1",
+                    "name": "Witch 1",
+                    "bitmapResolution": 2,
+                    "md5ext": "693c376e737af6eb9be6cd7115c893e1.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 346
+                },
+                {
+                    "assetId": "82f3df3a42627bc33fcea826e26f9ff4",
+                    "name": "Witch 2",
+                    "bitmapResolution": 2,
+                    "md5ext": "82f3df3a42627bc33fcea826e26f9ff4.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 346
+                },
+                {
+                    "assetId": "bf2788e393d35ca53bac9d40efc38911",
+                    "name": "Witch 3",
+                    "bitmapResolution": 2,
+                    "md5ext": "bf2788e393d35ca53bac9d40efc38911.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 346
+                },
+                {
+                    "assetId": "cca489e9caf72e68e2cb1fc5c40f902f",
+                    "name": "Witch 4",
+                    "bitmapResolution": 2,
+                    "md5ext": "cca489e9caf72e68e2cb1fc5c40f902f.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 346
+                },
+                {
+                    "assetId": "6d7091094236416678775c44ff64dfcd",
+                    "name": "Witch 5",
+                    "bitmapResolution": 2,
+                    "md5ext": "6d7091094236416678775c44ff64dfcd.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 346
+                },
+                {
+                    "assetId": "1e4ce6f6412036d8dfaf2e543ee4975d",
+                    "name": "Wizard 1",
+                    "bitmapResolution": 2,
+                    "md5ext": "1e4ce6f6412036d8dfaf2e543ee4975d.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 356
+                },
+                {
+                    "assetId": "a17f08c55acf5ebf9f789d95c44d578e",
+                    "name": "Wizard 2",
+                    "bitmapResolution": 2,
+                    "md5ext": "a17f08c55acf5ebf9f789d95c44d578e.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 356
+                },
+                {
+                    "assetId": "396814cd71c312f27de864cc3f248a0d",
+                    "name": "Wizard 3",
+                    "bitmapResolution": 2,
+                    "md5ext": "396814cd71c312f27de864cc3f248a0d.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 356
+                },
+                {
+                    "assetId": "be247e831fea557a43d0bbe85d685ed1",
+                    "name": "Wizard 4",
+                    "bitmapResolution": 2,
+                    "md5ext": "be247e831fea557a43d0bbe85d685ed1.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 356
+                },
+                {
+                    "assetId": "6d655cb61af1444a9569ce280d6d3383",
+                    "name": "Wizard 5",
+                    "bitmapResolution": 2,
+                    "md5ext": "6d655cb61af1444a9569ce280d6d3383.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 356
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": -60,
+            "y": -41,
+            "size": 60.00000000000001,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Monster",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "VPKLazkV}Ih(~ceuerQ!": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "JY$I_;vD}Njo;gdoLQ;*",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 77,
+                    "y": 68
+                },
+                "JY$I_;vD}Njo;gdoLQ;*": {
+                    "opcode": "motion_gotoxy",
+                    "next": "XGxvNer$A%#I1sQLS3~D",
+                    "parent": "VPKLazkV}Ih(~ceuerQ!",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "40"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-29"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "XGxvNer$A%#I1sQLS3~D": {
+                    "opcode": "looks_setsizeto",
+                    "next": "heI|`ne,I%7yKaK@uy*T",
+                    "parent": "JY$I_;vD}Njo;gdoLQ;*",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                "45"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "~Ta~h%{oyzDJkNgB0Ar*": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "1K)/uYKqz?SyP7XP*^H;",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 84,
+                    "y": 326
+                },
+                "1K)/uYKqz?SyP7XP*^H;": {
+                    "opcode": "control_wait",
+                    "next": "uR_ri`oBD|rjMgU?FM6[",
+                    "parent": "~Ta~h%{oyzDJkNgB0Ar*",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                ".3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "uR_ri`oBD|rjMgU?FM6[": {
+                    "opcode": "looks_changesizeby",
+                    "next": "qeL@)l};UkUk/5=yMJfJ",
+                    "parent": "1K)/uYKqz?SyP7XP*^H;",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                "-10"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "qeL@)l};UkUk/5=yMJfJ": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "uR_ri`oBD|rjMgU?FM6[",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Help! I'm shrinking..."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "heI|`ne,I%7yKaK@uy*T": {
+                    "opcode": "looks_gotofrontback",
+                    "next": null,
+                    "parent": "XGxvNer$A%#I1sQLS3~D",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "21aaff40f8741327cb79b49765b936d2",
+                    "name": "ghost",
+                    "bitmapResolution": 1,
+                    "md5ext": "21aaff40f8741327cb79b49765b936d2.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 327.76250964222845,
+                    "rotationCenterY": 257.5494098687525
+                },
+                {
+                    "assetId": "40678a7b7c9856c50d9d2469a646f75d",
+                    "name": "cerberus",
+                    "bitmapResolution": 1,
+                    "md5ext": "40678a7b7c9856c50d9d2469a646f75d.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 238.00040007170497,
+                    "rotationCenterY": 179.94064073824006
+                },
+                {
+                    "assetId": "6e9595a213b8a6f999b255442e6f3936",
+                    "name": "owl",
+                    "bitmapResolution": 1,
+                    "md5ext": "6e9595a213b8a6f999b255442e6f3936.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 237.86389223861505,
+                    "rotationCenterY": 182.60606156491636
+                },
+                {
+                    "assetId": "e87005524ef37b2492b7d3ef4c60a74b",
+                    "name": "Minotaur",
+                    "bitmapResolution": 1,
+                    "md5ext": "e87005524ef37b2492b7d3ef4c60a74b.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 261.80950927734375,
+                    "rotationCenterY": 311.7650451660156
+                },
+                {
+                    "assetId": "84f57cc303311897ec158533620ef80a",
+                    "name": "Pink-Monster",
+                    "bitmapResolution": 1,
+                    "md5ext": "84f57cc303311897ec158533620ef80a.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 208.5,
+                    "rotationCenterY": 238
+                },
+                {
+                    "assetId": "8a92d14193f4f21669e849a9d9ed0534",
+                    "name": "Dragon",
+                    "bitmapResolution": 1,
+                    "md5ext": "8a92d14193f4f21669e849a9d9ed0534.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 1608.5065134277343,
+                    "rotationCenterY": 911.3315122070312
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": 40,
+            "y": -29,
+            "size": 40,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Cat",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "5fd638b2ff36d311493830ebf35b893b",
+                    "name": "cat1",
+                    "bitmapResolution": 1,
+                    "md5ext": "5fd638b2ff36d311493830ebf35b893b.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 88.00446848131384,
+                    "rotationCenterY": 70.56565467089568
+                },
+                {
+                    "assetId": "49c6e3be85f53eb0611478e2b42fec2b",
+                    "name": "cat2",
+                    "bitmapResolution": 1,
+                    "md5ext": "49c6e3be85f53eb0611478e2b42fec2b.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 66.7904327804867,
+                    "rotationCenterY": 27.065782158774567
+                },
+                {
+                    "assetId": "ac20e1f89530205acfffd7be4591e138",
+                    "name": "cat3",
+                    "bitmapResolution": 1,
+                    "md5ext": "ac20e1f89530205acfffd7be4591e138.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 883.0755004882812,
+                    "rotationCenterY": 833.4295043945312
+                },
+                {
+                    "assetId": "a827a07ddea183ca618a10d9563ce9b0",
+                    "name": "cat4",
+                    "bitmapResolution": 1,
+                    "md5ext": "a827a07ddea183ca618a10d9563ce9b0.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 570.0643920898438,
+                    "rotationCenterY": 358.7921142578125
+                },
+                {
+                    "assetId": "2fc2371b446dc9d3826e20d9a68e8ef2",
+                    "name": "cat5",
+                    "bitmapResolution": 1,
+                    "md5ext": "2fc2371b446dc9d3826e20d9a68e8ef2.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 372.0450134277344,
+                    "rotationCenterY": 526.2000122070312
+                },
+                {
+                    "assetId": "1b277f5ef9cbfd6f30efe6f98721392d",
+                    "name": "cat6",
+                    "bitmapResolution": 1,
+                    "md5ext": "1b277f5ef9cbfd6f30efe6f98721392d.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 715,
+                    "rotationCenterY": 1028.5
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": 164.99999999999997,
+            "y": -67,
+            "size": 50,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190813192748",
+        "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
+    }
+}
+
+},{}],35:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -6603,7 +9286,9 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":29}],31:[function(require,module,exports){
+},{"./scratch3":31}],36:[function(require,module,exports){
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":3,"costumes":[{"assetId":"2b0bddaf727e6bb95131290ae2549ac4","name":"background3","bitmapResolution":2,"md5ext":"2b0bddaf727e6bb95131290ae2549ac4.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"a81668321aa3dcc0fc185d3e36ae76f6","name":"Room 1","bitmapResolution":2,"md5ext":"a81668321aa3dcc0fc185d3e36ae76f6.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"e5f794c8756ca0cead5cb7e7fe354c41","name":"Playground","bitmapResolution":2,"md5ext":"e5f794c8756ca0cead5cb7e7fe354c41.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"38be88e8026768d4606fe1932b05d258","name":"backdrop","bitmapResolution":2,"md5ext":"38be88e8026768d4606fe1932b05d258.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"India","variables":{},"lists":{},"broadcasts":{},"blocks":{"{?%H[3PODtzIOzw3NUAD":{"opcode":"event_whenflagclicked","next":"X9F`sK3d.L!x-cTWVaGz","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":0,"y":0},"X9F`sK3d.L!x-cTWVaGz":{"opcode":"motion_gotoxy","next":"kBZo|n~NnzgG!crdI1E;","parent":"{?%H[3PODtzIOzw3NUAD","inputs":{"X":[1,[4,"-215"]],"Y":[1,[4,"-145"]]},"fields":{},"shadow":false,"topLevel":false},"kBZo|n~NnzgG!crdI1E;":{"opcode":"motion_movesteps","next":"u=@^[0kNfQx.2*Xvk0TX","parent":"X9F`sK3d.L!x-cTWVaGz","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"u=@^[0kNfQx.2*Xvk0TX":{"opcode":"looks_sayforsecs","next":"C;QZb9TtC1(Ov9vkC+$f","parent":"kBZo|n~NnzgG!crdI1E;","inputs":{"MESSAGE":[1,[10,"Hello! My name is India."]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},"C;QZb9TtC1(Ov9vkC+$f":{"opcode":"motion_movesteps","next":"=6=T6QR$yee::D$b8~s{","parent":"u=@^[0kNfQx.2*Xvk0TX","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"=6=T6QR$yee::D$b8~s{":{"opcode":"looks_sayforsecs","next":",`%kTB=!2Lz#4m!W2OpL","parent":"C;QZb9TtC1(Ov9vkC+$f","inputs":{"MESSAGE":[1,[10,"Welcome to Scratch!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},",`%kTB=!2Lz#4m!W2OpL":{"opcode":"motion_movesteps","next":"{Ipink+*Ul#QILZqGvdF","parent":"=6=T6QR$yee::D$b8~s{","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"{Ipink+*Ul#QILZqGvdF":{"opcode":"looks_sayforsecs","next":null,"parent":",`%kTB=!2Lz#4m!W2OpL","inputs":{"MESSAGE":[1,[10,"Click the Space Bar to see some of the things I like."]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"fec9549b732165ec6d09991de08b69cd","name":"character (1)","bitmapResolution":1,"md5ext":"fec9549b732165ec6d09991de08b69cd.svg","dataFormat":"svg","rotationCenterX":78.87000274658203,"rotationCenterY":165.80999755859375}],"sounds":[],"volume":100,"layerOrder":2,"visible":true,"x":-165,"y":-145,"size":162.8369844855632,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"easel","variables":{},"lists":{},"broadcasts":{},"blocks":{"XYmoOsQpwwb~bRU[WtDb":{"opcode":"event_whenkeypressed","next":"NX*(%@1qK}o{lJ)1dp(L","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":56,"y":66},"NX*(%@1qK}o{lJ)1dp(L":{"opcode":"looks_switchcostumeto","next":"A*?(6=CMw!5NQvy3GoJz","parent":"XYmoOsQpwwb~bRU[WtDb","inputs":{"COSTUME":[1,"uxs{_T(3Fk%RETANj%^X"]},"fields":{},"shadow":false,"topLevel":false},"uxs{_T(3Fk%RETANj%^X":{"opcode":"looks_costume","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{},"fields":{"COSTUME":["easel-music",null]},"shadow":true,"topLevel":false},"A*?(6=CMw!5NQvy3GoJz":{"opcode":"control_repeat","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{"TIMES":[1,[6,"7"]],"SUBSTACK":[2,"MkZ9YIg7M,WuN@FR]l:o"]},"fields":{},"shadow":false,"topLevel":false},"MkZ9YIg7M,WuN@FR]l:o":{"opcode":"looks_nextcostume","next":"*i@~ROBKeTP[#l_7v/_-","parent":"A*?(6=CMw!5NQvy3GoJz","inputs":{},"fields":{},"shadow":false,"topLevel":false},"*i@~ROBKeTP[#l_7v/_-":{"opcode":"control_wait","next":null,"parent":"MkZ9YIg7M,WuN@FR]l:o","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"3?,1QT}D[0#@^jvT!J*^":{"opcode":"event_whenthisspriteclicked","next":"gPD.*ilWONI2U7F-SE[}","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":51,"y":455},"gPD.*ilWONI2U7F-SE[}":{"opcode":"looks_sayforsecs","next":null,"parent":"3?,1QT}D[0#@^jvT!J*^","inputs":{"MESSAGE":[1,[10,"Tada!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":7,"costumes":[{"assetId":"47a257ec82df9b221a9c8a0da1174652","name":"easel","bitmapResolution":1,"md5ext":"47a257ec82df9b221a9c8a0da1174652.svg","dataFormat":"svg","rotationCenterX":72,"rotationCenterY":100.5},{"assetId":"f80c9c273a7542f28fc0a0aa16f80532","name":"easel-sports","bitmapResolution":1,"md5ext":"f80c9c273a7542f28fc0a0aa16f80532.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"25fc936818594e0f67f48ffd39ee06b2","name":"easel-animals","bitmapResolution":1,"md5ext":"25fc936818594e0f67f48ffd39ee06b2.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"6a904db737d12cc410bd18e0e3837f1a","name":"easel-music","bitmapResolution":1,"md5ext":"6a904db737d12cc410bd18e0e3837f1a.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"eb955b9d6d17d5358e1c66ca5dbc4648","name":"easel-neighborhood","bitmapResolution":1,"md5ext":"eb955b9d6d17d5358e1c66ca5dbc4648.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"4c0e56f2cc17d497d76070033ab08654","name":"easel-travel","bitmapResolution":1,"md5ext":"4c0e56f2cc17d497d76070033ab08654.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"ba4d4b1af1eafdda9b882c0f51ced3ff","name":"easel-astronomy","bitmapResolution":1,"md5ext":"ba4d4b1af1eafdda9b882c0f51ced3ff.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"b0841fa4e9ea101a530022a9b4758d14","name":"easel-video-games","bitmapResolution":1,"md5ext":"b0841fa4e9ea101a530022a9b4758d14.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422}],"sounds":[],"volume":100,"layerOrder":1,"visible":true,"x":144,"y":-52,"size":150,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[{"id":"undefined_costumenumbername_number","mode":"default","opcode":"looks_costumenumbername","params":{"NUMBER_NAME":"number"},"spriteName":"Helen","value":"","width":0,"height":0,"x":5,"y":5,"visible":false,"sliderMin":0,"sliderMax":100,"isDiscrete":true}],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
+},{}],37:[function(require,module,exports){
 /// Provides necessary scripts for index.html.
 
 /// Requirements (scripts)
@@ -6612,7 +9297,7 @@ var graders = {
   scratchBasicsL2: { name: 'Scratch Basics L2',      file: require('./grading-scripts-s3/scratch-basics-L2') },
   animationL1:     { name: 'Animation L1',           file: require('./grading-scripts-s3/animation-L1')      },
   animationL2:     { name: 'Animation L2',           file: require('./grading-scripts-s3/animation-L2')      },
-  eventsL1:        { name: 'Events L1',              file: require('./grading-scripts-s3/events-L1')         },
+  eventsL1:        { name: 'Events L1',              file: require('./grading-scripts-s3/events-L1-syn')         },
   eventsL2:        { name: 'Events L2',              file: require('./grading-scripts-s3/events-L2')         },
   condLoopsL1:     { name: 'Conditional Loops L1',   file: require('./grading-scripts-s3/cond-loops-L1')        },
   condLoopsL2:     { name: 'Conditional Loops L2',   file: require('./grading-scripts-s3/cond-loops-L2')   },
@@ -7019,4 +9704,4 @@ function noError() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-},{"./act1-grading-scripts/5-block-challenge":5,"./act1-grading-scripts/aboutMe":6,"./act1-grading-scripts/build-a-band":7,"./act1-grading-scripts/final-project":8,"./act1-grading-scripts/ladybug":9,"./act1-grading-scripts/name-poem":11,"./act1-grading-scripts/ofrenda":12,"./grading-scripts-s3/animation-L1":15,"./grading-scripts-s3/animation-L2":16,"./grading-scripts-s3/complex-conditionals-L1":17,"./grading-scripts-s3/cond-loops-L1":18,"./grading-scripts-s3/cond-loops-L2":19,"./grading-scripts-s3/decomp-L1":21,"./grading-scripts-s3/decomp-L2":22,"./grading-scripts-s3/events-L1":23,"./grading-scripts-s3/events-L2":24,"./grading-scripts-s3/one-way-sync-L1":25,"./grading-scripts-s3/one-way-sync-L2":26,"./grading-scripts-s3/scratch-basics-L1":27,"./grading-scripts-s3/scratch-basics-L2":28,"./grading-scripts-s3/two-way-sync-L1":30}]},{},[31]);
+},{"./act1-grading-scripts/5-block-challenge":5,"./act1-grading-scripts/aboutMe":6,"./act1-grading-scripts/build-a-band":7,"./act1-grading-scripts/final-project":8,"./act1-grading-scripts/ladybug":9,"./act1-grading-scripts/name-poem":11,"./act1-grading-scripts/ofrenda":12,"./grading-scripts-s3/animation-L1":15,"./grading-scripts-s3/animation-L2":16,"./grading-scripts-s3/complex-conditionals-L1":17,"./grading-scripts-s3/cond-loops-L1":18,"./grading-scripts-s3/cond-loops-L2":19,"./grading-scripts-s3/decomp-L1":21,"./grading-scripts-s3/decomp-L2":22,"./grading-scripts-s3/events-L1-syn":23,"./grading-scripts-s3/events-L2":24,"./grading-scripts-s3/one-way-sync-L1":27,"./grading-scripts-s3/one-way-sync-L2":28,"./grading-scripts-s3/scratch-basics-L1":29,"./grading-scripts-s3/scratch-basics-L2":30,"./grading-scripts-s3/two-way-sync-L1":35}]},{},[37]);
