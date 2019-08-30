@@ -1,966 +1,4 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-if (typeof Object.create === 'function') {
-  // implementation from standard node.js 'util' module
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-  };
-} else {
-  // old school shim for old browsers
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
-  }
-}
-
-},{}],2:[function(require,module,exports){
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-},{}],3:[function(require,module,exports){
-module.exports = function isBuffer(arg) {
-  return arg && typeof arg === 'object'
-    && typeof arg.copy === 'function'
-    && typeof arg.fill === 'function'
-    && typeof arg.readUInt8 === 'function';
-}
-},{}],4:[function(require,module,exports){
-(function (process,global){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-var formatRegExp = /%[sdj%]/g;
-exports.format = function(f) {
-  if (!isString(f)) {
-    var objects = [];
-    for (var i = 0; i < arguments.length; i++) {
-      objects.push(inspect(arguments[i]));
-    }
-    return objects.join(' ');
-  }
-
-  var i = 1;
-  var args = arguments;
-  var len = args.length;
-  var str = String(f).replace(formatRegExp, function(x) {
-    if (x === '%%') return '%';
-    if (i >= len) return x;
-    switch (x) {
-      case '%s': return String(args[i++]);
-      case '%d': return Number(args[i++]);
-      case '%j':
-        try {
-          return JSON.stringify(args[i++]);
-        } catch (_) {
-          return '[Circular]';
-        }
-      default:
-        return x;
-    }
-  });
-  for (var x = args[i]; i < len; x = args[++i]) {
-    if (isNull(x) || !isObject(x)) {
-      str += ' ' + x;
-    } else {
-      str += ' ' + inspect(x);
-    }
-  }
-  return str;
-};
-
-
-// Mark that a method should not be used.
-// Returns a modified function which warns once by default.
-// If --no-deprecation is set, then it is a no-op.
-exports.deprecate = function(fn, msg) {
-  // Allow for deprecating things in the process of starting up.
-  if (isUndefined(global.process)) {
-    return function() {
-      return exports.deprecate(fn, msg).apply(this, arguments);
-    };
-  }
-
-  if (process.noDeprecation === true) {
-    return fn;
-  }
-
-  var warned = false;
-  function deprecated() {
-    if (!warned) {
-      if (process.throwDeprecation) {
-        throw new Error(msg);
-      } else if (process.traceDeprecation) {
-        console.trace(msg);
-      } else {
-        console.error(msg);
-      }
-      warned = true;
-    }
-    return fn.apply(this, arguments);
-  }
-
-  return deprecated;
-};
-
-
-var debugs = {};
-var debugEnviron;
-exports.debuglog = function(set) {
-  if (isUndefined(debugEnviron))
-    debugEnviron = process.env.NODE_DEBUG || '';
-  set = set.toUpperCase();
-  if (!debugs[set]) {
-    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
-      var pid = process.pid;
-      debugs[set] = function() {
-        var msg = exports.format.apply(exports, arguments);
-        console.error('%s %d: %s', set, pid, msg);
-      };
-    } else {
-      debugs[set] = function() {};
-    }
-  }
-  return debugs[set];
-};
-
-
-/**
- * Echos the value of a value. Trys to print the value out
- * in the best way possible given the different types.
- *
- * @param {Object} obj The object to print out.
- * @param {Object} opts Optional options object that alters the output.
- */
-/* legacy: obj, showHidden, depth, colors*/
-function inspect(obj, opts) {
-  // default options
-  var ctx = {
-    seen: [],
-    stylize: stylizeNoColor
-  };
-  // legacy...
-  if (arguments.length >= 3) ctx.depth = arguments[2];
-  if (arguments.length >= 4) ctx.colors = arguments[3];
-  if (isBoolean(opts)) {
-    // legacy...
-    ctx.showHidden = opts;
-  } else if (opts) {
-    // got an "options" object
-    exports._extend(ctx, opts);
-  }
-  // set default options
-  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
-  if (isUndefined(ctx.depth)) ctx.depth = 2;
-  if (isUndefined(ctx.colors)) ctx.colors = false;
-  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
-  if (ctx.colors) ctx.stylize = stylizeWithColor;
-  return formatValue(ctx, obj, ctx.depth);
-}
-exports.inspect = inspect;
-
-
-// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-inspect.colors = {
-  'bold' : [1, 22],
-  'italic' : [3, 23],
-  'underline' : [4, 24],
-  'inverse' : [7, 27],
-  'white' : [37, 39],
-  'grey' : [90, 39],
-  'black' : [30, 39],
-  'blue' : [34, 39],
-  'cyan' : [36, 39],
-  'green' : [32, 39],
-  'magenta' : [35, 39],
-  'red' : [31, 39],
-  'yellow' : [33, 39]
-};
-
-// Don't use 'blue' not visible on cmd.exe
-inspect.styles = {
-  'special': 'cyan',
-  'number': 'yellow',
-  'boolean': 'yellow',
-  'undefined': 'grey',
-  'null': 'bold',
-  'string': 'green',
-  'date': 'magenta',
-  // "name": intentionally not styling
-  'regexp': 'red'
-};
-
-
-function stylizeWithColor(str, styleType) {
-  var style = inspect.styles[styleType];
-
-  if (style) {
-    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
-           '\u001b[' + inspect.colors[style][1] + 'm';
-  } else {
-    return str;
-  }
-}
-
-
-function stylizeNoColor(str, styleType) {
-  return str;
-}
-
-
-function arrayToHash(array) {
-  var hash = {};
-
-  array.forEach(function(val, idx) {
-    hash[val] = true;
-  });
-
-  return hash;
-}
-
-
-function formatValue(ctx, value, recurseTimes) {
-  // Provide a hook for user-specified inspect functions.
-  // Check that value is an object with an inspect function on it
-  if (ctx.customInspect &&
-      value &&
-      isFunction(value.inspect) &&
-      // Filter out the util module, it's inspect function is special
-      value.inspect !== exports.inspect &&
-      // Also filter out any prototype objects using the circular check.
-      !(value.constructor && value.constructor.prototype === value)) {
-    var ret = value.inspect(recurseTimes, ctx);
-    if (!isString(ret)) {
-      ret = formatValue(ctx, ret, recurseTimes);
-    }
-    return ret;
-  }
-
-  // Primitive types cannot have properties
-  var primitive = formatPrimitive(ctx, value);
-  if (primitive) {
-    return primitive;
-  }
-
-  // Look up the keys of the object.
-  var keys = Object.keys(value);
-  var visibleKeys = arrayToHash(keys);
-
-  if (ctx.showHidden) {
-    keys = Object.getOwnPropertyNames(value);
-  }
-
-  // IE doesn't make error fields non-enumerable
-  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
-  if (isError(value)
-      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
-    return formatError(value);
-  }
-
-  // Some type of object without properties can be shortcutted.
-  if (keys.length === 0) {
-    if (isFunction(value)) {
-      var name = value.name ? ': ' + value.name : '';
-      return ctx.stylize('[Function' + name + ']', 'special');
-    }
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    }
-    if (isDate(value)) {
-      return ctx.stylize(Date.prototype.toString.call(value), 'date');
-    }
-    if (isError(value)) {
-      return formatError(value);
-    }
-  }
-
-  var base = '', array = false, braces = ['{', '}'];
-
-  // Make Array say that they are Array
-  if (isArray(value)) {
-    array = true;
-    braces = ['[', ']'];
-  }
-
-  // Make functions say that they are functions
-  if (isFunction(value)) {
-    var n = value.name ? ': ' + value.name : '';
-    base = ' [Function' + n + ']';
-  }
-
-  // Make RegExps say that they are RegExps
-  if (isRegExp(value)) {
-    base = ' ' + RegExp.prototype.toString.call(value);
-  }
-
-  // Make dates with properties first say the date
-  if (isDate(value)) {
-    base = ' ' + Date.prototype.toUTCString.call(value);
-  }
-
-  // Make error with message first say the error
-  if (isError(value)) {
-    base = ' ' + formatError(value);
-  }
-
-  if (keys.length === 0 && (!array || value.length == 0)) {
-    return braces[0] + base + braces[1];
-  }
-
-  if (recurseTimes < 0) {
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    } else {
-      return ctx.stylize('[Object]', 'special');
-    }
-  }
-
-  ctx.seen.push(value);
-
-  var output;
-  if (array) {
-    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
-  } else {
-    output = keys.map(function(key) {
-      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
-    });
-  }
-
-  ctx.seen.pop();
-
-  return reduceToSingleString(output, base, braces);
-}
-
-
-function formatPrimitive(ctx, value) {
-  if (isUndefined(value))
-    return ctx.stylize('undefined', 'undefined');
-  if (isString(value)) {
-    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
-                                             .replace(/'/g, "\\'")
-                                             .replace(/\\"/g, '"') + '\'';
-    return ctx.stylize(simple, 'string');
-  }
-  if (isNumber(value))
-    return ctx.stylize('' + value, 'number');
-  if (isBoolean(value))
-    return ctx.stylize('' + value, 'boolean');
-  // For some reason typeof null is "object", so special case here.
-  if (isNull(value))
-    return ctx.stylize('null', 'null');
-}
-
-
-function formatError(value) {
-  return '[' + Error.prototype.toString.call(value) + ']';
-}
-
-
-function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
-  var output = [];
-  for (var i = 0, l = value.length; i < l; ++i) {
-    if (hasOwnProperty(value, String(i))) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          String(i), true));
-    } else {
-      output.push('');
-    }
-  }
-  keys.forEach(function(key) {
-    if (!key.match(/^\d+$/)) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          key, true));
-    }
-  });
-  return output;
-}
-
-
-function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
-  var name, str, desc;
-  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
-  if (desc.get) {
-    if (desc.set) {
-      str = ctx.stylize('[Getter/Setter]', 'special');
-    } else {
-      str = ctx.stylize('[Getter]', 'special');
-    }
-  } else {
-    if (desc.set) {
-      str = ctx.stylize('[Setter]', 'special');
-    }
-  }
-  if (!hasOwnProperty(visibleKeys, key)) {
-    name = '[' + key + ']';
-  }
-  if (!str) {
-    if (ctx.seen.indexOf(desc.value) < 0) {
-      if (isNull(recurseTimes)) {
-        str = formatValue(ctx, desc.value, null);
-      } else {
-        str = formatValue(ctx, desc.value, recurseTimes - 1);
-      }
-      if (str.indexOf('\n') > -1) {
-        if (array) {
-          str = str.split('\n').map(function(line) {
-            return '  ' + line;
-          }).join('\n').substr(2);
-        } else {
-          str = '\n' + str.split('\n').map(function(line) {
-            return '   ' + line;
-          }).join('\n');
-        }
-      }
-    } else {
-      str = ctx.stylize('[Circular]', 'special');
-    }
-  }
-  if (isUndefined(name)) {
-    if (array && key.match(/^\d+$/)) {
-      return str;
-    }
-    name = JSON.stringify('' + key);
-    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
-      name = name.substr(1, name.length - 2);
-      name = ctx.stylize(name, 'name');
-    } else {
-      name = name.replace(/'/g, "\\'")
-                 .replace(/\\"/g, '"')
-                 .replace(/(^"|"$)/g, "'");
-      name = ctx.stylize(name, 'string');
-    }
-  }
-
-  return name + ': ' + str;
-}
-
-
-function reduceToSingleString(output, base, braces) {
-  var numLinesEst = 0;
-  var length = output.reduce(function(prev, cur) {
-    numLinesEst++;
-    if (cur.indexOf('\n') >= 0) numLinesEst++;
-    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
-  }, 0);
-
-  if (length > 60) {
-    return braces[0] +
-           (base === '' ? '' : base + '\n ') +
-           ' ' +
-           output.join(',\n  ') +
-           ' ' +
-           braces[1];
-  }
-
-  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
-}
-
-
-// NOTE: These type checking functions intentionally don't use `instanceof`
-// because it is fragile and can be easily faked with `Object.create()`.
-function isArray(ar) {
-  return Array.isArray(ar);
-}
-exports.isArray = isArray;
-
-function isBoolean(arg) {
-  return typeof arg === 'boolean';
-}
-exports.isBoolean = isBoolean;
-
-function isNull(arg) {
-  return arg === null;
-}
-exports.isNull = isNull;
-
-function isNullOrUndefined(arg) {
-  return arg == null;
-}
-exports.isNullOrUndefined = isNullOrUndefined;
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-exports.isNumber = isNumber;
-
-function isString(arg) {
-  return typeof arg === 'string';
-}
-exports.isString = isString;
-
-function isSymbol(arg) {
-  return typeof arg === 'symbol';
-}
-exports.isSymbol = isSymbol;
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-exports.isUndefined = isUndefined;
-
-function isRegExp(re) {
-  return isObject(re) && objectToString(re) === '[object RegExp]';
-}
-exports.isRegExp = isRegExp;
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-exports.isObject = isObject;
-
-function isDate(d) {
-  return isObject(d) && objectToString(d) === '[object Date]';
-}
-exports.isDate = isDate;
-
-function isError(e) {
-  return isObject(e) &&
-      (objectToString(e) === '[object Error]' || e instanceof Error);
-}
-exports.isError = isError;
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-exports.isFunction = isFunction;
-
-function isPrimitive(arg) {
-  return arg === null ||
-         typeof arg === 'boolean' ||
-         typeof arg === 'number' ||
-         typeof arg === 'string' ||
-         typeof arg === 'symbol' ||  // ES6 symbol
-         typeof arg === 'undefined';
-}
-exports.isPrimitive = isPrimitive;
-
-exports.isBuffer = require('./support/isBuffer');
-
-function objectToString(o) {
-  return Object.prototype.toString.call(o);
-}
-
-
-function pad(n) {
-  return n < 10 ? '0' + n.toString(10) : n.toString(10);
-}
-
-
-var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
-              'Oct', 'Nov', 'Dec'];
-
-// 26 Feb 16:19:34
-function timestamp() {
-  var d = new Date();
-  var time = [pad(d.getHours()),
-              pad(d.getMinutes()),
-              pad(d.getSeconds())].join(':');
-  return [d.getDate(), months[d.getMonth()], time].join(' ');
-}
-
-
-// log is just a thin wrapper to console.log that prepends a timestamp
-exports.log = function() {
-  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
-};
-
-
-/**
- * Inherit the prototype methods from one constructor into another.
- *
- * The Function.prototype.inherits from lang.js rewritten as a standalone
- * function (not on Function.prototype). NOTE: If this file is to be loaded
- * during bootstrapping this function needs to be rewritten using some native
- * functions as prototype setup using normal JavaScript does not work as
- * expected during bootstrapping (see mirror.js in r114903).
- *
- * @param {function} ctor Constructor function which needs to inherit the
- *     prototype.
- * @param {function} superCtor Constructor function to inherit prototype from.
- */
-exports.inherits = require('inherits');
-
-exports._extend = function(origin, add) {
-  // Don't do anything if add isn't an object
-  if (!add || !isObject(add)) return origin;
-
-  var keys = Object.keys(add);
-  var i = keys.length;
-  while (i--) {
-    origin[keys[i]] = add[keys[i]];
-  }
-  return origin;
-};
-
-function hasOwnProperty(obj, prop) {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
-}
-
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":3,"_process":2,"inherits":1}],5:[function(require,module,exports){
-require('../grading-scripts-s3/scratch3')
-
-module.exports = class {
-    constructor() {
-        this.requirements = {};
-        this.extensions = {};
-        this.avgScriptLength = 0;
-        this.eventOpcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked'];
-        this.otherOpcodes = ['motion_glidesecstoxy', 'looks_sayforsecs', 'control_wait'];
-        this.blocksUsed = 0;
-    }
-
-    initReqs() {
-        // this.requirements.fiveBlocksOld = { bool: false, str: 'Used 5 blocks specified - OLD REQ' };
-        this.requirements.oneBlock = { bool: false, str: 'Used at least one of the five blocks specified' };
-        this.requirements.twoBlocks = { bool: false, str: 'Used at least two of the five blocks specified' };
-        this.requirements.threeBlocks = { bool: false, str: 'Used at least three of the five blocks specified' };
-        this.requirements.fourBlocks = { bool: false, str: 'Used at least four of the five blocks specified' };
-        this.requirements.allFiveBlocks = { bool: false, str: 'Used all five blocks specified' }
-        this.requirements.backdrop = { bool: false, str: 'Backdrop added' };
-        this.requirements.oneSprite = { bool: false, str: 'At least one sprite is added' }
-        this.requirements.twoSprites = { bool: false, str: 'At least two sprites chosen' };
-        this.extensions.moreSprites = { bool: false, str: 'More sprites added' };
-        this.extensions.convo = { bool: false, str: 'Sprites have a conversation (at least two sprites say something)' };
-        this.extensions.three = { bool: false, str: 'Average script length is at least three' };
-        this.extensions.four = { bool: false, str: 'Average script length is at least four' };
-        this.extensions.five = { bool: false, str: 'Average script length is at least five' };
-        this.avgScriptLength = 0;
-    }
-
-    grade(fileObj, user) {
-        var project = new Project(fileObj, null);
-        this.initReqs();
-        if (!is(fileObj)) return;
-
-        let numSprites = 0;
-        let scriptLengths = [];
-        let spritesTalking = 0;
-
-        let usesFlagClicked = 0;
-        let usesSpriteClicked = 0;
-        let usesGlide = 0;
-        let usesSays = 0;
-        let usesWait = 0;
-
-        for (let target of project.targets) {
-            if (target.isStage) {
-                if ((target.costumes.length > 1) ||
-                    (target.costumes[0].assetId !== 'cd21514d0531fdffb22204e0ec5ed84a')) {
-                    this.requirements.backdrop.bool = true;
-                }
-            } else {
-                
-                numSprites++;
-                let spriteTalks = false;
-
-                for (let script in target.scripts) {
-                    if (target.scripts[script].blocks[0].opcode.includes('event_')
-                    &&target.scripts[script].blocks.length>1){
-
-                    for (let block in target.scripts[script].blocks) {
-                        let opc = target.scripts[script].blocks[block].opcode;
-                        switch (opc) {
-                            case 'event_whenflagclicked':
-                                usesFlagClicked = 1;
-                                break;
-                            case 'event_whenthisspriteclicked':
-                                usesSpriteClicked = 1;
-                                break;
-                            case 'motion_glidesecstoxy':
-                                usesGlide = 1;
-                                break;
-                            case 'looks_sayforsecs':
-                                usesSays = 1;
-                                spriteTalks = true;
-                                break;
-                            case 'control_wait':
-                                usesWait = 1;
-                                break;
-                        }
-
-                        if ((this.eventOpcodes.includes(opc)
-                            || (this.otherOpcodes.includes(opc)))) {
-                         //   this.requirements.fiveBlocksOld.bool = true;
-                        }
-
-                        if ((opc === 'event_whenflagclicked')
-                            || (opc === 'event_whenthisspriteclicked')) {
-                            let scriptLength = 1;
-                            for (let i = target.scripts[script].blocks[block].id; target.blocks[i].next !== null; i = target.blocks[i].next) {
-                                scriptLength++;
-                            }
-                            scriptLengths.push(scriptLength);
-                        } 
-                    }
-                    }
-                }
-
-                if (spriteTalks) { spritesTalking++ };
-            }
-        }
-        if (numSprites >= 1) {
-            this.requirements.oneSprite.bool = true;
-        }
-        if (numSprites >= 2) {
-            this.requirements.twoSprites.bool = true;
-        }
-        if (numSprites >= 3) {
-           this.extensions.moreSprites.bool = true;
-        }
-        if (spritesTalking >= 2) {
-           this.extensions.convo.bool = true;
-        }
-
-        const reducer = (accumulator, currentValue) => accumulator + currentValue;
-        let total = scriptLengths.reduce(reducer, 0);
-        if (scriptLengths.length === 0) {
-            this.avgScriptLength = 0;
-        } else {
-            this.avgScriptLength = total / scriptLengths.length;
-        }
-        // console.log('Average Script Length (including event block):');
-        // console.log(this.avgScriptLength);
-
-        if (this.avgScriptLength >= 3) {
-            this.extensions.three.bool = true;
-        }
-        if (this.avgScriptLength >= 4) {
-            this.extensions.four.bool = true;
-        }
-        if (this.avgScriptLength >= 5) {
-            this.extensions.five.bool = true;
-        }
-
-        let longestLength = scriptLengths[0];
-        for (let i = 1; i < scriptLengths.length; i++) {
-            if (scriptLengths[i] > longestLength) {
-                longestLength = scriptLengths[i];
-            }
-        }
-
-        // console.log('Longest Script Length (including event block):');
-        // console.log(longestLength);
-
-        let blocksUsed = usesFlagClicked + usesGlide + usesSays + usesSpriteClicked + usesWait;
-        if (blocksUsed >= 1) {this.requirements.oneBlock.bool=true;}
-        if (blocksUsed >= 2) {this.requirements.twoBlocks.bool=true;}
-        if (blocksUsed >= 3) {this.requirements.threeBlocks.bool=true;}
-        if (blocksUsed >= 4) {this.requirements.fourBlocks.bool=true;}
-        if (blocksUsed >= 5) {this.requirements.allFiveBlocks.bool=true;}
-
-    }
-}
-},{"../grading-scripts-s3/scratch3":29}],6:[function(require,module,exports){
 /*
 Act 1 About Me Grader
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -1098,13 +136,13 @@ module.exports = class {
     }
 }
 
-},{"../grading-scripts-s3/scratch3":29}],7:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":26}],2:[function(require,module,exports){
 /*
-Act 1 Build-a-Band Project Autograder
+Act 1 Animal Parade Autograder
 Initial version and testing: Zipporah Klain
 */
 
-require('../grading-scripts-s3/scratch3')
+require('../grading-scripts-s3/scratch3');
 
 module.exports = class {
     constructor() {
@@ -1113,301 +151,207 @@ module.exports = class {
     }
 
     initReqs() {
-        // this.requirements.guitar = { bool: false, str: 'Script added for guitar (including event and action block)' }
-        this.requirements.sprite = { bool: false, str: 'Added at least one new sprite' };
-        this.requirements.script = { bool: false, str: 'At least one of the new sprites has a script' };
-        this.requirements.changed1 = { bool: false, str: "Either the trumpet or the drum's code has been changed"};
-        this.requirements.changed = { bool: false, str: "Both the trumpet and the drum's code have been changed"};
-        this.requirements.cat1 = { bool: false, str: "The cat's code has been changed"};
-        this.requirements.cat = { bool: false, str: 'Cat animated using loop with wait block and motion (including changing costumes and size)' };
+        this.requirements.kangaroo = {bool: false, str: 'Kangaroo script has been changed'};
+        this.requirements.grasshopper = {bool: false, str: 'Grasshopper script has been changed'};
+       // this.requirements.stop = {bool: false, str: 'All the animals stop in the same place'};
+        this.requirements.bee = {bool: false, str: 'Bee flies in a circle when clicked (using next costume, turn, and move steps)'};
+        this.extensions.changeSize = {bool: false, str: 'Uses "change size by"'};
+        this.extensions.changeEffect = {bool: false, str: 'Uses "change color effect by"'}
     }
 
-    // makeArray(target){
-    //     let arr = [];
-    //     for (let block in target.blocks){
-    //         arr.push(target.blocks[block].opcode);
-    //         arr.push(target.blocks[block].next);
-    //         arr.push(target.blocks[block].parent);
-    //     }
-    // }
+    checkScripts(target) {
+        for (let script of target.scripts){
+            if (script.blocks[0].opcode.includes('event_')){
+                switch (target.name){
+                    case 'Kangaroo':
+                        if (script.blocks[0].opcode !== 'event_whenflagclicked'
+                            || !(script.blocks[1].opcode === 'motion_gotoxy'
+                                && script.blocks[1].inputs.X[1][1] == -180
+                                && script.blocks[1].inputs.Y[1][1] == -17)
+                            || !(script.blocks[2].opcode === 'looks_switchcostumeto'
+                                && target.blocks[script.blocks[2].inputs.COSTUME[1]].fields.COSTUME[0] === 'kangaroo crouching')
+                            || script.blocks.length != 3) {
+                                    this.requirements.kangaroo.bool = true;
+                        }
+                        break;
+                    case 'Grasshopper':
+                        if (script.blocks[0].opcode !== 'event_whenflagclicked' 
+                            || !(script.blocks[1].opcode === 'motion_gotoxy'
+                                && script.blocks[1].inputs.X[1][1] == -56
+                                && script.blocks[1].inputs.Y[1][1] == -80)
+                            || !(script.blocks[2].opcode === 'looks_switchcostumeto'
+                                && target.blocks[script.blocks[2].inputs.COSTUME[1]].fields.COSTUME[0] === 'Grasshopper-a')
+                            || script.blocks.length != 3){
+                                    this.requirements.grasshopper.bool = true;
+                                }
+                        break;
+                }
+            }
+        }
+    } 
 
-    grade(fileObj, user) {
-        var project = new Project(fileObj, null);
+    checkBlocks(target) {
+        for (let script of target.scripts){
+            let costume = false;
+            let turn = false;
+            let move = false;
+            let size = false;
+            let effect = false;
+            if (script.blocks[0].opcode.includes('event_')){
+                for (let block of script.blocks){
+                    switch(block.opcode){
+                        case 'looks_nextcostume': costume = true; break;
+                        case 'motion_turnleft': turn = true; break;
+                        case 'motion_turnright': turn = true; break;
+                        case 'motion_movesteps': move = true; break;
+                        case 'looks_changesizeby': size = true; break;
+                        case 'looks_changeeffectby': effect = true; break;
+                    }
+                }
+            }
+            if (costume && turn && move && (target.name === 'Bee')){
+                this.requirements.bee.bool = true;
+            }
+            if (size) {this.extensions.changeSize.bool=true;}
+            if (effect) {this.extensions.changeEffect.bool=true;}
+        }
+    }
+
+    grade(fileObj,user){
+        var project = new Project(fileObj,null);
         this.initReqs();
         if (!is(fileObj)) return;
 
-        let ogTrumpetBlocks = null;
-        let trumpetBlocks = null;
-        let ogDrumBlocks = null;
-        let drumBlocks = null;
-        let ogSpriteBlocks = null;
-        let spriteBlocks = null;
+        for (let target of project.targets){
+            this.checkScripts(target);
+            this.checkBlocks(target);
+        }
+    }
+}
+},{"../grading-scripts-s3/scratch3":26}],3:[function(require,module,exports){
+/*
+Act 1 Dance Party Autograder
+Initial version and testing: Zipporah Klain
+*/
 
-  //      var original = new Project(require('../act1-grading-scripts/real-original-band'), null);
+require('../grading-scripts-s3/scratch3');
 
-        // for (let target of original.targets){
-        //     if (target.name === 'Trumpet'){
-        //         ogTrumpetBlocks=target.blocks;
-        //     } else if (target.name === 'Drum-Bass'){
-        //         ogDrumBlocks=target.blocks;
-        //     } else if (target.name === 'Sprite2'){
-        //         ogSpriteBlocks=target.blocks;
-        //     }
-        // }
-        // for (let target of project.targets){
-        //     if (target.name === 'Trumpet'){
-        //         trumpetBlocks = target.blocks;
-        //     } else if (target.name === 'Drum-Bass'){
-        //         drumBlocks = target.blocks;
-        //     } else if (target.name === 'Sprite2'){
-        //         spriteBlocks=target.blocks;
-        //     }
-        // }
+module.exports = class {
+    constructor() {
+        this.requirements = {};
+        this.extensions = {};
+    }
 
-        let givenSpritesChanged = 0;
-        // var util = require('util');
-        // let tB = util.inspect(trumpetBlocks);
-        // let ogTB = util.inspect(ogTrumpetBlocks);
-        // let dB = util.inspect(drumBlocks);
-        // let ogDB = util.inspect(ogDrumBlocks);
-        // let sB = util.inspect(spriteBlocks);
-        // let ogSB = util.inspect(ogSpriteBlocks);
-        // if (tB!==ogTB){givenSpritesChanged++;}
-        // if (dB!==ogDB){givenSpritesChanged++;}
+    initReqs() {
+        this.requirements.backdrop = { bool: false, str: 'Project has a new backdrop' };
+        this.requirements.twoSprites = { bool: false, str: 'Project has two sprites' };
+        this.requirements.goToXY = { bool: false, str: 'Both sprites have a "go to xy" block to start them in the same place each time the green flag is clicked' };
+        this.requirements.repeat = { bool: false, str: 'There is a repeat loop using one of the four specified blocks' };
+        this.requirements.scripts = { bool: false, str: 'Both sprites have at least one script starting with "when green flag clicked" and one starting with a different event block (which must not be the same as the other sprite)' };
+        this.extensions.loop = { bool: false, str: '"Sound" or "look" block used inside a loop' };
+        this.extensions.sizeOrDirection = { bool: false, str: 'The sprite moves and changes size or direction in the same script' };
+        this.eventArr = [];
+    }
 
-        
-        // if (givenSpritesChanged){
-        //     this.requirements.changed1.bool=true;
-        // }
-        // if (givenSpritesChanged>1){
-        //     this.requirements.changed.bool=true;
-        // }
-        // if (sB!==ogSB){this.requirements.cat1.bool=true;}
+    checkBackdrop(target) {
+        if ((target.costumes.length > 1) ||
+            (target.costumes[0].assetId !== 'cd21514d0531fdffb22204e0ec5ed84a')) {
+            this.requirements.backdrop.bool = true;
+        }
+    }
 
-        let trumpetChanged = false;
-        let drumChanged = false;
-        for (let target of project.targets) {
-            if (!target.isStage) {
-                if (target.name === 'Trumpet'){
-                    if (target.scripts.length!=3) {trumpetChanged = true;}
-                    for (let block in target.blocks){
-                        if ((target.blocks[block].opcode=='motion_turnright' || target.blocks[block].opcode=='motion_turnleft')
-                        && target.blocks[block].inputs.DEGREES[1][1]!=15){
-                            trumpetChanged = true;
-                        }
-                        if (target.blocks[block].opcode=='control_repeat'
-                        && target.blocks[block].inputs.TIMES[1][1]!=2){
-                            trumpetChanged=true;
-                        }
-                    }
-                    for (let script of target.scripts){
-                        if (script.blocks[0].opcode==='event_whenthisspriteclicked'){
-                            if (script.blocks.length!=4){
-                                trumpetChanged = true;
-                            } else if (script.blocks[1].opcode!=='motion_turnright'
-                            || script.blocks[2].opcode!=='control_repeat'
-                            || script.blocks[3].opcode!=='motion_turnleft'){
-                                trumpetChanged = true;
-                            } else if (script.blocks[2].subscripts[0].blocks[0].opcode != 'sound_playuntildone'
-                            || target.blocks[script.blocks[2].subscripts[0].blocks[0].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='C trumpet'
-                            || script.blocks[2].subscripts[0].blocks[1].opcode != 'sound_playuntildone'
-                            || target.blocks[script.blocks[2].subscripts[0].blocks[1].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='D trumpet'
-                            || script.blocks[2].subscripts[0].blocks[2].opcode != 'sound_playuntildone'
-                            || target.blocks[script.blocks[2].subscripts[0].blocks[2].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='E trumpet') {
-                                trumpetChanged = true;
-                            }
-                        } else if (script.blocks[0].opcode==='event_whenkeypressed'
-                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==1){
-                            if (script.blocks.length!=9) {
-                                trumpetChanged = true;
-                            } else if (script.blocks[1].opcode!=='motion_turnright'
-                            || script.blocks[2].opcode!=='sound_playuntildone'
-                            || target.blocks[target.blocks[script.blocks[2].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='C trumpet'
-                            || script.blocks[3].opcode!=='sound_playuntildone'
-                            || target.blocks[target.blocks[script.blocks[3].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='D trumpet'
-                            || script.blocks[4].opcode!=='sound_playuntildone'
-                            || target.blocks[target.blocks[script.blocks[4].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='E trumpet'
-                            || script.blocks[5].opcode!=='sound_playuntildone'
-                            || target.blocks[target.blocks[script.blocks[5].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='C trumpet'
-                            || script.blocks[6].opcode!=='sound_playuntildone'
-                            || target.blocks[target.blocks[script.blocks[6].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='D trumpet'
-                            || script.blocks[7].opcode!=='sound_playuntildone' 
-                            || target.blocks[target.blocks[script.blocks[7].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='E trumpet'
-                            || script.blocks[8].opcode!=='motion_turnleft'){
-                                trumpetChanged = true;
-                            }
-                        } else if (script.blocks[0].opcode==='event_whenkeypressed'
-                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==2){
-                            if (script.blocks.length!=6){
-                                trumpetChanged = true;
-                            }else if (script.blocks[1].opcode!=='motion_turnright'
-                            || script.blocks[2].opcode!=='sound_playuntildone'
-                            || target.blocks[target.blocks[script.blocks[2].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='C trumpet'
-                            || script.blocks[3].opcode!=='sound_playuntildone'
-                            || target.blocks[target.blocks[script.blocks[3].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='D trumpet'
-                            || script.blocks[4].opcode!=='sound_playuntildone'
-                            || target.blocks[target.blocks[script.blocks[4].id].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='E trumpet'
-                            || script.blocks[5].opcode!=='motion_turnleft'){
-                                trumpetChanged = true;
-                            }
-                        }
+    checkXY(target){
+        for (let script of target.scripts){
+            if (script.blocks[0].opcode === 'event_whenflagclicked'){
+                for (let block of script.blocks){
+                    if (block.opcode === 'motion_gotoxy'){
+                        this.requirements.goToXY.bool = true;
                     }
                 }
-                if (target.name == 'Drum-Bass'){
-                    if (target.scripts.length!=4) {drumChanged=true;}
-                    for (let block in target.blocks){
-                        if (target.blocks[block].opcode=='motion_turnright' && target.blocks[block].inputs.DEGREES[1][1]!=15){
-                            drumChanged=true;
-                        }
-                        if (target.blocks[block].opcode=='control_repeat' && target.blocks[block].inputs.TIMES[1][1]!=3){
-                            drumChanged=true;
-                        }
-                        if (target.blocks[block].opcode=='sound_playuntildone'
-                        && target.blocks[target.blocks[block].inputs.SOUND_MENU[1]].fields.SOUND_MENU[0]!='drum bass3'){
-                            drumChanged=true;
-                        }
-                    }
-                    for (let script of target.scripts){
-                        if (script.blocks[0].opcode=='event_whenthisspriteclicked'){
-                            if (script.blocks.length!=2){
-                                drumChanged = true;
-                            } else if (script.blocks[1].opcode!='control_repeat'
-                            || script.blocks[1].subscripts[0].blocks[0].opcode != 'motion_turnright'
-                            || script.blocks[1].subscripts[0].blocks[1].opcode != 'sound_playuntildone'){
-                                drumChanged = true;
-                            } 
-                        } else if (script.blocks[0].opcode == 'event_whenkeypressed'
-                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==3){
-                            if (script.blocks.length!=7){
-                                drumChanged = true;
-                            } else if (script.blocks[1].opcode!='motion_turnright'
-                            || script.blocks[2].opcode!='motion_turnright'
-                            || script.blocks[3].opcode!='motion_turnright'
-                            || script.blocks[4].opcode!='sound_playuntildone'
-                            || script.blocks[5].opcode!='sound_playuntildone'
-                            || script.blocks[6].opcode!='sound_playuntildone') {
-                                drumChanged=true;
-                            }
-                        } else if (script.blocks[0].opcode=='event_whenkeypressed'
-                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==4){
-                            if (script.blocks.length!=7){
-                                drumChanged = true;
-                            } else if (script.blocks[1].opcode!='motion_turnright'
-                            || script.blocks[2].opcode!='sound_playuntildone'
-                            || script.blocks[3].opcode!='motion_turnright'
-                            || script.blocks[4].opcode!='sound_playuntildone'
-                            || script.blocks[5].opcode!='motion_turnright'
-                            || script.blocks[6].opcode!='sound_playuntildone') {
-                                drumChanged=true;
-                            }
-                        } else if (script.blocks[0].opcode=='event_whenkeypressed'
-                        && target.blocks[script.blocks[0].id].fields.KEY_OPTION[0]==5){
-                            if (script.blocks.length!=3){
-                                drumChanged = true;
-                            } else if (script.blocks[1].opcode!='motion_turnright'
-                            || script.blocks[2].opcode!='sound_playuntildone') {
-                                drumChanged=true;
-                            }
-                        }
-                    }
-                }
-              
+            }
+        }
+    }
 
-                if (target.name === 'Sprite2') {
-                    for (let block in target.blocks) {
-                        let oldCode = false;
-                        if (target.blocks[block].opcode==='event_whenflagclicked'){
-                            let next = target.blocks[block].next;
-                            if (next === '-=c~#;5EEGjK{HrhxCUC'){
-                                if (target.blocks[next].inputs.MESSAGE[1][1]==='Click on an instrument to play some music!'){
-                                    let secs = target.blocks[next].inputs.SECS[1][1];
-                                    if (secs==7){
-                                        oldCode = true;
-                                    }
-                                }
+    checkLoop(target){
+        for (let script of target.scripts){
+            if (script.blocks[0].opcode.includes('event_')){
+                for (let block of script.blocks){
+                    if (block.opcode === 'control_repeat'){
+                        for (let i = block.inputs.SUBSTACK[1]; i != null; i = target.blocks[i].next) {
+                            let opc = target.blocks[i].opcode;
+                            if (opc === 'motion_glidesecstoxy'
+                                || opc === 'motion_movesteps'
+                                || opc === 'looks_nextcostume'
+                                || opc === 'control_wait'){
+                                    this.requirements.repeat.bool = true;
                             }
-                        }
-                        if (target.blocks[block].opcode==='looks_sayforsecs'){
-                            let parent = target.blocks[block].parent;
-                            if (parent === 'r5{d*2~:^,9ShD5in?er'){
-                                if (target.blocks[block].next === null){
-                                    if (target.blocks[block].inputs.MESSAGE[1][1]==='Click on an instrument to play some music!'){
-                                        if (target.blocks[block].inputs.SECS[1][1]==7){
-                                            oldCode = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                       if (!oldCode) {this.requirements.cat1.bool=true;}
-
-                        if (target.blocks[block].opcode.includes('event_')) {
-                            for (let i = block; i !== null; i = target.blocks[i].next) {
-                                let opc = target.blocks[i].opcode;
-                                if ((opc === 'control_forever')
-                                    || (opc.includes('control_repeat'))) {
-                                    if (target.blocks[i].inputs.SUBSTACK[1] !== null) {
-                                        let wait = 0;
-                                        let nextCostChangeSize = 0;
-                                        let switchCostSize = 0;
-                                        let motion = 0;
-                                        for (let j = target.blocks[i].inputs.SUBSTACK[1];
-                                            j !== null; j = target.blocks[j].next) {
-                                                let opc2 = target.blocks[j].opcode;
-                                                switch (opc2) {
-                                                    case 'control_wait': wait++; break;
-                                                    case 'looks_nextcostume': nextCostChangeSize++; break;
-                                                    case 'looks_switchcostumeto': switchCostSize++; break;
-                                                    case 'looks_setsizeto': switchCostSize++;break;
-                                                    case 'looks_changesizeby': nextCostChangeSize++;break;
-                                                }
-                                                if (opc2.includes('motion_')) { motion++ };
-
-                                            }
-                                        if (wait && (nextCostChangeSize || motion || (switchCostSize > 1))) {
-                                           this.requirements.cat.bool = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // if (target.name === 'Guitar-Electric') {
-                //     for (let block in target.blocks) {
-                //         if (target.blocks[block].opcode.includes('event_')) {
-                //             if (target.blocks[block].next != null) {
-                //                 this.requirements.guitar.bool = true;
-                //             }
-                //         }
-                //     }
-                // }
-
-                if ((target.name != 'Sprite2') &&
-                    (target.name != 'Trumpet') &&
-                    (target.name != 'Drum-Bass') &&
-                    (target.name != 'Guitar-Electric')) {
-                   this.requirements.sprite.bool = true;
-                    for (let block in target.blocks) {
-                        if (target.blocks[block].opcode.includes('event_')) {
-                            if (target.blocks[block].next != null) {
-                               this.requirements.script.bool = true;
+                            else if (opc.includes('sound_')||opc.includes('looks_')){
+                                this.extensions.loop.bool = true;
                             }
                         }
                     }
                 }
             }
         }
-        if (trumpetChanged) {givenSpritesChanged++;}
-        if (drumChanged) {givenSpritesChanged++;}
-        if (givenSpritesChanged) {this.requirements.changed1.bool=true;}
-        if (givenSpritesChanged>1) {this.requirements.changed.bool=true;}
+    }
+    
+    checkScripts(target){
+        let greenFlag = false;
+        let otherEvent = false;
+        let move = false;
+        let dirOrSize = false;
+        for (let script of target.scripts){
+            let opc1 = script.blocks[0].opcode;
+            if (opc1.includes('event_')){
+                if (opc1==='event_whenflagclicked'){greenFlag=true;}
+                else {
+                    if (!this.eventArr.includes(opc1)){
+                        this.eventArr.push(opc1);
+                        otherEvent = true;
+                    }
+                }
+                for (let block of script.blocks){
+                    let blopcode = block.opcode;
+                    console.log(blopcode);
+                    if (blopcode.includes('motion_')&&!(blopcode.includes('turn')||blopcode.includes('direction'))){
+                        move = true;
+                    } else if (blopcode.includes('size')
+                        || blopcode.includes('turn')
+                        || blopcode.includes('direction')) {
+                            dirOrSize = true;
+                        }
+                }
+            }
+        }
+        if (move && dirOrSize) {this.extensions.sizeOrDirection.bool=true;}
+        return (greenFlag && otherEvent);
+    }
+
+    grade(fileObj, user) {
+        var project = new Project(fileObj, null);
+        this.initReqs();
+        if (!is(fileObj)) return;
+
+        let spriteNumber = 0;
+        let scriptedSprites = 0;
+        let eventArr = [];
+
+        for (let target of project.targets) {
+            if (target.isStage) {
+                this.checkBackdrop(target);
+            } else {
+                spriteNumber++;
+                this.checkXY(target);
+                this.checkLoop(target);
+                if (this.checkScripts(target)) {scriptedSprites++};
+            }
+        }
+
+        if (spriteNumber >= 2){this.requirements.twoSprites.bool=true;}
+        if (scriptedSprites >= 2) {this.requirements.scripts.bool=true;}
     }
 }
-
-
-},{"../grading-scripts-s3/scratch3":29}],8:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":26}],4:[function(require,module,exports){
 /*
 Act 1 Final Project Autograder
 Initial version and testing: Zipporah Klain
@@ -1523,12 +467,11 @@ module.exports = class {
     }
 
 }
-},{"../grading-scripts-s3/scratch3":29}],9:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":26}],5:[function(require,module,exports){
 /*
-Act 1 Ladybug Scramble Autograder
+Act 1 Knock Knock Autograder
 Initial version and testing: Saranya Turimella and Zipporah Klain, 2019
 */
-
 
 require('../grading-scripts-s3/scratch3')
 
@@ -1539,281 +482,99 @@ module.exports = class {
     }
 
     initReqs() {
-        this.requirements.oneAphid = { bool: false, str: 'Ladybug eats at least one aphid using only blocks specified' };
-        this.requirements.bothAphids = { bool: false, str: 'Ladybug eats both aphids using only blocks specified' };
-        this.requirements.eatAphidBlock = { bool: false, str: '"Eat Aphid" block is used' };
-        this.requirements.ladybugInBounds = { bool: true, str: 'The ladybug stays on the branch' };
-        this.requirements.changedProject = { bool: false, str: 'Project has been modified from the original project' };
-        this.extensions.music = { bool: false, str: 'Background music added' };
-        // this.extensions.changeAphidCode = { bool: false, str: 'Aphid code has been changed' };
-        this.extensions.ladybugRedrawn = { bool: false, str: 'The ladybug has been redrawn in the costumes tab' };
-        this.bug = { dir: 0, locX: -200, locY: -25 };
-    }
-
-    //helper functions
-    inBounds(x, y) {
-
-        if ((x < -130) || ((x > -117) && (x < -31)) || ((x > -18) && (x < 69))) {
-            return ((y <= -19) && (y > -32));
-        }
-        if ((x >= -130) && (x < -117)) {
-            return ((y <= -19) && (y > -84));
-        }
-        if ((x > -31) && (x < -18)) {
-            return ((y > -32) && (y < 131));
-        }
-        if ((x > 69) && (x < 82)) {
-            return ((y <= -19) && (y > -133));
-        }
-        return false;
-    }
-
-    blankTo0(input){
-
-        if (input===''){
-            return 0;
-        }else{
-            return input;
-        }
-    }
-
-    updateFromProc(block) {
-        if (block.opcode === 'motion_gotoxy') {
-            console.log('motion go to xy')
-            this.bug.locX = parseFloat(this.blankTo0(block.inputs.X[1][1]));
-            this.bug.locY = parseFloat(this.blankTo0(block.inputs.Y[1][1]));
-        }
-        if (block.opcode === 'motion_pointindirection') {
-            console.log('motion point in direction');
-            this.bug.dir = parseFloat(this.blankTo0(block.inputs.DIRECTION[1][1]));
-        }
-        if (block.opcode === 'motion_turnright') {
-            console.log('motion turn right');
-            this.bug.dir -= parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
-        }
-
-        if (block.opcode === 'motion_turnleft') {
-            console.log('motion turn left');
-            this.bug.dir += parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
-        }
-        if (block.opcode === 'motion_movesteps') {
-            console.log('motion move steps');
-            let radDir = (this.bug.dir - 90) * Math.PI / 180;
-            let steps = parseFloat(this.blankTo0(block.inputs.STEPS[1][1]));
-            this.bug.locX += Math.round(steps * Math.cos(radDir));
-            this.bug.locY += Math.round(steps * Math.sin(radDir));
-        }
-    }
-    updateBug(block) {
-
-        if (block.opcode === 'procedures_call') {
-            // move forward one square
-            // turn left
-            // turn right
-            // forward 2 blocks
-            // go to start position
-        }
-        if (block.opcode === 'motion_gotoxy') {
-            console.log('motion go to xy')
-            this.bug.locX = parseFloat(this.blankTo0(block.inputs.X[1][1]));
-            this.bug.locY = parseFloat(this.blankTo0(block.inputs.Y[1][1]));
-        }
-        if (block.opcode === 'motion_pointindirection') {
-            console.log('motion point in direction');
-            this.bug.dir = parseFloat(this.blankTo0(block.inputs.DIRECTION[1][1]));
-        }
-        if (block.opcode === 'motion_turnright') {
-            console.log('motion turn right');
-            this.bug.dir -= parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
-        }
-
-        if (block.opcode === 'motion_turnleft') {
-            console.log('motion turn left');
-            this.bug.dir += parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
-        }
-        if (block.opcode === 'motion_movesteps') {
-            console.log('motion move steps');
-            let radDir = (this.bug.dir - 90) * Math.PI / 180;
-            let steps = parseFloat(this.blankTo0(block.inputs.STEPS[1][1]));
-            this.bug.locX += Math.round(steps * Math.cos(radDir));
-            this.bug.locY += Math.round(steps * Math.sin(radDir));
-        }
-    }
-
-    isLadybug(target) {
-        for (let block in target.blocks) {
-            if (target.blocks[block].opcode === 'procedures_definition') {
-                return true;
-            }
-        }
-        return false;
+        this.requirements.sheepLaughs = { bool: false, str: 'The sheep laughs after the cow says "Moooooooo"' };
+        this.requirements.anotherKnockKnock = { bool: false, str: 'Another knock knock joke is told, starting with then the space bar is pressed' };
     }
 
     grade(fileObj, user) {
-
         this.initReqs();
-        if (!is(fileObj)) return;
-        if (is(fileObj.code)) return;
-        var project = new Project(fileObj, null);
-        var original = new Project(require('../act1-grading-scripts/original-ladybug'), null);
-        if (!is(original)) return;
-
-        
-
-        let aphidLocations = [];
-        let aphidsEaten = 0;
-        let failed = false;
-
-        let moveStepsBlocks = 0; //don't delete these you do use them even if vscode says you don't!
-        let turnBlocks = 0;
-
-        let aphidBlocks = null;
-        let aphid2Blocks = null;
-        let ogAphidBlocks = null;
-        let ogAphid2Blocks = null;
-        let bugBlocks = null;
-        let ogBugBlocks = null;
-
-        for (let target of original.targets){
-            if (target.name === 'Aphid'){
-                ogAphidBlocks = target.blocks;
-            }else if (target.name === 'Aphid2'){
-                ogAphid2Blocks=target.blocks;
-            }else if ((target.name === 'Ladybug1')||this.isLadybug(target)){
-                ogBugBlocks = target.blocks;
-            }
+        if (!is(fileObj)) {
+            return;
         }
 
+
+        var project = new Project(fileObj, null);
+        let lastBlock = 0;
+        let soundOptions = ['looks_say', 'looks_sayforsecs', 'sound_playforsecs', 'sound_playuntildone'];
+        let sheepJoke = [];
+        let cowJoke = [];
+        let goodSheep = ['event_whenkeypressed', 'control_wait', 'looks_thinkforsecs', 'control_wait', 'looks_thinkforsecs'];
+        let goodCow = ['event_whenkeypressed', 'looks_thinkforsecs', 'control_wait', 'looks_thinkforsecs', 'control_wait', 'looks_sayforsecs'];
+
         for (let target of project.targets) {
-            if ((target.name === 'Aphid') || (target.name === 'Aphid2')) {
-                let loc = [];
-                loc.push(target.x);
-                loc.push(target.y);
-                aphidLocations.push(loc);
+            if (target.isStage) { continue; }
+            else {
+                if (target.name === 'Sheep') {
+                    for (let script of target.scripts) {
+                        if (script.blocks[0].opcode === 'event_whenflagclicked') {
+                            for (let i = 0; i < script.blocks.length; i++) {
+
+                                if (script.blocks[i].opcode === 'looks_thinkforsecs') {
+                                    let nextBlock = script.blocks[i].next;
+                                    if (nextBlock !== null) {
+                                        if (target.blocks[nextBlock].opcode === 'control_wait') {
+                                            let nextNextBlock = target.blocks[nextBlock].next;
+                                            if (nextNextBlock !== null) {
+                                                if (soundOptions.includes(target.blocks[nextNextBlock].opcode)) {
+                                                    this.requirements.sheepLaughs.bool = true;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                }
+
+                            }
+
+                        }
+
+
+
+                        if (script.blocks[0].opcode === 'event_whenkeypressed') {
+                            if (script.blocks[0].fields.KEY_OPTION[0] === 'space') {
+                                for (let i = 0; i < script.blocks.length; i++) {
+                                    sheepJoke.push(script.blocks[i].opcode);
+
+                                }
+                            }
+                        }
+                    }
+
+                }
+                if (target.name === 'Cow') {
+                    for (let script of target.scripts) {
+                        if (script.blocks[0].opcode === 'event_whenkeypressed') {
+                            if (script.blocks[0].fields.KEY_OPTION[0] === 'space') {
+                                for (let i = 0; i < script.blocks.length; i++) {
+                                    cowJoke.push(script.blocks[i].opcode);
+
+                                }
+                            }
+
+                        }
+                    }
+                }
+
             }
-            if (target.name === 'Aphid'){
-                aphidBlocks = target.blocks;
-            }else if (target.name === 'Aphid2'){
-                aphid2Blocks = target.blocks;
-            }else if ((target.name === 'Ladybug1')||this.isLadybug(target)){
-                bugBlocks=target.blocks;
-                this.bug.locX=target.x;
-                this.bug.locY=target.y;
-                this.bug.dir=target.direction;
-            }
+
+
+
         }
 
         var util = require('util');
-        let a = util.inspect(aphidBlocks);
-        let a2 = util.inspect(aphid2Blocks);
-        let ogA = util.inspect(ogAphidBlocks);
-        let ogA2 = util.inspect(ogAphid2Blocks);
-        let bb = util.inspect(bugBlocks);
-        let ogBB = util.inspect(ogBugBlocks);
-        let len = 0;
-        if ((a!==ogA)||(a2!==ogA2)){
-            // this.extensions.changeAphidCode.bool=true;
-        }
-        // if (bb!==ogBB){ this.requirements.changedProject.bool=true;}
+        let cowOrig = util.inspect(goodCow);
+        let sheepOrig = util.inspect(goodSheep);
+        let cowUtil = util.inspect(cowJoke);
+        let sheepUtil = util.inspect(sheepJoke);
 
-        for (let target of project.targets) {
-            for (let block in target.blocks) {
-                if ((target.blocks[block].opcode === 'sound_playuntildone')
-                    || (target.blocks[block].opcode === 'sound_play')) {
-                    this.extensions.music.bool = true;
-                }
-            }
-            if (target.name === 'Ladybug1' || this.isLadybug(target)) {
-                // find all scripts in lady bug that start when green flag clicked
-                for (let script of target.scripts) {
-                    if (script.blocks[0].opcode === 'event_whenflagclicked') {
-                        if (script.blocks.length <= 1) {
-                            continue;
-                        }
-                        else if (script.blocks[1].opcode === 'control_forever') {
-                            continue;
-                        } else {
-                            len = script.blocks.length;
-                        }
-                       
-                    }
-                }
-                
-                for (let cost in target.costumes) {
-                    if ((target.costumes[cost].assetId !== '7501580fb154fde8192a931f6cab472b')
-                        && (target.costumes[cost].assetId !== '169c0efa8c094fdedddf8c19c36f0229')) {
-                        this.extensions.ladybugRedrawn.bool = true;
-                    }
-                }
-                
-                for (let block in target.blocks) {
-                    
-                    if (target.blocks[block].opcode === 'event_whenflagclicked') {
-                        for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
-                            this.updateBug(target.blocks[i]);
-                            let onBranch = this.inBounds(this.bug.locX, this.bug.locY);
-                            if (!onBranch) {
-                                this.requirements.ladybugInBounds.bool = false;
-                                failed = true;
-                            }
 
-                            let onAphid = false;
-                            for (let aphidLoc of aphidLocations) {
-                                if ((Math.abs(aphidLoc[0] - this.bug.locX) <= 40) &&
-                                    (Math.abs(aphidLoc[1] - this.bug.locY) <= 40)) {
-                                    onAphid = true;
-                                }
-                            }
-
-                            if (onAphid) {
-                                let nextBlock = target.blocks[i].next;
-                                if (target.blocks[nextBlock].opcode === 'procedures_call') {
-                                    if (target.blocks[nextBlock].mutation.proccode === 'Eat Aphid') {
-                                        if (failed === false) {
-                                            aphidsEaten++;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    //checks if 'Eat Aphid' block is connected to a script
-                    if (target.blocks[block].opcode === 'procedures_call') {
-                        if (target.blocks[block].mutation.proccode === 'Eat Aphid') {
-                            if (target.blocks[block].parent !== null) {
-                                this.requirements.eatAphidBlock.bool = true;
-                            }
-                        }
-                    }
-
-                    //checks if a new "move steps" block has been connected
-                    if (target.blocks[block].opcode === 'motion_movesteps') {
-                        if (target.blocks[block].parent !== null) {
-                            moveStepsBlocks++;
-                        }
-                    }
-                    if ((target.blocks[block].opcode === 'motion_turnright') ||
-                        (target.blocks[block].opcode === 'motion_turnleft')) {
-                        if (target.blocks[block].parent !== null) {
-                            turnBlocks++;
-                        }
-                    }
-                }
-            }
-
+        if (cowOrig === cowUtil && sheepOrig === sheepUtil) {
+            this.requirements.anotherKnockKnock.bool = true;
         }
 
-        if (aphidsEaten > 0) {
-            this.requirements.oneAphid.bool = true;
-        }
-        if (aphidsEaten > 1) {
-            this.requirements.bothAphids.bool = true;
-        }
     }
-
 }
-},{"../act1-grading-scripts/original-ladybug":13,"../grading-scripts-s3/scratch3":29,"util":4}],10:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":26,"util":36}],6:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -2725,7 +1486,7 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Safari/605.1.15"
     }
 }
-},{}],11:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /* 
 Act 1 Name Poem Autograder
 Initial version and testing: Saranya Turimella and Zipporah Klain, 2019
@@ -2743,8 +1504,6 @@ module.exports = class {
     }
 
     initReqs() {
-        //this.requirements.hasOneSprite = { bool: false, str: 'Project has at least one sprite' };//done
-        //this.requirements.scripts = { bool: false, str: 'At least half of the sprites have a script using the 11 blocks given (with at least one event block and at least one other block)' };//done
         this.requirements.costumes1 = {bool: false, str: 'At least one sprite has a new costume'};
         this.requirements.costumes = { bool: false, str: 'At least half of the sprites have new costumes' };//done
         this.requirements.dialogue1 = { bool: false, str: 'At least one sprite has new dialogue' };
@@ -2752,8 +1511,6 @@ module.exports = class {
         this.requirements.movement1 = { bool: false, str: 'At least one sprite has new movement'};
         this.requirements.movement = { bool: false, str: 'At least half of the sprites have new movement using blocks specified' };//to fix
         this.requirements.backdrop = { bool: false, str: 'The background has been changed' };//done
-        //     this.extensions.allReqs = { bool: false, str: 'All requirements are fulfilled' };
-        //     this.extensions.oneSprite = { bool: false, str: 'At least one sprite has a new costume, dialogue, and movement using 11 blocks given (fulfills spirit)' };
     }
 
     grade(fileObj, user) {
@@ -2761,11 +1518,6 @@ module.exports = class {
         var original = new Project(require('../act1-grading-scripts/name-poem-original-test'), null);
         this.initReqs();
         if (!is(fileObj)) return;
-
-        //checks if there's at least one sprite
-        // if (project.sprites.length > 0) {
-        //     this.requirements.hasOneSprite.bool = true;
-        // }
 
         //instantiate counters for requirements
         let spritesWithScripts = 0;
@@ -2816,18 +1568,16 @@ module.exports = class {
                         }
                     }
                 }
-                this.requirements.backdrop.bool = newBackdrop;
+               this.requirements.backdrop.bool = newBackdrop;
             } else {
 
                 let hasMovement = false;
 
-                        // console.log('before');
                 for (let script in target.scripts) {
                     for (let block in target.scripts[script].blocks) {
                         let opc = target.scripts[script].blocks[block].opcode;
                         let bool = true;
                         if (this.otherOpcodes.includes(opc) && opc !== 'looks_sayforsecs') {
-                            //                  console.log(opc);
                             if (opc === 'sound_playuntildone') {
                                 let soundMenu = target.scripts[script].blocks[block].inputs.SOUND_MENU[1];
                                 if (target.name === 'D-Glow') {
@@ -2868,26 +1618,7 @@ module.exports = class {
                                     bool = false;
                                 }
                             }
-                            // if (opc === 'motion_glidesecstoxy' && target.name === 'A-Glow') {
-                            //     let paramSecs = target.scripts[script].blocks[block].inputs.SECS[1][1];
-                            //     let paramX = target.scripts[script].blocks[block].inputs.X[1][1];
-                            //     let paramY = target.scripts[script].blocks[block].inputs.Y[1][1];
-                            //     if (paramSecs === '1' && paramX === '55' && paramY === '25'
-                            //         && target.scripts[script].blocks[block].next === '^6iWa|d-|jw!SQI#e(Jr'
-                            //         && target.scripts[script].blocks[block].parent === 'n]cy4r^o3t_m{{lMaGoY') {
-                            //         bool = false;
-                            //     }
-                            //     if (paramSecs === '1' && paramX === '-204' && paramY === '14'
-                            //         && target.scripts[script].blocks[block].next === null
-                            //         && target.scripts[script].blocks[block].parent === '^6iWa|d-|jw!SQI#e(Jr') {
-                            //         bool = false;
-                            //     }
-                            //     if (paramSecs === '1' && paramX === '-204' && paramY === '14'
-                            //         && target.scripts[script].blocks[block].next === null
-                            //         && target.scripts[script].blocks[block].parent === 'i[0P|D4q:tdG3Q{3hR`N') {
-                            //         bool = false;
-                            //     }
-                            // }
+
                             if (opc === 'motion_glidesecstoxy') {
                                 let paramSecs = target.scripts[script].blocks[block].inputs.SECS[1][1];
                                 let paramX = target.scripts[script].blocks[block].inputs.X[1][1];
@@ -2948,22 +1679,18 @@ module.exports = class {
                             }
                             if (bool) {
                                 hasMovement = true;
-                           //     console.log('Sprite with new movement:');
-                             //   console.log(target.name);
                             }
                         }
                     }
                 }
                 if (hasMovement) { spritesWithNewMovement++; }
-                // console.log('after');
 
                 mapProject.set(target.name, target.blocks);
                 let hasDialogue = false;
                 for (let block in target.blocks) {
 
                     if (target.blocks[block].opcode==='looks_say'){
-                       // console.log('ere');
-                        this.requirements.dialogue1.bool=true;
+                       this.requirements.dialogue1.bool=true;
                     }
                     let opcode = target.blocks[block].opcode;
                     if ((opcode.includes('motion_') || opcode.includes('looks_'))
@@ -3010,62 +1737,20 @@ module.exports = class {
             }
         }
 
-        //checking movement
-        //   let inDIANE = false;
-        //   for (let v of mapProject.values()) {
-        //       for (let w of mapOriginal.values()) {
-        //           var util = require('util');
-        //           v = util.inspect(v);
-        //           w = util.inspect(w);
-        //           if (v === w) {
-        //               inDIANE = true;
-        //           };
-        //       }
-        //       if (!inDIANE) {
-        //           spritesWithNewMovement++;
-        //       }
-        //   }
-
-        // > 1/2 of sprites fulfill requirement + TESTING
-        //  console.log('sprites with scripts');
-        //console.log(spritesWithScripts);
-        // if (spritesWithScripts >= project.sprites.length / 2) {
-        //     this.requirements.scripts.bool = true;
-        // }
-
-        //   console.log('sprites with dialogue');
-        //   console.log(spritesWithNewDialogue);
-        //   console.log(this.requirements.dialogue1.bool);
-        if (spritesWithNewDialogue) {this.requirements.dialogue1.bool=true;}
-        if (spritesWithNewDialogue >= project.sprites.length / 2) {
-            this.requirements.dialogue.bool = true;
+       if (spritesWithNewDialogue) {this.requirements.dialogue1.bool=true;}
+        if ((spritesWithNewDialogue >= project.sprites.length / 2)&&spritesWithNewDialogue) {
+           this.requirements.dialogue.bool = true;
         }
 
-        //  console.log('sprite with new costumes');
-        //  console.log(spritesWithNewCostumes);
-        if (spritesWithNewCostumes) {this.requirements.costumes1.bool=true;}
-        if (spritesWithNewCostumes >= project.sprites.length / 2) {
-            this.requirements.costumes.bool = true;
+       if (spritesWithNewCostumes) {this.requirements.costumes1.bool=true;}
+        if ((spritesWithNewCostumes >= project.sprites.length / 2)&&spritesWithNewCostumes) {
+           this.requirements.costumes.bool = true;
         }
 
-        // console.log('sprites with new movement');
-        // console.log(spritesWithNewMovement);
-        if (spritesWithNewMovement) {this.requirements.movement1.bool=true;}
-        if (spritesWithNewMovement >= project.sprites.length / 2) {
-            this.requirements.movement.bool = true;
+      if (spritesWithNewMovement) {this.requirements.movement1.bool=true;}
+        if ((spritesWithNewMovement >= project.sprites.length / 2)&&spritesWithNewMovement) {
+          this.requirements.movement.bool = true;
         }
-
-        // if (spritesWithNewCostumes && spritesWithNewDialogue && spritesWithNewMovement) {
-        //     this.extensions.oneSprite = true;
-        // }
-        // if (this.requirements.movement.bool &&
-        //     this.requirements.dialogue.bool &&
-        //     this.requirements.backdrop.bool &&
-        //     this.requirements.costumes.bool &&
-        //     this.requirements.scripts.bool &&
-        //     this.requirements.hasOneSprite.bool) {
-        //     this.extensions.allReqs.bool = true;
-        // }
     }
 }
 
@@ -3076,7 +1761,7 @@ module.exports = class {
 
 
 
-},{"../act1-grading-scripts/name-poem-original-test":10,"../grading-scripts-s3/scratch3":29}],12:[function(require,module,exports){
+},{"../act1-grading-scripts/name-poem-original-test":6,"../grading-scripts-s3/scratch3":26}],8:[function(require,module,exports){
 /*
 Act 1 Events Ofrenda Autograder
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -3372,9 +2057,161 @@ module.exports = class {
         }
     }
 } 
-},{"../act1-grading-scripts/originalOfrenda-test":14,"../grading-scripts-s3/scratch3":29}],13:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{"broadcastMsgId-munch":"munch"},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"6bbe43392c0dbffe7d7c63cc5bd08aa3","name":"backdrop1","bitmapResolution":1,"md5ext":"6bbe43392c0dbffe7d7c63cc5bd08aa3.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Ladybug1","variables":{},"lists":{},"broadcasts":{},"blocks":{"U7gIJGYi2sEQ1R~Q#Y(x":{"opcode":"event_whenflagclicked","next":"F@9g]aRRb1sq*2qa!%ng","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":264,"y":24},"F@9g]aRRb1sq*2qa!%ng":{"opcode":"motion_gotoxy","next":"Sfc=i0}1cnoDpchs?.Uq","parent":"U7gIJGYi2sEQ1R~Q#Y(x","inputs":{"X":[1,[4,-175]],"Y":[1,[4,-24]]},"fields":{},"shadow":false,"topLevel":false},"Sfc=i0}1cnoDpchs?.Uq":{"opcode":"motion_pointindirection","next":"^)NnU+Yxi6BeEWyh3in`","parent":"F@9g]aRRb1sq*2qa!%ng","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},"^)NnU+Yxi6BeEWyh3in`":{"opcode":"control_wait","next":"{*nT,|Un;N}8m)P0wAVC","parent":"Sfc=i0}1cnoDpchs?.Uq","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"{*nT,|Un;N}8m)P0wAVC":{"opcode":"motion_movesteps","next":"Qjej.|{eUe=~o*uAuRF,","parent":"^)NnU+Yxi6BeEWyh3in`","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"Qjej.|{eUe=~o*uAuRF,":{"opcode":"control_wait","next":"lDrR0@W5G`|K9EW2^U=0","parent":"{*nT,|Un;N}8m)P0wAVC","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"lDrR0@W5G`|K9EW2^U=0":{"opcode":"motion_turnright","next":"R%7gnK]7!DF4`qpYfccd","parent":"Qjej.|{eUe=~o*uAuRF,","inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":false},"R%7gnK]7!DF4`qpYfccd":{"opcode":"control_wait","next":"1?YefC;{nn1p+6x[y7=p","parent":"lDrR0@W5G`|K9EW2^U=0","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false},"1?YefC;{nn1p+6x[y7=p":{"opcode":"motion_movesteps","next":null,"parent":"R%7gnK]7!DF4`qpYfccd","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"iQ]xjD_RSjVU39KKi+D+":{"opcode":"event_whenflagclicked","next":"03[Ml=XIME[mlM`[oI,{","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":1117,"y":41},"03[Ml=XIME[mlM`[oI,{":{"opcode":"control_forever","next":null,"parent":"iQ]xjD_RSjVU39KKi+D+","inputs":{"SUBSTACK":[2,"{eG]NNI}y+`9w8~P-Y@w"]},"fields":{},"shadow":false,"topLevel":false},"{eG]NNI}y+`9w8~P-Y@w":{"opcode":"control_if","next":null,"parent":"03[Ml=XIME[mlM`[oI,{","inputs":{"CONDITION":[2,"HJ?{4{KV1xCg#k7UhPC6"],"SUBSTACK":[2,"kQKB.w^V0`:QX38gKYzf"]},"fields":{},"shadow":false,"topLevel":false},"HJ?{4{KV1xCg#k7UhPC6":{"opcode":"sensing_touchingcolor","next":null,"parent":"{eG]NNI}y+`9w8~P-Y@w","inputs":{"COLOR":[1,[9,"#00ffff"]]},"fields":{},"shadow":false,"topLevel":false},"kQKB.w^V0`:QX38gKYzf":{"opcode":"control_stop","next":";Dm1;gL:ROwhL*^;y!zp","parent":"{eG]NNI}y+`9w8~P-Y@w","inputs":{},"fields":{"STOP_OPTION":["other scripts in sprite"]},"shadow":false,"topLevel":false,"mutation":{"tagName":"mutation","hasnext":"true","children":[]}},";Dm1;gL:ROwhL*^;y!zp":{"opcode":"looks_sayforsecs","next":"H#v_fC4p1{^Dy]J98),R","parent":"kQKB.w^V0`:QX38gKYzf","inputs":{"MESSAGE":[1,[10,"Aaaaah! I fell off the branch!!!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"H#v_fC4p1{^Dy]J98),R":{"opcode":"control_repeat","next":"eO]JO},91+03]-,-p.kW","parent":";Dm1;gL:ROwhL*^;y!zp","inputs":{"TIMES":[1,[6,3]],"SUBSTACK":[2,"Hfkes2)|!Awk/*Iir#]f"]},"fields":{},"shadow":false,"topLevel":false},"Hfkes2)|!Awk/*Iir#]f":{"opcode":"looks_hide","next":"NdsT}^o2UI(D_trv9KW9","parent":"H#v_fC4p1{^Dy]J98),R","inputs":{},"fields":{},"shadow":false,"topLevel":false},"NdsT}^o2UI(D_trv9KW9":{"opcode":"control_wait","next":"Rp7XGUXIMwRD^e4J2IZy","parent":"Hfkes2)|!Awk/*Iir#]f","inputs":{"DURATION":[1,[5,0.5]]},"fields":{},"shadow":false,"topLevel":false},"Rp7XGUXIMwRD^e4J2IZy":{"opcode":"looks_show","next":"k7:X0JW7;CDuX8ZM[`|-","parent":"NdsT}^o2UI(D_trv9KW9","inputs":{},"fields":{},"shadow":false,"topLevel":false},"k7:X0JW7;CDuX8ZM[`|-":{"opcode":"control_wait","next":null,"parent":"Rp7XGUXIMwRD^e4J2IZy","inputs":{"DURATION":[1,[5,0.5]]},"fields":{},"shadow":false,"topLevel":false},"eO]JO},91+03]-,-p.kW":{"opcode":"motion_gotoxy","next":"I3gZVQ)z)SV7w[OezvsL","parent":"H#v_fC4p1{^Dy]J98),R","inputs":{"X":[1,[4,-175]],"Y":[1,[4,-24]]},"fields":{},"shadow":false,"topLevel":false},"I3gZVQ)z)SV7w[OezvsL":{"opcode":"motion_pointindirection","next":null,"parent":"eO]JO},91+03]-,-p.kW","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},":g/E[3PXa}d6Cve2Swk2":{"opcode":"motion_movesteps","next":null,"parent":null,"inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":33},"M1gwhU_QVGXM)kQF*L`{":{"opcode":"procedures_definition","next":"@,~#(h4pJpg}jA2}_/R[","parent":null,"inputs":{"custom_block":[1,"+d7X?d`DBq2~x0}OHSC/"]},"fields":{},"shadow":false,"topLevel":true,"x":1136,"y":820},"+d7X?d`DBq2~x0}OHSC/":{"opcode":"procedures_prototype","next":null,"inputs":{},"fields":{},"shadow":true,"topLevel":false,"mutation":{"tagName":"mutation","proccode":"Eat Aphid","argumentnames":"[]","argumentids":"[]","argumentdefaults":"[]","warp":false,"children":[]}},"@,~#(h4pJpg}jA2}_/R[":{"opcode":"event_broadcast","next":null,"parent":"M1gwhU_QVGXM)kQF*L`{","inputs":{"BROADCAST_INPUT":[1,[11,"Munch","broadcastMsgId-munch"]]},"fields":{},"shadow":false,"topLevel":false},"%vAkoQPRX5(5~AohGy*u":{"opcode":"motion_turnright","next":null,"parent":null,"inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":109},"~)q`N2jinQ]:/zs,-.s1":{"opcode":"motion_turnleft","next":null,"parent":null,"inputs":{"DEGREES":[1,[4,90]]},"fields":{},"shadow":false,"topLevel":true,"x":7,"y":188},"nZ1!J1WTOAWy}Af(z1#c":{"opcode":"control_wait","next":null,"parent":null,"inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":true,"x":8,"y":268},"Yl_GU18WZdM(iSO=,FM~":{"opcode":"procedures_call","next":null,"parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":10,"y":366,"mutation":{"tagName":"mutation","children":[],"proccode":"Eat Aphid","argumentids":"[]"}}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"7501580fb154fde8192a931f6cab472b","name":"ladybug3","bitmapResolution":1,"md5ext":"7501580fb154fde8192a931f6cab472b.svg","dataFormat":"svg","rotationCenterX":41,"rotationCenterY":43},{"assetId":"169c0efa8c094fdedddf8c19c36f0229","name":"ladybug2","bitmapResolution":1,"md5ext":"169c0efa8c094fdedddf8c19c36f0229.svg","dataFormat":"svg","rotationCenterX":41,"rotationCenterY":43}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-175,"y":-24,"size":50,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Sprite1","variables":{},"lists":{},"broadcasts":{},"blocks":{"g{X}coEAM3Ta^+%(=s^s":{"opcode":"event_whenflagclicked","next":"3S,1y@;w+[,tG`(EZCAt","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":68,"y":35},"3S,1y@;w+[,tG`(EZCAt":{"opcode":"looks_show","next":"_LYbp}EcsXWoN1ppLxcv","parent":"g{X}coEAM3Ta^+%(=s^s","inputs":{},"fields":{},"shadow":false,"topLevel":false},"_LYbp}EcsXWoN1ppLxcv":{"opcode":"motion_pointindirection","next":"4Q5;gsz5+/bgWS(:Rag,","parent":"3S,1y@;w+[,tG`(EZCAt","inputs":{"DIRECTION":[1,[8,90]]},"fields":{},"shadow":false,"topLevel":false},"4Q5;gsz5+/bgWS(:Rag,":{"opcode":"motion_gotoxy","next":"4L~#s_w.KLA*F5Xc`{C`","parent":"_LYbp}EcsXWoN1ppLxcv","inputs":{"X":[1,[4,0]],"Y":[1,[4,-150]]},"fields":{},"shadow":false,"topLevel":false},"4L~#s_w.KLA*F5Xc`{C`":{"opcode":"control_repeat","next":"Vb38^m9i^P8Qx=K`.+Yh","parent":"4Q5;gsz5+/bgWS(:Rag,","inputs":{"TIMES":[1,[6,6]],"SUBSTACK":[2,"56{t%hej8N*pk`S3%Nrj"]},"fields":{},"shadow":false,"topLevel":false},"56{t%hej8N*pk`S3%Nrj":{"opcode":"pen_stamp","next":"UyBZkQkw+i|j3]/7K`[%","parent":"4L~#s_w.KLA*F5Xc`{C`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"UyBZkQkw+i|j3]/7K`[%":{"opcode":"motion_changeyby","next":null,"parent":"56{t%hej8N*pk`S3%Nrj","inputs":{"DY":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"Vb38^m9i^P8Qx=K`.+Yh":{"opcode":"pen_stamp","next":"#I:55@rxBustg@:0CNW,","parent":"4L~#s_w.KLA*F5Xc`{C`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"#I:55@rxBustg@:0CNW,":{"opcode":"motion_gotoxy","next":"c?Rcii^r7j{3zIKlPCY7","parent":"Vb38^m9i^P8Qx=K`.+Yh","inputs":{"X":[1,[4,-200]],"Y":[1,[4,0]]},"fields":{},"shadow":false,"topLevel":false},"c?Rcii^r7j{3zIKlPCY7":{"opcode":"motion_pointindirection","next":"Ev;g}Py1-pZ#SpwkoO~I","parent":"#I:55@rxBustg@:0CNW,","inputs":{"DIRECTION":[1,[8,0]]},"fields":{},"shadow":false,"topLevel":false},"Ev;g}Py1-pZ#SpwkoO~I":{"opcode":"control_repeat","next":"1R95jS-gQRcWy1!()qDX","parent":"c?Rcii^r7j{3zIKlPCY7","inputs":{"TIMES":[1,[6,8]],"SUBSTACK":[2,"C+]}-*OqPzGDND@[I`!`"]},"fields":{},"shadow":false,"topLevel":false},"C+]}-*OqPzGDND@[I`!`":{"opcode":"pen_stamp","next":"vf~MRj8GONdu)xTW+`sX","parent":"Ev;g}Py1-pZ#SpwkoO~I","inputs":{},"fields":{},"shadow":false,"topLevel":false},"vf~MRj8GONdu)xTW+`sX":{"opcode":"motion_changexby","next":null,"parent":"C+]}-*OqPzGDND@[I`!`","inputs":{"DX":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false},"1R95jS-gQRcWy1!()qDX":{"opcode":"pen_stamp","next":"!]hy8aHujpmLSmfwgk7+","parent":"Ev;g}Py1-pZ#SpwkoO~I","inputs":{},"fields":{},"shadow":false,"topLevel":false},"!]hy8aHujpmLSmfwgk7+":{"opcode":"looks_hide","next":null,"parent":"1R95jS-gQRcWy1!()qDX","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"098ac26af75d9b14546ba423f0376c78","name":"costume1","bitmapResolution":1,"md5ext":"098ac26af75d9b14546ba423f0376c78.svg","dataFormat":"svg","rotationCenterX":247,"rotationCenterY":2}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":false,"x":200,"y":0,"size":100,"direction":0,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Aphid","variables":{},"lists":{},"broadcasts":{},"blocks":{"Al/9-=x`PHo)+1K4Jsw2":{"opcode":"event_whenflagclicked","next":"|FY,izak`W47{j*=KnG5","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":37,"y":46},"|FY,izak`W47{j*=KnG5":{"opcode":"looks_show","next":null,"parent":"Al/9-=x`PHo)+1K4Jsw2","inputs":{},"fields":{},"shadow":false,"topLevel":false},"se5y3M`e{qYhvvplydn.":{"opcode":"event_whenbroadcastreceived","next":"?ec)oOeZLY5LfeL(D5QB","parent":null,"inputs":{},"fields":{"BROADCAST_OPTION":["Munch","broadcastMsgId-munch"]},"shadow":false,"topLevel":true,"x":45,"y":264},"?ec)oOeZLY5LfeL(D5QB":{"opcode":"control_if","next":null,"parent":"se5y3M`e{qYhvvplydn.","inputs":{"CONDITION":[2,".[;R|zxb)eHrP+bfg`JR"],"SUBSTACK":[2,"@:tiv_aA#I^^`0sQ%}O1"]},"fields":{},"shadow":false,"topLevel":false},".[;R|zxb)eHrP+bfg`JR":{"opcode":"sensing_touchingobject","next":null,"parent":"?ec)oOeZLY5LfeL(D5QB","inputs":{"TOUCHINGOBJECTMENU":[1,"cB1l?RjX4g=!:@^[I(X?"]},"fields":{},"shadow":false,"topLevel":false},"cB1l?RjX4g=!:@^[I(X?":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":".[;R|zxb)eHrP+bfg`JR","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Ladybug1"]},"shadow":true,"topLevel":false},"@:tiv_aA#I^^`0sQ%}O1":{"opcode":"looks_sayforsecs","next":"d4JFINYQk,`yV3Hd5Rz3","parent":"?ec)oOeZLY5LfeL(D5QB","inputs":{"MESSAGE":[1,[10,"Oh, no!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"d4JFINYQk,`yV3Hd5Rz3":{"opcode":"looks_hide","next":null,"parent":"@:tiv_aA#I^^`0sQ%}O1","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b3b7ab6b68e1d72f5f0246bd5246e35","name":"beetle","bitmapResolution":1,"md5ext":"2b3b7ab6b68e1d72f5f0246bd5246e35.svg","dataFormat":"svg","rotationCenterX":43,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-24,"y":77,"size":30,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Aphid2","variables":{},"lists":{},"broadcasts":{},"blocks":{"|*E4bHy6(tUyNr_FpiHL":{"opcode":"event_whenbroadcastreceived","next":"@I467Tz-PCo,~F~{tDEl","parent":null,"inputs":{},"fields":{"BROADCAST_OPTION":["Munch","broadcastMsgId-munch"]},"shadow":false,"topLevel":true,"x":31,"y":393},"@I467Tz-PCo,~F~{tDEl":{"opcode":"control_if","next":null,"parent":"|*E4bHy6(tUyNr_FpiHL","inputs":{"CONDITION":[2,"uT8k:bk6A^umen=_kL-m"],"SUBSTACK":[2,"LBQ7xhpD3hzBGz^u~MW`"]},"fields":{},"shadow":false,"topLevel":false},"uT8k:bk6A^umen=_kL-m":{"opcode":"sensing_touchingobject","next":null,"parent":"@I467Tz-PCo,~F~{tDEl","inputs":{"TOUCHINGOBJECTMENU":[1,"w.R6uBYuAjg(y#K#YJx*"]},"fields":{},"shadow":false,"topLevel":false},"w.R6uBYuAjg(y#K#YJx*":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"uT8k:bk6A^umen=_kL-m","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Ladybug1"]},"shadow":true,"topLevel":false},"LBQ7xhpD3hzBGz^u~MW`":{"opcode":"looks_sayforsecs","next":"XO!5H:??cO_M~G2fB;}l","parent":"@I467Tz-PCo,~F~{tDEl","inputs":{"MESSAGE":[1,[10,"Oh, no!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"XO!5H:??cO_M~G2fB;}l":{"opcode":"looks_hide","next":null,"parent":"LBQ7xhpD3hzBGz^u~MW`","inputs":{},"fields":{},"shadow":false,"topLevel":false},"|pG9oKkH+F.OL|36O0Lp":{"opcode":"event_whenflagclicked","next":"t:(!q?g_}9!~)wm!FUIP","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":39,"y":50},"t:(!q?g_}9!~)wm!FUIP":{"opcode":"looks_show","next":null,"parent":"|pG9oKkH+F.OL|36O0Lp","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"2b3b7ab6b68e1d72f5f0246bd5246e35","name":"beetle","bitmapResolution":1,"md5ext":"2b3b7ab6b68e1d72f5f0246bd5246e35.svg","dataFormat":"svg","rotationCenterX":43,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":75,"y":-123,"size":30,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":["pen"],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190619042313","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"}}
-},{}],14:[function(require,module,exports){
+},{"../act1-grading-scripts/originalOfrenda-test":10,"../grading-scripts-s3/scratch3":26}],9:[function(require,module,exports){
+
+/*
+On the Farm Autograde: Intial Version and testing: Saranya Turimella, Summer 2019
+*/
+
+require('../grading-scripts-s3/scratch3')
+
+module.exports = class {
+    constructor() {
+        this.requirements = {};
+        this.extensions = {};
+    }
+
+    initReqs() {
+        this.requirements.scriptForBunnyMoves = { bool: false, str: 'Bunny has a script in which it moves' };
+        this.requirements.scriptForBunnySounds = { bool: false, str: 'Bunny has a script in which it makes a sound' };
+        this.requirements.scriptForBunnySaysOrThinks = { bool: false, str: 'Bunny has a script in which it says or thinks something' };
+        this.requirements.scriptInOrderBunny = {bool: false, str: 'Bunny has a script in which the blocks are used in the in the order specified: move, make a sound, say/think something'};
+
+        this.requirements.scriptForHeddyMoves = { bool: false, str: 'Heddy has a script in which it moves' };
+        this.requirements.scriptForHeddySounds = { bool: false, str: 'Heddy has a script in which it makes a sound' };
+        this.requirements.scriptForHeddySaysOrThinks = { bool: false, str: 'Heddy has a script in which it says or thinks something' };
+        this.requirements.scriptInOrderHeddy = {bool: false, str: 'Heddy has a script in which the blocks are used in the in the order specified: move, make a sound, say/think something'};
+
+        this.requirements.rooGlides = { bool: false, str: "Another glide block is added to Roo's script to make it move back to the starting location" };
+        this.extensions.allMove = { bool: false, str: 'All animals move to a different location' };
+        this.extensions.anotherSprite = { bool: false, str: 'Another sprite is added and has a script' };
+    }
+
+    grade(fileObj, user) {
+        var project = new Project(fileObj, null);
+        this.initReqs();
+        if (!is(fileObj)) return;
+
+        let eventOpcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked'];
+        let sayOpcodes = ['looks_say', 'looks_sayforsecs'];
+        let thinkOpcodes = ['looks_think', 'looks_sayforsecs'];
+        let numGlides = 0;
+
+        
+        if (project.sprites.length > 2) {
+            for (let target of project.targets) {
+                if ((target.name !== 'Bunny') && (target.name!== 'Heddy') && (target.name !== 'Roo')) {
+                    for (let script of target.scripts) {
+                        if (script.blocks.length > 1) {
+                            this.extensions.anotherSprite.bool = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        let moveIndexBunny = 0;
+        let soundIndexBunny = 0;
+        let sayIndexBunny = 0;
+        let moveIndexHeddy = 0;
+        let soundIndexHeddy = 0;
+        let sayIndexHeddy = 0;
+
+        for (let target of project.targets) {
+            if (target.isStage) { continue; }
+            else {
+                if (target.name === 'Bunny') {
+                    for (let script of target.scripts) {
+                        // makes sure that it is part of a script that starts with an event block
+                        for (let i = 0; i < script.blocks.length; i++) {
+                            if (eventOpcodes.includes(script.blocks[0].opcode)) {
+                                if (script.blocks[i].opcode === 'motion_movesteps') {
+                                    moveIndexBunny = i;
+                                    this.requirements.scriptForBunnyMoves.bool = true;
+                                }
+                                if (script.blocks[i].opcode === 'sound_playuntildone') {
+                                    soundIndexBunny = i;
+                                    this.requirements.scriptForBunnySounds.bool = true;
+                                }
+                                if (sayOpcodes.includes(script.blocks[i].opcode)) {
+                                    sayIndexBunny = i;
+                                    this.requirements.scriptForBunnySaysOrThinks.bool = true;
+                                }
+                                if (thinkOpcodes.includes(script.blocks[i].opcode)) {
+                                    sayIndexBunny = i;
+                                    this.requirements.scriptForBunnySaysOrThinks.bool = true;
+                                }
+                            
+                                if (moveIndexBunny !== 0 &&
+                                    soundIndexBunny !== 0 &&
+                                    sayIndexBunny !== 0) {
+                                        if (moveIndexBunny < soundIndexBunny && soundIndexBunny < sayIndexBunny) {
+                                            this.requirements.scriptInOrderBunny.bool = true;
+                                            break;
+                                        }
+                                    }
+
+                            }
+                        }
+                    }
+                }
+                else if (target.name === 'Heddy') {
+                    for (let script of target.scripts) {
+                        // makes sure that it is part of a script that starts with an event block
+                        for (let i = 0; i < script.blocks.length; i++) {
+                            if (eventOpcodes.includes(script.blocks[0].opcode)) {
+                                if (script.blocks[i].opcode === 'motion_movesteps') {
+                                    moveIndexHeddy = i;
+                                    this.requirements.scriptForHeddyMoves.bool = true;
+                                }
+                                if (script.blocks[i].opcode === 'sound_playuntildone') {
+                                    soundIndexHeddy = i;
+                                    this.requirements.scriptForHeddySounds.bool = true;
+                                }
+                                if (sayOpcodes.includes(script.blocks[i].opcode)) {
+                                    sayIndexHeddy = i;
+                                    this.requirements.scriptForHeddySaysOrThinks.bool = true;
+                                }
+                                if (thinkOpcodes.includes(script.blocks[i].opcode)) {
+                                    sayIndexHeddy = i;
+                                    this.requirements.scriptForHeddySaysOrThinks.bool = true;
+                                }
+
+                                if (moveIndexHeddy !== 0 &&
+                                    soundIndexHeddy !== 0 &&
+                                    sayIndexHeddy !== 0) {
+                                        if (moveIndexHeddy < soundIndexHeddy && soundIndexHeddy < sayIndexHeddy) {
+                                            this.requirements.scriptInOrderHeddy.bool = true;
+                                            break;
+                                        }
+                                    }
+                            }
+                        }
+                    }
+                }
+
+                else if (target.name === 'Roo') {
+                    for (let script of target.scripts) {
+                        // makes sure that it is part of a script that starts with an event block
+                        for (let i = 0; i < script.blocks.length; i++) {
+                            if (eventOpcodes.includes(script.blocks[0].opcode)) {
+                                if (script.blocks[i].opcode === 'motion_glidesecstoxy') {
+                                    numGlides++;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if (numGlides >= 2) {
+                    this.requirements.rooGlides.bool = true;
+                }
+            }
+        }
+    }
+}
+
+},{"../grading-scripts-s3/scratch3":26}],10:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -4220,42 +3057,186 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"
     }
 }
-},{}],15:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
+/* 
+Scavenger Hunt Autograder
+Initial Version and testing: Saranya Turimella
+*/
+
+require('../grading-scripts-s3/scratch3')
+
+module.exports = class {
+    constructor() {
+        this.requirements = {};
+        this.extensions = {};
+    }
+
+    initReqs() {
+        this.requirements.fredSaysHaveFun = { bool: false, str: 'Fred the fish says "Have fun!"' };
+        this.requirements.fredMoves = { bool: false, str: 'Fred the fish moves all the way across the stage' };
+        this.requirements.helenChangesColorFaster = { bool: false, str: 'Helen the crab changes colors fasters' };
+        this.requirements.helenDifferentColor = { bool: false, str: 'Helen changes to a different color when clicked' };
+    }
+
+
+    grade(fileObj, user) {
+        var project = new Project(fileObj, null);
+        this.initReqs();
+
+        if (!is(fileObj)) return;
+
+        let haveFunFred = false;
+        let haveFunMisc = false;
+        let fredMoves = false;
+        let miscMoves = false;
+        let helenColor = false;
+        let miscColor = false;
+        let helenSpeed = false;
+        let miscSpeed = false;
+        let numMoveFred = 0;
+        let numMoveMisc = 0;
+
+        for (let target of project.targets) {
+            if (target.isStage) { continue; }
+            else {
+                if (target.name === 'Fred') {
+                    for (let script of target.scripts) {
+                        for (let i = 0; i < script.blocks.length; i++) {
+                            if ((script.blocks[i].opcode === 'looks_say') || (script.blocks[i].opcode === 'looks_sayforsecs')) {
+                                let dialogue = (script.blocks[i].inputs.MESSAGE[1][1]).toLowerCase();
+                                let punctuationless = dialogue.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+                                let finalString = punctuationless.replace(/\s{2,}/g, " ");
+                                finalString = finalString.replace(/\s+/g, '');
+                                if (finalString === 'havefun') {
+                                    haveFunFred = true;
+                                    //this.requirements.fredSaysHaveFun.bool = true;
+                                }
+                            }
+
+                            if (script.blocks[i].opcode === 'motion_movesteps') {
+                                numMoveFred++;
+                            }
+                        }
+                    }
+                    if (numMoveFred > 3) {
+                        fredMoves = true;
+                        //this.requirements.fredMoves.bool = true;
+                    }
+                }
+
+                else if (target.name === 'Helen') {
+                    let origWait = 1;
+                    for (let script of target.scripts) {
+                        for (let i = 0; i < script.blocks.length; i++) {
+                            if (script.blocks[i].opcode === 'control_repeat') {
+                                let substack = script.blocks[i].inputs.SUBSTACK[1];
+                                if (target.blocks[substack].inputs.DURATION[1][1] < 1) {
+                                    //this.requirements.helenChangesColor.bool = true;
+                                    helenSpeed = true;
+                                }
+                            }
+                            if (script.blocks[0].opcode === "event_whenthisspriteclicked") {
+                                for (let i = 0; i < script.blocks.length; i++) {
+                                    if (script.blocks[i].opcode === 'looks_switchcostumeto') {
+                                        //this.requirements.helenDifferentColor.bool = true;
+                                        helenColor = true;
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+                else {
+                    for (let block in target.blocks) {
+                        if ((target.blocks[block].opcode === 'looks_say') || (target.blocks[block].opcode === 'looks_sayforsecs')) {
+                            let dialogue1 = (target.blocks[block].inputs.MESSAGE[1][1]).toLowerCase()
+                            let punctuationless1 = dialogue1.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+                            let finalString1 = punctuationless1.replace(/\s{2,}/g, " ");
+                            finalString1 = finalString1.replace(/\s+/g, '');
+                            if (finalString1 === 'havefun') {
+                                haveFunMisc = true;
+                            }
+                        }
+
+                        if (target.blocks[block].opcode === 'motion_movesteps') {
+                            numMoveMisc++;
+                        }
+
+                        if (target.blocks[block].opcode === 'control_repeat') {
+                            let substack1 = target.blocks[block].inputs.SUBSTACK[1];
+                            if (target.blocks[substack1].inputs.DURATION[1][1] < 1) {
+                                miscSpeed = true;
+                            }
+                        }
+
+                        if (target.blocks[block].opcode === 'looks_switchcostumeto') {
+                            if (target.blocks[block].next === "ohLm|%[frcYkDCD02Izs" && target.blocks[block].parent === "N_^HGxU/.EOLU(;~p]Hp") {
+                                continue;
+                            } else {
+                                miscColor = true;
+                            }
+                        }
+                    }
+                }
+                if (numMoveMisc > 3) {
+                    miscMoves = true;
+                }
+            }
+        }
+        if (haveFunFred || haveFunMisc) {
+            this.requirements.fredSaysHaveFun.bool = true;
+        }
+
+        if (fredMoves || miscMoves) {
+            this.requirements.fredMoves.bool = true;
+        }
+
+        if (helenColor || miscColor) {
+            this.requirements.helenDifferentColor.bool = true;
+        }
+
+        if (helenSpeed || miscSpeed) {
+            this.requirements.helenChangesColorFaster.bool = true;
+        }
+    }
+}
+
+
+
+},{"../grading-scripts-s3/scratch3":26}],12:[function(require,module,exports){
 require('./scratch3');
 
 let loops = ['control_forever', 'control_repeat', 'control_repeat_until'];
-
-let within = (x, range) => x >= range[0] && x <= range[1];
 
 module.exports = class {
 
     init() {
         this.requirements = {
-            goodStartPosition: {bool: false, str: 'Bee starts at the beginning of the track.'},
-            handlesDownArrow: {bool:false, str:'Bee has an event block for the down arrow.'},
-            downArrowCostumeChange: {bool:false, str:'Bee changes costume on the down arrow.'},
-            downArrowWaitBlock: {bool:false, str:'Bee wait block on down arrow.'},
-            handlesSpaceBar: {bool:false, str:'Bee has an event block for the space bar.'},
-            spaceBarLoop: {bool:false, str:'Bee loops on the space bar event.'},
-            spaceBarMovement: {bool:false, str:'Bee moves within the loop.'},
-            spaceBarCostumeChange: {bool:false, str:'Bee changes costume within the loop.'},
-            spaceBarWaitBlock: {bool:false, str:'Bee has a wait block within the loop.'},
-            beeFinishes: {bool:false, str:'Bee reaches the finish line through animation.'}
+            handlesDownArrow: {bool:false, str:'Both racing sprites have an event block for the down arrow.'},
+            downArrowCostumeChange: {bool:false, str:'Both racing sprites switch costumes on the down arrow.'},
+            downArrowWaitBlock: {bool:false, str:'Both racing sprites have a wait block on down arrow.'},
+            bugFixed: {bool:false, str:'Bug fixed: both racing sprites finish the race when the space bar is pressed.'}
         };
-        // this.extensions = {
-        //     HasWinner: {bool: false, str:'There is a true winner to the race.'},
-        //     WinnerVictoryDanceCostume: {bool:false, str:'Winner changes costume during victory dance.'},
-        //     WinnerVictoryDanceTurn: {bool:false, str:'Winner uses turn block during victory dance.'},
-        //     BeeWiggle: {bool:false, str:'Made the Bee take a wiggly path.'},
-        //     AddedKangaroo: {bool:false, str:'Added Kangaroo.'},
-        //     KangarooHop: {bool:false, str:'Made the Kangaroo hop.'},       
-        //     AddedFourthSprite: {bool: false, str: 'Added a sprite'},
-        //     AnimatedFourthSprite: {bool: false, str: 'Animated the addded sprite'}
-        // };
+        this.extensions = {
+            HasWinner: {bool: false, str:'There is a true winner to the race.'},
+            wigglyPath: {bool: false, str: 'A sprite moves in a wiggly path.'},
+            showFourthSprite: {bool: false, str: 'The fourth sprite is shown and animated'},
+            animateNewSprite: {bool: false, str: 'A new sprite animated'}
+        };
+    }
+
+    strandIdentifier() {
+        this.strand = null;
+
+
+
+
+
     }
 
     grade(fileObj, user) {
-        this.init()
+        this.init();
         const project = new Project(fileObj);
 
         // iterate through sprites, compute a report for each, and add that to an array
@@ -4264,35 +3245,15 @@ module.exports = class {
         let reports = project.sprites.map(sprite => this.gradeSprite(sprite));
 
         // sort from highest to lowest score
-        reports = reports.sort((a, b) => b.score - a.score);
-        
-        // filter to those that were identified as a bee
-        let beeishReports = reports.filter(report => report.likelyName === 'bee')
-        
-        // if for some reason they have sprites that can do all of the things required, 
-        // but are visibly unlike the default ones
-        for (let n in [2, 3])
-            if (reports.length >= n && !['bee', 'monkey', 'snake'].includes(reports[n].likelyName)) {
-                beeishReports.push(reports[n]);
-                break;
-            }
-        // re-sort
-        beeishReports.sort((a, b) => b.score - a.score);
+        let racingSprites = reports.filter(r => r.space.handles && r.down.handles);
+        console.log(racingSprites);
+        this.requirements.handlesDownArrow.bool = racingSprites.length >= 2;
+        this.requirements.downArrowCostumeChange.bool = racingSprites.filter(r => r.down.costume).length >= 2;
+        this.requirements.downArrowWaitBlock.bool = racingSprites.filter(r => r.down.wait).length >= 2;
+        this.requirements.bugFixed.bool = racingSprites.filter(r => r.stats.finished).length >= 2;
 
-        // scores sprite most likely to be a bee, or the best bee, if there are multiple
-        if (beeishReports.length >= 1) {
-            const bee = beeishReports[0];
-            this.requirements.goodStartPosition.bool = is(bee.stats.start);
-            this.requirements.handlesDownArrow.bool = bee.down.handles;
-            this.requirements.downArrowCostumeChange.bool = bee.down.costume;
-            this.requirements.downArrowWaitBlock.bool = bee.down.wait;
-            this.requirements.handlesSpaceBar.bool = bee.space.handles;
-            this.requirements.spaceBarLoop.bool = bee.space.loop;
-            this.requirements.spaceBarMovement.bool = bee.space.move;
-            this.requirements.spaceBarCostumeChange.bool = bee.space.costume;
-            this.requirements.spaceBarWaitBlock.bool = bee.space.wait;
-            this.requirements.beeFinishes.bool = bee.stats.finished;
-        }
+        this.extensions.wigglyPath.bool = racingSprites.filter(r => r.stats.wiggle).length > 0
+    
         // sort by speed
         reports.sort((a, b) => b.stats.speed - a.stats.speed);
         reports = reports.filter(r => r.stats.finished);
@@ -4300,66 +3261,53 @@ module.exports = class {
     }    
     // helper method for grading each sprite
     gradeSprite(sprite) {
-        
-        // checks if sprites name or costume names allude to any of the default sprites
-        let nameScores = {bee: 0, snake: 0, monkey: 0, kangaroo: 0};
+        let stats = {start: null, loops: {}, wiggle: false};
+        let down = {handles: false, wait: false, costume: false};
+        let space = {handles: false, loop: false, wait: false, move: false, costume: false};
 
-        for (let givenSprite of Object.keys(nameScores)) {
-            if (sprite.costumes.map(c => c.name).some(name => name.toLowerCase().includes(givenSprite)))
-                nameScores[givenSprite]++;
-            if (sprite.name.toLowerCase().includes(givenSprite))
-                nameScores[givenSprite]++;
-        }
-        // start checking off requirements. firstly, what the start position was
-        // additionally, check if the default positions are met
-        let stats = {start: null, speed: {}, finished: {}, wiggle: false};
-        
         for (let script of sprite.scripts.filter(s => s.blocks[0].opcode === 'event_whenflagclicked'))
             script.traverseBlocks((block, level) => {
                 if (block.opcode === 'motion_gotoxy') {
-                    // checks if sprite starts before finish line
-                    if (within(block.inputs.X[1][1], [-271, 115]))
-                        stats.start = block.inputs.X[1][1];
-                    // checks default start positions
-                    const defaultPositions = {bee: [-174, -10], snake: [-211, -133], monkey: [-12, 83]}
-                    for (const [name, pos] of Object.entries(defaultPositions)) {
-                        if (block.inputs.X[1][1] === pos[0]) nameScores[name]++;
-                        if (block.inputs.Y[1][1] === pos[1]) nameScores[name]++;
-                    }
+                    stats.start = block.inputs.X[1][1];
                 }
             });
+        if (!stats.start) {
+            stats.start = sprite.x;
+        }
         // iterating through each script, checking if the sprite meets the requirements for
         // the down arrow and space key events
-        let space = {handles: false, loop: false, wait: false, move: false, costume: false};
-        let down = {handles: false, wait: false, costume: false};
 
-        for (let script of sprite.scripts.filter(s => s.blocks[0].opcode=== 'event_whenkeypressed')) {
-            let event = script.blocks[0];
-            let eventID = event.id;
-            let key = event.fields.KEY_OPTION[0];
-            stats.speed[eventID] = stats.finished[eventID] = {};
+        for (let script of sprite.scripts.filter(s => s.blocks[0].opcode === 'event_whenkeypressed')) {
+            let key = script.blocks[0].fields.KEY_OPTION[0];
             
             if (key === 'space') {
                 space.handles = true;
                 script.traverseBlocks((block, level) => {
-                    //check for loop
                     if(loops.includes(block.opcode)) {
                         space.loop = true;
-                        stats.speed[eventID].repeats = (block.opcode === 'control_repeat') ? Number(block.inputs.TIMES[1][1]) : 1000000;
+                        let loopID = block.id;
+                        stats.loops[loopID] = {
+                            repeats: (block.opcode === 'control_repeat') ? Number(block.inputs.TIMES[1][1]) : 1000000,
+                            wait: 0,
+                            move: 0
+                        };
                     } else if (level > 1) {
                         if (block.opcode == 'control_wait') {
                             space.wait = true;
-                            stats.speed[eventID].wait = Number(block.inputs.DURATION[1][1]);
+                            stats.loops[block.within.id].wait = Number(block.inputs.DURATION[1][1]);
                         } else if (block.opcode.includes('motion_turn')) {
                             stats.wiggle = true;
                         } else if (block.opcode == 'motion_movesteps') {
                             space.move = true;
-                            stats.speed[eventID].move = Number(block.inputs.STEPS[1][1]);
+                            stats.loops[block.within.id].move = Number(block.inputs.STEPS[1][1]);
                         } else if (['looks_switchcostumeto', 'looks_nextcostume'].includes(block.opcode)) {
                             space.costume = true;
                         }
+                    } else if (block.opcode === 'looks_sayforsecs' && block.inputs.MESSAGE[1][1] === 'Go!') {
+                        space.handles = false;
                     }
-                }, loops);
+                    
+                });
             } else if (key === 'down arrow') {
                 down.handles = true;
                 script.traverseBlocks((block, level) => {
@@ -4373,24 +3321,17 @@ module.exports = class {
         }
         // calculating speed and whether the sprite crossed the finish line from wait, move, and repeat blocks
         // accounts for multiple loops
-        const calc = (func) => Object.values(stats.speed).reduce((sum, s) => 
+        const calc = (func) => Object.values(stats.loops).reduce((sum, s) => 
             (Object.keys(s).length === 3) ? sum + func(s) : sum, 0);
-        
+
         stats.finished = calc(s => s.move * s.repeats) > 119 - stats.start;
         stats.speed = calc(s => s.move / s.wait);
-
-        // summing all true values in the report
-        let score = Number(is(stats.start));
-        score += Object.values(space).concat(Object.values(down)).reduce((sum, val) => sum + Number(val), 0);
-        score += Number(is(stats.finished));
-        
-        let likelyName = Object.entries(nameScores).reduce((ret, nameScore) => (ret[1] > nameScore[1]) ? ret : nameScore, [null, 0])[0];
-
-        return {score, likelyName, space, down, stats};
+        console.log(stats.loops);
+        return {name: sprite.name, space, down, stats};
     }
 }
 
-},{"./scratch3":29}],16:[function(require,module,exports){
+},{"./scratch3":26}],13:[function(require,module,exports){
 /* Animation L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and minor bug fixes: Marco Anaya, Summer 2019
@@ -4534,7 +3475,7 @@ module.exports = class {
         this.extensions.moreThanOneAnimation.bool = (this.animationTypes.length > 1)
     }
 }
-},{"./scratch3":29}],17:[function(require,module,exports){
+},{"./scratch3":26}],14:[function(require,module,exports){
 /* Complex Conditionals L1(TIPP&SEE Modify) Autograder
  * Scratch 3 (original) version: Anna Zipp, Summer 2019
  */
@@ -4776,7 +3717,7 @@ module.exports = class {
         }
     }    
 }
-},{"./scratch3":29}],18:[function(require,module,exports){
+},{"./scratch3":26}],15:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -4890,7 +3831,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":29}],19:[function(require,module,exports){
+},{"./scratch3":26}],16:[function(require,module,exports){
 /* Conditional Loops L2 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -4951,6 +3892,7 @@ module.exports = class {
                                     }
                                     
                                     let substack = childBlocks[i].inputs.SUBSTACK[1];
+                                    
                                     var moveOptions = ['motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy', 'motion_glideto', 'motion_goto', 'motion_gotoxy']
                                     if (moveOptions.includes(target.blocks[substack].opcode)) {
                                         this.requirements.moves.bool = true;
@@ -4970,7 +3912,7 @@ module.exports = class {
 }
 
 
-},{"../grading-scripts-s3/scratch3":29}],20:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":26}],17:[function(require,module,exports){
 (function (global){
 /// Info layer template
 global.Context = class {
@@ -5005,7 +3947,7 @@ global.Context = class {
     }
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],21:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 /* Decomposition By Sequence L1 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -5316,7 +4258,7 @@ module.exports = class {
     }    
 }
 
-},{"./scratch3":29}],22:[function(require,module,exports){
+},{"./scratch3":26}],19:[function(require,module,exports){
 /* Decomposition by Sequence L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -5559,7 +4501,7 @@ module.exports = class {
         }
     }
 }
-},{"./scratch3":29}],23:[function(require,module,exports){
+},{"./scratch3":26}],20:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -5622,7 +4564,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":29}],24:[function(require,module,exports){
+},{"./scratch3":26}],21:[function(require,module,exports){
 /* Events L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and bug fixes: Marco Anaya, Summer 2019
@@ -5803,7 +4745,7 @@ module.exports = class {
         
     }
 } 
-},{"./scratch3":29}],25:[function(require,module,exports){
+},{"./scratch3":26}],22:[function(require,module,exports){
 /* One Way Sync L1 Autograder
  * Marco Anaya, Summer 2019
  */
@@ -5962,7 +4904,7 @@ module.exports = class {
 		return reqs;
 	}
 }
-},{"./scratch3":29}],26:[function(require,module,exports){
+},{"./scratch3":26}],23:[function(require,module,exports){
 /* One Way Sync L2 Autograder
  * Marco Anaya, Summer 2019
  */
@@ -6074,7 +5016,7 @@ module.exports = class {
 	}
 }
 
-},{"./scratch3":29}],27:[function(require,module,exports){
+},{"./scratch3":26}],24:[function(require,module,exports){
 /* Scratch Basics L1 Autograder
 Updated Version: Saranya Turimella, Summer 2019
 */
@@ -6082,63 +5024,354 @@ Updated Version: Saranya Turimella, Summer 2019
 require('../grading-scripts-s3/scratch3')
 
 module.exports = class {
-    constructor() {
+
+
+    initReqsGaming() {
         this.requirements = {};
         this.extensions = {};
+        this.requirements.addSayCarl = { bool: false, str: 'A say block is added after Carl says "Click the Space Bar to see Helen the Amazing Color Changing Hedgehog' }; // done
+        this.extensions.helenSpeaks = { bool: false, str: 'Helen says something else' }; // done
+        this.extensions.carlMoves = { bool: false, str: 'Carl the Cloud moves 10 steps when he is finished talking' }; // done
     }
 
-    initReqs() {
-        this.requirements.addSay = { bool: false, str: 'A say block is added after a sprite says “Click the Space Bar.”' }
-        this.extensions.addedHelenSpeech = { bool: false, str: 'The sprite that is changing costumes says something else' };
-        this.extensions.carlMoves10Steps = { bool: false, str: "A sprite moves 10 steps when it is finished talking" };
+    initReqsMulticultural() {
+        this.requirements = {};
+        this.extensions = {};
+        this.requirements.addSayNeha = { bool: false, str: 'A say block is added after Neha says "Happy Holi!"' }; // done
+        this.extensions.bradSpeaks = { bool: false, str: 'Brad says something else' }; // done
+        this.extensions.nehaMoves = { bool: false, str: 'Neha moves 10 steps when she is finished jumping and talking' }; // done
     }
+
+    initReqsYouthCulture() {
+        this.requirements = {};
+        this.extensions = {};
+        this.requirements.addSayIndia = { bool: false, str: 'A say block is added after India says "Click the Space Bar to see some of the things I like' }; // done
+        this.extensions.easelSaysSomethingElse = { bool: false, str: 'The easel sprite says something else' }; // done
+        this.extensions.indiaMoves = { bool: false, str: 'India moves 10 steps when she is finished talking' }; // done
+        this.extensions.changeCostumeEasel = { bool: false, str: "The easel sprite's costume is changed to show something about the student's community" }; // done
+    }
+
+    arraysMatch(arr1, arr2) {
+
+        // Check if the arrays are the same length
+        if (arr1.length !== arr2.length) {
+
+            return false;
+        }
+
+        // Check if all items exist and are in the same order
+        for (var i = 0; arr1.length < i; i++) {
+            if (arr1[i] !== arr2[i]) {
+
+                return false;
+            }
+        }
+
+    };
+
+    // function that decides what strand the project is, returns a string
+    // whichStrand(projBackdrops) {
+    //     let gamingOrig = new Project(require('../grading-scripts-s3/gamingOriginal'));
+    //     let multiOrig = new Project(require('../grading-scripts-s3/multiculturalOriginal'));
+    //     let youthOrig = new Project(require('../grading-scripts-s3/youthOriginal'));
+
+    //     // gets the asset id's of the original gaming project (backdrops)
+    //     let gamingBackdrops = [];
+    //     for (let target of gamingOrig.targets) {
+    //         for (let costume of target.costumes) {
+    //             gamingBackdrops.push(costume.assetId);
+    //         }
+    //     }
+    //     // gets the asset id's of the original multicultural project (backdrops)
+    //     let multiBackdrops = [];
+    //     for (let target of multiOrig.targets) {
+    //         for (let costume of target.costumes) {
+    //             multiBackdrops.push(costume.assetId);
+    //         }
+    //     }
+    //     // gets the asset id's of the original youth culture project (backdrops)
+    //     let youthBackdrops = [];
+    //     for (let target of youthOrig.targets) {
+
+    //         for (let costume of target.costumes) {
+    //             youthBackdrops.push(costume.assetId);
+    //         }
+
+    //     }
+    //     var util = require('util');
+    //     let origUtil = util.inspect(projBackdrops);
+    //     let gamingUtil = util.inspect(gamingBackdrops);
+    //     let multiUtil = util.inspect(multiBackdrops);
+    //     let youthUtil = util.inspect(youthBackdrops);
+
+    //     if (origUtil === gamingUtil) {
+    //         return 'gaming';
+    //     }
+    //     else if (origUtil === multiUtil) {
+    //         return 'multicultural'
+    //     }
+    //     else if (origUtil === youthUtil) {
+    //         return 'youthculture';
+    //     } else {
+    //         return 'gaming';
+    //     }
+    // };
+
 
     grade(fileObj, user) {
+
         var project = new Project(fileObj, null);
+        // call function that takes in the project, decides what strand it is in, that function returns a string
 
-        this.initReqs();
 
-        var numSayBlocks = 0;
+        let projBackdrops = [];
         for (let target of project.targets) {
-            if (target.isStage) { continue; }
-            else {
-                for (let script of target.scripts) {
-                    for (let i = 0; i < script.blocks.length; i++) {
-                        // checks to see if there is a say block after the one where Carl the Cloud says to click on the sapce bar to see helen
-                        // change color
-                        if (script.blocks[i].opcode === 'looks_sayforsecs') {
-                            if (script.blocks[i].parent === "8K5Ak(+XsZvwjx2V0~D)") {
-                                this.requirements.addSay.bool = true;
-                            }
-                        }
-                        
-                        // if there is a say block in a script that has a sprite moving 10 steps, the requirement is met
-                        if (script.blocks[i].opcode === 'motion_movesteps') {
-                            {
-                                if (script.blocks[i].inputs.STEPS[1][1] == 10) {
-                                    this.extensions.carlMoves10Steps.bool = true;
+
+            for (let costume of target.costumes) {
+                projBackdrops.push(costume.assetId);
+            }
+
+        }
+
+        var templates = {
+            multicultural: require('./templates/scratch-basics-L1-multicultural'),
+            youthCulture: require('./templates/scratch-basics-L1-youthculture'),
+            gaming: require('./templates/scratch-basics-L1-gaming')
+        };
+        
+
+        let strand = detectStrand(project, templates);
+        console.log(strand);
+
+
+        // gaming strand 
+        if (strand === 'gaming') {
+
+            this.initReqsGaming();
+            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
+            let sayCarl = false;
+
+            let sayBlocksGaming = 0;
+
+            for (let target of project.targets) {
+                if (target.isStage) { continue; }
+                else {
+
+
+                    for (let script of target.scripts) {
+                        for (let i = 0; i < script.blocks.length; i++) {
+
+
+                            // makes sure that the script starts with an event block
+                            if (script.blocks[0].opcode.includes('event_')) {
+                                if (script.blocks[i].opcode === 'looks_sayforsecs') {
+
+                                    // finds the block with specified message
+                                    if (script.blocks[i].inputs.MESSAGE[1][1] === 'Click the Space Bar to see Helen the Amazing Color Changing Hedgehog.') {
+                                        let next = i + 1;
+
+                                        // checks the next block to make sure it is not undefined, if it is not, checks to see if it is a say block
+                                        if (script.blocks[next] !== undefined) {
+                                            if (sayBlocks.includes(script.blocks[next].opcode)) {
+                                                this.requirements.addSayCarl.bool = true;
+                                                sayCarl = true;
+                                            }
+                                        }
+                                    }
                                 }
-                            }
-                        }
-                        // if the block is not one of the original say blocks, and it is not the say block that has been added after 
-                        // carl the cloud says to click to see the changing colors
-                        if (script.blocks[i].opcode === 'looks_sayforsecs') {
-                            if (script.blocks[i].next === "ahLTJjNBf`+1#.[qNZE4" && script.blocks[i].parent === "`4;L4Q?o6CqFmdbH?:ms") { continue; }
-                            else if (script.blocks[i].next === "=n_7]#{Cxj6pf!BUV,OP" && script.blocks[i].parent === "ahLTJjNBf`+1#.[qNZE4") { continue; }
-                            else if (script.blocks[i].next === null && script.blocks[i].parent === "=n_7]#{Cxj6pf!BUV,OP") { continue; }
-                            else if (script.blocks[i].next === null && script.blocks[i].parent === "3?,1QT}D[0#@^jvT!J*^") { continue; }
-                            else if (script.blocks[i].next === null && script.blocks[i].parent === "8K5Ak(+XsZvwjx2V0~D)") { continue; }
-                            else {
-                                this.extensions.addedHelenSpeech.bool = true;
+
+                                // checks to see if there is any block that moves 10 steps
+                                if (script.blocks[i].opcode === 'motion_movesteps') {
+
+
+                                    if (script.blocks[i].inputs.STEPS[1][1] === '10') {
+                                        this.extensions.carlMoves.bool = true;
+                                    }
+                                }
+
+                                if (sayBlocks.includes(script.blocks[i].opcode)) {
+                                    sayBlocksGaming++;
+                                }
                             }
                         }
                     }
                 }
             }
+            // requirement not fulfilled
+            if (sayCarl === false) {
+                if (sayBlocksGaming > 4) {
+                    this.extensions.helenSpeaks.bool = true;
+                }
+            }
+
+            if (sayBlocksGaming > 5) {
+                this.extensions.helenSpeaks.bool = true;
+            }
+            
+        }
+
+
+        if (strand === 'multicultural') {
+            this.initReqsMulticultural();
+            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
+            let sayBlocksMulticultural = 0;
+            let sayNeha = false;
+
+            for (let target of project.targets) {
+                if (target.isStage) { continue; }
+                else {
+                    for (let script of target.scripts) {
+
+                        for (let i = 0; i < script.blocks.length; i++) {
+
+                            // makes sure that the script starts with an event block
+                            if (script.blocks[0].opcode.includes('event_')) {
+                                if (script.blocks[i].opcode === 'looks_say') {
+
+
+                                    // finds the block with the specified message
+                                    if (script.blocks[i].inputs.MESSAGE[1][1] === 'Happy Holi!') {
+                                        let next = i + 1;
+
+                                        // checks the next block to make sure it is not undefined, if it not, checks to see if it is a say block
+                                        if (script.blocks[next] !== undefined) {
+                                            if (sayBlocks.includes(script.blocks[next].opcode)) {
+                                                this.requirements.addSayNeha.bool = true;
+                                                sayNeha = true;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // checks to see if there is a block that moves 10 steps
+                                if (script.blocks[i].opcode === 'motion_movesteps') {
+                                    if (script.blocks[i].inputs.STEPS[1][1] === '10') {
+                                        this.extensions.nehaMoves.bool = true;
+                                    }
+                                }
+
+                                // if there is a say block in the sprite that is brad and the message is different from what he says
+                                if (sayBlocks.includes(script.blocks[i].opcode)) {
+                                    sayBlocksMulticultural++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (sayNeha === false) {
+                if (sayBlocksMulticultural > 14) {
+                    this.extensions.bradSpeaks.bool = true;
+                }
+            }
+            // checks to see if there is one more than the original say block count, exlcuding the say block needed for the requirement
+            if (sayBlocksMulticultural > 15) {
+                this.extensions.bradSpeaks.bool = true;
+            }
+        }
+
+
+        if (strand === 'youthCulture') {
+
+            // make an array of the original costumes from the original project
+            this.initReqsYouthCulture();
+            let origCostumes = [];
+            let newCostumes = [];
+            var originalYouth = new Project(require('../grading-scripts-s3/youthOriginal'), null);
+            for (let target of originalYouth.targets) {
+                if (target.name === 'easel') {
+                    for (let costume of target.costumes) {
+                        origCostumes.push(costume.assetId);
+                    }
+                }
+            }
+
+            for (let target of project.targets) {
+                if (target.name === 'easel') {
+                    for (let costume of target.costumes) {
+                        newCostumes.push(costume.assetId);
+                    }
+                }
+            }
+
+
+            if (origCostumes.length !== newCostumes.length) {
+                this.extensions.changeCostumeEasel.bool = true;
+            } else {
+                for (let i = 0; i < origCostumes.length; i++) {
+                    if (origCostumes[i] !== newCostumes[i]) {
+                        this.extensions.changeCostumeEasel.bool = true;
+                        break;
+                    }
+                }
+            }
+
+
+            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
+            
+            let sayBlocksYouthCulture = 0;
+            let sayIndia = false;
+
+            for (let target of project.targets) {
+                if (target.isStage) { continue; }
+                else {
+
+
+                    for (let script of target.scripts) {
+                        for (let i = 0; i < script.blocks.length; i++) {
+
+                            //makes sure that the script starts with an event block
+                            if (script.blocks[0].opcode.includes('event_')) {
+                                if (script.blocks[i].opcode === 'looks_sayforsecs') {
+
+                                    // find the block with the specified message
+                                    if (script.blocks[i].inputs.MESSAGE[1][1] === 'Click the Space Bar to see some of the things I like.') {
+                                        let next = i + 1;
+
+                                        // checks the next block to make sure it is not undefined, if it is not, checks to see that the block after that is a say block
+                                        if (script.blocks[next] !== undefined) {
+                                            if (sayBlocks.includes(script.blocks[next].opcode)) {
+                                                this.requirements.addSayIndia.bool = true;
+                                                sayIndia = true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // checks to see if there is a block that moves 10 steps
+                            if (script.blocks[i].opcode === 'motion_movesteps') {
+                                if (script.blocks[i].inputs.STEPS[1][1] === '10') {
+                                    this.extensions.indiaMoves.bool = true;
+                                }
+                            }
+
+                            // counts the number of say blocks
+                            if (sayBlocks.includes(script.blocks[i].opcode)) {
+                                sayBlocksYouthCulture++;
+                            }
+
+                        }
+                    }
+
+
+                }
+            }
+            
+            if (sayIndia === false) {
+                if (sayBlocksYouthCulture > 4) {
+                    this.extensions.easelSaysSomethingElse.bool = true;
+                }
+            }
+
+            if (sayBlocksYouthCulture > 5) {
+                this.extensions.easelSaysSomethingElse.bool = true;
+            }
+             
         }
     }
 }
-},{"../grading-scripts-s3/scratch3":29}],28:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":26,"../grading-scripts-s3/youthOriginal":31,"./templates/scratch-basics-L1-gaming":27,"./templates/scratch-basics-L1-multicultural":28,"./templates/scratch-basics-L1-youthculture":29}],25:[function(require,module,exports){
 /* Scratch Basics L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -6337,7 +5570,7 @@ module.exports = class {
         
     }
 }
-},{"./scratch3":29}],29:[function(require,module,exports){
+},{"./scratch3":26}],26:[function(require,module,exports){
 (function (global){
 /// Scratch 3 helper functions
 require('./context');
@@ -6354,24 +5587,25 @@ global.no = function(x) {
 
 /// Container class for Scratch blocks.
 global.Block = class {
-    constructor(target, block) {
+    constructor(target, block, within=null) {
         Object.assign(this, target.blocks[block]);
         this.id = block;
         this.context = new Context(target.context, false);
         this.target = target;
         this.subscripts = this.subScripts();
+        this.within = within;
     }
 
     /// Internal function that converts a block to a Block.
-    toBlock(x) {
-        return new Block(this.target, x);
+    toBlock(x, within=null) {
+        return new Block(this.target, x, within);
     }
 
     /// Returns the next block in the script.
-    nextBlock() {
+    nextBlock(within=null) {
         if (no(this.next)) return null;
 
-        return this.toBlock(this.next);
+        return this.toBlock(this.next, within);
     }
 
     /// Returns the previous block in the script.
@@ -6384,16 +5618,16 @@ global.Block = class {
     /// Returns the conditional statement of the block, if it exists.
     conditionBlock() {
         if (no(this.inputs.CONDITION)) return null;
-        return this.toBlock(this.inputs.CONDITION[1]);
+        return this.toBlock(this.inputs.CONDITION[1], this);
     }
 
     /// Returns an array representing the script that contains the block.
-    childBlocks() {
+    childBlocks(within=null) {
         var array = [];
         var x = this;
         while (x) {
             array.push(x);
-            x = x.nextBlock();
+            x = x.nextBlock(within);
         }
         return array;
     }
@@ -6404,12 +5638,23 @@ global.Block = class {
         var array = [];
 
         if (is(this.inputs.SUBSTACK) && is(this.inputs.SUBSTACK[1])) {
-            array.push(new Script(this.toBlock(this.inputs.SUBSTACK[1]), this.target));
+            array.push(new Script(this.toBlock(this.inputs.SUBSTACK[1], this), this.target));
         }
         if (is(this.inputs.SUBSTACK2) && is(this.inputs.SUBSTACK2[1])) {
-            array.push(new Script(this.toBlock(this.inputs.SUBSTACK2[1]), this.target));
+            array.push(new Script(this.toBlock(this.inputs.SUBSTACK2[1], this), this.target));
         }
         return array;
+    }
+    /// Checks if the
+    isWithin(compareBlock=(block => true)) {
+        var outerBlock = this.within;
+        while(outerBlock) {
+            if (compareBlock(outerBlock)) {
+                return outerBlock;
+            }
+            outerBlock = outerBlock.within;
+        }
+        return null;
     }
 }
 
@@ -6417,7 +5662,7 @@ global.Block = class {
 global.Script = class {
 /// Pass this a Block object!
     constructor(block, target) {
-        this.blocks  = block.childBlocks();
+        this.blocks  = block.childBlocks(block.within);
         this.target  = target;
         this.context = new Context(target.context, false);
         for (var block of this.blocks) {
@@ -6443,15 +5688,24 @@ global.Script = class {
         }
         return allSubscripts;
     }
-    /// Recursively visits each block in a scrip and its subscripts, 
+    /// Recursively visits each block in a scrip and its subscripts,
     ///  noting at which level of nestedness it is in within control blocks of ones choosing.
-    traverseBlocks(func, parentBlocks=['control_forever', 'control_if', 'control_if_else', 'control_repeat', 'control_repeat_until']) {
+    traverseBlocks(func, targetBlocks=null) {
+        const parentBlocks = ['control_forever', 'control_if', 'control_if_else', 'control_repeat', 'control_repeat_until'];
         const traverse = (scripts, level) => {
+
             if (!is(scripts) || scripts === [[]]) return;
             for (let script of scripts) {
                 for (let block of script.blocks) {
                     func(block, level);
-                    traverse(block.subScripts(), level + parentBlocks.includes(block.opcode));
+                    if (parentBlocks.includes(block.opcode)) {
+                        if (targetBlocks && !targetBlocks.includes(block.opcode)) {
+                            traverse(block.subscripts, level);
+                        } else {
+                            traverse(block.subscripts, level + 1);
+                        }
+                    }
+
                 }
             }
         }
@@ -6497,8 +5751,1045 @@ global.Project = class {
     }
 }
 
+/// Identify which strand the project belongs to.
+global.detectStrand = function(project, templates) {
+    var strand = 'generic';
+    /// Format for templates
+    /*
+    var templates = {
+        multicultural: require('./templates/events-L1-multicultural'),
+        youthCulture:  require('./templates/events-L1-youth-culture'),
+        gaming:        require('./templates/events-L1-gaming')
+    };
+    */
+    var projectAssetIDs = [];
+    for (var target of project.targets) {
+        for (var costume of target.costumes) {
+            projectAssetIDs.push(costume.assetId);
+        }
+        for (var sound of target.sounds) {
+            projectAssetIDs.push(sound.assetId);
+        }
+    }
+    var highScore = 0;
+    for (var template in templates) {
+        var templateFile = templates[template];
+        var templateAssetIDs = [];
+        for (var target of templateFile.targets) {
+            for (var costume of target.costumes) {
+                templateAssetIDs.push(costume.assetId);
+            }
+            for (var sound of target.sounds) {
+                templateAssetIDs.push(sound.assetId);
+            }
+        }
+        var templateScore = 0;
+        for (var projectAssetID of projectAssetIDs) {
+            if (templateAssetIDs.includes(projectAssetID)) {
+                templateScore++;
+            }
+            if (templateScore > highScore) {
+                strand = template;
+                highScore = templateScore;
+            }
+        }
+    }
+    return strand;
+}
+
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./context":20}],30:[function(require,module,exports){
+},{"./context":17}],27:[function(require,module,exports){
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "2b0bddaf727e6bb95131290ae2549ac4",
+                    "name": "background3",
+                    "bitmapResolution": 2,
+                    "md5ext": "2b0bddaf727e6bb95131290ae2549ac4.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Carl the Cloud",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "*bF;3|^5/zs4N0xR-o)Z": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "0*OA)5OE]%a]*%IA%B{6",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 18,
+                    "y": 46
+                },
+                "0*OA)5OE]%a]*%IA%B{6": {
+                    "opcode": "motion_gotoxy",
+                    "next": "`4;L4Q?o6CqFmdbH?:ms",
+                    "parent": "*bF;3|^5/zs4N0xR-o)Z",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-200"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "80"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "`4;L4Q?o6CqFmdbH?:ms": {
+                    "opcode": "motion_movesteps",
+                    "next": "ksrg)n@E2SyN{;oWEX7E",
+                    "parent": "0*OA)5OE]%a]*%IA%B{6",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "ksrg)n@E2SyN{;oWEX7E": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "ahLTJjNBf`+1#.[qNZE4",
+                    "parent": "`4;L4Q?o6CqFmdbH?:ms",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Hello!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "ahLTJjNBf`+1#.[qNZE4": {
+                    "opcode": "motion_movesteps",
+                    "next": "d7d]Z%r*QDEp-ajssm0T",
+                    "parent": "ksrg)n@E2SyN{;oWEX7E",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "d7d]Z%r*QDEp-ajssm0T": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "=n_7]#{Cxj6pf!BUV,OP",
+                    "parent": "ahLTJjNBf`+1#.[qNZE4",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Welcome to Scratch!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "=n_7]#{Cxj6pf!BUV,OP": {
+                    "opcode": "motion_movesteps",
+                    "next": "8K5Ak(+XsZvwjx2V0~D)",
+                    "parent": "d7d]Z%r*QDEp-ajssm0T",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "8K5Ak(+XsZvwjx2V0~D)": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "=n_7]#{Cxj6pf!BUV,OP",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click the Space Bar to see Helen the Amazing Color Changing Hedgehog."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "5"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "be898107fe99d3c8a66152520abfcc9b",
+                    "name": "costume1",
+                    "bitmapResolution": 2,
+                    "md5ext": "be898107fe99d3c8a66152520abfcc9b.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 80,
+                    "rotationCenterY": 57
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": -50,
+            "y": 80,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Helen the Hedgehog",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "XYmoOsQpwwb~bRU[WtDb": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "NX*(%@1qK}o{lJ)1dp(L",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 56,
+                    "y": 66
+                },
+                "NX*(%@1qK}o{lJ)1dp(L": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": "A*?(6=CMw!5NQvy3GoJz",
+                    "parent": "XYmoOsQpwwb~bRU[WtDb",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "uxs{_T(3Fk%RETANj%^X"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "uxs{_T(3Fk%RETANj%^X": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "NX*(%@1qK}o{lJ)1dp(L",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "hedgehog_red",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "A*?(6=CMw!5NQvy3GoJz": {
+                    "opcode": "control_repeat",
+                    "next": null,
+                    "parent": "NX*(%@1qK}o{lJ)1dp(L",
+                    "inputs": {
+                        "TIMES": [
+                            1,
+                            [
+                                6,
+                                "6"
+                            ]
+                        ],
+                        "SUBSTACK": [
+                            2,
+                            "*i@~ROBKeTP[#l_7v/_-"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "*i@~ROBKeTP[#l_7v/_-": {
+                    "opcode": "control_wait",
+                    "next": "MkZ9YIg7M,WuN@FR]l:o",
+                    "parent": "A*?(6=CMw!5NQvy3GoJz",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                "1"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "MkZ9YIg7M,WuN@FR]l:o": {
+                    "opcode": "looks_nextcostume",
+                    "next": null,
+                    "parent": "*i@~ROBKeTP[#l_7v/_-",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "3?,1QT}D[0#@^jvT!J*^": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "gPD.*ilWONI2U7F-SE[}",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 51,
+                    "y": 455
+                },
+                "gPD.*ilWONI2U7F-SE[}": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "3?,1QT}D[0#@^jvT!J*^",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Ouch!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "6a7187ad3551e84cd59e1afc3def9e33",
+                    "name": "hedgehog_red",
+                    "bitmapResolution": 2,
+                    "md5ext": "6a7187ad3551e84cd59e1afc3def9e33.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 11,
+                    "rotationCenterY": 128
+                },
+                {
+                    "assetId": "7aa13cc8e70535af7ce3eb7e2c837ac9",
+                    "name": "hedgehog_orange",
+                    "bitmapResolution": 2,
+                    "md5ext": "7aa13cc8e70535af7ce3eb7e2c837ac9.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 13,
+                    "rotationCenterY": 129
+                },
+                {
+                    "assetId": "26cd02f23af4877b70065edd86d0654a",
+                    "name": "hedgehog_yellow",
+                    "bitmapResolution": 2,
+                    "md5ext": "26cd02f23af4877b70065edd86d0654a.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 12,
+                    "rotationCenterY": 130
+                },
+                {
+                    "assetId": "6d13e86dd79531c19d03c25cdee8bee5",
+                    "name": "hedgehog_green",
+                    "bitmapResolution": 2,
+                    "md5ext": "6d13e86dd79531c19d03c25cdee8bee5.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 13,
+                    "rotationCenterY": 128
+                },
+                {
+                    "assetId": "4047bdbf75d8b7076268f7779b833d18",
+                    "name": "hedgehog_blue",
+                    "bitmapResolution": 2,
+                    "md5ext": "4047bdbf75d8b7076268f7779b833d18.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 12,
+                    "rotationCenterY": 128
+                },
+                {
+                    "assetId": "7b435be3a639d4d937c9653fbb72382d",
+                    "name": "hedgehog_purple",
+                    "bitmapResolution": 2,
+                    "md5ext": "7b435be3a639d4d937c9653fbb72382d.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 13,
+                    "rotationCenterY": 129
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": 99,
+            "y": -50.99999999999998,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [
+        {
+            "id": "undefined_costumenumbername_number",
+            "mode": "default",
+            "opcode": "looks_costumenumbername",
+            "params": {
+                "NUMBER_NAME": "number"
+            },
+            "spriteName": "Helen",
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 5,
+            "y": 5,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        }
+    ],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190813192748",
+        "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
+    }
+}
+},{}],28:[function(require,module,exports){
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"e6bf56f64eb4e7e6c97ec6c97e90d023","name":"Holi Background","bitmapResolution":1,"md5ext":"e6bf56f64eb4e7e6c97ec6c97e90d023.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Neha","variables":{},"lists":{},"broadcasts":{},"blocks":{"6*c`Xv=UPZ2te:JB2+U*":{"opcode":"event_whenflagclicked","next":"1,sGaB#:WD/!fp4ecgw=","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-67,"y":-587},"1,sGaB#:WD/!fp4ecgw=":{"opcode":"motion_gotoxy","next":"0*gfG!}+dNBRamr1EdBt","parent":"6*c`Xv=UPZ2te:JB2+U*","inputs":{"X":[1,[4,"28"]],"Y":[1,[4,"-51"]]},"fields":{},"shadow":false,"topLevel":false},"0*gfG!}+dNBRamr1EdBt":{"opcode":"looks_switchcostumeto","next":"y;SD_2:1H=d-=o]rf3Nq","parent":"1,sGaB#:WD/!fp4ecgw=","inputs":{"COSTUME":[1,"-XUo5ONrDRD76UyvwKL?"]},"fields":{},"shadow":false,"topLevel":false},"-XUo5ONrDRD76UyvwKL?":{"opcode":"looks_costume","next":null,"parent":"0*gfG!}+dNBRamr1EdBt","inputs":{},"fields":{"COSTUME":["Neha1",null]},"shadow":true,"topLevel":false},"y;SD_2:1H=d-=o]rf3Nq":{"opcode":"control_wait","next":"#;GgQ}*l)tV4E{1NPadV","parent":"0*gfG!}+dNBRamr1EdBt","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"#;GgQ}*l)tV4E{1NPadV":{"opcode":"looks_sayforsecs","next":"GBVU3I7+QD=TSfHx]bhU","parent":"y;SD_2:1H=d-=o]rf3Nq","inputs":{"MESSAGE":[1,[10,"Hi, I'm Neha!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"GBVU3I7+QD=TSfHx]bhU":{"opcode":"looks_sayforsecs","next":"lTPM~|:Xs,_if#cv*}5O","parent":"#;GgQ}*l)tV4E{1NPadV","inputs":{"MESSAGE":[1,[10,"We are celebrating Holi, a traditional Hindu festival from India!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false},"lTPM~|:Xs,_if#cv*}5O":{"opcode":"looks_sayforsecs","next":"n%]__?|Z8]rI5Nb?gViq","parent":"GBVU3I7+QD=TSfHx]bhU","inputs":{"MESSAGE":[1,[10,"We use colorful powders and pastes to celebrate the beginning of Spring!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false},"n%]__?|Z8]rI5Nb?gViq":{"opcode":"looks_sayforsecs","next":",M3195%JsXVXc(d1Zg:L","parent":"lTPM~|:Xs,_if#cv*}5O","inputs":{"MESSAGE":[1,[10,"I'm holding some gulal!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},",M3195%JsXVXc(d1Zg:L":{"opcode":"looks_sayforsecs","next":null,"parent":"n%]__?|Z8]rI5Nb?gViq","inputs":{"MESSAGE":[1,[10,"Press the space bar to meet my friends!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},"|0_-JyE+)[h*:1fdtiA4":{"opcode":"event_whenthisspriteclicked","next":"^oA(iul1kHd(0wr^6Bw{","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-69,"y":-82},"^oA(iul1kHd(0wr^6Bw{":{"opcode":"looks_switchcostumeto","next":"|7PoJdXk{ra2Uw|t`GbT","parent":"|0_-JyE+)[h*:1fdtiA4","inputs":{"COSTUME":[1,"N9bZPF:pJOq6u.zxph*s"]},"fields":{},"shadow":false,"topLevel":false},"N9bZPF:pJOq6u.zxph*s":{"opcode":"looks_costume","next":null,"parent":"^oA(iul1kHd(0wr^6Bw{","inputs":{},"fields":{"COSTUME":["Neha1",null]},"shadow":true,"topLevel":false},"|7PoJdXk{ra2Uw|t`GbT":{"opcode":"looks_sayforsecs","next":"Om]!9q+lw!s+4zF:/CG!","parent":"^oA(iul1kHd(0wr^6Bw{","inputs":{"MESSAGE":[1,[10,"3..."]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"Om]!9q+lw!s+4zF:/CG!":{"opcode":"looks_sayforsecs","next":"J6bm|w{z^q-RA%hf)afc","parent":"|7PoJdXk{ra2Uw|t`GbT","inputs":{"MESSAGE":[1,[10,"2..."]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"J6bm|w{z^q-RA%hf)afc":{"opcode":"looks_sayforsecs","next":"dBNdJtA%:m:n8TAUuL^K","parent":"Om]!9q+lw!s+4zF:/CG!","inputs":{"MESSAGE":[1,[10,"1!"]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"dBNdJtA%:m:n8TAUuL^K":{"opcode":"control_repeat","next":"GV:wKN`D#AUVaKS?5jmD","parent":"J6bm|w{z^q-RA%hf)afc","inputs":{"TIMES":[1,[6,"4"]],"SUBSTACK":[2,"x@m(|CWR`%*`#b~;!2OT"]},"fields":{},"shadow":false,"topLevel":false},"x@m(|CWR`%*`#b~;!2OT":{"opcode":"control_wait","next":".Z=GpTw~p|F,B38JSn^t","parent":"dBNdJtA%:m:n8TAUuL^K","inputs":{"DURATION":[1,[5,"0.7"]]},"fields":{},"shadow":false,"topLevel":false},".Z=GpTw~p|F,B38JSn^t":{"opcode":"looks_nextcostume","next":null,"parent":"x@m(|CWR`%*`#b~;!2OT","inputs":{},"fields":{},"shadow":false,"topLevel":false},"GV:wKN`D#AUVaKS?5jmD":{"opcode":"looks_say","next":null,"parent":"dBNdJtA%:m:n8TAUuL^K","inputs":{"MESSAGE":[1,[10,"Happy Holi!"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"588e1905e5323f75328276def2ac0116","name":"Neha1","bitmapResolution":1,"md5ext":"588e1905e5323f75328276def2ac0116.svg","dataFormat":"svg","rotationCenterX":45.99999113010236,"rotationCenterY":87},{"assetId":"8a174573e7d4a7885954acd2afad19ea","name":"Neha2","bitmapResolution":1,"md5ext":"8a174573e7d4a7885954acd2afad19ea.svg","dataFormat":"svg","rotationCenterX":123.41460248739168,"rotationCenterY":114.40293820688679},{"assetId":"500b791f9f077dd2377bc56033912b9a","name":"Neha3","bitmapResolution":1,"md5ext":"500b791f9f077dd2377bc56033912b9a.svg","dataFormat":"svg","rotationCenterX":133.59915850034727,"rotationCenterY":174.0481588381853},{"assetId":"c53eeb50bcdf509cb1522d378c9e380b","name":"Neha4","bitmapResolution":1,"md5ext":"c53eeb50bcdf509cb1522d378c9e380b.svg","dataFormat":"svg","rotationCenterX":128.6803772733968,"rotationCenterY":116.40943091603478},{"assetId":"9d660677a26fe0b657bc3e43da838c8e","name":"Neha5","bitmapResolution":1,"md5ext":"9d660677a26fe0b657bc3e43da838c8e.svg","dataFormat":"svg","rotationCenterX":90.9947,"rotationCenterY":85.4763088644717}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":28,"y":-51,"size":139.99999999999997,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Brad","variables":{},"lists":{},"broadcasts":{},"blocks":{"CBEwU.S^!3v*m}+l(2:*":{"opcode":"event_whenflagclicked","next":"R|3)LWe?;VLJtzxlX@8}","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"R|3)LWe?;VLJtzxlX@8}":{"opcode":"motion_gotoxy","next":"9sO:y?e(89=wDBQEX*84","parent":"CBEwU.S^!3v*m}+l(2:*","inputs":{"X":[1,[4,220]],"Y":[1,[4,-13]]},"fields":{},"shadow":false,"topLevel":false},"9sO:y?e(89=wDBQEX*84":{"opcode":"looks_switchcostumeto","next":null,"parent":"R|3)LWe?;VLJtzxlX@8}","inputs":{"COSTUME":[1,"4!H7s8i9Lh.C(?SHMT_O"]},"fields":{},"shadow":false,"topLevel":false},"4!H7s8i9Lh.C(?SHMT_O":{"opcode":"looks_costume","next":null,"parent":"9sO:y?e(89=wDBQEX*84","inputs":{},"fields":{"COSTUME":["Brad1"]},"shadow":true,"topLevel":false},"7rU;-waLK?7n!U94pB].":{"opcode":"event_whenkeypressed","next":"BYyQeX2S2e2l[UHn#0bq","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":32,"y":304},"BYyQeX2S2e2l[UHn#0bq":{"opcode":"motion_movesteps","next":"SpljqntHJxfGDV;.4%#M","parent":"7rU;-waLK?7n!U94pB].","inputs":{"STEPS":[1,[4,-64]]},"fields":{},"shadow":false,"topLevel":false},"SpljqntHJxfGDV;.4%#M":{"opcode":"looks_sayforsecs","next":"m+[^4mRsSN%SjOXJ}+_t","parent":"BYyQeX2S2e2l[UHn#0bq","inputs":{"MESSAGE":[1,[10,"Hello, I'm Brad!"]],"SECS":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"m+[^4mRsSN%SjOXJ}+_t":{"opcode":"looks_sayforsecs","next":null,"parent":"SpljqntHJxfGDV;.4%#M","inputs":{"MESSAGE":[1,[10,"I'm holding a pichkari, a water squirter filled with colored water!"]],"SECS":[1,[4,6]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"dae278db1e4c65e9b70d966aa9a40429","name":"Brad1","bitmapResolution":1,"md5ext":"dae278db1e4c65e9b70d966aa9a40429.svg","dataFormat":"svg","rotationCenterX":37.99999373388661,"rotationCenterY":86.99998370205938}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":220,"y":-13,"size":135.00000000000003,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Kristen","variables":{},"lists":{},"broadcasts":{},"blocks":{"[M~hMK`q/NYs#*-;ZiuH":{"opcode":"event_whenflagclicked","next":"H~_UJ8~bO+^zXvT^^^le","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"H~_UJ8~bO+^zXvT^^^le":{"opcode":"motion_gotoxy","next":"@DsqwPSbeqW_?Pi{uYT]","parent":"[M~hMK`q/NYs#*-;ZiuH","inputs":{"X":[1,[4,-215]],"Y":[1,[4,-13]]},"fields":{},"shadow":false,"topLevel":false},"@DsqwPSbeqW_?Pi{uYT]":{"opcode":"looks_switchcostumeto","next":null,"parent":"H~_UJ8~bO+^zXvT^^^le","inputs":{"COSTUME":[1,"?+RpBU3RL5~YKwsi/rIw"]},"fields":{},"shadow":false,"topLevel":false},"?+RpBU3RL5~YKwsi/rIw":{"opcode":"looks_costume","next":null,"parent":"@DsqwPSbeqW_?Pi{uYT]","inputs":{},"fields":{"COSTUME":["Kristen1"]},"shadow":true,"topLevel":false},"Jf4;4?`|e1udP=94]ErE":{"opcode":"event_whenkeypressed","next":"9aY%RY8/M5ayiAqP@a7U","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":27,"y":261},"9aY%RY8/M5ayiAqP@a7U":{"opcode":"control_wait","next":"Pz:xDRpqyDJNLlR5?;,0","parent":"Jf4;4?`|e1udP=94]ErE","inputs":{"DURATION":[1,[5,"10"]]},"fields":{},"shadow":false,"topLevel":false},"Pz:xDRpqyDJNLlR5?;,0":{"opcode":"motion_movesteps","next":"-n-db;lg-!(lyaGFo;AQ","parent":"9aY%RY8/M5ayiAqP@a7U","inputs":{"STEPS":[1,[4,64]]},"fields":{},"shadow":false,"topLevel":false},"-n-db;lg-!(lyaGFo;AQ":{"opcode":"looks_sayforsecs","next":"4*Ly{a-GE~GGb~khP7#P","parent":"Pz:xDRpqyDJNLlR5?;,0","inputs":{"MESSAGE":[1,[10,"Hi, I'm Kristen!"]],"SECS":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"4*Ly{a-GE~GGb~khP7#P":{"opcode":"looks_sayforsecs","next":"(P/J:UdY/Q,8|p4}V!P=","parent":"-n-db;lg-!(lyaGFo;AQ","inputs":{"MESSAGE":[1,[10,"I'm using squeeze bottles."]],"SECS":[1,[4,4]]},"fields":{},"shadow":false,"topLevel":false},"(P/J:UdY/Q,8|p4}V!P=":{"opcode":"looks_sayforsecs","next":null,"parent":"4*Ly{a-GE~GGb~khP7#P","inputs":{"MESSAGE":[1,[10,"Click on Neha to see her celebrate!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"5c740972a1f49202719b50e896bd0cf6","name":"Kristen1","bitmapResolution":1,"md5ext":"5c740972a1f49202719b50e896bd0cf6.svg","dataFormat":"svg","rotationCenterX":62.000001871426775,"rotationCenterY":87.08308115522249}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-215,"y":-13,"size":135.00000000000003,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
+},{}],29:[function(require,module,exports){
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 3,
+            "costumes": [
+                {
+                    "assetId": "2b0bddaf727e6bb95131290ae2549ac4",
+                    "name": "background3",
+                    "bitmapResolution": 2,
+                    "md5ext": "2b0bddaf727e6bb95131290ae2549ac4.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                },
+                {
+                    "assetId": "a81668321aa3dcc0fc185d3e36ae76f6",
+                    "name": "Room 1",
+                    "bitmapResolution": 2,
+                    "md5ext": "a81668321aa3dcc0fc185d3e36ae76f6.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                },
+                {
+                    "assetId": "e5f794c8756ca0cead5cb7e7fe354c41",
+                    "name": "Playground",
+                    "bitmapResolution": 2,
+                    "md5ext": "e5f794c8756ca0cead5cb7e7fe354c41.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                },
+                {
+                    "assetId": "38be88e8026768d4606fe1932b05d258",
+                    "name": "backdrop",
+                    "bitmapResolution": 2,
+                    "md5ext": "38be88e8026768d4606fe1932b05d258.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 1123,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "India",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "{?%H[3PODtzIOzw3NUAD": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "X9F`sK3d.L!x-cTWVaGz",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 0,
+                    "y": 0
+                },
+                "X9F`sK3d.L!x-cTWVaGz": {
+                    "opcode": "motion_gotoxy",
+                    "next": "kBZo|n~NnzgG!crdI1E;",
+                    "parent": "{?%H[3PODtzIOzw3NUAD",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-215"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-145"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "kBZo|n~NnzgG!crdI1E;": {
+                    "opcode": "motion_movesteps",
+                    "next": "u=@^[0kNfQx.2*Xvk0TX",
+                    "parent": "X9F`sK3d.L!x-cTWVaGz",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "u=@^[0kNfQx.2*Xvk0TX": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "C;QZb9TtC1(Ov9vkC+$f",
+                    "parent": "kBZo|n~NnzgG!crdI1E;",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Hello! My name is India."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "C;QZb9TtC1(Ov9vkC+$f": {
+                    "opcode": "motion_movesteps",
+                    "next": "=6=T6QR$yee::D$b8~s{",
+                    "parent": "u=@^[0kNfQx.2*Xvk0TX",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "=6=T6QR$yee::D$b8~s{": {
+                    "opcode": "looks_sayforsecs",
+                    "next": ",`%kTB=!2Lz#4m!W2OpL",
+                    "parent": "C;QZb9TtC1(Ov9vkC+$f",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Welcome to Scratch!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ",`%kTB=!2Lz#4m!W2OpL": {
+                    "opcode": "motion_movesteps",
+                    "next": "{Ipink+*Ul#QILZqGvdF",
+                    "parent": "=6=T6QR$yee::D$b8~s{",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "{Ipink+*Ul#QILZqGvdF": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": ",`%kTB=!2Lz#4m!W2OpL",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click the Space Bar to see some of the things I like."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "5"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "fec9549b732165ec6d09991de08b69cd",
+                    "name": "character (1)",
+                    "bitmapResolution": 1,
+                    "md5ext": "fec9549b732165ec6d09991de08b69cd.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 78.87000274658203,
+                    "rotationCenterY": 165.80999755859375
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": -165,
+            "y": -145,
+            "size": 162.8369844855632,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "easel",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "XYmoOsQpwwb~bRU[WtDb": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "NX*(%@1qK}o{lJ)1dp(L",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 56,
+                    "y": 66
+                },
+                "NX*(%@1qK}o{lJ)1dp(L": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": "A*?(6=CMw!5NQvy3GoJz",
+                    "parent": "XYmoOsQpwwb~bRU[WtDb",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "uxs{_T(3Fk%RETANj%^X"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "uxs{_T(3Fk%RETANj%^X": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "NX*(%@1qK}o{lJ)1dp(L",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "easel-music",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "A*?(6=CMw!5NQvy3GoJz": {
+                    "opcode": "control_repeat",
+                    "next": null,
+                    "parent": "NX*(%@1qK}o{lJ)1dp(L",
+                    "inputs": {
+                        "TIMES": [
+                            1,
+                            [
+                                6,
+                                "7"
+                            ]
+                        ],
+                        "SUBSTACK": [
+                            2,
+                            "MkZ9YIg7M,WuN@FR]l:o"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "MkZ9YIg7M,WuN@FR]l:o": {
+                    "opcode": "looks_nextcostume",
+                    "next": "*i@~ROBKeTP[#l_7v/_-",
+                    "parent": "A*?(6=CMw!5NQvy3GoJz",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "*i@~ROBKeTP[#l_7v/_-": {
+                    "opcode": "control_wait",
+                    "next": null,
+                    "parent": "MkZ9YIg7M,WuN@FR]l:o",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                "1"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "3?,1QT}D[0#@^jvT!J*^": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "gPD.*ilWONI2U7F-SE[}",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 51,
+                    "y": 455
+                },
+                "gPD.*ilWONI2U7F-SE[}": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "3?,1QT}D[0#@^jvT!J*^",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Tada!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 7,
+            "costumes": [
+                {
+                    "assetId": "47a257ec82df9b221a9c8a0da1174652",
+                    "name": "easel",
+                    "bitmapResolution": 1,
+                    "md5ext": "47a257ec82df9b221a9c8a0da1174652.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 72,
+                    "rotationCenterY": 100.5
+                },
+                {
+                    "assetId": "f80c9c273a7542f28fc0a0aa16f80532",
+                    "name": "easel-sports",
+                    "bitmapResolution": 1,
+                    "md5ext": "f80c9c273a7542f28fc0a0aa16f80532.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 71.83499908447266,
+                    "rotationCenterY": 99.56999969482422
+                },
+                {
+                    "assetId": "25fc936818594e0f67f48ffd39ee06b2",
+                    "name": "easel-animals",
+                    "bitmapResolution": 1,
+                    "md5ext": "25fc936818594e0f67f48ffd39ee06b2.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 71.83499908447266,
+                    "rotationCenterY": 99.56999969482422
+                },
+                {
+                    "assetId": "6a904db737d12cc410bd18e0e3837f1a",
+                    "name": "easel-music",
+                    "bitmapResolution": 1,
+                    "md5ext": "6a904db737d12cc410bd18e0e3837f1a.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 71.83499908447266,
+                    "rotationCenterY": 99.56999969482422
+                },
+                {
+                    "assetId": "eb955b9d6d17d5358e1c66ca5dbc4648",
+                    "name": "easel-neighborhood",
+                    "bitmapResolution": 1,
+                    "md5ext": "eb955b9d6d17d5358e1c66ca5dbc4648.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 71.83499908447266,
+                    "rotationCenterY": 99.56999969482422
+                },
+                {
+                    "assetId": "4c0e56f2cc17d497d76070033ab08654",
+                    "name": "easel-travel",
+                    "bitmapResolution": 1,
+                    "md5ext": "4c0e56f2cc17d497d76070033ab08654.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 71.83499908447266,
+                    "rotationCenterY": 99.56999969482422
+                },
+                {
+                    "assetId": "ba4d4b1af1eafdda9b882c0f51ced3ff",
+                    "name": "easel-astronomy",
+                    "bitmapResolution": 1,
+                    "md5ext": "ba4d4b1af1eafdda9b882c0f51ced3ff.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 71.83499908447266,
+                    "rotationCenterY": 99.56999969482422
+                },
+                {
+                    "assetId": "b0841fa4e9ea101a530022a9b4758d14",
+                    "name": "easel-video-games",
+                    "bitmapResolution": 1,
+                    "md5ext": "b0841fa4e9ea101a530022a9b4758d14.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 71.83499908447266,
+                    "rotationCenterY": 99.56999969482422
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": 144,
+            "y": -52,
+            "size": 150,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [
+        {
+            "id": "undefined_costumenumbername_number",
+            "mode": "default",
+            "opcode": "looks_costumenumbername",
+            "params": {
+                "NUMBER_NAME": "number"
+            },
+            "spriteName": "Helen",
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 5,
+            "y": 5,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        }
+    ],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190813192748",
+        "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
+    }
+}
+},{}],30:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -6603,7 +6894,9 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":29}],31:[function(require,module,exports){
+},{"./scratch3":26}],31:[function(require,module,exports){
+arguments[4][29][0].apply(exports,arguments)
+},{"dup":29}],32:[function(require,module,exports){
 /// Provides necessary scripts for index.html.
 
 /// Requirements (scripts)
@@ -6626,13 +6919,15 @@ var graders = {
 
 // act 1 graders
 var actOneGraders = {
-  namePoem:       { name: 'Name Poem',               file: require('./act1-grading-scripts/name-poem')       },
-  ladybug:        { name: 'Ladybug Challenge',       file: require('./act1-grading-scripts/ladybug')         },
-  fiveBlockChallenge: { name: 'Five Block Challenge', file: require('./act1-grading-scripts/5-block-challenge')},
-  ofrenda:       { name: 'Ofrenda',                  file: require('./act1-grading-scripts/ofrenda')         },
-  aboutMe:        { name: 'About Me',                file: require('./act1-grading-scripts/aboutMe')          },
-  buildABand:     { name: 'Build A Band',            file: require('./act1-grading-scripts/build-a-band')     },
-  finalProject:   { name: 'Interactive Story',       file: require('./act1-grading-scripts/final-project')    },
+  scavengerHunt:  {name: 'Scavenger Hunt',          file: require('./act1-grading-scripts/scavengerHunt')      },
+  onTheFarm:      {name: 'On the Farm',             file: require('./act1-grading-scripts/onTheFarm')          },
+  namePoem:       {name: 'Name Poem',               file: require('./act1-grading-scripts/name-poem')          },
+  ofrenda:        {name: 'Ofrenda',                 file: require('./act1-grading-scripts/ofrenda')            },
+  aboutMe:        {name: 'About Me',                file: require('./act1-grading-scripts/aboutMe')            },
+  animalParade:   {name: 'Animal Parade',           file: require('./act1-grading-scripts/animal-parade')      },
+  danceParty:     {name: 'Dance Party',             file: require('./act1-grading-scripts/dance-party')        },
+  knockKnock:     {name: 'Knock Knock',             file: require('./act1-grading-scripts/knockKnock')         },
+  finalProject:   {name: 'Interactive Story',       file: require('./act1-grading-scripts/final-project')      },
 };
 
 var allGraders = {};
@@ -7019,4 +7314,812 @@ function noError() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-},{"./act1-grading-scripts/5-block-challenge":5,"./act1-grading-scripts/aboutMe":6,"./act1-grading-scripts/build-a-band":7,"./act1-grading-scripts/final-project":8,"./act1-grading-scripts/ladybug":9,"./act1-grading-scripts/name-poem":11,"./act1-grading-scripts/ofrenda":12,"./grading-scripts-s3/animation-L1":15,"./grading-scripts-s3/animation-L2":16,"./grading-scripts-s3/complex-conditionals-L1":17,"./grading-scripts-s3/cond-loops-L1":18,"./grading-scripts-s3/cond-loops-L2":19,"./grading-scripts-s3/decomp-L1":21,"./grading-scripts-s3/decomp-L2":22,"./grading-scripts-s3/events-L1":23,"./grading-scripts-s3/events-L2":24,"./grading-scripts-s3/one-way-sync-L1":25,"./grading-scripts-s3/one-way-sync-L2":26,"./grading-scripts-s3/scratch-basics-L1":27,"./grading-scripts-s3/scratch-basics-L2":28,"./grading-scripts-s3/two-way-sync-L1":30}]},{},[31]);
+},{"./act1-grading-scripts/aboutMe":1,"./act1-grading-scripts/animal-parade":2,"./act1-grading-scripts/dance-party":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/knockKnock":5,"./act1-grading-scripts/name-poem":7,"./act1-grading-scripts/ofrenda":8,"./act1-grading-scripts/onTheFarm":9,"./act1-grading-scripts/scavengerHunt":11,"./grading-scripts-s3/animation-L1":12,"./grading-scripts-s3/animation-L2":13,"./grading-scripts-s3/complex-conditionals-L1":14,"./grading-scripts-s3/cond-loops-L1":15,"./grading-scripts-s3/cond-loops-L2":16,"./grading-scripts-s3/decomp-L1":18,"./grading-scripts-s3/decomp-L2":19,"./grading-scripts-s3/events-L1":20,"./grading-scripts-s3/events-L2":21,"./grading-scripts-s3/one-way-sync-L1":22,"./grading-scripts-s3/one-way-sync-L2":23,"./grading-scripts-s3/scratch-basics-L1":24,"./grading-scripts-s3/scratch-basics-L2":25,"./grading-scripts-s3/two-way-sync-L1":30}],33:[function(require,module,exports){
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],34:[function(require,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+},{}],35:[function(require,module,exports){
+module.exports = function isBuffer(arg) {
+  return arg && typeof arg === 'object'
+    && typeof arg.copy === 'function'
+    && typeof arg.fill === 'function'
+    && typeof arg.readUInt8 === 'function';
+}
+},{}],36:[function(require,module,exports){
+(function (process,global){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+var formatRegExp = /%[sdj%]/g;
+exports.format = function(f) {
+  if (!isString(f)) {
+    var objects = [];
+    for (var i = 0; i < arguments.length; i++) {
+      objects.push(inspect(arguments[i]));
+    }
+    return objects.join(' ');
+  }
+
+  var i = 1;
+  var args = arguments;
+  var len = args.length;
+  var str = String(f).replace(formatRegExp, function(x) {
+    if (x === '%%') return '%';
+    if (i >= len) return x;
+    switch (x) {
+      case '%s': return String(args[i++]);
+      case '%d': return Number(args[i++]);
+      case '%j':
+        try {
+          return JSON.stringify(args[i++]);
+        } catch (_) {
+          return '[Circular]';
+        }
+      default:
+        return x;
+    }
+  });
+  for (var x = args[i]; i < len; x = args[++i]) {
+    if (isNull(x) || !isObject(x)) {
+      str += ' ' + x;
+    } else {
+      str += ' ' + inspect(x);
+    }
+  }
+  return str;
+};
+
+
+// Mark that a method should not be used.
+// Returns a modified function which warns once by default.
+// If --no-deprecation is set, then it is a no-op.
+exports.deprecate = function(fn, msg) {
+  // Allow for deprecating things in the process of starting up.
+  if (isUndefined(global.process)) {
+    return function() {
+      return exports.deprecate(fn, msg).apply(this, arguments);
+    };
+  }
+
+  if (process.noDeprecation === true) {
+    return fn;
+  }
+
+  var warned = false;
+  function deprecated() {
+    if (!warned) {
+      if (process.throwDeprecation) {
+        throw new Error(msg);
+      } else if (process.traceDeprecation) {
+        console.trace(msg);
+      } else {
+        console.error(msg);
+      }
+      warned = true;
+    }
+    return fn.apply(this, arguments);
+  }
+
+  return deprecated;
+};
+
+
+var debugs = {};
+var debugEnviron;
+exports.debuglog = function(set) {
+  if (isUndefined(debugEnviron))
+    debugEnviron = process.env.NODE_DEBUG || '';
+  set = set.toUpperCase();
+  if (!debugs[set]) {
+    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
+      var pid = process.pid;
+      debugs[set] = function() {
+        var msg = exports.format.apply(exports, arguments);
+        console.error('%s %d: %s', set, pid, msg);
+      };
+    } else {
+      debugs[set] = function() {};
+    }
+  }
+  return debugs[set];
+};
+
+
+/**
+ * Echos the value of a value. Trys to print the value out
+ * in the best way possible given the different types.
+ *
+ * @param {Object} obj The object to print out.
+ * @param {Object} opts Optional options object that alters the output.
+ */
+/* legacy: obj, showHidden, depth, colors*/
+function inspect(obj, opts) {
+  // default options
+  var ctx = {
+    seen: [],
+    stylize: stylizeNoColor
+  };
+  // legacy...
+  if (arguments.length >= 3) ctx.depth = arguments[2];
+  if (arguments.length >= 4) ctx.colors = arguments[3];
+  if (isBoolean(opts)) {
+    // legacy...
+    ctx.showHidden = opts;
+  } else if (opts) {
+    // got an "options" object
+    exports._extend(ctx, opts);
+  }
+  // set default options
+  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
+  if (isUndefined(ctx.depth)) ctx.depth = 2;
+  if (isUndefined(ctx.colors)) ctx.colors = false;
+  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
+  if (ctx.colors) ctx.stylize = stylizeWithColor;
+  return formatValue(ctx, obj, ctx.depth);
+}
+exports.inspect = inspect;
+
+
+// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
+inspect.colors = {
+  'bold' : [1, 22],
+  'italic' : [3, 23],
+  'underline' : [4, 24],
+  'inverse' : [7, 27],
+  'white' : [37, 39],
+  'grey' : [90, 39],
+  'black' : [30, 39],
+  'blue' : [34, 39],
+  'cyan' : [36, 39],
+  'green' : [32, 39],
+  'magenta' : [35, 39],
+  'red' : [31, 39],
+  'yellow' : [33, 39]
+};
+
+// Don't use 'blue' not visible on cmd.exe
+inspect.styles = {
+  'special': 'cyan',
+  'number': 'yellow',
+  'boolean': 'yellow',
+  'undefined': 'grey',
+  'null': 'bold',
+  'string': 'green',
+  'date': 'magenta',
+  // "name": intentionally not styling
+  'regexp': 'red'
+};
+
+
+function stylizeWithColor(str, styleType) {
+  var style = inspect.styles[styleType];
+
+  if (style) {
+    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
+           '\u001b[' + inspect.colors[style][1] + 'm';
+  } else {
+    return str;
+  }
+}
+
+
+function stylizeNoColor(str, styleType) {
+  return str;
+}
+
+
+function arrayToHash(array) {
+  var hash = {};
+
+  array.forEach(function(val, idx) {
+    hash[val] = true;
+  });
+
+  return hash;
+}
+
+
+function formatValue(ctx, value, recurseTimes) {
+  // Provide a hook for user-specified inspect functions.
+  // Check that value is an object with an inspect function on it
+  if (ctx.customInspect &&
+      value &&
+      isFunction(value.inspect) &&
+      // Filter out the util module, it's inspect function is special
+      value.inspect !== exports.inspect &&
+      // Also filter out any prototype objects using the circular check.
+      !(value.constructor && value.constructor.prototype === value)) {
+    var ret = value.inspect(recurseTimes, ctx);
+    if (!isString(ret)) {
+      ret = formatValue(ctx, ret, recurseTimes);
+    }
+    return ret;
+  }
+
+  // Primitive types cannot have properties
+  var primitive = formatPrimitive(ctx, value);
+  if (primitive) {
+    return primitive;
+  }
+
+  // Look up the keys of the object.
+  var keys = Object.keys(value);
+  var visibleKeys = arrayToHash(keys);
+
+  if (ctx.showHidden) {
+    keys = Object.getOwnPropertyNames(value);
+  }
+
+  // IE doesn't make error fields non-enumerable
+  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
+  if (isError(value)
+      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
+    return formatError(value);
+  }
+
+  // Some type of object without properties can be shortcutted.
+  if (keys.length === 0) {
+    if (isFunction(value)) {
+      var name = value.name ? ': ' + value.name : '';
+      return ctx.stylize('[Function' + name + ']', 'special');
+    }
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    }
+    if (isDate(value)) {
+      return ctx.stylize(Date.prototype.toString.call(value), 'date');
+    }
+    if (isError(value)) {
+      return formatError(value);
+    }
+  }
+
+  var base = '', array = false, braces = ['{', '}'];
+
+  // Make Array say that they are Array
+  if (isArray(value)) {
+    array = true;
+    braces = ['[', ']'];
+  }
+
+  // Make functions say that they are functions
+  if (isFunction(value)) {
+    var n = value.name ? ': ' + value.name : '';
+    base = ' [Function' + n + ']';
+  }
+
+  // Make RegExps say that they are RegExps
+  if (isRegExp(value)) {
+    base = ' ' + RegExp.prototype.toString.call(value);
+  }
+
+  // Make dates with properties first say the date
+  if (isDate(value)) {
+    base = ' ' + Date.prototype.toUTCString.call(value);
+  }
+
+  // Make error with message first say the error
+  if (isError(value)) {
+    base = ' ' + formatError(value);
+  }
+
+  if (keys.length === 0 && (!array || value.length == 0)) {
+    return braces[0] + base + braces[1];
+  }
+
+  if (recurseTimes < 0) {
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    } else {
+      return ctx.stylize('[Object]', 'special');
+    }
+  }
+
+  ctx.seen.push(value);
+
+  var output;
+  if (array) {
+    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
+  } else {
+    output = keys.map(function(key) {
+      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
+    });
+  }
+
+  ctx.seen.pop();
+
+  return reduceToSingleString(output, base, braces);
+}
+
+
+function formatPrimitive(ctx, value) {
+  if (isUndefined(value))
+    return ctx.stylize('undefined', 'undefined');
+  if (isString(value)) {
+    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
+                                             .replace(/'/g, "\\'")
+                                             .replace(/\\"/g, '"') + '\'';
+    return ctx.stylize(simple, 'string');
+  }
+  if (isNumber(value))
+    return ctx.stylize('' + value, 'number');
+  if (isBoolean(value))
+    return ctx.stylize('' + value, 'boolean');
+  // For some reason typeof null is "object", so special case here.
+  if (isNull(value))
+    return ctx.stylize('null', 'null');
+}
+
+
+function formatError(value) {
+  return '[' + Error.prototype.toString.call(value) + ']';
+}
+
+
+function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
+  var output = [];
+  for (var i = 0, l = value.length; i < l; ++i) {
+    if (hasOwnProperty(value, String(i))) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          String(i), true));
+    } else {
+      output.push('');
+    }
+  }
+  keys.forEach(function(key) {
+    if (!key.match(/^\d+$/)) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          key, true));
+    }
+  });
+  return output;
+}
+
+
+function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
+  var name, str, desc;
+  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
+  if (desc.get) {
+    if (desc.set) {
+      str = ctx.stylize('[Getter/Setter]', 'special');
+    } else {
+      str = ctx.stylize('[Getter]', 'special');
+    }
+  } else {
+    if (desc.set) {
+      str = ctx.stylize('[Setter]', 'special');
+    }
+  }
+  if (!hasOwnProperty(visibleKeys, key)) {
+    name = '[' + key + ']';
+  }
+  if (!str) {
+    if (ctx.seen.indexOf(desc.value) < 0) {
+      if (isNull(recurseTimes)) {
+        str = formatValue(ctx, desc.value, null);
+      } else {
+        str = formatValue(ctx, desc.value, recurseTimes - 1);
+      }
+      if (str.indexOf('\n') > -1) {
+        if (array) {
+          str = str.split('\n').map(function(line) {
+            return '  ' + line;
+          }).join('\n').substr(2);
+        } else {
+          str = '\n' + str.split('\n').map(function(line) {
+            return '   ' + line;
+          }).join('\n');
+        }
+      }
+    } else {
+      str = ctx.stylize('[Circular]', 'special');
+    }
+  }
+  if (isUndefined(name)) {
+    if (array && key.match(/^\d+$/)) {
+      return str;
+    }
+    name = JSON.stringify('' + key);
+    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+      name = name.substr(1, name.length - 2);
+      name = ctx.stylize(name, 'name');
+    } else {
+      name = name.replace(/'/g, "\\'")
+                 .replace(/\\"/g, '"')
+                 .replace(/(^"|"$)/g, "'");
+      name = ctx.stylize(name, 'string');
+    }
+  }
+
+  return name + ': ' + str;
+}
+
+
+function reduceToSingleString(output, base, braces) {
+  var numLinesEst = 0;
+  var length = output.reduce(function(prev, cur) {
+    numLinesEst++;
+    if (cur.indexOf('\n') >= 0) numLinesEst++;
+    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
+  }, 0);
+
+  if (length > 60) {
+    return braces[0] +
+           (base === '' ? '' : base + '\n ') +
+           ' ' +
+           output.join(',\n  ') +
+           ' ' +
+           braces[1];
+  }
+
+  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
+}
+
+
+// NOTE: These type checking functions intentionally don't use `instanceof`
+// because it is fragile and can be easily faked with `Object.create()`.
+function isArray(ar) {
+  return Array.isArray(ar);
+}
+exports.isArray = isArray;
+
+function isBoolean(arg) {
+  return typeof arg === 'boolean';
+}
+exports.isBoolean = isBoolean;
+
+function isNull(arg) {
+  return arg === null;
+}
+exports.isNull = isNull;
+
+function isNullOrUndefined(arg) {
+  return arg == null;
+}
+exports.isNullOrUndefined = isNullOrUndefined;
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+exports.isNumber = isNumber;
+
+function isString(arg) {
+  return typeof arg === 'string';
+}
+exports.isString = isString;
+
+function isSymbol(arg) {
+  return typeof arg === 'symbol';
+}
+exports.isSymbol = isSymbol;
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+exports.isUndefined = isUndefined;
+
+function isRegExp(re) {
+  return isObject(re) && objectToString(re) === '[object RegExp]';
+}
+exports.isRegExp = isRegExp;
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+exports.isObject = isObject;
+
+function isDate(d) {
+  return isObject(d) && objectToString(d) === '[object Date]';
+}
+exports.isDate = isDate;
+
+function isError(e) {
+  return isObject(e) &&
+      (objectToString(e) === '[object Error]' || e instanceof Error);
+}
+exports.isError = isError;
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+exports.isFunction = isFunction;
+
+function isPrimitive(arg) {
+  return arg === null ||
+         typeof arg === 'boolean' ||
+         typeof arg === 'number' ||
+         typeof arg === 'string' ||
+         typeof arg === 'symbol' ||  // ES6 symbol
+         typeof arg === 'undefined';
+}
+exports.isPrimitive = isPrimitive;
+
+exports.isBuffer = require('./support/isBuffer');
+
+function objectToString(o) {
+  return Object.prototype.toString.call(o);
+}
+
+
+function pad(n) {
+  return n < 10 ? '0' + n.toString(10) : n.toString(10);
+}
+
+
+var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+              'Oct', 'Nov', 'Dec'];
+
+// 26 Feb 16:19:34
+function timestamp() {
+  var d = new Date();
+  var time = [pad(d.getHours()),
+              pad(d.getMinutes()),
+              pad(d.getSeconds())].join(':');
+  return [d.getDate(), months[d.getMonth()], time].join(' ');
+}
+
+
+// log is just a thin wrapper to console.log that prepends a timestamp
+exports.log = function() {
+  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
+};
+
+
+/**
+ * Inherit the prototype methods from one constructor into another.
+ *
+ * The Function.prototype.inherits from lang.js rewritten as a standalone
+ * function (not on Function.prototype). NOTE: If this file is to be loaded
+ * during bootstrapping this function needs to be rewritten using some native
+ * functions as prototype setup using normal JavaScript does not work as
+ * expected during bootstrapping (see mirror.js in r114903).
+ *
+ * @param {function} ctor Constructor function which needs to inherit the
+ *     prototype.
+ * @param {function} superCtor Constructor function to inherit prototype from.
+ */
+exports.inherits = require('inherits');
+
+exports._extend = function(origin, add) {
+  // Don't do anything if add isn't an object
+  if (!add || !isObject(add)) return origin;
+
+  var keys = Object.keys(add);
+  var i = keys.length;
+  while (i--) {
+    origin[keys[i]] = add[keys[i]];
+  }
+  return origin;
+};
+
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./support/isBuffer":35,"_process":33,"inherits":34}]},{},[32]);

@@ -1,0 +1,506 @@
+{
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 3,
+            "costumes": [
+                {
+                    "assetId": "2b0bddaf727e6bb95131290ae2549ac4",
+                    "name": "background3",
+                    "bitmapResolution": 2,
+                    "md5ext": "2b0bddaf727e6bb95131290ae2549ac4.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                },
+                {
+                    "assetId": "a81668321aa3dcc0fc185d3e36ae76f6",
+                    "name": "Room 1",
+                    "bitmapResolution": 2,
+                    "md5ext": "a81668321aa3dcc0fc185d3e36ae76f6.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                },
+                {
+                    "assetId": "e5f794c8756ca0cead5cb7e7fe354c41",
+                    "name": "Playground",
+                    "bitmapResolution": 2,
+                    "md5ext": "e5f794c8756ca0cead5cb7e7fe354c41.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                },
+                {
+                    "assetId": "38be88e8026768d4606fe1932b05d258",
+                    "name": "backdrop",
+                    "bitmapResolution": 2,
+                    "md5ext": "38be88e8026768d4606fe1932b05d258.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 1123,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "India",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "{?%H[3PODtzIOzw3NUAD": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "X9F`sK3d.L!x-cTWVaGz",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 0,
+                    "y": 0
+                },
+                "X9F`sK3d.L!x-cTWVaGz": {
+                    "opcode": "motion_gotoxy",
+                    "next": "kBZo|n~NnzgG!crdI1E;",
+                    "parent": "{?%H[3PODtzIOzw3NUAD",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-215"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-145"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "kBZo|n~NnzgG!crdI1E;": {
+                    "opcode": "motion_movesteps",
+                    "next": "u=@^[0kNfQx.2*Xvk0TX",
+                    "parent": "X9F`sK3d.L!x-cTWVaGz",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "u=@^[0kNfQx.2*Xvk0TX": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "C;QZb9TtC1(Ov9vkC+$f",
+                    "parent": "kBZo|n~NnzgG!crdI1E;",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Hello! My name is India."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "C;QZb9TtC1(Ov9vkC+$f": {
+                    "opcode": "motion_movesteps",
+                    "next": "=6=T6QR$yee::D$b8~s{",
+                    "parent": "u=@^[0kNfQx.2*Xvk0TX",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "=6=T6QR$yee::D$b8~s{": {
+                    "opcode": "looks_sayforsecs",
+                    "next": ",`%kTB=!2Lz#4m!W2OpL",
+                    "parent": "C;QZb9TtC1(Ov9vkC+$f",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Welcome to Scratch!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ",`%kTB=!2Lz#4m!W2OpL": {
+                    "opcode": "motion_movesteps",
+                    "next": "{Ipink+*Ul#QILZqGvdF",
+                    "parent": "=6=T6QR$yee::D$b8~s{",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "{Ipink+*Ul#QILZqGvdF": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": ",`%kTB=!2Lz#4m!W2OpL",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click the Space Bar to see some of the things I like."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "5"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "fec9549b732165ec6d09991de08b69cd",
+                    "name": "character (1)",
+                    "bitmapResolution": 1,
+                    "md5ext": "fec9549b732165ec6d09991de08b69cd.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 78.87000274658203,
+                    "rotationCenterY": 165.80999755859375
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": -165,
+            "y": -145,
+            "size": 162.8369844855632,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "easel",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "XYmoOsQpwwb~bRU[WtDb": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "NX*(%@1qK}o{lJ)1dp(L",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 56,
+                    "y": 66
+                },
+                "NX*(%@1qK}o{lJ)1dp(L": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": "A*?(6=CMw!5NQvy3GoJz",
+                    "parent": "XYmoOsQpwwb~bRU[WtDb",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "uxs{_T(3Fk%RETANj%^X"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "uxs{_T(3Fk%RETANj%^X": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "NX*(%@1qK}o{lJ)1dp(L",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "easel-music",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "A*?(6=CMw!5NQvy3GoJz": {
+                    "opcode": "control_repeat",
+                    "next": null,
+                    "parent": "NX*(%@1qK}o{lJ)1dp(L",
+                    "inputs": {
+                        "TIMES": [
+                            1,
+                            [
+                                6,
+                                "7"
+                            ]
+                        ],
+                        "SUBSTACK": [
+                            2,
+                            "MkZ9YIg7M,WuN@FR]l:o"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "MkZ9YIg7M,WuN@FR]l:o": {
+                    "opcode": "looks_nextcostume",
+                    "next": "*i@~ROBKeTP[#l_7v/_-",
+                    "parent": "A*?(6=CMw!5NQvy3GoJz",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "*i@~ROBKeTP[#l_7v/_-": {
+                    "opcode": "control_wait",
+                    "next": null,
+                    "parent": "MkZ9YIg7M,WuN@FR]l:o",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                "1"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "3?,1QT}D[0#@^jvT!J*^": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "gPD.*ilWONI2U7F-SE[}",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 51,
+                    "y": 455
+                },
+                "gPD.*ilWONI2U7F-SE[}": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "3?,1QT}D[0#@^jvT!J*^",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Tada!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 7,
+            "costumes": [
+                {
+                    "assetId": "47a257ec82df9b221a9c8a0da1174652",
+                    "name": "easel",
+                    "bitmapResolution": 1,
+                    "md5ext": "47a257ec82df9b221a9c8a0da1174652.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 72,
+                    "rotationCenterY": 100.5
+                },
+                {
+                    "assetId": "f80c9c273a7542f28fc0a0aa16f80532",
+                    "name": "easel-sports",
+                    "bitmapResolution": 1,
+                    "md5ext": "f80c9c273a7542f28fc0a0aa16f80532.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 71.83499908447266,
+                    "rotationCenterY": 99.56999969482422
+                },
+                {
+                    "assetId": "25fc936818594e0f67f48ffd39ee06b2",
+                    "name": "easel-animals",
+                    "bitmapResolution": 1,
+                    "md5ext": "25fc936818594e0f67f48ffd39ee06b2.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 71.83499908447266,
+                    "rotationCenterY": 99.56999969482422
+                },
+                {
+                    "assetId": "6a904db737d12cc410bd18e0e3837f1a",
+                    "name": "easel-music",
+                    "bitmapResolution": 1,
+                    "md5ext": "6a904db737d12cc410bd18e0e3837f1a.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 71.83499908447266,
+                    "rotationCenterY": 99.56999969482422
+                },
+                {
+                    "assetId": "eb955b9d6d17d5358e1c66ca5dbc4648",
+                    "name": "easel-neighborhood",
+                    "bitmapResolution": 1,
+                    "md5ext": "eb955b9d6d17d5358e1c66ca5dbc4648.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 71.83499908447266,
+                    "rotationCenterY": 99.56999969482422
+                },
+                {
+                    "assetId": "4c0e56f2cc17d497d76070033ab08654",
+                    "name": "easel-travel",
+                    "bitmapResolution": 1,
+                    "md5ext": "4c0e56f2cc17d497d76070033ab08654.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 71.83499908447266,
+                    "rotationCenterY": 99.56999969482422
+                },
+                {
+                    "assetId": "ba4d4b1af1eafdda9b882c0f51ced3ff",
+                    "name": "easel-astronomy",
+                    "bitmapResolution": 1,
+                    "md5ext": "ba4d4b1af1eafdda9b882c0f51ced3ff.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 71.83499908447266,
+                    "rotationCenterY": 99.56999969482422
+                },
+                {
+                    "assetId": "b0841fa4e9ea101a530022a9b4758d14",
+                    "name": "easel-video-games",
+                    "bitmapResolution": 1,
+                    "md5ext": "b0841fa4e9ea101a530022a9b4758d14.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 71.83499908447266,
+                    "rotationCenterY": 99.56999969482422
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": 144,
+            "y": -52,
+            "size": 150,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [
+        {
+            "id": "undefined_costumenumbername_number",
+            "mode": "default",
+            "opcode": "looks_costumenumbername",
+            "params": {
+                "NUMBER_NAME": "number"
+            },
+            "spriteName": "Helen",
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 5,
+            "y": 5,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        }
+    ],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190813192748",
+        "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
+    }
+}

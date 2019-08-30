@@ -5,7 +5,7 @@ Updated Version: Saranya Turimella, Summer 2019
 require('../grading-scripts-s3/scratch3')
 
 module.exports = class {
-    
+
 
     initReqsGaming() {
         this.requirements = {};
@@ -34,25 +34,16 @@ module.exports = class {
 
     arraysMatch(arr1, arr2) {
 
-        console.log(
-            'in array match'
-        );
-        console.log('arr1')
-        console.log(arr1);
-        console.log('arr2');
-        console.log(arr2);
         // Check if the arrays are the same length
         if (arr1.length !== arr2.length) {
-            console.log(arr1.length);
-            console.log(arr2.length);
-            console.log('len issue');
+
             return false;
         }
 
         // Check if all items exist and are in the same order
         for (var i = 0; arr1.length < i; i++) {
             if (arr1[i] !== arr2[i]) {
-                console.log('elements dont match');
+
                 return false;
             }
         }
@@ -60,64 +51,52 @@ module.exports = class {
     };
 
     // function that decides what strand the project is, returns a string
-    whichStrand(projBackdrops) {
+    // whichStrand(projBackdrops) {
+    //     let gamingOrig = new Project(require('../grading-scripts-s3/gamingOriginal'));
+    //     let multiOrig = new Project(require('../grading-scripts-s3/multiculturalOriginal'));
+    //     let youthOrig = new Project(require('../grading-scripts-s3/youthOriginal'));
 
+    //     // gets the asset id's of the original gaming project (backdrops)
+    //     let gamingBackdrops = [];
+    //     for (let target of gamingOrig.targets) {
+    //         for (let costume of target.costumes) {
+    //             gamingBackdrops.push(costume.assetId);
+    //         }
+    //     }
+    //     // gets the asset id's of the original multicultural project (backdrops)
+    //     let multiBackdrops = [];
+    //     for (let target of multiOrig.targets) {
+    //         for (let costume of target.costumes) {
+    //             multiBackdrops.push(costume.assetId);
+    //         }
+    //     }
+    //     // gets the asset id's of the original youth culture project (backdrops)
+    //     let youthBackdrops = [];
+    //     for (let target of youthOrig.targets) {
 
-        let strand = '';
-        let gamingOrig = new Project(require('../grading-scripts-s3/gamingOriginal'));
-        let multiOrig = new Project(require('../grading-scripts-s3/multiculturalOriginal'));
-        let youthOrig = new Project(require('../grading-scripts-s3/youthOriginal'));
+    //         for (let costume of target.costumes) {
+    //             youthBackdrops.push(costume.assetId);
+    //         }
 
-        // gets the asset id's of the original gaming project (backdrops)
-        let gamingBackdrops = [];
-        for (let target of gamingOrig.targets) {
-            if (target.isStage) {
-                for (let costume of target.costumes) {
-                    gamingBackdrops.push(costume.assetId);
-                }
-            }
-        }
+    //     }
+    //     var util = require('util');
+    //     let origUtil = util.inspect(projBackdrops);
+    //     let gamingUtil = util.inspect(gamingBackdrops);
+    //     let multiUtil = util.inspect(multiBackdrops);
+    //     let youthUtil = util.inspect(youthBackdrops);
 
-        // gets the asset id's of the original multicultural project (backdrops)
-        let multiBackdrops = [];
-        for (let target of multiOrig.targets) {
-            if (target.isStage) {
-                for (let costume of target.costumes) {
-                    multiBackdrops.push(costume.assetId);
-                }
-            }
-        }
-
-        // gets the asset id's of the original youth culture project (backdrops)
-        let youthBackdrops = [];
-        for (let target of youthOrig.targets) {
-            if (target.isStage) {
-                for (let costume of target.costumes) {
-                    youthBackdrops.push(costume.assetId);
-                }
-            }
-        }
-
-        var util = require('util');
-        let origUtil = util.inspect(projBackdrops);
-        let gamingUtil = util.inspect(gamingBackdrops);
-        let multiUtil = util.inspect(multiBackdrops);
-        let youthUtil = util.inspect(youthBackdrops);
-
-        if (origUtil === gamingUtil) {
-            return 'gaming';
-        }
-        else if (origUtil === multiUtil) {
-            return 'multicultural'
-        }
-        else if (origUtil === youthUtil) {
-            return 'youthculture';
-        } else {
-            return 'gaming';
-        }
-
-
-    };
+    //     if (origUtil === gamingUtil) {
+    //         return 'gaming';
+    //     }
+    //     else if (origUtil === multiUtil) {
+    //         return 'multicultural'
+    //     }
+    //     else if (origUtil === youthUtil) {
+    //         return 'youthculture';
+    //     } else {
+    //         return 'gaming';
+    //     }
+    // };
 
 
     grade(fileObj, user) {
@@ -128,15 +107,22 @@ module.exports = class {
 
         let projBackdrops = [];
         for (let target of project.targets) {
-            if (target.isStage) {
-                for (let costume of target.costumes) {
-                    projBackdrops.push(costume.assetId);
-                }
+
+            for (let costume of target.costumes) {
+                projBackdrops.push(costume.assetId);
             }
+
         }
 
+        var templates = {
+            multicultural: require('./templates/scratch-basics-L1-multicultural'),
+            youthCulture: require('./templates/scratch-basics-L1-youthculture'),
+            gaming: require('./templates/scratch-basics-L1-gaming')
+        };
+        
 
-        let strand = this.whichStrand(projBackdrops);
+        let strand = detectStrand(project, templates);
+        console.log(strand);
 
 
         // gaming strand 
@@ -144,6 +130,7 @@ module.exports = class {
 
             this.initReqsGaming();
             let sayBlocks = ['looks_say', 'looks_sayforsecs'];
+            let sayCarl = false;
 
             let sayBlocksGaming = 0;
 
@@ -168,6 +155,7 @@ module.exports = class {
                                         if (script.blocks[next] !== undefined) {
                                             if (sayBlocks.includes(script.blocks[next].opcode)) {
                                                 this.requirements.addSayCarl.bool = true;
+                                                sayCarl = true;
                                             }
                                         }
                                     }
@@ -190,18 +178,25 @@ module.exports = class {
                     }
                 }
             }
-            // checks to see if a
+            // requirement not fulfilled
+            if (sayCarl === false) {
+                if (sayBlocksGaming > 4) {
+                    this.extensions.helenSpeaks.bool = true;
+                }
+            }
+
             if (sayBlocksGaming > 5) {
                 this.extensions.helenSpeaks.bool = true;
             }
+            
         }
 
 
         if (strand === 'multicultural') {
-            console.log('in multicultural');
             this.initReqsMulticultural();
             let sayBlocks = ['looks_say', 'looks_sayforsecs'];
             let sayBlocksMulticultural = 0;
+            let sayNeha = false;
 
             for (let target of project.targets) {
                 if (target.isStage) { continue; }
@@ -223,6 +218,7 @@ module.exports = class {
                                         if (script.blocks[next] !== undefined) {
                                             if (sayBlocks.includes(script.blocks[next].opcode)) {
                                                 this.requirements.addSayNeha.bool = true;
+                                                sayNeha = true;
                                             }
                                         }
                                     }
@@ -244,17 +240,19 @@ module.exports = class {
                     }
                 }
             }
-            if (sayBlocksMulticultural > 10) {
+            if (sayNeha === false) {
+                if (sayBlocksMulticultural > 14) {
+                    this.extensions.bradSpeaks.bool = true;
+                }
+            }
+            // checks to see if there is one more than the original say block count, exlcuding the say block needed for the requirement
+            if (sayBlocksMulticultural > 15) {
                 this.extensions.bradSpeaks.bool = true;
             }
         }
 
 
-
-
-
-
-        if (strand === 'youthculture') {
+        if (strand === 'youthCulture') {
 
             // make an array of the original costumes from the original project
             this.initReqsYouthCulture();
@@ -291,8 +289,9 @@ module.exports = class {
 
 
             let sayBlocks = ['looks_say', 'looks_sayforsecs'];
-            let easel = false;
+            
             let sayBlocksYouthCulture = 0;
+            let sayIndia = false;
 
             for (let target of project.targets) {
                 if (target.isStage) { continue; }
@@ -314,6 +313,7 @@ module.exports = class {
                                         if (script.blocks[next] !== undefined) {
                                             if (sayBlocks.includes(script.blocks[next].opcode)) {
                                                 this.requirements.addSayIndia.bool = true;
+                                                sayIndia = true;
                                             }
                                         }
                                     }
@@ -338,10 +338,17 @@ module.exports = class {
 
                 }
             }
-            // number of say blocks should be greater than 2 
+            
+            if (sayIndia === false) {
+                if (sayBlocksYouthCulture > 4) {
+                    this.extensions.easelSaysSomethingElse.bool = true;
+                }
+            }
+
             if (sayBlocksYouthCulture > 5) {
                 this.extensions.easelSaysSomethingElse.bool = true;
             }
+             
         }
     }
 }

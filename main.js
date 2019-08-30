@@ -20,13 +20,15 @@ var graders = {
 
 // act 1 graders
 var actOneGraders = {
-  namePoem:       { name: 'Name Poem',               file: require('./act1-grading-scripts/name-poem')       },
-  ladybug:        { name: 'Ladybug Challenge',       file: require('./act1-grading-scripts/ladybug')         },
-  fiveBlockChallenge: { name: 'Five Block Challenge', file: require('./act1-grading-scripts/5-block-challenge')},
-  ofrenda:       { name: 'Ofrenda',                  file: require('./act1-grading-scripts/ofrenda')         },
-  aboutMe:        { name: 'About Me',                file: require('./act1-grading-scripts/aboutMe')          },
-  buildABand:     { name: 'Build A Band',            file: require('./act1-grading-scripts/build-a-band')     },
-  finalProject:   { name: 'Interactive Story',       file: require('./act1-grading-scripts/final-project')    },
+  scavengerHunt:  {name: 'Scavenger Hunt',          file: require('./act1-grading-scripts/scavengerHunt')      },
+  onTheFarm:      {name: 'On the Farm',             file: require('./act1-grading-scripts/onTheFarm')          },
+  namePoem:       {name: 'Name Poem',               file: require('./act1-grading-scripts/name-poem')          },
+  ofrenda:        {name: 'Ofrenda',                 file: require('./act1-grading-scripts/ofrenda')            },
+  aboutMe:        {name: 'About Me',                file: require('./act1-grading-scripts/aboutMe')            },
+  animalParade:   {name: 'Animal Parade',           file: require('./act1-grading-scripts/animal-parade')      },
+  danceParty:     {name: 'Dance Party',             file: require('./act1-grading-scripts/dance-party')        },
+  knockKnock:     {name: 'Knock Knock',             file: require('./act1-grading-scripts/knockKnock')         },
+  finalProject:   {name: 'Interactive Story',       file: require('./act1-grading-scripts/final-project')      },
 };
 
 var allGraders = {};
