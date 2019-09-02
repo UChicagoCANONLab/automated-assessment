@@ -25,8 +25,9 @@ module.exports = class {
     }
 
     //helper functions
-    inBounds(x, y) {
 
+    //checks if ladybug stays on the branch (returns true or false)
+    inBounds(x, y) {
         if ((x < -130) || ((x > -117) && (x < -31)) || ((x > -18) && (x < 69))) {
             return ((y <= -19) && (y > -32));
         }
@@ -43,7 +44,6 @@ module.exports = class {
     }
 
     blankTo0(input){
-
         if (input===''){
             return 0;
         }else{
@@ -51,6 +51,7 @@ module.exports = class {
         }
     }
 
+    //updates bug direction and locaiton
     updateFromProc(block) {
         if (block.opcode === 'motion_gotoxy') {
             console.log('motion go to xy')
@@ -78,8 +79,9 @@ module.exports = class {
             this.bug.locY += Math.round(steps * Math.sin(radDir));
         }
     }
+    
+    //updates bug direction and locaiton
     updateBug(block) {
-
         if (block.opcode === 'procedures_call') {
             // move forward one square
             // turn left
@@ -114,6 +116,7 @@ module.exports = class {
         }
     }
 
+    //checks if sprite is a ladybug
     isLadybug(target) {
         for (let block in target.blocks) {
             if (target.blocks[block].opcode === 'procedures_definition') {
@@ -124,15 +127,12 @@ module.exports = class {
     }
 
     grade(fileObj, user) {
-
         this.initReqs();
         if (!is(fileObj)) return;
         if (is(fileObj.code)) return;
         var project = new Project(fileObj, null);
         var original = new Project(require('../act1-grading-scripts/original-ladybug'), null);
         if (!is(original)) return;
-
-        
 
         let aphidLocations = [];
         let aphidsEaten = 0;
@@ -148,6 +148,7 @@ module.exports = class {
         let bugBlocks = null;
         let ogBugBlocks = null;
 
+        //stores given blocks for each sprite
         for (let target of original.targets){
             if (target.name === 'Aphid'){
                 ogAphidBlocks = target.blocks;
@@ -159,12 +160,14 @@ module.exports = class {
         }
 
         for (let target of project.targets) {
+            //stores starting location of aphid
             if ((target.name === 'Aphid') || (target.name === 'Aphid2')) {
                 let loc = [];
                 loc.push(target.x);
                 loc.push(target.y);
                 aphidLocations.push(loc);
             }
+            //stores new sprite blocks and location/direction for ladybug
             if (target.name === 'Aphid'){
                 aphidBlocks = target.blocks;
             }else if (target.name === 'Aphid2'){
@@ -177,6 +180,7 @@ module.exports = class {
             }
         }
 
+        //was checking original vs new blocks
         var util = require('util');
         let a = util.inspect(aphidBlocks);
         let a2 = util.inspect(aphid2Blocks);
@@ -192,13 +196,16 @@ module.exports = class {
 
         for (let target of project.targets) {
             for (let block in target.blocks) {
+
+                //checks if music is added
                 if ((target.blocks[block].opcode === 'sound_playuntildone')
                     || (target.blocks[block].opcode === 'sound_play')) {
                     this.extensions.music.bool = true;
                 }
             }
+            
+            //stores ladybug script length
             if (target.name === 'Ladybug1' || this.isLadybug(target)) {
-                // find all scripts in lady bug that start when green flag clicked
                 for (let script of target.scripts) {
                     if (script.blocks[0].opcode === 'event_whenflagclicked') {
                         if (script.blocks.length <= 1) {
@@ -213,6 +220,7 @@ module.exports = class {
                     }
                 }
                 
+                //checks if ladybug has a new costume
                 for (let cost in target.costumes) {
                     if ((target.costumes[cost].assetId !== '7501580fb154fde8192a931f6cab472b')
                         && (target.costumes[cost].assetId !== '169c0efa8c094fdedddf8c19c36f0229')) {
@@ -221,8 +229,8 @@ module.exports = class {
                 }
                 
                 for (let block in target.blocks) {
-                    
                     if (target.blocks[block].opcode === 'event_whenflagclicked') {
+                        //updates bug location and checks if it is still on the branch
                         for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next) {
                             this.updateBug(target.blocks[i]);
                             let onBranch = this.inBounds(this.bug.locX, this.bug.locY);
@@ -231,6 +239,7 @@ module.exports = class {
                                 failed = true;
                             }
 
+                            //checks if ladybug is on top of aphid
                             let onAphid = false;
                             for (let aphidLoc of aphidLocations) {
                                 if ((Math.abs(aphidLoc[0] - this.bug.locX) <= 40) &&
@@ -238,7 +247,7 @@ module.exports = class {
                                     onAphid = true;
                                 }
                             }
-
+                            //checks if ladybug eats aphid
                             if (onAphid) {
                                 let nextBlock = target.blocks[i].next;
                                 if (target.blocks[nextBlock].opcode === 'procedures_call') {
@@ -278,6 +287,7 @@ module.exports = class {
 
         }
 
+        //sets requirements appropriately
         if (aphidsEaten > 0) {
             this.requirements.oneAphid.bool = true;
         }

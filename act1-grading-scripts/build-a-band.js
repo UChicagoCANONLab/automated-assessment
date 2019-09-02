@@ -21,72 +21,18 @@ module.exports = class {
         this.requirements.cat = { bool: false, str: 'Cat animated using loop with wait block and motion (including changing costumes and size)' };
     }
 
-    // makeArray(target){
-    //     let arr = [];
-    //     for (let block in target.blocks){
-    //         arr.push(target.blocks[block].opcode);
-    //         arr.push(target.blocks[block].next);
-    //         arr.push(target.blocks[block].parent);
-    //     }
-    // }
-
     grade(fileObj, user) {
         var project = new Project(fileObj, null);
         this.initReqs();
         if (!is(fileObj)) return;
 
-        let ogTrumpetBlocks = null;
-        let trumpetBlocks = null;
-        let ogDrumBlocks = null;
-        let drumBlocks = null;
-        let ogSpriteBlocks = null;
-        let spriteBlocks = null;
-
-  //      var original = new Project(require('../act1-grading-scripts/real-original-band'), null);
-
-        // for (let target of original.targets){
-        //     if (target.name === 'Trumpet'){
-        //         ogTrumpetBlocks=target.blocks;
-        //     } else if (target.name === 'Drum-Bass'){
-        //         ogDrumBlocks=target.blocks;
-        //     } else if (target.name === 'Sprite2'){
-        //         ogSpriteBlocks=target.blocks;
-        //     }
-        // }
-        // for (let target of project.targets){
-        //     if (target.name === 'Trumpet'){
-        //         trumpetBlocks = target.blocks;
-        //     } else if (target.name === 'Drum-Bass'){
-        //         drumBlocks = target.blocks;
-        //     } else if (target.name === 'Sprite2'){
-        //         spriteBlocks=target.blocks;
-        //     }
-        // }
-
         let givenSpritesChanged = 0;
-        // var util = require('util');
-        // let tB = util.inspect(trumpetBlocks);
-        // let ogTB = util.inspect(ogTrumpetBlocks);
-        // let dB = util.inspect(drumBlocks);
-        // let ogDB = util.inspect(ogDrumBlocks);
-        // let sB = util.inspect(spriteBlocks);
-        // let ogSB = util.inspect(ogSpriteBlocks);
-        // if (tB!==ogTB){givenSpritesChanged++;}
-        // if (dB!==ogDB){givenSpritesChanged++;}
-
-        
-        // if (givenSpritesChanged){
-        //     this.requirements.changed1.bool=true;
-        // }
-        // if (givenSpritesChanged>1){
-        //     this.requirements.changed.bool=true;
-        // }
-        // if (sB!==ogSB){this.requirements.cat1.bool=true;}
-
         let trumpetChanged = false;
         let drumChanged = false;
         for (let target of project.targets) {
             if (!target.isStage) {
+                
+                //checks against given code to see if the trumpet's code has been changed
                 if (target.name === 'Trumpet'){
                     if (target.scripts.length!=3) {trumpetChanged = true;}
                     for (let block in target.blocks){
@@ -152,6 +98,8 @@ module.exports = class {
                         }
                     }
                 }
+
+                //checks against given code to see if the drum's code has been changed
                 if (target.name == 'Drum-Bass'){
                     if (target.scripts.length!=4) {drumChanged=true;}
                     for (let block in target.blocks){
@@ -212,6 +160,7 @@ module.exports = class {
                 }
               
 
+                //checks against given code to see if cat's code has been changed
                 if (target.name === 'Sprite2') {
                     for (let block in target.blocks) {
                         let oldCode = false;
@@ -240,6 +189,7 @@ module.exports = class {
                         }
                        if (!oldCode) {this.requirements.cat1.bool=true;}
 
+                        //checks if cat has been animated using specified blocks
                         if (target.blocks[block].opcode.includes('event_')) {
                             for (let i = block; i !== null; i = target.blocks[i].next) {
                                 let opc = target.blocks[i].opcode;
@@ -273,6 +223,7 @@ module.exports = class {
                     }
                 }
 
+                // old requirement - checks if a script has been added to the guitar
                 // if (target.name === 'Guitar-Electric') {
                 //     for (let block in target.blocks) {
                 //         if (target.blocks[block].opcode.includes('event_')) {
@@ -283,6 +234,7 @@ module.exports = class {
                 //     }
                 // }
 
+                //checks if a new sprite has been added and if it has a script
                 if ((target.name != 'Sprite2') &&
                     (target.name != 'Trumpet') &&
                     (target.name != 'Drum-Bass') &&
@@ -298,6 +250,8 @@ module.exports = class {
                 }
             }
         }
+        
+        // checks whether one or both of the trumpet & drum have been changed and sets requirements accordingly
         if (trumpetChanged) {givenSpritesChanged++;}
         if (drumChanged) {givenSpritesChanged++;}
         if (givenSpritesChanged) {this.requirements.changed1.bool=true;}

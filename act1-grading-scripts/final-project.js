@@ -12,14 +12,18 @@ module.exports = class {
     }
 
     initReqs(){
+        //requirements for classroom use
         this.requirements.event = {bool: false, str: 'Project uses at least one event block'};
         this.requirements.loop = {bool: false, str: 'Project has a functional loop'};
         this.requirements.sprite = {bool: false, str: 'Project has at least one sprite with a script'};
-        this.requirements.backdrop = {bool: false, str: 'Scene changes'};
-        this.extensions.threeBackdrops = {bool: false, str: 'Uses 3 different backdrops'};
-        this.extensions.showHide = {bool: false, str: 'Uses "show" or "hide"'};
-        this.extensions.music = {bool: false, str: 'Sounds added'};
-        
+        this.extensions.threeBackdrops = {bool: false, str: 'Uses three different backdrops'};
+        this.extensions.sound = {bool: false, str: 'Sounds or dialogue added'};
+
+        //old requirements
+        //this.extensions.showHide = {bool: false, str: 'Uses "show" or "hide"'};
+        //this.requirements.backdrop = {bool: false, str: 'Scene changes'};
+       
+        //requirements for research purposes
         /////
         // this.requirements.one = { bool: false, str: 'at least 1 unique block'};
         // this.requirements.two = { bool: false, str: 'at least 2 unique blocks'};
@@ -44,13 +48,15 @@ module.exports = class {
 
         for (let target of project.targets){
 
+            //checks if three different backdrops are used
             if (target.isStage){
                 if (target.costumes.length>=3){
-                    // this.extensions.threeBackdrops.bool=true;
+                    this.extensions.threeBackdrops.bool=true;
                 }
             }  
 
 
+            //counts how many unique blocks are used
             for (let script in target.scripts) {
                 if (target.scripts[script].blocks[0].opcode.includes('event_')){
                     for (let block of target.scripts[script].blocks) {
@@ -65,9 +71,11 @@ module.exports = class {
 
             for (let block in target.blocks){
 
+                //checks if project uses at least one event block
                 if (target.blocks[block].opcode.includes('event_')){
                     this.requirements.event.bool=true;
 
+                    //checks if project has at least one non-empty loop
                     for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next){
                         let opc = target.blocks[i].opcode;
                         if ((opc==='control_forever')
@@ -79,19 +87,25 @@ module.exports = class {
                     }
                 }
 
+                //checks if sound or dialogue is added
                 let opc = target.blocks[block].opcode;
-                if (opc.includes('backdrop')){
-                    this.requirements.backdrop.bool=true;
-                }
-                if ((opc.includes('show'))
-                ||opc.includes('hide')){
-                    this.extensions.showHide.bool=true;
-                }
                 if ((opc==='sound_playuntildone')
-                ||(opc==='sound_play')){
-                    this.extensions.music.bool=true;
+                ||(opc==='sound_play')
+                || (opc==='looks_say')
+                || (opc==='looks_sayforsecs')){
+                    this.extensions.sound.bool=true;
                 }
+                //old requirements
+                // if (opc.includes('backdrop')){
+                //     this.requirements.backdrop.bool=true;
+                // }
+                // if ((opc.includes('show'))
+                // ||opc.includes('hide')){
+                //     this.extensions.showHide.bool=true;
+                // }
 
+
+                //checks if project has at least one sprite
                 if (!target.isStage){
                     this.requirements.sprite.bool=true;
                 }
