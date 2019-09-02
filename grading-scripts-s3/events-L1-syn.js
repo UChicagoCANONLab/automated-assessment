@@ -2,107 +2,206 @@ require('./scratch3');
 
 module.exports = class GradeEventsL1 {
 
-    /// Initialize all requirements and extensions to their default values.
-    init() {
-        this.requirements = {
-            reactToClick:     {str: 'At least two sprites use the [when this sprite clicked] block to detect when they are clicked.'},
-            getBigger:        {str: 'These two sprites get larger when they are clicked.'},
-            talkWhileBigger:  {str: 'These two sprites speak while they are larger.'},
-            resetSize:        {str: 'These two sprites go back to their original sizes after they speak.'},
-            twoEvents:        {str: 'Each sprite in the project has scripts for at least two different types of event blocks.'}
-        };
-        this.extensions = {
-            changedName:      {str: 'At least one sprite\'s name has been changed from the original project.'},
-            addedSpin:        {str: 'At least one sprite spins around using turn and wait blocks inside of a loop.'},
-            moveOnKey:        {str: 'At least one sprite moves when a key is pressed.'},
-            additionalEvents: {str: 'At least one sprite handles three or more different types of event blocks.'}
-        }
-        for (var item in this.requirements) {this.requirements[item].bool = false;}
-        for (var item in this.extensions)   {this.extensions[item].bool = false;}
-    }
-
-    drop(name) {
-        for (var item in this.requirements) {this.requirements[item][name] = 0;}
-        for (var item in this.extensions)   {this.extensions[item][name] = 0;}
-    }
-
-    lift(item, nameTo, nameFrom, conditionFunction) {
-        if (this.requirements[item] !== undefined) {
-            if (conditionFunction(this.requirements[item][nameFrom])) {
-                nameTo === 'bool' ? this.requirements[item].bool = true : this.requirements[item][nameTo]++;
+    /// Identify all subscripts of a block, recursively.
+    subscriptsRecursive(block, array) {
+        if (block.subscripts.length) {
+            for (var subscript of block.subscripts) {
+                array.push(subscript);
+                if (subscript.blocks.length) {
+                    for (var block_ of subscript.blocks) {
+                        this.subscriptsRecursive(block_, array);
+                    }
+                }
             }
         }
-        else if (this.extensions[item] !== undefined) {
-            if (conditionFunction(this.extensions[item][nameFrom])) {
-                nameTo === 'bool' ? this.extensions[item].bool = true : this.extensions[item][nameTo]++;
+        return array;
+    }
+
+    /// Counts the number of sprites that get larger, speak, and reset size when clicked.
+    clickPassing(project) {
+        var spritesPassing = 0;
+        for (var sprite of project.sprites) {
+            var scriptsPassing = 0;
+            for (var script of sprite.scripts.filter(
+                script => script.blocks[0].opcode === 'event_whenthisspriteclicked' && script.blocks.length > 1
+            )) {
+                var spriteSize = parseFloat(sprite.size);
+                var initialSpriteSize = spriteSize;
+                var gotBigger = false;
+                var spoke = false;
+                var reset = false;
+                for (var block of script.blocks) {
+                    if (block.opcode === 'looks_changesizeby') {
+                        if (block.inputs.CHANGE[1][1] > 0) gotBigger = true;
+                        spriteSize += parseFloat(block.inputs.CHANGE[1][1]);
+                    }
+                    else if (block.opcode === 'looks_setsizeto') {
+                        if (block.inputs.SIZE[1][1] > initialSpriteSize) gotBigger = true;
+                        spriteSize = parseFloat(block.inputs.SIZE[1][1]);
+                    }
+                    else if (block.opcode.includes('looks_say') && spriteSize > initialSpriteSize) spoke = true;
+                }
+                if (gotBigger && Math.abs(spriteSize - initialSpriteSize) < 0.05) reset = true;
+                if (gotBigger && spoke && reset) scriptsPassing++;
             }
+            if (scriptsPassing > 0) spritesPassing++;
         }
-        else {
-            console.log('Item ' + item + ' not found.');
+        return spritesPassing;
+    }
+
+    /// Counts the number of sprites with a correctly modeled green flag script.
+    greenFlagPassing(project) {
+        var spritesPassing = 0;
+        for (var sprite of project.sprites) {
+            var scriptsPassing = 0;
+            for (var script of sprite.scripts.filter(
+                script => script.blocks[0].opcode === 'event_whenflagclicked' && script.blocks.length > 1
+            )) {
+                var containsGoTo = false;
+                var containsSetSize = false;
+                for (var block of script.blocks) {
+                    if (block.opcode === 'motion_gotoxy' || this.strand === 'multicultural')  containsGoTo = true;
+                    if (block.opcode === 'looks_setsizeto') containsSetSize = true;
+                }
+                if (containsGoTo && containsSetSize) scriptsPassing++;
+            }
+            if (scriptsPassing > 0) spritesPassing++;
         }
+        return spritesPassing;
+    }
+
+    /// Counts the number of sprites with a correct right or left arrow script.
+    keyPassing(project, directionString) {
+        var spritesPassing = 0;
+        for (var sprite of project.sprites) {
+            var scriptsPassing = 0;
+            for (var script of sprite.scripts.filter(
+                script => script.blocks[0].opcode === 'event_whenkeypressed' && script.blocks.length > 1
+            )) {
+                var containsMove = false;
+                for (var block of script.blocks) {
+                    if (block.opcode === 'motion_movesteps') {
+                        var key = script.blocks[0].fields.KEY_OPTION[0];
+                        var steps = block.inputs.STEPS[1][1];
+                        if (directionString === 'left' && key === 'left arrow' && steps < 0) containsMove = true;
+                        else if (directionString === 'right' && key === 'right arrow' && steps > 0) containsMove = true;
+                    }
+                    if (directionString === 'any' && block.opcode.includes('motion_')) containsMove = true;
+                }
+                if (containsMove) scriptsPassing++;
+            }
+            if (scriptsPassing > 0) spritesPassing++;
+        }
+        return spritesPassing;
+    }
+
+    /// Counts the number of sprites that spin around using turn and wait blocks in a loop.
+    spinPassing(project) {
+        var spritesPassing = 0;
+        for (var sprite of project.sprites) {
+            var scriptsPassing = 0;
+            for (var script of sprite.scripts.filter (
+                script => script.blocks[0].opcode.includes('event_when') && script.blocks.length > 1
+            )) {
+                var containsSpin = false;
+                for (var block of script.blocks) {
+                    if (['control_repeat', 'control_repeat_until', 'control_forever'].includes(block.opcode)) {
+                        var subscripts = [];
+                        subscripts = this.subscriptsRecursive(block, subscripts);
+                        var containsTurn = false;
+                        var containsWait = false;
+                        for (var subscript of subscripts) {
+                            for (var block of subscript.blocks) {
+                                if (block.opcode.includes('motion_turn')) containsTurn = true;
+                                else if (block.opcode === 'control_wait') containsWait = true;
+                            }
+                        }
+                        if (containsTurn && containsWait) containsSpin = true;
+                    }
+                }
+                if (containsSpin) scriptsPassing++;
+            }
+            if (scriptsPassing > 0) spritesPassing++;
+        }
+        return spritesPassing;
+    }
+
+    /// Counts the number of sprites with changed names.
+    namePassing(project) {
+        var defaultNames = [];
+        if (this.strand === 'multicultural') defaultNames = ['Catrina', 'Left', 'Middle', 'Right'];
+        else if (this.strand === 'youthCulture') defaultNames = ['Jamal', 'Monster', 'Cat'];
+        else if (this.strand === 'gaming') defaultNames = ['Beep', 'Bop', 'Planet X', 'Bork'];
+        var spritesPassing = 0;
+        for (var sprite of project.sprites) {
+            if (!defaultNames.includes(sprite.name)) spritesPassing++;
+        }
+        return spritesPassing;
     }
 
     /// Evaluate the completion of the requirements and extensions for a given JSON representation of a project.
     grade(json, user) {
-        this.init();
-        if (no(json)) return;
-
-        /// Drop down
-        var project = new Project(json, this);
-        this.drop('countInSprites');
-        for (var sprite of project.sprites) {
-            this.drop('countInScripts');
-            for (var script of sprite.scripts.filter(
-                script => script.blocks[0].opcode.includes('event_when') && script.blocks.length > 1
-            )) {
-                var spriteSize = parseFloat(sprite.size);
-                var initialSpriteSize = spriteSize;
-                var eventList = [];
-                for (var block of script.blocks) {
-                    if (block.opcode === 'looks_changesizeby') {
-                        if (block.inputs.CHANGE[1][1] > 0) {
-                            this.requirements.getBigger.countInScripts++;
-                        }
-                        spriteSize += parseFloat(block.inputs.CHANGE[1][1]);
-                    }
-                    else if (block.opcode === 'looks_setsizeto') {
-                        if (block.inputs.SIZE[1][1] > initialSpriteSize) {
-                            this.requirements.getBigger.countInScripts++;
-                        }
-                        spriteSize = parseFloat(block.inputs.SIZE[1][1]);
-                    }
-                    else if (block.opcode.includes('looks_say') && spriteSize > initialSpriteSize) {
-                        this.requirements.talkWhileBigger.countInScripts++;
-                    }
-                    else if (block.opcode.includes('event_when')) {
-                        eventList.push(block.opcode);
-                        if (block.opcode === 'event_whenthisspriteclicked') {
-                            this.requirements.reactToClick.countInScripts++;
-                        }
-                    }
+        if (no(json)) {
+            this.requirements = {
+                noFile: {
+                    bool: false,
+                    str: 'File not valid.'
                 }
             }
-            this.requirements.twoEvents.countInScripts = Array.from(new Set(eventList)).length;
-
-            /// Lift up
-            this.lift('reactToClick',     'countInSprites', 'countInScripts', count => count > 0);
-            this.lift('getBigger',        'countInSprites', 'countInScripts', count => count > 0);
-            this.lift('talkWhileBigger' , 'countInSprites', 'countInScripts', count => count > 0);
-            this.lift('resetSize',        'countInSprites', 'countInScripts', count => count > 0);
-            this.lift('twoEvents',        'countInSprites', 'countInScripts', count => count > 1);
-            this.lift('changedName',      'countInSprites', 'countInScripts', count => count > 0);
-            this.lift('addedSpin',        'countInSprites', 'countInScripts', count => count > 0);
-            this.lift('moveOnKey',        'countInSprites', 'countInScripts', count => count > 0);
-            this.lift('additionalEvents', 'countInSprites', 'countInScripts', count => count > 0);
+            return;
+        };
+        var project = new Project(json, this);
+        this.requirements = {};
+        this.extensions = {};
+        var templates = {
+            multicultural: require('./templates/events-L1-multicultural'),
+            youthCulture:  require('./templates/events-L1-youth-culture'),
+            gaming:        require('./templates/events-L1-gaming')
+        };
+        this.strand = detectStrand(project, templates);
+        console.log(this.strand);
+        this.requirements.click1 = {
+            bool: this.clickPassing(project) >= 1,
+            str: 'One sprite gets larger, speaks, and goes back to its original size when clicked.'
+        };
+        this.requirements.click2 = {
+            bool: this.clickPassing(project) >= 2,
+            str: 'Two sprites get larger, speak, and go back to their original sizes when clicked.'
+        };
+        this.requirements.click3 = {
+            bool: this.clickPassing(project) >= 3,
+            str: 'Three sprites get larger, speak, and go back to their original sizes when clicked.'
+        };
+        this.requirements.greenFlag = {
+            bool: this.greenFlagPassing(project) >= 3,
+            str: 'These three sprites all reset their sizes when the green flag is clicked.'
+        };
+        this.extensions.spin = {
+            bool: this.spinPassing(project) >= 1,
+            str: 'At least one sprite spins around using turn and wait blocks in a loop.'
+        };
+        if (this.strand === 'multicultural') {
+            this.extensions.name = {
+                bool: this.namePassing(project) >= 1,
+                str: 'At least one sprite\'s name has been customized.'
+            };
         }
-        this.lift('reactToClick',     'bool', 'countInSprites', count => count > 1);
-        this.lift('getBigger',        'bool', 'countInSprites', count => count > 1);
-        this.lift('talkWhileBigger' , 'bool', 'countInSprites', count => count > 1);
-        this.lift('resetSize',        'bool', 'countInSprites', count => count > 1);
-        this.lift('twoEvents',        'bool', 'countInSprites', count => count > project.sprites.length - 1);
-        this.lift('changedName',      'bool', 'countInSprites', count => count > 0);
-        this.lift('addedSpin',        'bool', 'countInSprites', count => count > 0);
-        this.lift('moveOnKey',        'bool', 'countInSprites', count => count > 0);
-        this.lift('additionalEvents', 'bool', 'countInSprites', count => count > 0);
+        else if (this.strand === 'youthCulture') {
+            this.extensions.key = {
+                bool: this.keyPassing(project, 'left') >= 1,
+                str: 'The cat moves to the left when the left arrow key is pressed.'
+            };
+        }
+        else if (this.strand === 'gaming') {
+            this.requirements.key = {
+                bool: this.keyPassing(project, 'right') >= 1,
+                str: 'Bop moves to the right when the right arrow key is pressed.'
+            };
+            this.extensions.key = {
+                bool: this.keyPassing(project, 'left') >= 1,
+                str: 'Bork moves to the left when the left arrow key is pressed.'
+            }
+        }
+        return;
     }
 }

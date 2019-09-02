@@ -52,7 +52,7 @@ h1 {
   display: block;
   width: 100%;
   border: 2px solid #123D6A;
-  padding: 10px;
+  padding: 9px;
   box-sizing:border-box;
 }
 
@@ -134,7 +134,7 @@ form p {
 }
 
 .btn:hover {
-  cursor: pointer;  
+  cursor: pointer;
 }
 
 .error {

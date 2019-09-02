@@ -180,7 +180,7 @@ global.Project = class {
 /// Identify which strand the project belongs to.
 global.detectStrand = function(project, templates) {
     var strand = 'generic';
-    /// Format for templates
+    /// Format for templates:
     /*
     var templates = {
         multicultural: require('./templates/events-L1-multicultural'),
