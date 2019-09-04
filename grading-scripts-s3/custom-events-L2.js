@@ -25,22 +25,21 @@ function iterateBlocks(script, func) {
 
 // Global variables that hold the sprite names that can be changed
 // see note at top
-
-var PLAYER = "Robot";  // "Zombie";
-var ANNOUNCER = "Planet";  // "Skull"
-var BIG_TARGET = "Big Donut";  // "Big Bat";
-var LITTLE_TARGET = "Little Donut";  // "Little Bat";
-var EXTRA = "Octopus";  // "Spider";
-var START_BUTTON = "Start Button";
-
 /*
+var PLAYER = "Robot";  
+var ANNOUNCER = "Planet";  
+var BIG_TARGET = "Big Donut";  
+var LITTLE_TARGET = "Little Donut";  
+var EXTRA = "Octopus";  
+var START_BUTTON = "Start Button";
+*/
+
 var PLAYER = "Zombie";
 var ANNOUNCER = "Skull";
 var BIG_TARGET = "Big Bat";
 var LITTLE_TARGET = "Little Bat";
 var EXTRA = "Spider";
 var START_BUTTON = "Start Button";
-*/
 
 
 module.exports = class {

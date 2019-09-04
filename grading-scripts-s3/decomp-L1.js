@@ -1,60 +1,79 @@
-/* Decomposition By Sequence L1 Autograder
- * Scratch 2 (original) version: Max White, Summer 2018
- * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
- * Reformatting, bug fixes, and updates: Anna Zipp, Summer 2019
+/* General/All-Strand Decomposition By Sequence L1 Autograder
+ * Scratch 3 (original) version: Anna Zipp, Summer 2019
  */
 
 require('./scratch3');
 
-// recursive function that searches a script and any subscripts (those within loops)
-function iterateBlocks(script, func) {
-    function recursive(scripts, func, level) {
-        if (!is(scripts) || scripts === [[]]) return;
-        for (var script of scripts) {
-            for(var block of script.blocks) {
-                func(block, level);
-                recursive(block.subScripts(), func, level + 1);
-            }
-        }
-    }
-    recursive([script], func, 1);
-}
-
 module.exports = class {
-    // initialize the requirement and extension objects to be graded
-    init() {
-        this.requirements = {
-            jaimeRepeats: {bool: false, str: 'Jaime has a "Repeat Until Touching Soccer Ball" script under "When Green Flag Clicked".'},
-            jaimeMoves: {bool: false, str: 'Jaime has a "Move" block within his "Repeat Until" loop.'},
-            ballWaitsUntil: {bool: false, str: 'Soccer Ball has a "Wait Until Touching Jaime" block under "When Green Flag Clicked".'},
-            ballRepeats: {bool: false, str: 'Soccer Ball has a "Repeat Until Touching Goal" script under "When Green Flag Clicked".'},
-            ballMoves: {bool: false, str: 'Soccer Ball has a "Move" block within its "Repeat Until" loop.'},
+
+    // identify the correct strand, then initialize the appropriate requirement and extension objects to be graded
+    init(project) {
+        let templates = {
+            multicultural: require('./templates/decomp-L1-multicultural.json'),
+            youthCulture: require('./templates/decomp-L1-youthculture.json'),
+            gaming: require('./templates/decomp-L1-gaming.json'),
         }
 
-        this.extensions = {
-            cheerSounds: {bool: false, str: 'Cheer sound plays when ball is touching the goal.'},
-            ballBounces: {bool: false, str: 'Ball bounces off the goal.'},
-            //kickAgain: {bool: false, str: 'Jaime kicks the ball again if it bounces off the goal.'},
-            //TODO: should bounce and kick again be combined? Is kickAgain too complicated to look for?
-            jaimeJumps: {bool: false, str: 'Jaime jumps up and down to celebrate a goal.'},
-            goalieAdded: {bool: false, str: 'Added a goalie sprite.'},
-            goalieBlocks: {bool: false, str: 'Ball bounces away if it hits the goalie.'},
-            goalieMovesLeft: {bool: false, str: 'Goalie moves to the left when Left Arrow Key is pressed.'},
-            goalieMovesRight: {bool: false, str: 'Goalie moves to the right when Right Arrow Key is pressed.'},
-            jaimeWaitBlock: {bool: false, str: 'Jaime uses a "Wait" block in his "Repeat Until" loop.'},
-            jaimeNextCostume: {bool: false, str: 'Jaime is animated by a "Next Costume" block in the "Repeat Until" loop.'},
-            ballWaitBlock: {bool: false, str: 'Soccer Ball uses a "Wait" block in its "Repeat Until" loop.'},
+        this.strand = detectStrand(project, templates);
+
+        switch (this.strand) {
+            case "multicultural":
+                this.requirements = {
+                    marchersMove: { bool: false, str: 'The Marchers move right towards the Speaker.' },
+                    marchersStop: { bool: false, str: 'The Marchers stop when they touch the Speaker.' },
+                    speakerWaits: { bool: false, str: 'The Speaker stays still until the Marchers touch them.' },
+                    speakerMoves: { bool: false, str: 'The Speaker moves until they touch the Poster Holder.' },
+                    speakerChanges: { bool: false, str: 'The Speaker changes costume to "Speaking" so she is facing the podium.' },
+                }
+                this.extensions = {
+                    soundAdded: { bool: false, str: 'A sound is played when the Speaker touches the Poster Holder and arrives at the Podium.' },
+                    marchersJump: { bool: false, str: 'The Marchers jump up and down after they say "Speech, Speech!".' },
+                    newSpriteAdded: { bool: false, str: 'Added another sprite to the project that walks across the road and says something to match the protest goals (Change, Hope, Sisterhood, etc.).' },
+                }
+                break;
+            case "youthCulture":
+                this.requirements = {
+                    jaimeMoves: { bool: false, str: 'Jaime runs towards the Ball.' },
+                    jaimeStops: { bool: false, str: 'Jaime stops when they touch the Ball.' },
+                    ballWaits: { bool: false, str: 'The Ball stays still until Jaime touches it.' },
+                    ballMoves: { bool: false, str: 'The Ball rolls until it touches the Goal.' },
+                }
+                this.extensions = {
+                    soundAdded: { bool: false, str: 'A "cheer" sound is played when the Ball goes in the Goal.' },
+                    ballBounces: { bool: false, str: 'The Ball bounces off the Goal (then Jaime kicks it again).' },
+                    jaimeJumps: { bool: false, str: 'Jaime jumps up and down to celebrate (use a "wait" block).' },
+                    goalieAdded: { bool: false, str: 'Added a goalie sprite to the project. Have the ball bounce off the goalie if it touches.' },
+                }
+                break;
+            case "gaming":
+                this.requirements = {
+                    playerMoves: { bool: false, str: 'The Player moves towards the Stairs.' },
+                    playerStops: { bool: false, str: 'The Player stops when they touch the Stairs.' },
+                    stairsWait: { bool: false, str: 'The Stairs stay still until the Player touches them.' },
+                    stairsMove: { bool: false, str: 'The Stairs move until they touch the Cliff.' },
+                }
+                this.extensions = {
+                    soundAdded: { bool: false, str: 'A sound is played when the Stairs touch the Cliff.' },
+                    stairsBounce: { bool: false, str: 'The Stairs "bounce" off the Cliff back towards the Player (then when they touch the Player, they move back to the Cliff again).' },
+                    playerJumps: { bool: false, str: 'The Player jumps up and down to celebrate when the Stairs touch the Cliff (use a "wait" block).' },
+                    newSpriteAdded: { bool: false, str: 'Added another sprite to the project on top of the Stairs. After the Stairs touch the Cliff, this sprite moves right and stops at the blue treasure chest.' },
+                }
+                break;
+            default:
+                // if no strand found, error
+                console.log("ERROR: unable to match strand.");
+                return;
         }
     }
 
     // given a block that has an input conditon, check if it is a Touching condition
     // and return the opcode of what its touching target conditon is
-    getCondOpcode(block) {
-        let targetCond;
+    getTouchTarget(block) {
+        let targetCond = null;
         let inputCond = block.conditionBlock();  // the input condition block       
         if ((inputCond !== null) && ("sensing_touchingobject" === inputCond.opcode)) {
             // find the specific field entered into the input condition block
-            let condSelected = inputCond.toBlock(inputCond.inputs.TOUCHINGOBJECTMENU[1]);                          
+            let condSelected = inputCond.toBlock(inputCond.inputs.TOUCHINGOBJECTMENU[1]);
             if ((condSelected !== null) && (condSelected.opcode === "sensing_touchingobjectmenu")) {
                 targetCond = condSelected.fields.TOUCHINGOBJECTMENU[0];
             }
@@ -62,248 +81,384 @@ module.exports = class {
         return targetCond;
     }
 
-    // Check the blocks/scripts only inside a conditional loop 
-    gradeCondLoop(block, targetCondition) {
-        let condLoopReqs = {
-            repeatLoop: false,
-            moveBlock: false,
-            waitBlock: false,
-            costumeBlock: false,
-        };
-
-        // check block's condition input
-        let blockCond = this.getCondOpcode(block);            
-
-        // if the correct targetCondition is selected ("Soccer Ball" if sprite is Jaime, or vice versa)
-        if (blockCond === targetCondition) {
-            condLoopReqs.repeatLoop = true;
-
-            // check for other required blocks inside the Repeat Until loop
-            var repeatUntilSubs = block.subScripts();
-            for (var subScript of repeatUntilSubs) {
-                iterateBlocks(subScript, (block, level) => {
-                    let subop = block.opcode; 
-
-                    if (subop === 'motion_movesteps') {
-                        condLoopReqs.moveBlock = true; 
-                    }
-                    if (subop === 'control_wait') {
-                        condLoopReqs.waitBlock = true;
-                    }
-                    if (['looks_nextcostume', 'looks_switchcostumeto'].includes(subop)) {
-                        condLoopReqs.costumeBlock = true;
-                    }
-                });
-            }                                   
+    gradeSprite(sprite) {
+        let report = {
+            name: sprite.name,
+            moves: false,
+            movesTo: [],
+            stops: false,
+            stopsAt: [],
+            waits: false,
+            waitsFor: [],
+            sounds: false,
+            changesCostumeToSpeaking: false,
+            jumps: false,
+            jumpsAfter: { saySpeech: false, waitBlock: false },
+            movesLeft: false,
+            bouncesTowards: [],
+            speaks: false,
+            score: 0,
         }
-        return condLoopReqs;
-    }
 
-    // Check remaining blocks outside of/after a condition (either after loops or inside ifs) for sound and movement
-    // must be given a Wait Until, Repeat Until, If, or If/Then block
-    // here, any sound counts as a cheer, but code to restrict the sound to cheers only is there, but commented out
-    checkAfter(block) {
-        let extns = {
-            soundPlays: false,
-            movement: false,
-            repeatedMovement: false,
-        };
-        let opcode = block.opcode;
-        let remainingBlocks;
+        // iterate through each of the sprite's scripts that start with 'When Green Flag Clicked' 
+        for (let script of sprite.scripts.filter(s => s.blocks[0].opcode === "event_whenflagclicked")) {
+            script.traverseBlocks((block, level) => {
+                // check for movement to the right
+                if (["motion_movesteps", "motion_changexby"].includes(block.opcode)) {
+                    let stepNumber;
+                    if (block.opcode === "motion_movesteps") stepNumber = block.inputs.STEPS[1][1];
+                    if (block.opcode === "motion_changexby") stepNumber = block.inputs.DX[1][1];
+                    if (stepNumber > 0) {
+                        report.moves = true;
 
-        if ((opcode === "control_wait_until") || (opcode === "control_repeat_until")) {
-            remainingBlocks = block.childBlocks();
-        } else if (opcode.includes("control_if")) { 
-            // restrict remainingBlocks to the blocks within the If
-            let nextIf = block.toBlock(block.inputs.SUBSTACK[1]);
-            remainingBlocks = nextIf.childBlocks();
-        }
-        
-        for (let rBlock of remainingBlocks) {
-            let rCode = rBlock.opcode;
+                        // check if the move block is within a loop 
+                        let potentialLoop = block.isWithin();
+                        if (potentialLoop !== null) {
+                            // if the move block is within a "repeat until touching" loop
+                            if (potentialLoop.opcode === "control_repeat_until") {
+                                let repeatUntilTarget = this.getTouchTarget(potentialLoop);
+                                if (repeatUntilTarget != null) {
+                                    // if student puts motion block inside a repeat until touching loop, then Sprite both moves to the target, and stops when they touch it
+                                    report.movesTo.push(repeatUntilTarget);
+                                    report.score++;
 
-            // check for sound block
-            if (["sound_playuntildone","sound_play"].includes(rCode)) {             
-                // check if sound block plays a sound
-                let soundBlock = rBlock.toBlock(rBlock.inputs.SOUND_MENU[1]);
-                if (soundBlock !== null) {
-                    let soundSelected = soundBlock.fields.SOUND_MENU[0];
-                    if (soundSelected !== null) {
-                        extns.soundPlays = true;
-                        /* if you want to restrict the sound to only "cheer", "Cheer", or "Goal Cheer"
-                        commented out for now, bc some students may want to use different sounds   
-                        if ((soundSelected.includes("cheer")) || soundSelected.includes("Cheer")) {
-                            cheerSelected = true;
+                                    report.stops = true;
+                                    report.stopsAt.push(repeatUntilTarget);
+                                    report.score++;
+
+                                    // if "repeat until touching" block is within a repeat loop, add repeatUntilTarget again (for "bounce" extension)
+                                    let repeatIsWithin = potentialLoop.isWithin();
+                                    if ((repeatIsWithin !== null) && (repeatIsWithin.opcode === "control_repeat")) {
+                                        report.movesTo.push(repeatUntilTarget);
+                                        report.score++;
+                                    }
+
+                                    // Create a script of all the blocks immediately after the repeatUntilTouching loop 
+                                    let blockAfterLoop = potentialLoop.nextBlock();
+                                    // if the repeatUntilTouching loop is within another loop, create another script of the blocks following that outer loop 
+                                    let blockOutsideLoop = potentialLoop.isWithin();
+                            
+                                    if (blockAfterLoop !== null) {
+                                        let scriptAfterLoop = new Script(blockAfterLoop, blockAfterLoop.target);
+
+                                        // if the repeatUntilTouching loop is within another loop, concatenate the two scripts created above
+                                        if (blockOutsideLoop !== null) {
+                                            let scriptOutsideLoop = new Script(blockOutsideLoop, blockOutsideLoop.target);
+                                            scriptAfterLoop.blocks = scriptAfterLoop.blocks.concat(scriptOutsideLoop.blocks);
+                                        }
+
+                                        let waitBlockFound = false;
+                                        let speechBlockFound = false;
+
+                                        // iterate through the script representing all blocks after the repeatUntilTouching loop
+                                        scriptAfterLoop.traverseBlocks((currBlock, level) => {
+                                            // check for costume change to "Speaking", for unique req in Mulicultural strand
+                                            if (currBlock.opcode === "looks_switchcostumeto") {
+                                                let costumeInput = currBlock.toBlock(currBlock.inputs.COSTUME[1]);
+                                                if ((costumeInput != null) && (costumeInput.opcode === "looks_costume")) {
+                                                    if (costumeInput.fields.COSTUME[0] === "Speaking") {
+                                                        report.changesCostumeToSpeaking = true;
+                                                    }
+                                                }
+                                            }
+
+                                            if (currBlock.opcode.includes("looks_say")) {
+                                                let sayMsg = currBlock.inputs.MESSAGE[1][1];
+                                                if (sayMsg.includes("eech!")) {
+                                                    speechBlockFound = true;
+                                                }
+                                            }
+                                            // if sprite "jumps" after saying "Speech! Speech!", or some variant spelling/capitalization as long as it includes "eech!"
+                                            // unique req for Multicultural strand
+                                            // TODO: this just checks for a "change/set y" block
+                                            // more rigorous evaluation should check for other types of vertical motion (like multiple gotoXY blocks, checking up/down differences in the y-coordinate)
+                                            if (["motion_sety", "motion_changeyby"].includes(currBlock.opcode) && speechBlockFound) {
+                                                report.jumps = true;
+                                                report.jumpsAfter.saySpeech = true;
+                                            }
+
+                                            if (currBlock.opcode === "control_wait") {
+                                                waitBlockFound = true;
+                                            }
+                                            // if sprite "jumps" after a wait block has already been used 
+                                            // TODO: this just checks for a "change/set y" block
+                                            // more rigorous evaluation should check for other types of vertical motion (like multiple gotoXY blocks, checking up/down differences in the y-coordinate)
+                                            if (["motion_sety", "motion_changeyby"].includes(currBlock.opcode) && waitBlockFound) {
+                                                report.jumps = true;
+                                                report.jumpsAfter.waitBlock = true;
+                                            }
+
+                                            // check for sound block
+                                            if (["sound_play", "sound_playuntildone"].includes(currBlock.opcode)) {
+                                                report.sounds = true;
+                                            }
+                                        });
+                                    }
+                                }
+                            }
                         }
-                        */
+                    }
+                    // check for negative steps/movement to the left, inside a repeat until touching block (for "Bounce" extension)
+                    if (stepNumber < 0) {
+                        report.movesLeft = true;
+                        // check if the move block is within a loop 
+                        let potentialLoop = block.isWithin();
+                        if (potentialLoop !== null) {
+                            // if the move block is within a "repeat until touching" loop
+                            if (potentialLoop.opcode === "control_repeat_until") {
+                                let repeatUntilTarget = this.getTouchTarget(potentialLoop);
+                                if (repeatUntilTarget != null) {
+                                    report.bouncesTowards.push(repeatUntilTarget);
+                                }
+                            }
+                        }
                     }
                 }
-            // check for movement after condition is met    
-            } else if (rCode.includes("motion_move") || rCode.includes("motion_goto") || rCode.includes("motion_glide")) {
-                extns.movement = true;
+
+                if (block.opcode === "control_wait_until") {
+                    let waitUntilTarget = this.getTouchTarget(block);
+                    if (waitUntilTarget !== null) {
+                        // If no horizontal move blocks have been found before the "wait until touching" block, i.e. report.moves is false up to this point
+                        if (!report.moves) {
+                            report.waits = true;
+                        }
+                        report.waitsFor.push(waitUntilTarget);
+                        report.score++;
+
+                        // check remaining blocks for sound
+                        let blocksAfterWait = block.childBlocks();
+                        for (let currBlock of blocksAfterWait) {
+                            if (["sound_play", "sound_playuntildone"].includes(currBlock.opcode)) {
+                                report.sounds = true;
+                            }
+                        }
+                    }
+                }
+
+                // check for any sound blocks within an "if 'touching X' then..." block
+                if (["sound_play", "sound_playuntildone"].includes(block.opcode)) {
+                    let potentialIf = block.isWithin();
+                    if (potentialIf !== null) {
+                        if (potentialIf.opcode === "control_if") {
+                            let ifTouchingTarget = this.getTouchTarget(potentialIf);
+                            if (ifTouchingTarget !== null) {
+                                report.sounds = true;
+                            }
+                        }
+                    }
+                }
+
+                // check for any Say blocks
+                if (block.opcode.includes("looks_say")) {
+                    report.speaks = true;
+                    report.score++;
+                }
+            });
+        }
+        return report;
+    }
+
+    // given all Sprite reports, identify the best candidate for Sprite A, B, C, and Extra
+    // Examples for each strand (Multicultural, Youth Culture, Gaming)
+    // A: Marchers, Jaime, Player
+    // B: Speaker, Ball, Stairs
+    // C: Poster Holder, Goal, Cliff
+    // Extra: Sprite that Walks across the road and says something, Goalie, sprite that goes to Blue Treasure Chest
+    sortSprites(reports) {
+        let sprites = {
+            A: null,
+            B: null,
+            C: null,
+            Extra: null,
+        }
+
+        // Identify Sprite B first
+        let maxBScore = 0;
+        for (let possibleB of reports) {
+            let currBScore = possibleB.score;
+
+            if (possibleB.waits) currBScore++;
+            if (possibleB.sounds) currBScore++;
+            if (possibleB.changesCostumeToSpeaking) currBScore++;
+            currBScore += possibleB.bouncesTowards.length;
+
+            if (currBScore > maxBScore) {
+                maxBScore = currBScore;
+                sprites.B = possibleB;
             }
         }
-        return extns;
-    }
 
-    gradeJaime(sprite) {
-        let condLoopReqs;
-        // iterating through each of the sprite's scripts that start with the event 'When Green Flag Clicked' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenflagclicked"))) {  
-            iterateBlocks(script, (block, level) => {
-                let opcode = block.opcode;
-                
-                if (opcode.includes("control_repeat_until")) {
-                    condLoopReqs = this.gradeCondLoop(block, "Soccer Ball");
-                    if (condLoopReqs.repeatLoop) this.requirements.jaimeRepeats.bool = true;
-                    if (condLoopReqs.moveBlock) this.requirements.jaimeMoves.bool = true;
-                    if (condLoopReqs.waitBlock) this.extensions.jaimeWaitBlock.bool = true;
-                    if (condLoopReqs.costumeBlock) this.extensions.jaimeNextCostume.bool = true;
-                }
+        // after Sprite B, find Sprite A
+        let maxAScore = 0;
+        for (let possibleA of reports) {
+            if (possibleA.name !== sprites.B.name) {
+                let currAScore = 0;
 
-                // TODO: this just checks if Jaime has a "change/set y" block in his scripts
-                // more rigorous evaluation should check WHEN he uses those blocks, and also check other types of motion
-                // however, most kids didn't seem to implement this extension anyways
-                if (["motion_changeyby", "motion_sety"].includes(opcode)) {
-                    this.extensions.jaimeJumps.bool = true;
-                }
-            });
+                if (possibleA.jumps) currAScore++;
+                if (possibleA.movesTo.includes(sprites.B.name)) currAScore++;
+                if (possibleA.stopsAt.includes(sprites.B.name)) currAScore++;
+
+                if (sprites.B.waitsFor.includes(possibleA.name)) {
+                    if (currAScore > maxAScore) {
+                        maxAScore = currAScore;
+                        sprites.A = possibleA;
+                    }
+                } 
+            }
         }
-    }
 
-    gradeBall(sprite) {
-        let condLoopReqs;
-        let afterCondReqs;
-
-        // iterating through each of the sprite's scripts that start with the event 'When Green Flag Clicked' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenflagclicked"))) { 
-            iterateBlocks(script, (block, level) => {
-                let opcode = block.opcode;
-                let targetCond = this.getCondOpcode(block);
-                
-                if (opcode.includes("control_wait_until")) {
-                    // If Ball has "Wait Until Touching _" block
-                    if (targetCond === "Jaime ") {
-                        this.requirements.ballWaitsUntil.bool = true;
-                    } else if (targetCond === "Goal") {
-                        afterCondReqs = this.checkAfter(block); 
-                        if (afterCondReqs.soundPlays) this.extensions.cheerSounds.bool = true;
-                    }
-                } else if (opcode.includes("control_repeat_until")) {
-                    condLoopReqs = this.gradeCondLoop(block, "Goal");
-                    if (condLoopReqs.repeatLoop) this.requirements.ballRepeats.bool = true;
-                    if (condLoopReqs.moveBlock) this.requirements.ballMoves.bool = true;
-                    if (condLoopReqs.waitBlock) this.extensions.ballWaitBlock.bool = true;
-
-                    afterCondReqs = this.checkAfter(block);
-                    if (afterCondReqs.movement) this.extensions.ballBounces.bool = true;
-                    if (afterCondReqs.soundPlays) this.extensions.cheerSounds.bool = true;
-                } else if (opcode.includes("control_if")) {
-                    afterCondReqs = this.checkAfter(block);
-
-                    if (targetCond === "Goal") {
-                        if (afterCondReqs.soundPlays) this.extensions.cheerSounds.bool = true;
-                    } else if (!(["Goal", "Jaime "].includes(targetCond))) {//&& totnumSprites > 3? ) {
-                        // if ball moves after "If touching goalie", goalieBlocks req fulfilled
-                        // TODO: probably need to check this req more rigorously 
-                        if (afterCondReqs.movement) this.extensions.goalieBlocks.bool = true; 
-                    } 
-                }
-            });
-        }
-    }
-
-    gradeGoal(sprite) {
-        // iterating through each of the sprite's scripts that start with the event 'When Green Flag Clicked' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenflagclicked"))) {  
-            iterateBlocks(script, (block, level) => {
-                let opcode = block.opcode;
-                
-                if (["control_wait_until","control_if"].includes(opcode)) {
-                    let targetCond = this.getCondOpcode(block);
-                    if (targetCond === "Soccer Ball") {
-                        let afterCond = this.checkAfter(block);
-                        if (afterCondReqs.soundPlays) this.extensions.cheerSounds.bool = true;
-                    }
-                }
-            });
-        } 
-    }
-
-    gradeGoalie(sprite) {
-        // iterating through each of the sprite's scripts that start with the event 'When _ Key Pressed' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenkeypressed"))) { 
-            let eventBlock = script.blocks[0];
-            let keyOption = eventBlock.fields.KEY_OPTION[0];
- 
-            if (keyOption === "left arrow") {
-                let pointedLeft = false;
-                let negSteps = false;
-                iterateBlocks(script, (block, level) => {
-                    let opcode = block.opcode; 
-                    if (opcode.includes("motion_pointindirection")) {
-                        if (block.inputs.DIRECTION[1][1][0] === "-") {  // if first character is - (negative)
-                            pointedLeft = true;
-                        }
-                    }
-                    if (["motion_movesteps", "motion_glide"].includes(opcode)) {
-                        if (block.inputs.STEPS[1][1][0] === "-") {  // if first character is - (negative)
-                            negSteps = true;
-                        }
-                    }
-                });
-
-                if ((pointedLeft && !negSteps) || (!pointedLeft && negSteps)) {
-                    this.extensions.goalieMovesLeft.bool = true;
-                }
-            } else if (keyOption === "right arrow") {
-                let pointedRight = true;
-                let negSteps = false;
-                iterateBlocks(script, (block, level) => {
-                    let opcode = block.opcode; 
-                    if (opcode.includes("motion_pointindirection")) {
-                        if (block.inputs.DIRECTION[1][1][0] === "-") {  // if first character is - (negative)
-                            pointedRight = false;
-                        }
-                    }
-                    if (["motion_movesteps", "motion_glide"].includes(opcode)) {
-                        if (block.inputs.STEPS[1][1][0] === "-") {  // if first character is - (negative)
-                            negSteps = true;
-                        }
-                    }
-                });  
-                
-                if ((pointedRight && !negSteps) || (!pointedRight && negSteps)){
-                    this.extensions.goalieMovesRight.bool = true; 
+        // Once B and A have been found, C is easily identifiable
+        for (let possibleC of reports) {
+            if ((possibleC.name !== sprites.B.name) && (possibleC.name !== sprites.A.name)) {
+                if (sprites.B.movesTo.includes(possibleC.name)) {
+                    sprites.C = possibleC;
                 }
             }
         }
+
+        // find Extra sprite, if any. (Checks requirements for Multicultural and Gaming strand. In Youth Culture strand, any new sprite will be accepted)
+        let maxExtraScore = 0;
+        if (reports.length > 4) {
+            for (let remainingSprite of reports) {
+                if ((remainingSprite.name !== sprites.B.name) && (remainingSprite.name !== sprites.A.name) && (remainingSprite.name !== sprites.C.name)) {
+                    let currExtraScore = remainingSprite.score;
+                    if (remainingSprite.moves) currExtraScore++;
+                    if (remainingSprite.speaks) currExtraScore++;
+                    if (remainingSprite.movesTo.includes("ChestBlue")) currExtraScore += 10;
+
+                    if (currExtraScore > maxExtraScore) {
+                        maxExtraScore = currExtraScore;
+                        sprites.Extra = remainingSprite;
+                    }
+                }
+            }
+        }
+        return sprites;
     }
 
     // main grading function
     grade(fileObj, user) {
-        var project = new Project(fileObj);
-
-        this.init();
         // if project doesn't exist, return
         if (!is(fileObj)) return;
 
-        for(var target of project.targets) {
-            if (!(target.isStage)) {
+        var project = new Project(fileObj);
+        this.init(project);
 
-                if (target.name === "Jaime ") {
-                    this.gradeJaime(target);
-                } else if (target.name === "Soccer Ball") {
-                    this.gradeBall(target);
-                } else if (target.name === "Goal") {
-                    if (!(this.extensions.cheerSounds.bool)) {
-                        this.gradeGoal(target);
-                    } 
-                } else {   // if not Jaime, Ball, or Goal, sprite must be added goalie
-                    this.extensions.goalieAdded.bool = true;
-                    this.gradeGoalie(target);
-                }
+        let spriteReports = [];
+        let totSprites = 0;
+
+        for (let target of project.targets) {
+            if (!target.isStage) {
+                totSprites++;
+                spriteReports.push(this.gradeSprite(target));
             }
         }
-    }    
+
+        let sortedSprites = this.sortSprites(spriteReports);
+        let spriteA = sortedSprites.A;
+        let spriteB = sortedSprites.B;
+        let spriteC = sortedSprites.C;
+        let spriteExtra = sortedSprites.Extra;
+
+        if (this.strand === "multicultural") {
+            if (spriteA.moves) this.requirements.marchersMove.bool = true;
+            if (spriteA.stopsAt.includes(spriteB.name)) this.requirements.marchersStop.bool = true;
+            if (spriteB.waits && spriteB.waitsFor.includes(spriteA.name))
+                this.requirements.speakerWaits.bool = true;
+            if (spriteB.moves && spriteB.movesTo.includes(spriteC.name))
+                this.requirements.speakerMoves.bool = true;
+            if (spriteB.changesCostumeToSpeaking) this.requirements.speakerChanges.bool = true;
+
+            if (spriteA.sounds || spriteB.sounds || spriteC.sounds)
+                this.extensions.soundAdded.bool = true;
+            if (spriteA.jumpsAfter.saySpeech) this.extensions.marchersJump.bool = true;
+            if (spriteExtra) {
+                if (spriteExtra.moves && spriteExtra.speaks) this.extensions.newSpriteAdded.bool = true;
+            }
+        } else if (this.strand === "youthCulture") {
+            if (spriteA.moves) this.requirements.jaimeMoves.bool = true;
+            if (spriteA.stopsAt.includes(spriteB.name)) this.requirements.jaimeStops.bool = true;
+            if (spriteB.waits && spriteB.waitsFor.includes(spriteA.name))
+                this.requirements.ballWaits.bool = true;
+            if (spriteB.moves && spriteB.movesTo.includes(spriteC.name))
+                this.requirements.ballMoves.bool = true;
+
+            if (spriteA.sounds || spriteB.sounds || spriteC.sounds)
+                this.extensions.soundAdded.bool = true;
+            if (spriteA.jumpsAfter.waitBlock) this.extensions.jaimeJumps.bool = true;
+            if ((totSprites > 3) && spriteB.movesLeft) this.extensions.goalieAdded.bool = true;
+            // bouncing extension
+            if (spriteB.movesLeft) {
+                // checks that after SpriteB waits for SpriteA and moves right to SpriteC the first time, it then moves left any distance, and then waits for SpriteA before moving right again
+                // or that SpriteB moves Right to SpriteC, Left to SpriteA, and Right to SpriteC again, all using repeatUntilTouching Loops
+                // i.e. checks that SpriteB movesTo SpriteC at least twice, AND (spriteB bouncesTo spriteA OR (spriteB waitsFor SpriteA twice AND spriteA movesTo spriteB twice))
+                let numWaitsForA = 0;
+                for (let i = 0; i < spriteB.waitsFor.length; i++) {
+                    if (spriteB.waitsFor[i] === spriteA.name) {
+                        numWaitsForA++;
+                    }
+                }
+                // also check that SpriteA movesTo SpriteB at least twice (for "Jaime kicks the ball again" part of the extension)
+                let numMovesToB = 0;
+                for (let k = 0; k < spriteA.movesTo.length; k++) {
+                    if (spriteA.movesTo[k] === spriteB.name) {
+                        numMovesToB++;
+                    }
+                }
+
+                let numBounces = 0;
+                for (let j = 0; j < spriteB.movesTo.length; j++) {
+                    if (spriteB.movesTo[j] === spriteC.name) {
+                        numBounces++;
+                    }
+                }
+
+                if (((numWaitsForA > 1) && (numMovesToB > 1)) || spriteB.bouncesTowards.includes(spriteA.name)) {
+                    if (numBounces > 1) this.extensions.ballBounces.bool = true;
+                }
+            }
+
+        } else if (this.strand === "gaming") {
+            if (spriteA.moves) this.requirements.playerMoves.bool = true;
+            if (spriteA.stopsAt.includes(spriteB.name)) this.requirements.playerStops.bool = true;
+            if (spriteB.waits && spriteB.waitsFor.includes(spriteA.name))
+                this.requirements.stairsWait.bool = true;
+            if (spriteB.moves && spriteB.movesTo.includes(spriteC.name))
+                this.requirements.stairsMove.bool = true;
+
+            if (spriteA.sounds || spriteB.sounds || spriteC.sounds)
+                this.extensions.soundAdded.bool = true;
+            if (spriteA.jumpsAfter.waitBlock) this.extensions.playerJumps.bool = true;
+            if (spriteExtra) {
+                if (spriteExtra.movesTo.length) this.extensions.newSpriteAdded.bool = true;
+            }
+            // bouncing extension
+            if (spriteB.movesLeft) {
+                // checks that after SpriteB waits for SpriteA and moves right to SpriteC the first time, it then moves left any distance, and then waits for SpriteA before moving right again
+                // or that SpriteB moves Right to SpriteC, Left to SpriteA, and Right to SpriteC again, all using repeatUntilTouching Loops
+                // i.e. checks that SpriteB movesTo SpriteC at least twice, AND spriteB waitsFor SpriteA twice, or bouncesTowards SpriteA once
+                let numWaitsForA = 0;
+                for (let i = 0; i < spriteB.waitsFor.length; i++) {
+                    if (spriteB.waitsFor[i] === spriteA.name) {
+                        numWaitsForA++;
+                    }
+                }
+
+                let numBounces = 0;
+                    for (let j = 0; j < spriteB.movesTo.length; j++) {
+                        if (spriteB.movesTo[j] === spriteC.name) {
+                            numBounces++;
+                        }
+                    }
+
+                if ((numWaitsForA > 1) || spriteB.bouncesTowards.includes(spriteA.name)) {  
+                    if (numBounces > 1) this.extensions.stairsBounce.bool = true;
+                }
+            }
+        } else {
+            // if no strand found, error
+            console.log("ERROR: unable to match strand.");
+            return;
+        }
+    }
 }

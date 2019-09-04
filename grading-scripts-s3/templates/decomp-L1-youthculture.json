@@ -1,0 +1,460 @@
+{
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {
+                "9[N1%n{g*z~#XXcW(=Nm-set score-": [
+                    "set score",
+                    0
+                ],
+                "9[N1%n{g*z~#XXcW(=Nm-set-": [
+                    "set",
+                    0
+                ],
+                "9[N1%n{g*z~#XXcW(=Nm-score-": [
+                    "score",
+                    3
+                ]
+            },
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 1,
+            "costumes": [
+                {
+                    "assetId": "5c3298ae33014a6eb91686cd1cda041e",
+                    "name": "Field",
+                    "bitmapResolution": 1,
+                    "md5ext": "5c3298ae33014a6eb91686cd1cda041e.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 240,
+                    "rotationCenterY": 180
+                },
+                {
+                    "assetId": "76ec17562f05dfa42f80ee5842cdf862",
+                    "name": "Field & Bleachers",
+                    "bitmapResolution": 1,
+                    "md5ext": "76ec17562f05dfa42f80ee5842cdf862.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 240,
+                    "rotationCenterY": 180
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Jaime ",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "dil)YZ{H0})IuwHAwS%C": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "Ax?tNQzDgE?2:BrDnzJ2",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 33,
+                    "y": 59
+                },
+                "Ax?tNQzDgE?2:BrDnzJ2": {
+                    "opcode": "motion_gotoxy",
+                    "next": ".Pb?svcZ*[O+MYgWr;o7",
+                    "parent": "dil)YZ{H0})IuwHAwS%C",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-210"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-90"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ".Pb?svcZ*[O+MYgWr;o7": {
+                    "opcode": "control_wait",
+                    "next": null,
+                    "parent": "Ax?tNQzDgE?2:BrDnzJ2",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                ".01"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {
+                "AWlo:7:weqt;e=rdrhDb": {
+                    "blockId": "z=ft#ukk{%ud|P~YyngQ",
+                    "x": 426.6666666666667,
+                    "y": 164.4814814814815,
+                    "width": 298.5,
+                    "height": 574.2,
+                    "minimized": false,
+                    "text": "This short wait block is here to make sure Jaime and the Soccer Ball are both at the correct starting location before Jaime points in the direction of the ball. \r\rWithout this wait block, Jaime sometimes starts running to where the ball used to be. If that happens, they never touch and the ball never gets kicked to the goal! "
+                }
+            },
+            "currentCostume": 7,
+            "costumes": [
+                {
+                    "assetId": "9be3e09f29ce023f14139f35b272b6ba",
+                    "name": "Frame 1",
+                    "bitmapResolution": 2,
+                    "md5ext": "9be3e09f29ce023f14139f35b272b6ba.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 34,
+                    "rotationCenterY": 66
+                },
+                {
+                    "assetId": "87334428f6134349d715ead14ef2db66",
+                    "name": "Frame 2",
+                    "bitmapResolution": 2,
+                    "md5ext": "87334428f6134349d715ead14ef2db66.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 66
+                },
+                {
+                    "assetId": "8b8a5cc5729cdc75ab017f2c4a359f63",
+                    "name": "Frame 3",
+                    "bitmapResolution": 2,
+                    "md5ext": "8b8a5cc5729cdc75ab017f2c4a359f63.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 28,
+                    "rotationCenterY": 66
+                },
+                {
+                    "assetId": "d0d840cb399a9854d3be9c8302f8176f",
+                    "name": "Frame 4",
+                    "bitmapResolution": 2,
+                    "md5ext": "d0d840cb399a9854d3be9c8302f8176f.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 28,
+                    "rotationCenterY": 66
+                },
+                {
+                    "assetId": "3fbbb48583b515619c8fc36c013a6028",
+                    "name": "Frame 5",
+                    "bitmapResolution": 2,
+                    "md5ext": "3fbbb48583b515619c8fc36c013a6028.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 66
+                },
+                {
+                    "assetId": "7996b885bf9aafdfb35986ee63eb5b0d",
+                    "name": "Frame 6",
+                    "bitmapResolution": 2,
+                    "md5ext": "7996b885bf9aafdfb35986ee63eb5b0d.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 28,
+                    "rotationCenterY": 66
+                },
+                {
+                    "assetId": "f382c08216827cbd77bb622ffd10e4b2",
+                    "name": "Frame 7",
+                    "bitmapResolution": 2,
+                    "md5ext": "f382c08216827cbd77bb622ffd10e4b2.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 28,
+                    "rotationCenterY": 66
+                },
+                {
+                    "assetId": "d2441984420dc12e4c6c7fd212aea60f",
+                    "name": "Frame 8",
+                    "bitmapResolution": 2,
+                    "md5ext": "d2441984420dc12e4c6c7fd212aea60f.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 66
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": -35.000103043560046,
+            "y": -90.18990849223357,
+            "size": 85,
+            "direction": 90.06217689848177,
+            "draggable": false,
+            "rotationStyle": "left-right"
+        },
+        {
+            "isStage": false,
+            "name": "Soccer Ball",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "W9IY!IPYXclx:rLq,5mA": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "F,[mZXKyFmp9`JB-45R%",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 38,
+                    "y": 110
+                },
+                "arz%}0!yQ3+83Sy`Xv(+": {
+                    "opcode": "control_wait_until",
+                    "next": null,
+                    "parent": ":YKUti-f_hdztd/oSD93",
+                    "inputs": {
+                        "CONDITION": [
+                            1,
+                            null
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "F,[mZXKyFmp9`JB-45R%": {
+                    "opcode": "motion_gotoxy",
+                    "next": ":YKUti-f_hdztd/oSD93",
+                    "parent": "W9IY!IPYXclx:rLq,5mA",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-13"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-105"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ":YKUti-f_hdztd/oSD93": {
+                    "opcode": "control_wait",
+                    "next": "arz%}0!yQ3+83Sy`Xv(+",
+                    "parent": "F,[mZXKyFmp9`JB-45R%",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                ".01"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "b0e4c224f58b27443a98847d1b0c31d8",
+                    "name": "Soccer Ball",
+                    "bitmapResolution": 1,
+                    "md5ext": "b0e4c224f58b27443a98847d1b0c31d8.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 6,
+                    "rotationCenterY": 7
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                },
+                {
+                    "assetId": "4b36eebf22be4667fc2f15b78c805b4c",
+                    "name": "cheer",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 125056,
+                    "md5ext": "4b36eebf22be4667fc2f15b78c805b4c.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": 176.3261695126244,
+            "y": -89.01245679671165,
+            "size": 200,
+            "direction": 85.17314121887702,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Goal",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "c5d41b3ccd53838595eb021b1cf1fd62",
+                    "name": "Goal",
+                    "bitmapResolution": 1,
+                    "md5ext": "c5d41b3ccd53838595eb021b1cf1fd62.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 34.5,
+                    "rotationCenterY": 49.5
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "53a3c2e27d1fb5fdb14aaf0cb41e7889",
+                    "name": "boing",
+                    "dataFormat": "wav",
+                    "format": "adpcm",
+                    "rate": 44100,
+                    "sampleCount": 14238,
+                    "md5ext": "53a3c2e27d1fb5fdb14aaf0cb41e7889.wav"
+                },
+                {
+                    "assetId": "4b36eebf22be4667fc2f15b78c805b4c",
+                    "name": "cheer",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 125056,
+                    "md5ext": "4b36eebf22be4667fc2f15b78c805b4c.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": 211,
+            "y": -77,
+            "size": 85.000000000001,
+            "direction": -90,
+            "draggable": false,
+            "rotationStyle": "don't rotate"
+        }
+    ],
+    "monitors": [
+        {
+            "id": "9[N1%n{g*z~#XXcW(=Nm-set score-",
+            "mode": "default",
+            "opcode": "data_variable",
+            "params": {
+                "VARIABLE": "set score"
+            },
+            "spriteName": null,
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 5,
+            "y": 5,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        },
+        {
+            "id": "9[N1%n{g*z~#XXcW(=Nm-set-",
+            "mode": "default",
+            "opcode": "data_variable",
+            "params": {
+                "VARIABLE": "set"
+            },
+            "spriteName": null,
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 5,
+            "y": 32,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        },
+        {
+            "id": "9[N1%n{g*z~#XXcW(=Nm-score-",
+            "mode": "default",
+            "opcode": "data_variable",
+            "params": {
+                "VARIABLE": "score"
+            },
+            "spriteName": null,
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 4,
+            "y": 9,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        }
+    ],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190822194548",
+        "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Safari/605.1.15"
+    }
+}
