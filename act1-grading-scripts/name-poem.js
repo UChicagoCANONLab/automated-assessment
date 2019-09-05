@@ -62,9 +62,8 @@ module.exports = class {
 
             mapOriginal.set(target.name, target.blocks);
         }
-
         for (let target of project.targets) {
-            //checking backdrop
+            //checks if backdrop has been changed
             if (target.isStage) {
                 for (let cost of target.costumes) {
                     let equal = false;
@@ -82,8 +81,8 @@ module.exports = class {
                this.requirements.backdrop.bool = newBackdrop;
             } else {
 
+                //checks each sprite against given scripts to see if they've been changed
                 let hasMovement = false;
-
                 for (let script in target.scripts) {
                     for (let block in target.scripts[script].blocks) {
                         let opc = target.scripts[script].blocks[block].opcode;
@@ -198,29 +197,52 @@ module.exports = class {
 
                 mapProject.set(target.name, target.blocks);
                 let hasDialogue = false;
+
+                //checks if dialogue/looks/motion have beenadded
+                for (let script of target.scripts){
+                    if (script.blocks[0].opcode.includes('event_')){
+                        for (let block of script.blocks){
+                            let opcode = block.opcode;
+                            if (opcode==='looks_say'){
+                                this.requirements.dialogue1.bool=true;
+                            }
+                            else if ((opcode.includes('motion_')||opcode.includes('looks_'))
+                            && (!this.eventOpcodes.includes(opcode) && !this.otherOpcodes.includes(opcode))){
+                                this.requirements.movement1.bool=true;
+                            }
+                            if (opcode.includes('motion_') || opcode.includes('looks_')) {
+                                if ((!opcode.includes('say')) && (!opcode.includes('think'))) {
+        
+                                }
+                            }
+                        }
+                    }
+                }
+
                 for (let block in target.blocks) {
 
-                    if (target.blocks[block].opcode==='looks_say'){
-                       this.requirements.dialogue1.bool=true;
-                    }
-                    let opcode = target.blocks[block].opcode;
-                    if ((opcode.includes('motion_') || opcode.includes('looks_'))
-                        && (!this.eventOpcodes.includes(opcode) && !this.otherOpcodes.includes(opcode))){
-                            this.requirements.movement1.bool=true;
-                        }
+                    // if (target.blocks[block].opcode==='looks_say'){
+                    //    this.requirements.dialogue1.bool=true;
+                    // }
+                    // let opcode = target.blocks[block].opcode;
+                    // if ((opcode.includes('motion_') || opcode.includes('looks_'))
+                    //     && (!this.eventOpcodes.includes(opcode) && !this.otherOpcodes.includes(opcode))){
+                    //         this.requirements.movement1.bool=true;
+                    //     }
 
-                    if (target.blocks[block].opcode.includes('motion_') || target.blocks[block].opcode.includes('looks_')) {
-                        if ((!target.blocks[block].opcode.includes('say')) && (!target.blocks[block].opcode.includes('think'))) {
+                    // if (target.blocks[block].opcode.includes('motion_') || target.blocks[block].opcode.includes('looks_')) {
+                    //     if ((!target.blocks[block].opcode.includes('say')) && (!target.blocks[block].opcode.includes('think'))) {
 
-                        }
-                    }
+                    //     }
+                    // }
 
-                    if (this.eventOpcodes.includes(target.blocks[block].opcode)) {                        let b = new Block(target, block);
+                    //checks for new dialogue
+                    if (this.eventOpcodes.includes(target.blocks[block].opcode)) {                        
+                        let b = new Block(target, block);
                         let childBlocks = b.childBlocks();
                         for (let i = 0; i < childBlocks.length; i++) {
                             if (childBlocks[i].opcode === 'looks_sayforsecs') {
                                 let blockMessage = childBlocks[i].inputs.MESSAGE[1][1];
-
                                 if ((blockMessage !== 'Daring!!!') &&
                                     (blockMessage !== 'Interesting!!!') &&
                                     (blockMessage !== 'Artistic!!!') &&
@@ -230,6 +252,7 @@ module.exports = class {
                                 }
                             }
                         }
+                        //checks if the sprite has a script
                         if (childBlocks.length >= 2) {
                             spritesWithScripts++;
                         }
@@ -248,6 +271,7 @@ module.exports = class {
             }
         }
 
+        //sets requirements appropriately
        if (spritesWithNewDialogue) {this.requirements.dialogue1.bool=true;}
         if ((spritesWithNewDialogue >= project.sprites.length / 2)&&spritesWithNewDialogue) {
            this.requirements.dialogue.bool = true;

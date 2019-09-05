@@ -14,12 +14,12 @@ module.exports = class {
     initReqs() {
         this.requirements.kangaroo = {bool: false, str: 'Kangaroo script has been changed'};
         this.requirements.grasshopper = {bool: false, str: 'Grasshopper script has been changed'};
-       // this.requirements.stop = {bool: false, str: 'All the animals stop in the same place'};
         this.requirements.bee = {bool: false, str: 'Bee flies in a circle when clicked (using next costume, turn, and move steps)'};
         this.extensions.changeSize = {bool: false, str: 'Uses "change size by"'};
         this.extensions.changeEffect = {bool: false, str: 'Uses "change color effect by"'}
     }
 
+    //helper method to check if kangaroo and grasshopper have new scripts and set requirements accordingly
     checkScripts(target) {
         for (let script of target.scripts){
             if (script.blocks[0].opcode.includes('event_')){
@@ -51,6 +51,7 @@ module.exports = class {
         }
     } 
 
+    //helper method to check if bee flies in a circle and whether the extra suggested blocks are used
     checkBlocks(target) {
         for (let script of target.scripts){
             let costume = false;
@@ -83,6 +84,7 @@ module.exports = class {
         this.initReqs();
         if (!is(fileObj)) return;
 
+        //runs helper methods
         for (let target of project.targets){
             this.checkScripts(target);
             this.checkBlocks(target);

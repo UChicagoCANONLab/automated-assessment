@@ -1,0 +1,370 @@
+{
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {
+                "`jEk@4|i[#Fk?(8x)AV.-my variable": [
+                    "my variable",
+                    0
+                ]
+            },
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "5b9526271796822e9c0b5c5df5f84aa7",
+                    "name": "Philadelphia",
+                    "bitmapResolution": 2,
+                    "md5ext": "5b9526271796822e9c0b5c5df5f84aa7.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 358
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "on",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Marchers",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "P3/@mVJG*Qzh*D[#Z;WP": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "ZC!W8ll;A72/[xp2~o1x",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 64,
+                    "y": 98
+                },
+                "ZC!W8ll;A72/[xp2~o1x": {
+                    "opcode": "motion_gotoxy",
+                    "next": null,
+                    "parent": "P3/@mVJG*Qzh*D[#Z;WP",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-210"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-88"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "b172d63c30c13a7f4534d3aff1e5121f",
+                    "name": "Marching",
+                    "bitmapResolution": 1,
+                    "md5ext": "b172d63c30c13a7f4534d3aff1e5121f.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 311.6818209605366,
+                    "rotationCenterY": 124.82613
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": -210,
+            "y": -88,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Speaker",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "o.2V2xVQZi9Tj[_lzA}c": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "4$Kbnqgs@`W0t,h:fnYP",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 69,
+                    "y": 76
+                },
+                "4$Kbnqgs@`W0t,h:fnYP": {
+                    "opcode": "motion_gotoxy",
+                    "next": "HIC5Xv%R(MS84aIWNez8",
+                    "parent": "o.2V2xVQZi9Tj[_lzA}c",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "19"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-69"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "HIC5Xv%R(MS84aIWNez8": {
+                    "opcode": "control_wait_until",
+                    "next": null,
+                    "parent": "4$Kbnqgs@`W0t,h:fnYP",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 4,
+            "costumes": [
+                {
+                    "assetId": "1abe1fe2be27d5d2013223c2fe94245b",
+                    "name": "Sideways",
+                    "bitmapResolution": 1,
+                    "md5ext": "1abe1fe2be27d5d2013223c2fe94245b.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 123.0827225184876,
+                    "rotationCenterY": 77.64271440353008
+                },
+                {
+                    "assetId": "c3a8bc66575a22249130ee46800e1457",
+                    "name": "Walking1",
+                    "bitmapResolution": 1,
+                    "md5ext": "c3a8bc66575a22249130ee46800e1457.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 90.95484663969467,
+                    "rotationCenterY": 75.56834843601908
+                },
+                {
+                    "assetId": "c3a8bc66575a22249130ee46800e1457",
+                    "name": "Walking4",
+                    "bitmapResolution": 1,
+                    "md5ext": "c3a8bc66575a22249130ee46800e1457.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 90.95484663969467,
+                    "rotationCenterY": 75.56834843601908
+                },
+                {
+                    "assetId": "4ef5927ef6f16aca401b904f393378e3",
+                    "name": "Walking2",
+                    "bitmapResolution": 1,
+                    "md5ext": "4ef5927ef6f16aca401b904f393378e3.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 90.95484663969467,
+                    "rotationCenterY": 75.56834843601908
+                },
+                {
+                    "assetId": "4d1028c2076d480971bdfe2739bd8d33",
+                    "name": "Speaking",
+                    "bitmapResolution": 1,
+                    "md5ext": "4d1028c2076d480971bdfe2739bd8d33.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 115.33703224900373,
+                    "rotationCenterY": 83.56885228653631
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                },
+                {
+                    "assetId": "684ffae7bc3a65e35e9f0aaf7a579dd5",
+                    "name": "Clapping",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 168320,
+                    "md5ext": "684ffae7bc3a65e35e9f0aaf7a579dd5.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": 19,
+            "y": -69,
+            "size": 60,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Podium",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "7vWA0r(r|[s,JPRy4xmS": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "=Tz)E4nE=v?~f=+Y.(AL",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 201,
+                    "y": 109
+                },
+                "=Tz)E4nE=v?~f=+Y.(AL": {
+                    "opcode": "looks_gotofrontback",
+                    "next": null,
+                    "parent": "7vWA0r(r|[s,JPRy4xmS",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "a8b17ce836f928538e2388d5139ba3f5",
+                    "name": "costume1",
+                    "bitmapResolution": 1,
+                    "md5ext": "a8b17ce836f928538e2388d5139ba3f5.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": -29.423219892494387,
+                    "rotationCenterY": 43.04309027915377
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 4,
+            "visible": true,
+            "x": 72.00000000000003,
+            "y": -81,
+            "size": 70,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Poster-Holder",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "de63edc84352c8150d58fff6fb2b2e72",
+                    "name": "costume1",
+                    "bitmapResolution": 1,
+                    "md5ext": "de63edc84352c8150d58fff6fb2b2e72.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 119,
+                    "rotationCenterY": 104
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": 222,
+            "y": -22.000000000000014,
+            "size": 60,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190822194548",
+        "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Safari/605.1.15"
+    }
+}
