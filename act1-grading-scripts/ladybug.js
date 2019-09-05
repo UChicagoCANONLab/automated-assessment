@@ -128,8 +128,10 @@ module.exports = class {
         this.initReqs();
         if (!is(fileObj)) return;
         if (is(fileObj.code)) return;
+
         var project = new Project(fileObj, null);
         var original = new Project(require('../act1-grading-scripts/original-ladybug'), null);
+        
         if (!is(original)) return;
 
         
