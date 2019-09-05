@@ -32,72 +32,7 @@ module.exports = class {
         this.extensions.changeCostumeEasel = { bool: false, str: "The easel sprite's costume is changed to show something about the student's community" }; // done
     }
 
-    arraysMatch(arr1, arr2) {
-
-        // Check if the arrays are the same length
-        if (arr1.length !== arr2.length) {
-
-            return false;
-        }
-
-        // Check if all items exist and are in the same order
-        for (var i = 0; arr1.length < i; i++) {
-            if (arr1[i] !== arr2[i]) {
-
-                return false;
-            }
-        }
-
-    };
-
-    // function that decides what strand the project is, returns a string
-    // whichStrand(projBackdrops) {
-    //     let gamingOrig = new Project(require('../grading-scripts-s3/gamingOriginal'));
-    //     let multiOrig = new Project(require('../grading-scripts-s3/multiculturalOriginal'));
-    //     let youthOrig = new Project(require('../grading-scripts-s3/youthOriginal'));
-
-    //     // gets the asset id's of the original gaming project (backdrops)
-    //     let gamingBackdrops = [];
-    //     for (let target of gamingOrig.targets) {
-    //         for (let costume of target.costumes) {
-    //             gamingBackdrops.push(costume.assetId);
-    //         }
-    //     }
-    //     // gets the asset id's of the original multicultural project (backdrops)
-    //     let multiBackdrops = [];
-    //     for (let target of multiOrig.targets) {
-    //         for (let costume of target.costumes) {
-    //             multiBackdrops.push(costume.assetId);
-    //         }
-    //     }
-    //     // gets the asset id's of the original youth culture project (backdrops)
-    //     let youthBackdrops = [];
-    //     for (let target of youthOrig.targets) {
-
-    //         for (let costume of target.costumes) {
-    //             youthBackdrops.push(costume.assetId);
-    //         }
-
-    //     }
-    //     var util = require('util');
-    //     let origUtil = util.inspect(projBackdrops);
-    //     let gamingUtil = util.inspect(gamingBackdrops);
-    //     let multiUtil = util.inspect(multiBackdrops);
-    //     let youthUtil = util.inspect(youthBackdrops);
-
-    //     if (origUtil === gamingUtil) {
-    //         return 'gaming';
-    //     }
-    //     else if (origUtil === multiUtil) {
-    //         return 'multicultural'
-    //     }
-    //     else if (origUtil === youthUtil) {
-    //         return 'youthculture';
-    //     } else {
-    //         return 'gaming';
-    //     }
-    // };
-
+   
 
     grade(fileObj, user) {
 
@@ -122,7 +57,6 @@ module.exports = class {
         
 
         let strand = detectStrand(project, templates);
-        console.log(strand);
 
 
         // gaming strand 

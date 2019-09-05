@@ -15,8 +15,8 @@ module.exports = class {
         this.requirements.leftCostume = { bool: false, str: 'The left costume has been changed' }; // done
         this.requirements.rightCostume = { bool: false, str: 'The right costume has been changed' }; // done
         this.requirements.midCostume = { bool: false, str: 'The middle costume has been changed' };
-        this.requirements.interactiveRight = { bool: false, str: 'Right sprite uses the "when this sprite clicked" block (is interactive)' };
-        this.requirements.interactiveMiddle = { bool: false, str: 'Middle sprite uses the "when this sprite clicked" block (is interactive)' };
+        this.requirements.interactiveRight = { bool: false, str: 'Right sprite uses the "when this sprite clicked" block (is interactive)' }; // done
+        this.requirements.interactiveMiddle = { bool: false, str: 'Middle sprite uses the "when this sprite clicked" block (is interactive)' }; // done
         this.requirements.speakingRight = { bool: false, str: 'Right sprite has a script with a say block in it' }; // done
         this.requirements.speakingMiddle = { bool: false, str: 'Middle sprite has a script with a say block in it' }; // done
 
@@ -26,6 +26,9 @@ module.exports = class {
         this.requirements.speaking3 = {bool: false, str: '3 sprites use the say block'};
         this.requirements.interactive1 = { bool: false, str: '1 sprite is interactive' };
         this.requirements.interactive2 = {bool: false, str: '2 sprites are interactie'};
+        this.requirements.costume1 = {bool: false, str: '1 sprite has a new costume'};
+        this.requirements.costume2 = {bool: false, str: '2 sprites have a new costume'};
+        this.requirements.costume3 = {bool: false, str: '3 sprites have a new costume'};
         
        
         // // extensions
@@ -81,6 +84,9 @@ module.exports = class {
         let rightInteraction = false;
         var soundOptions = ['looks_say', 'looks_sayforsecs'];
         var newCostumes = [];
+        let left = false;
+        let middle = false;
+        let right = false;
 
         // strict requirements
         for (let target of project.targets) {
@@ -106,6 +112,7 @@ module.exports = class {
                     this.requirements.leftChanged.bool = true;
                 }
                 if (leftCost !== origCostumeLeft && leftCost !== 0) {
+                    left = true;
                     this.requirements.leftCostume.bool = true;
                 }
             }
@@ -146,6 +153,7 @@ module.exports = class {
                     this.requirements.speakingMiddle.bool = true;
                 }
                 if (midCost !== origCostumeMiddle && midCost !== 0) {
+                    middle = true;
                     this.requirements.midCostume.bool = true;
                 }
             }
@@ -178,6 +186,7 @@ module.exports = class {
                     this.requirements.speakingRight.bool = true;
                 }
                 if (rightCost !== origCostumeRight && rightCost !== 0) {
+                    right = true;
                     this.requirements.rightCostume.bool = true;
                 }
             }
@@ -191,6 +200,7 @@ module.exports = class {
         let interactive = false;
         let numInteractive = 0;
         let numSpeaking = 0;
+        let numCostumes = 0;
 
         //f there is a say block in a sprite that is not named catrina, and that say block is not used in the same 
         //context as the original project (same parent and next block)
@@ -201,11 +211,11 @@ module.exports = class {
                 continue;
             } else if (target.isStage) { continue;}
             else {
-                console.log(speaks);
+                //console.log(speaks);
                 for (let script in target.scripts) {
                     for (let block in target.scripts[script].blocks) {
                         if (soundOptions.includes(target.scripts[script].blocks[block].opcode)) {
-                            console.log(speaks);
+                           // console.log(speaks);
                             if ((target.scripts[script].blocks[block].next === "Q.gGFO#r}[Z@fzClmRq-") &&
                                 (target.scripts[script].blocks[block].parent === "taz8m.4x_rVweL9%J@(3") &&
                                 (target.scripts[script].blocks[block].inputs.MESSAGE[1][1] === "I am Grandpa John.")) {
@@ -249,7 +259,7 @@ module.exports = class {
                             if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
                                 continue;
                             } else {
-                                this.extensions.keyCommand.bool = true;
+                               this.extensions.keyCommand.bool = true;
                             }
                         }
                         if (target.scripts[script].blocks[block].opcode === 'motion_gotoxy') {
@@ -286,10 +296,33 @@ module.exports = class {
             this.requirements.speaking3.bool = true;
         }
         if (numInteractive >= 1) {
-            this.requirements.interactive1.bool = true;
+           this.requirements.interactive1.bool = true;
         }
         if (numInteractive >= 2) {
-            this.requirements.interactive2.bool = true;
+           this.requirements.interactive2.bool = true;
+        }
+       
+        // only right has a new costume
+        if (right === true) {
+            numCostumes ++;
+        }
+        if (left == true) {
+            numCostumes ++;
+        }
+        
+        if (middle == true) {
+            numCostumes++;
+        }
+
+      
+        if (numCostumes === 1) {
+            this.requirements.costume1.bool = true;
+        } 
+        if (numCostumes === 2) {
+           // this.requirements.costume2.bool = true;
+        }
+        else if (numCostumes === 3) {
+            this.requirements.costume3.bool = true;
         }
     }
 } 
