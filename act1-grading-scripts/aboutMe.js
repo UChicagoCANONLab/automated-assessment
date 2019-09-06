@@ -53,6 +53,8 @@ module.exports = class {
 
         for (let target of project.targets) {
             if (target.isStage) {
+                // checks all the backdrops of the project and makes sure that there is more than one and that
+                // the asset ID is not equal to the original one
                 for (let cost in target.costumes) {
                     if ((target.costumes.length > 1) || (cost.assetID !== "cd21514d0531fdffb22204e0ec5ed84a")) {
                         this.requirements.hasBackdrop.bool = true;
@@ -62,11 +64,15 @@ module.exports = class {
             else {
 
                 for (let script of target.scripts) {
+                    // finds a script that starts when when the sprite is clicked and then makes sure that there is a script attached
+                    // increases the number of interactive sprites
                     if (script.blocks[0].opcode === 'event_whenthisspriteclicked') {
                         if (script.blocks.length > 1) {
                             numInteractive++;
                         }
                         for (let i = 0; i < script.blocks.length; i++) {
+                            // finds the blocks in a script that are a say block, once a block is found
+                            // boolean that shows that there is an interactive sprite that speaks is marked as true
                             if ((script.blocks[i].opcode === 'looks_say') ||
                                 (script.blocks[i].opcode === 'looks_sayforsecs')) {
                                 isInteractiveAndSpeaks = true;
@@ -74,6 +80,7 @@ module.exports = class {
                         }
                     }
 
+                    // looks for different blocks to mark the extensions are true
                     for (let i = 0; i < script.blocks.length; i++) {
                         if (script.blocks[i].opcode === 'looks_thinkforsecs') {
                             this.extensions.usesThinkBlock.bool = true;
@@ -87,11 +94,14 @@ module.exports = class {
                         if (script.blocks[i].opcode === 'motion_movesteps') {
                             this.extensions.moveSteps.bool = true;
                         }
+                        // plainly makes sure that the sprite uses a say block in a script 
                         if ((script.blocks[i].opcode === 'looks_say') || (script.blocks[i].opcode === 'looks_sayforsecs')) {
                             this.requirements.usesSayBlock.bool = true;
                         }
                     
                     }
+                    // everytime there is a sprite that is interactive and speaks, increase the number of the sprites that fall under
+                    // this category
                     if (isInteractiveAndSpeaks) {
                         numInteractiveAndSpeaks ++;
                     }

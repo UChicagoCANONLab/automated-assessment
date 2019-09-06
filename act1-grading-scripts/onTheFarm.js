@@ -143,6 +143,7 @@ module.exports = class {
                     }
                 }
                 
+                // if a glide block is added to the original project
                 if (numGlides >= 2) {
                     this.requirements.rooGlides.bool = true;
                 }

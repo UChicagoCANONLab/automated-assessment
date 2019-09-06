@@ -38,11 +38,6 @@ module.exports = class {
         this.extensions.moveSteps = { bool: false, str: 'Project uses a move block' };
         
 
-        let usesFlagClicked = 0;
-        let usesSpriteClicked = 0;
-        let usesGlide = 0;
-        let usesSays = 0;
-        let usesWait = 0;
 
     }
 
@@ -59,6 +54,8 @@ module.exports = class {
 
         for (let target of project.targets) {
             if (target.isStage) {
+                // checks all the backdrops of the project and makes sure that there is more than one and that
+                // the asset ID is not equal to the original one
                 for (let cost in target.costumes) {
                     if ((target.costumes.length > 1) || (cost.assetID !== "cd21514d0531fdffb22204e0ec5ed84a")) {
                         this.requirements.hasBackdrop.bool = true;
@@ -68,11 +65,15 @@ module.exports = class {
             else {
 
                 for (let script of target.scripts) {
+                    // finds a script that starts when when the sprite is clicked and then makes sure that there is a script attached
+                    // increases the number of interactive sprites
                     if (script.blocks[0].opcode === 'event_whenthisspriteclicked') {
                         if (script.blocks.length > 1) {
                             numInteractive++;
                         }
                         for (let i = 0; i < script.blocks.length; i++) {
+                            // finds the blocks in a script that are a say block, once a block is found
+                            // boolean that shows that there is an interactive sprite that speaks is marked as true
                             if ((script.blocks[i].opcode === 'looks_say') ||
                                 (script.blocks[i].opcode === 'looks_sayforsecs')) {
                                 isInteractiveAndSpeaks = true;
@@ -80,6 +81,7 @@ module.exports = class {
                         }
                     }
 
+                    // looks for different blocks to mark the extensions are true
                     for (let i = 0; i < script.blocks.length; i++) {
                         if (script.blocks[i].opcode === 'looks_thinkforsecs') {
                             this.extensions.usesThinkBlock.bool = true;
@@ -93,11 +95,14 @@ module.exports = class {
                         if (script.blocks[i].opcode === 'motion_movesteps') {
                             this.extensions.moveSteps.bool = true;
                         }
+                        // plainly makes sure that the sprite uses a say block in a script 
                         if ((script.blocks[i].opcode === 'looks_say') || (script.blocks[i].opcode === 'looks_sayforsecs')) {
                             this.requirements.usesSayBlock.bool = true;
                         }
                     
                     }
+                    // everytime there is a sprite that is interactive and speaks, increase the number of the sprites that fall under
+                    // this category
                     if (isInteractiveAndSpeaks) {
                         numInteractiveAndSpeaks ++;
                     }
@@ -158,12 +163,12 @@ module.exports = class {
     initReqs() {
         this.requirements.kangaroo = {bool: false, str: 'Kangaroo script has been changed'};
         this.requirements.grasshopper = {bool: false, str: 'Grasshopper script has been changed'};
-       // this.requirements.stop = {bool: false, str: 'All the animals stop in the same place'};
         this.requirements.bee = {bool: false, str: 'Bee flies in a circle when clicked (using next costume, turn, and move steps)'};
         this.extensions.changeSize = {bool: false, str: 'Uses "change size by"'};
         this.extensions.changeEffect = {bool: false, str: 'Uses "change color effect by"'}
     }
 
+    //helper method to check if kangaroo and grasshopper have new scripts and set requirements accordingly
     checkScripts(target) {
         for (let script of target.scripts){
             if (script.blocks[0].opcode.includes('event_')){
@@ -195,6 +200,7 @@ module.exports = class {
         }
     } 
 
+    //helper method to check if bee flies in a circle and whether the extra suggested blocks are used
     checkBlocks(target) {
         for (let script of target.scripts){
             let costume = false;
@@ -227,6 +233,7 @@ module.exports = class {
         this.initReqs();
         if (!is(fileObj)) return;
 
+        //runs helper methods
         for (let target of project.targets){
             this.checkScripts(target);
             this.checkBlocks(target);
@@ -255,9 +262,10 @@ module.exports = class {
         this.requirements.scripts = { bool: false, str: 'Both sprites have at least one script starting with "when green flag clicked" and one starting with a different event block (which must not be the same as the other sprite)' };
         this.extensions.loop = { bool: false, str: '"Sound" or "look" block used inside a loop' };
         this.extensions.sizeOrDirection = { bool: false, str: 'The sprite moves and changes size or direction in the same script' };
-        this.eventArr = [];
+        this.eventArr = []; //saves list of event blocks used in order to check if the sprites use different ones
     }
 
+    //checks if backdrop has been changed or a new backdrop added
     checkBackdrop(target) {
         if ((target.costumes.length > 1) ||
             (target.costumes[0].assetId !== 'cd21514d0531fdffb22204e0ec5ed84a')) {
@@ -265,6 +273,7 @@ module.exports = class {
         }
     }
 
+    //checks if gotoxy block is used to reset sprite every time the green flag is clicked
     checkXY(target){
         for (let script of target.scripts){
             if (script.blocks[0].opcode === 'event_whenflagclicked'){
@@ -277,10 +286,12 @@ module.exports = class {
         }
     }
 
+    //helper method dealing with loops
     checkLoop(target){
         for (let script of target.scripts){
             if (script.blocks[0].opcode.includes('event_')){
                 for (let block of script.blocks){
+                    //checks if a loop is used containing the specified blocks (this.requirements.repeat)
                     if (block.opcode === 'control_repeat'){
                         for (let i = block.inputs.SUBSTACK[1]; i != null; i = target.blocks[i].next) {
                             let opc = target.blocks[i].opcode;
@@ -289,7 +300,8 @@ module.exports = class {
                                 || opc === 'looks_nextcostume'
                                 || opc === 'control_wait'){
                                     this.requirements.repeat.bool = true;
-                            }
+                            } 
+                            //checks if sound or looks blocks are used inside a loop for animation (this.extensions.loop)
                             else if (opc.includes('sound_')||opc.includes('looks_')){
                                 this.extensions.loop.bool = true;
                             }
@@ -300,6 +312,8 @@ module.exports = class {
         }
     }
     
+    //checks the scripts in each sprite
+    //returns true if the sprite has one "when flag clicked" event block and one other event block that hasn't already been used
     checkScripts(target){
         let greenFlag = false;
         let otherEvent = false;
@@ -307,14 +321,21 @@ module.exports = class {
         let dirOrSize = false;
         for (let script of target.scripts){
             let opc1 = script.blocks[0].opcode;
+
+            //checks if when flag clicked is used
             if (opc1.includes('event_')){
                 if (opc1==='event_whenflagclicked'){greenFlag=true;}
                 else {
+
+                    //checks if other event blocks have already been used
+                    //if not, adds event block to array of used event blocks and saves that this sprite has a new event block
                     if (!this.eventArr.includes(opc1)){
                         this.eventArr.push(opc1);
                         otherEvent = true;
                     }
                 }
+
+                //checks if the sprite moves and then changes size or direction
                 for (let block of script.blocks){
                     let blopcode = block.opcode;
                     console.log(blopcode);
@@ -328,7 +349,10 @@ module.exports = class {
                 }
             }
         }
+        //sets requirement accordingly
         if (move && dirOrSize) {this.extensions.sizeOrDirection.bool=true;}
+
+        //see method description
         return (greenFlag && otherEvent);
     }
 
@@ -341,6 +365,7 @@ module.exports = class {
         let scriptedSprites = 0;
         let eventArr = [];
 
+        //calls helper methods
         for (let target of project.targets) {
             if (target.isStage) {
                 this.checkBackdrop(target);
@@ -352,6 +377,7 @@ module.exports = class {
             }
         }
 
+        //sets requirements accordingly
         if (spriteNumber >= 2){this.requirements.twoSprites.bool=true;}
         if (scriptedSprites >= 2) {this.requirements.scripts.bool=true;}
     }
@@ -371,14 +397,18 @@ module.exports = class {
     }
 
     initReqs(){
+        //requirements for classroom use
         this.requirements.event = {bool: false, str: 'Project uses at least one event block'};
         this.requirements.loop = {bool: false, str: 'Project has a functional loop'};
         this.requirements.sprite = {bool: false, str: 'Project has at least one sprite with a script'};
-        this.requirements.backdrop = {bool: false, str: 'Scene changes'};
-        this.extensions.threeBackdrops = {bool: false, str: 'Uses 3 different backdrops'};
-        this.extensions.showHide = {bool: false, str: 'Uses "show" or "hide"'};
-        this.extensions.music = {bool: false, str: 'Sounds added'};
-        
+        this.extensions.threeBackdrops = {bool: false, str: 'Uses three different backdrops'};
+        this.extensions.sound = {bool: false, str: 'Sounds or dialogue added'};
+
+        //old requirements
+        //this.extensions.showHide = {bool: false, str: 'Uses "show" or "hide"'};
+        //this.requirements.backdrop = {bool: false, str: 'Scene changes'};
+       
+        //requirements for research purposes
         /////
         // this.requirements.one = { bool: false, str: 'at least 1 unique block'};
         // this.requirements.two = { bool: false, str: 'at least 2 unique blocks'};
@@ -403,13 +433,15 @@ module.exports = class {
 
         for (let target of project.targets){
 
+            //checks if three different backdrops are used
             if (target.isStage){
                 if (target.costumes.length>=3){
-                    // this.extensions.threeBackdrops.bool=true;
+                    this.extensions.threeBackdrops.bool=true;
                 }
             }  
 
 
+            //counts how many unique blocks are used
             for (let script in target.scripts) {
                 if (target.scripts[script].blocks[0].opcode.includes('event_')){
                     for (let block of target.scripts[script].blocks) {
@@ -424,9 +456,11 @@ module.exports = class {
 
             for (let block in target.blocks){
 
+                //checks if project uses at least one event block
                 if (target.blocks[block].opcode.includes('event_')){
                     this.requirements.event.bool=true;
 
+                    //checks if project has at least one non-empty loop
                     for (let i = block; target.blocks[i].next !== null; i = target.blocks[i].next){
                         let opc = target.blocks[i].opcode;
                         if ((opc==='control_forever')
@@ -438,19 +472,25 @@ module.exports = class {
                     }
                 }
 
+                //checks if sound or dialogue is added
                 let opc = target.blocks[block].opcode;
-                if (opc.includes('backdrop')){
-                    this.requirements.backdrop.bool=true;
-                }
-                if ((opc.includes('show'))
-                ||opc.includes('hide')){
-                    this.extensions.showHide.bool=true;
-                }
                 if ((opc==='sound_playuntildone')
-                ||(opc==='sound_play')){
-                    this.extensions.music.bool=true;
+                ||(opc==='sound_play')
+                || (opc==='looks_say')
+                || (opc==='looks_sayforsecs')){
+                    this.extensions.sound.bool=true;
                 }
+                //old requirements
+                // if (opc.includes('backdrop')){
+                //     this.requirements.backdrop.bool=true;
+                // }
+                // if ((opc.includes('show'))
+                // ||opc.includes('hide')){
+                //     this.extensions.showHide.bool=true;
+                // }
 
+
+                //checks if project has at least one sprite
                 if (!target.isStage){
                     this.requirements.sprite.bool=true;
                 }
@@ -499,7 +539,7 @@ module.exports = class {
 
 
         var project = new Project(fileObj, null);
-        let lastBlock = 0;
+        
         let soundOptions = ['looks_say', 'looks_sayforsecs', 'sound_playforsecs', 'sound_playuntildone'];
         let sheepJoke = [];
         let cowJoke = [];
@@ -509,17 +549,22 @@ module.exports = class {
         for (let target of project.targets) {
             if (target.isStage) { continue; }
             else {
+                // sheep sprite - check that the sheep laughs, needs to add a wait block and then a sound block to laugh
+                // after the cow says moo
                 if (target.name === 'Sheep') {
                     for (let script of target.scripts) {
+                        // starts with when green flag clicked
                         if (script.blocks[0].opcode === 'event_whenflagclicked') {
                             for (let i = 0; i < script.blocks.length; i++) {
-
+                                // finds the block with the opcode that is a think (last block in the script of the original project)
                                 if (script.blocks[i].opcode === 'looks_thinkforsecs') {
                                     let nextBlock = script.blocks[i].next;
                                     if (nextBlock !== null) {
+                                        // makes sure that the next block added is a wait
                                         if (target.blocks[nextBlock].opcode === 'control_wait') {
                                             let nextNextBlock = target.blocks[nextBlock].next;
                                             if (nextNextBlock !== null) {
+                                                // next block added after that should be a sound 
                                                 if (soundOptions.includes(target.blocks[nextNextBlock].opcode)) {
                                                     this.requirements.sheepLaughs.bool = true;
                                                 }
@@ -534,7 +579,7 @@ module.exports = class {
                         }
 
 
-
+                        // collects all the blocks that are in the script when space key pressed for sheep
                         if (script.blocks[0].opcode === 'event_whenkeypressed') {
                             if (script.blocks[0].fields.KEY_OPTION[0] === 'space') {
                                 for (let i = 0; i < script.blocks.length; i++) {
@@ -546,6 +591,7 @@ module.exports = class {
                     }
 
                 }
+                // collects all the blocks that are in the script when space key pressed for cow
                 if (target.name === 'Cow') {
                     for (let script of target.scripts) {
                         if (script.blocks[0].opcode === 'event_whenkeypressed') {
@@ -563,21 +609,6 @@ module.exports = class {
             }
 
 
-    //updates bug direction and locaiton
-    updateFromProc(block) {
-        if (block.opcode === 'motion_gotoxy') {
-            console.log('motion go to xy')
-            this.bug.locX = parseFloat(this.blankTo0(block.inputs.X[1][1]));
-            this.bug.locY = parseFloat(this.blankTo0(block.inputs.Y[1][1]));
-        }
-        if (block.opcode === 'motion_pointindirection') {
-            console.log('motion point in direction');
-            this.bug.dir = parseFloat(this.blankTo0(block.inputs.DIRECTION[1][1]));
-        }
-        if (block.opcode === 'motion_turnright') {
-            console.log('motion turn right');
-            this.bug.dir -= parseFloat(this.blankTo0(block.inputs.DEGREES[1][1]));
-        }
 
         }
 
@@ -587,14 +618,16 @@ module.exports = class {
         let cowUtil = util.inspect(cowJoke);
         let sheepUtil = util.inspect(sheepJoke);
 
-
+        // checks that the opcodes of the jokes that were collected previously
+        // match the correct order of a knock knock joke
+        // if this is true the requirement is set to true 
         if (cowOrig === cowUtil && sheepOrig === sheepUtil) {
             this.requirements.anotherKnockKnock.bool = true;
         }
 
     }
 }
-},{"../grading-scripts-s3/scratch3":26,"util":36}],6:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":26,"util":45}],6:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -1823,8 +1856,8 @@ module.exports = class {
         this.requirements.leftCostume = { bool: false, str: 'The left costume has been changed' }; // done
         this.requirements.rightCostume = { bool: false, str: 'The right costume has been changed' }; // done
         this.requirements.midCostume = { bool: false, str: 'The middle costume has been changed' };
-        this.requirements.interactiveRight = { bool: false, str: 'Right sprite uses the "when this sprite clicked" block (is interactive)' };
-        this.requirements.interactiveMiddle = { bool: false, str: 'Middle sprite uses the "when this sprite clicked" block (is interactive)' };
+        this.requirements.interactiveRight = { bool: false, str: 'Right sprite uses the "when this sprite clicked" block (is interactive)' }; // done
+        this.requirements.interactiveMiddle = { bool: false, str: 'Middle sprite uses the "when this sprite clicked" block (is interactive)' }; // done
         this.requirements.speakingRight = { bool: false, str: 'Right sprite has a script with a say block in it' }; // done
         this.requirements.speakingMiddle = { bool: false, str: 'Middle sprite has a script with a say block in it' }; // done
 
@@ -1834,6 +1867,9 @@ module.exports = class {
         this.requirements.speaking3 = {bool: false, str: '3 sprites use the say block'};
         this.requirements.interactive1 = { bool: false, str: '1 sprite is interactive' };
         this.requirements.interactive2 = {bool: false, str: '2 sprites are interactie'};
+        this.requirements.costume1 = {bool: false, str: '1 sprite has a new costume'};
+        this.requirements.costume2 = {bool: false, str: '2 sprites have a new costume'};
+        this.requirements.costume3 = {bool: false, str: '3 sprites have a new costume'};
         
        
         // // extensions
@@ -1854,7 +1890,7 @@ module.exports = class {
         let origCostumeMiddle = 0;
         let origLeftDialogue = '';
 
-        // gets the costumes from the original project 
+        // gets the costumes from the original project and stores it in an array
         var oldCostumes = [];
         for (let origTarget of original.targets) {
             if (origTarget.name === 'Left') {
@@ -1863,6 +1899,7 @@ module.exports = class {
                 oldCostumes.push(origCostumeLeft);
                 for (let block in origTarget.blocks) {
                     if (origTarget.blocks[block].opcode === 'looks_sayforsecs') {
+                        // gets the original dialogue
                         origLeftDialogue = origTarget.blocks[block].inputs.MESSAGE[1][1];
                     }
                 }
@@ -1889,13 +1926,18 @@ module.exports = class {
         let rightInteraction = false;
         var soundOptions = ['looks_say', 'looks_sayforsecs'];
         var newCostumes = [];
+        let left = false;
+        let middle = false;
+        let right = false;
 
         // strict requirements
         for (let target of project.targets) {
             if (target.isStage) {
                 continue;
             }
-           
+
+            // finds the dialogue and current costume for each sprite, left middle and right
+            // checks that each diaglogue is not equal to the original/makes sure that the sprite has dialogue
             if (target.name === 'Left') {
                 let cost1 = target.currentCostume;
                 leftCost = target.costumes[cost1].assetId;
@@ -1914,31 +1956,37 @@ module.exports = class {
                     this.requirements.leftChanged.bool = true;
                 }
                 if (leftCost !== origCostumeLeft && leftCost !== 0) {
+                    left = true;
                     this.requirements.leftCostume.bool = true;
                 }
             }
-            // make sure that the code is not the same as the original here, copy in from the bottom
+            
+
             if (target.name === 'Middle') {
                 let cost2 = target.currentCostume;
                 midCost = target.costumes[cost2].assetId;
                 newCostumes.push(midCost);
                 for (let block in target.blocks) {
+                    // is checking that the sprite is interactive
                     if (target.blocks[block].opcode === 'event_whenthisspriteclicked') {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             continue;
+                            // makes sure that the interactive script is DIFFERENT from the original project
                         } else if ((target.blocks[block].next === "/f[ltBij)7]5Jtg|W(1%") && (target.blocks[block].parent === null)) {
                             let nextBlock = target.blocks[block].next;
+                            // makes sure that there is a block following the when sprite clicked block
                             if (target.blocks[nextBlock].next === null) {
                                 continue;
-                                // means that they have added another block to the script, meaning it is different from 
-                                // the original
+                                // if next block is not null
                             } else {
                                 midInteraction = true;
                             }
+                            // if next block is different from the one in the original
                         } else {
                             midInteraction = true;
                         }
                     }
+                    // gets the dialogue for the middle sprite
                     if (soundOptions.includes(target.blocks[block].opcode)) {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             continue;
@@ -1947,6 +1995,7 @@ module.exports = class {
                         }
                     }
                 }
+                // sets the requirements
                 if (midInteraction) {
                     this.requirements.interactiveMiddle.bool = true;
                 }
@@ -1954,6 +2003,7 @@ module.exports = class {
                     this.requirements.speakingMiddle.bool = true;
                 }
                 if (midCost !== origCostumeMiddle && midCost !== 0) {
+                    middle = true;
                     this.requirements.midCostume.bool = true;
                 }
             }
@@ -1963,6 +2013,8 @@ module.exports = class {
                 rightCost = target.costumes[cost3].assetId;
                 newCostumes.push(rightCost);
                 for (let block in target.blocks) {
+                    // checks that the sprite is interactive by making sure that when
+                    // sprite clicked is use in a script
                     if (target.blocks[block].opcode === 'event_whenthisspriteclicked') {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             continue;
@@ -1971,6 +2023,7 @@ module.exports = class {
                             rightInteraction = true;
                         }
                     }
+                    // gets the dialogue
                     if (soundOptions.includes(target.blocks[block].opcode)) {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             continue;
@@ -1979,6 +2032,7 @@ module.exports = class {
                         }
                     }
                 }
+                // sets the requirements
                 if (rightInteraction) {
                     this.requirements.interactiveRight.bool = true;
                 }
@@ -1986,6 +2040,7 @@ module.exports = class {
                     this.requirements.speakingRight.bool = true;
                 }
                 if (rightCost !== origCostumeRight && rightCost !== 0) {
+                    right = true;
                     this.requirements.rightCostume.bool = true;
                 }
             }
@@ -1994,11 +2049,13 @@ module.exports = class {
 
         // --------------------------------------------------------------------------------------------------------- //
 
-    
+        // general case, checks in the case that the students changed the sprite names
+
         let speaks = false;
         let interactive = false;
         let numInteractive = 0;
         let numSpeaking = 0;
+        let numCostumes = 0;
 
         //f there is a say block in a sprite that is not named catrina, and that say block is not used in the same 
         //context as the original project (same parent and next block)
@@ -2009,11 +2066,11 @@ module.exports = class {
                 continue;
             } else if (target.isStage) { continue;}
             else {
-                console.log(speaks);
+               
                 for (let script in target.scripts) {
                     for (let block in target.scripts[script].blocks) {
                         if (soundOptions.includes(target.scripts[script].blocks[block].opcode)) {
-                            console.log(speaks);
+                            // finds a sound block and makes sure that it is used in instances that are NOT from the original
                             if ((target.scripts[script].blocks[block].next === "Q.gGFO#r}[Z@fzClmRq-") &&
                                 (target.scripts[script].blocks[block].parent === "taz8m.4x_rVweL9%J@(3") &&
                                 (target.scripts[script].blocks[block].inputs.MESSAGE[1][1] === "I am Grandpa John.")) {
@@ -2024,13 +2081,13 @@ module.exports = class {
                                 continue;
                             }
                             else {
-                                    
+                                    // sets speaks boolean to true
                                     speaks = true;
                                 }
                         }
 
+                        // checks for an interactive sprite that is used in instances that are NOT from the original
                         if (target.scripts[script].blocks[block].opcode === 'event_whenthisspriteclicked') {
-                           
                             if (target.scripts[script].blocks[block].next === "}VBgCH{K:oDh6pV0h.pi" && target.scripts[script].blocks[block].parent === null) {
                                 continue;
                             } else if (target.scripts[script].blocks[block].next === "/f[ltBij)7]5Jtg|W(1%" && target.scripts[script].blocks[block].parent === null) {
@@ -2045,6 +2102,8 @@ module.exports = class {
                                 }
                         }
 
+                        // looks for certain blocks and makes sure that they are in a script
+                        // sets the extensions
                         // extensions
                         if (target.scripts[script].blocks[block].opcode === 'sound_playuntildone') {
                             if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
@@ -2057,7 +2116,7 @@ module.exports = class {
                             if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
                                 continue;
                             } else {
-                                this.extensions.keyCommand.bool = true;
+                               this.extensions.keyCommand.bool = true;
                             }
                         }
                         if (target.scripts[script].blocks[block].opcode === 'motion_gotoxy') {
@@ -2070,7 +2129,7 @@ module.exports = class {
                     }
                     
                 }
-               
+               // for every sprite that fulfills that the boolean, number incremented
                 if (speaks === true) {
                     numSpeaking ++;
                 }
@@ -2083,7 +2142,7 @@ module.exports = class {
             }
         }
        
-       
+       // counts the number of sprites that fulfill each requirement
         if (numSpeaking >= 1) {
             this.requirements.speaking1.bool = true;
         }
@@ -2094,10 +2153,33 @@ module.exports = class {
             this.requirements.speaking3.bool = true;
         }
         if (numInteractive >= 1) {
-            this.requirements.interactive1.bool = true;
+           this.requirements.interactive1.bool = true;
         }
         if (numInteractive >= 2) {
-            this.requirements.interactive2.bool = true;
+           this.requirements.interactive2.bool = true;
+        }
+       
+        // only right has a new costume
+        if (right === true) {
+            numCostumes ++;
+        }
+        if (left == true) {
+            numCostumes ++;
+        }
+        
+        if (middle == true) {
+            numCostumes++;
+        }
+
+      
+        if (numCostumes === 1) {
+            this.requirements.costume1.bool = true;
+        } 
+        if (numCostumes === 2) {
+           this.requirements.costume2.bool = true;
+        }
+        else if (numCostumes === 3) {
+            this.requirements.costume3.bool = true;
         }
     }
 } 
@@ -2247,6 +2329,7 @@ module.exports = class {
                     }
                 }
                 
+                // if a glide block is added to the original project
                 if (numGlides >= 2) {
                     this.requirements.rooGlides.bool = true;
                 }
@@ -3143,6 +3226,7 @@ module.exports = class {
         for (let target of project.targets) {
             if (target.isStage) { continue; }
             else {
+                // looks in sprite names fred for a say block, move block
                 if (target.name === 'Fred') {
                     for (let script of target.scripts) {
                         for (let i = 0; i < script.blocks.length; i++) {
@@ -3153,7 +3237,7 @@ module.exports = class {
                                 finalString = finalString.replace(/\s+/g, '');
                                 if (finalString === 'havefun') {
                                     haveFunFred = true;
-                                    //this.requirements.fredSaysHaveFun.bool = true;
+                                   
                                 }
                             }
 
@@ -3162,12 +3246,15 @@ module.exports = class {
                             }
                         }
                     }
+                    // if a move block is added, the boolean of fred moving is set to true
                     if (numMoveFred > 3) {
                         fredMoves = true;
-                        //this.requirements.fredMoves.bool = true;
+                        
                     }
                 }
 
+                // looks through helen to find the  speed that she changes costuems at, if it is less than one
+                // boolean that means she changes costumes faster is set to true
                 else if (target.name === 'Helen') {
                     let origWait = 1;
                     for (let script of target.scripts) {
@@ -3175,14 +3262,15 @@ module.exports = class {
                             if (script.blocks[i].opcode === 'control_repeat') {
                                 let substack = script.blocks[i].inputs.SUBSTACK[1];
                                 if (target.blocks[substack].inputs.DURATION[1][1] < 1) {
-                                    //this.requirements.helenChangesColor.bool = true;
+                                    
                                     helenSpeed = true;
                                 }
                             }
+                            // when helen is clicked, she changes to a different color
                             if (script.blocks[0].opcode === "event_whenthisspriteclicked") {
                                 for (let i = 0; i < script.blocks.length; i++) {
                                     if (script.blocks[i].opcode === 'looks_switchcostumeto') {
-                                        //this.requirements.helenDifferentColor.bool = true;
+                                        
                                         helenColor = true;
                                     }
                                 }
@@ -3191,6 +3279,7 @@ module.exports = class {
                         }
                     }
                 }
+                // deals with the cases if the sprite names are changed from fred and helen
                 else {
                     for (let block in target.blocks) {
                         if ((target.blocks[block].opcode === 'looks_say') || (target.blocks[block].opcode === 'looks_sayforsecs')) {
@@ -3198,15 +3287,18 @@ module.exports = class {
                             let punctuationless1 = dialogue1.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
                             let finalString1 = punctuationless1.replace(/\s{2,}/g, " ");
                             finalString1 = finalString1.replace(/\s+/g, '');
+                            // checks that have fun is said
                             if (finalString1 === 'havefun') {
                                 haveFunMisc = true;
                             }
                         }
-
+                        
+                        // motion block is used
                         if (target.blocks[block].opcode === 'motion_movesteps') {
                             numMoveMisc++;
                         }
 
+                        // speed at which the sprite changes costumes is changed
                         if (target.blocks[block].opcode === 'control_repeat') {
                             let substack1 = target.blocks[block].inputs.SUBSTACK[1];
                             if (target.blocks[substack1].inputs.DURATION[1][1] < 1) {
@@ -3214,6 +3306,7 @@ module.exports = class {
                             }
                         }
 
+                        // there is a switch costume block used in a context that is different from the original
                         if (target.blocks[block].opcode === 'looks_switchcostumeto') {
                             if (target.blocks[block].next === "ohLm|%[frcYkDCD02Izs" && target.blocks[block].parent === "N_^HGxU/.EOLU(;~p]Hp") {
                                 continue;
@@ -3228,6 +3321,7 @@ module.exports = class {
                 }
             }
         }
+        // for all requirements, if the specific sprite does it or ANY sprite does it, the requirement is set to true
         if (haveFunFred || haveFunMisc) {
             this.requirements.fredSaysHaveFun.bool = true;
         }
@@ -3431,7 +3525,7 @@ module.exports = class {
 
 }
 
-},{"./scratch3":26}],13:[function(require,module,exports){
+},{"./scratch3":26,"./templates/animation-L1-gaming.json":27,"./templates/animation-L1-multicultural.json":28,"./templates/animation-L1-youth-culture.json":29}],13:[function(require,module,exports){
 /* Animation L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and minor bug fixes: Marco Anaya, Summer 2019
@@ -3901,72 +3995,127 @@ module.exports = class {
     }
 
     initReqs() {
-        this.requirements.stop = {bool: false, str: 'Vehicle sprite stops when touching another sprite or another color'}; // check condition in repeat until
-        this.requirements.speak = {bool: false, str: 'Vehicle sprite says something or makes a sound when it stops'}; // check block after repeat until 
-        this.requirements.moves = {bool: false, str: 'Vehicle sprite moves across the stage in a looping fashion'}; // check contents of the loop
+        this.requirements.stop = { bool: false, str: 'Vehicle sprite stops when touching another sprite or another color' }; // done
+        this.requirements.speak = { bool: false, str: 'Vehicle sprite says something or makes a sound when it stops' }; // done
+        this.requirements.moves = { bool: false, str: 'Vehicle sprite moves across the stage in a looping fashion' }; // done
+        this.extensions.addCostume = { bool: false, str: 'Another costume is added to the current mode of transportation' }; // done
+        this.extensions.nextCostume = { bool: false, str: 'The sprite is animated with a "next costume" block' }; // done
+        this.extensions.touchingNewSprite = { bool: false, str: 'The sprite stops when it touches a new sprite added from the sprite library' };
+        this.extensions.repeatBlock = { bool: false, str: 'Repeat blocks added to animate another sprite' }; // done
     }
 
     grade(fileObj, user) {
         var project = new Project(fileObj, null);
         this.initReqs();
 
+        let numRepeat = 0;
+      
+        let allCostumes = 0;
+        let sprites = [];
+        let objectTouching = null;
+        let touching = null;
+        let moveOptions = ['motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy', 'motion_glideto', 'motion_goto', 'motion_gotoxy']
+        let soundOptions = ['sound_playuntildone', 'sound_play', 'looks_say', 'looks_sayforsecs']
         for (let target of project.targets) {
             if (target.isStage) {
                 continue;
             }
-            else {        
-                for (let block in target.blocks) {
-                    
-                    // script starting with the when green flag clicked block
-                    if (target.blocks[block].opcode === 'event_whenflagclicked') {
-                        
-                        let b = new Block(target,block);
-                        let childBlocks = b.childBlocks();
-                        for (let i = 0; i < childBlocks.length; i ++) {
-                            if (childBlocks[i].opcode === 'control_repeat_until') {
-                                // checks if a sound is made once the loop is over
-                                var soundOptions = ['sound_playuntildone', 'sound_play', 'looks_say', 'looks_sayforsecs']
-                                let nextBlock = childBlocks[i].next;
+            else {
+                sprites.push(target.name);
+                for (let script of target.scripts) {
+                    // a script that starts with an event block
+                    if (script.blocks[0].opcode.includes('event_')) {
+                        for (let i = 0; i < script.blocks.length; i++) {
+                            // checking to see if a repeat block is used
+                            
+                            if (script.blocks[i].opcode.includes('control_repeat')) {
+                                console.log(target.name)
+                                numRepeat++;
+
+                                //checks to see if a sound is is made once the loop is over
+                                let nextBlock = script.blocks[i].next;
+                               
+                                // if there is no next block continue
                                 if (nextBlock === null) {
-                                    this.requirements.speak.bool = false;
-                                } else if (soundOptions.includes(target.blocks[nextBlock].opcode)) {
+                                    continue;
+                                }
+                                // if the next block is a sound block, set the requirement
+                                else if (soundOptions.includes(target.blocks[nextBlock].opcode)) {
                                     this.requirements.speak.bool = true;
                                 }
-                                if (childBlocks[i].inputs.CONDITION) {
-                                    let condition = childBlocks[i].inputs.CONDITION[1];
+                                
+                                
+                                let condition = script.blocks[i].inputs.CONDITION[1];
+                                
 
-                                    if (target.blocks[condition].opcode === 'sensing_touchingobject') {
-                                        let touching = target.blocks[condition].inputs.TOUCHINGOBJECTMENU[1];
-                                        var objectTouching = target.blocks[touching].fields.TOUCHINGOBJECTMENU[0];
-                                    }
-                                    
-                                    // checks to see if it stops when it is touching a color
-                                    if ((target.blocks[condition].opcode === 'sensing_touchingcolor') ||
-                                        (target.blocks[condition].opcode === 'sensing_coloristouchingcolor')) {
-                                        this.requirements.stop.bool = true;
-                                    }
-                                    
-                                    let substack = childBlocks[i].inputs.SUBSTACK[1];
-                                    
-                                    var moveOptions = ['motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy', 'motion_glideto', 'motion_goto', 'motion_gotoxy']
-                                    if (moveOptions.includes(target.blocks[substack].opcode)) {
-                                        this.requirements.moves.bool = true;
+                                if (target.blocks[condition].opcode === 'sensing_touchingobject') {
+                                    touching = target.blocks[condition].inputs.TOUCHINGOBJECTMENU[1];
+                                    objectTouching = target.blocks[touching].fields.TOUCHINGOBJECTMENU[0];
+                        
+                                }
+                                // checks that it stops when touching a color
+                                else if ((target.blocks[condition].opcode === 'sensing_touchingcolor') ||
+                                    (target.blocks[condition].opcode === 'sensing_coloristouchingcolor')) {
+                                    this.requirements.stop.bool = true;
+                                }
+
+                                let substack = script.blocks[i].inputs.SUBSTACK[1];
+                                
+                              
+                                // there is only one block in the loop and that is a move block
+                                if (moveOptions.includes(target.blocks[substack].opcode)) {
+                                   
+                                    this.requirements.moves.bool = true;
+                                } else {
+                                    // there are multiple blocks in the loop, iterate through them to see 
+                                    while (target.blocks[substack].next !== null) {
+                                      
+                                        
+                                        if (moveOptions.includes(target.blocks[substack].opcode)) {
+                                            
+                                            this.requirements.moves.bool = true;
+                                        }
+                                        if (target.blocks[substack].opcode === 'looks_switchcostumeto') {
+                                            this.extensions.nextCostume.bool = true;
+                                        }
+                                        substack = target.blocks[substack].next;
                                     }
                                 }
+
+
                             }
+                     
                         }
-                    }  
+                    }
                 }
+                allCostumes += target.costumes.length;
             }
-            // checks to see if it stops when it is touching another sprite
-            if (target.name === objectTouching) {
-                this.requirements.stop.bool = true;
+        }
+        if(sprites.includes(objectTouching)) {
+            this.requirements.stop.bool = true;
+        }
+       
+        if (allCostumes > 12) {
+            this.extensions.addCostume.bool = true;
+        }
+        
+        
+       
+        
+        if (numRepeat > 1) {
+            this.extensions.repeatBlock.bool = true;
+        }
+        
+        if (project.sprites.length > 2) {
+            if (objectTouching !== 'Sign') {
+                this.extensions.touchingNewSprite.bool = true;
             }
         }
     }
 }
 
-
+                
+  
 },{"../grading-scripts-s3/scratch3":26}],17:[function(require,module,exports){
 (function (global){
 /// Info layer template
@@ -4003,10 +4152,8 @@ global.Context = class {
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],18:[function(require,module,exports){
-/* Decomposition By Sequence L1 Autograder
- * Scratch 2 (original) version: Max White, Summer 2018
- * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
- * Reformatting, bug fixes, and updates: Anna Zipp, Summer 2019
+/* General/All-Strand Decomposition By Sequence L1 Autograder
+ * Scratch 3 (original) version: Anna Zipp, Summer 2019
  */
 
 require('./scratch3');
@@ -4469,8 +4616,7 @@ module.exports = class {
         }
     }
 }
-
-},{"./scratch3":26}],19:[function(require,module,exports){
+},{"./scratch3":26,"./templates/decomp-L1-gaming.json":30,"./templates/decomp-L1-multicultural.json":31,"./templates/decomp-L1-youthculture.json":32}],19:[function(require,module,exports){
 /* Decomposition by Sequence L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -4716,67 +4862,213 @@ module.exports = class {
 },{"./scratch3":26}],20:[function(require,module,exports){
 require('./scratch3');
 
-module.exports = class {
+module.exports = class GradeEventsL1 {
 
-    init() {
-        this.requirements = {
-            reactToClick: { bool: false, str: 'Three sprites react to being clicked.'                          },
-            getBigger:    { bool: false, str: 'Three sprites get bigger when clicked.'                         },
-            talkTwice:    { bool: false, str: 'After getting bigger the sprites talk twice.'                  },
-            resetSize:    { bool: false, str: 'After talking twice the sprites reset to their original size.' }
-        };
-        this.extensions = {
-            changedName:  { bool: false, str: 'At least one sprite\'s name has been changed.'                  },
-            addedSpin:    { bool: false, str: 'At least one sprite spins using turn and wait blocks.'          },
-            addedEvent:   { bool: false, str: 'At least one sprite reacts to a different event.'               }
-        };
-    }
-
-    grade(json, user) {
-        this.init();
-        if (no(json)) return;
-        var project = new Project(json, this);
-        for (var sprite of project.sprites) {
-            for (var script of sprite.scripts.filter(script => script.blocks[0].opcode.includes('event_when'))) {
-                script.context.spriteSize = script.context.initialSpriteSize = parseFloat(sprite.size);
-                for (var block of script.blocks) {
-                    if (block.opcode === 'looks_changesizeby') {
-                        if (block.inputs.CHANGE[1][1] > 0) script.context.getBigger = 1;
-                        script.context.spriteSize += parseFloat(block.inputs.CHANGE[1][1]);
+    /// Identify all subscripts of a block, recursively.
+    subscriptsRecursive(block, array) {
+        if (block.subscripts.length) {
+            for (var subscript of block.subscripts) {
+                array.push(subscript);
+                if (subscript.blocks.length) {
+                    for (var block_ of subscript.blocks) {
+                        this.subscriptsRecursive(block_, array);
                     }
-                    else if (block.opcode === 'looks_setsizeto') {
-                        if (block.inputs.SIZE[1][1] > script.context.initialSpriteSize) script.context.getBigger = 1;
-                        script.context.spriteSize = parseFloat(block.inputs.SIZE[1][1]);
-                    }
-                    if (block.opcode.includes('looks_say') && script.context.spriteSize > script.context.initialSpriteSize) {
-                        script.context.talkTwice++;
-                    }
-                }
-                if (script.context.getBigger && Math.abs(script.context.spriteSize - script.context.initialSpriteSize) < 0.05) {
-                    script.context.resetSize = 1;
-                }
-                if (script.blocks[0].opcode === 'event_whenthisspriteclicked' && script.blocks.length > 1) {
-                    script.context.reactToClick = 1;
-                }
-                else if (script.blocks[0].opcode !== 'event_whenflagclicked' && script.blocks.length > 1) {
-                    script.context.addedEvent = 1;
-                }
-                if (script.blocks.some(block => block.opcode.includes('motion_turn')) &&
-                        script.blocks.some(block => block.opcode === 'control_wait')) {
-                    script.context.addedSpin = 1;
                 }
             }
-            sprite.context.changedName = !['Left', 'Middle', 'Right', 'Catrina'].includes(sprite.name);
-            sprite.context.pull(['reactToClick', 'getBigger', 'resetSize', 'addedEvent', 'addedSpin'], 1, false);
-            sprite.context.pull(['talkTwice'], 2, false);
         }
-        project.context.pull(['reactToClick', 'getBigger', 'talkTwice', 'resetSize'], 3, true);
-        project.context.pull(['changedName', 'addedSpin', 'addedEvent'], 1, false);
-        project.context.makeGrade(this);
+        return array;
+    }
+
+    /// Counts the number of sprites that get larger, speak, and reset size when clicked.
+    clickPassing(project) {
+        var spritesPassing = 0;
+        for (var sprite of project.sprites) {
+            var scriptsPassing = 0;
+            for (var script of sprite.scripts.filter(
+                script => script.blocks[0].opcode === 'event_whenthisspriteclicked' && script.blocks.length > 1
+            )) {
+                var spriteSize = parseFloat(sprite.size);
+                var initialSpriteSize = spriteSize;
+                var gotBigger = false;
+                var spoke = false;
+                var reset = false;
+                for (var block of script.blocks) {
+                    if (block.opcode === 'looks_changesizeby') {
+                        if (block.inputs.CHANGE[1][1] > 0) gotBigger = true;
+                        spriteSize += parseFloat(block.inputs.CHANGE[1][1]);
+                    }
+                    else if (block.opcode === 'looks_setsizeto') {
+                        if (block.inputs.SIZE[1][1] > initialSpriteSize) gotBigger = true;
+                        spriteSize = parseFloat(block.inputs.SIZE[1][1]);
+                    }
+                    else if (block.opcode.includes('looks_say') && spriteSize > initialSpriteSize) spoke = true;
+                }
+                if (gotBigger && Math.abs(spriteSize - initialSpriteSize) < 0.05) reset = true;
+                if (gotBigger && spoke && reset) scriptsPassing++;
+            }
+            if (scriptsPassing > 0) spritesPassing++;
+        }
+        return spritesPassing;
+    }
+
+    /// Counts the number of sprites with a correctly modeled green flag script.
+    greenFlagPassing(project) {
+        var spritesPassing = 0;
+        for (var sprite of project.sprites) {
+            var scriptsPassing = 0;
+            for (var script of sprite.scripts.filter(
+                script => script.blocks[0].opcode === 'event_whenflagclicked' && script.blocks.length > 1
+            )) {
+                var containsGoTo = false;
+                var containsSetSize = false;
+                for (var block of script.blocks) {
+                    if (block.opcode === 'motion_gotoxy' || this.strand === 'multicultural')  containsGoTo = true;
+                    if (block.opcode === 'looks_setsizeto') containsSetSize = true;
+                }
+                if (containsGoTo && containsSetSize) scriptsPassing++;
+            }
+            if (scriptsPassing > 0) spritesPassing++;
+        }
+        return spritesPassing;
+    }
+
+    /// Counts the number of sprites with a correct right or left arrow script.
+    keyPassing(project, directionString) {
+        var spritesPassing = 0;
+        for (var sprite of project.sprites) {
+            var scriptsPassing = 0;
+            for (var script of sprite.scripts.filter(
+                script => script.blocks[0].opcode === 'event_whenkeypressed' && script.blocks.length > 1
+            )) {
+                var containsMove = false;
+                for (var block of script.blocks) {
+                    if (block.opcode === 'motion_movesteps') {
+                        var key = script.blocks[0].fields.KEY_OPTION[0];
+                        var steps = block.inputs.STEPS[1][1];
+                        if (directionString === 'left' && key === 'left arrow' && steps < 0) containsMove = true;
+                        else if (directionString === 'right' && key === 'right arrow' && steps > 0) containsMove = true;
+                    }
+                    if (directionString === 'any' && block.opcode.includes('motion_')) containsMove = true;
+                }
+                if (containsMove) scriptsPassing++;
+            }
+            if (scriptsPassing > 0) spritesPassing++;
+        }
+        return spritesPassing;
+    }
+
+    /// Counts the number of sprites that spin around using turn and wait blocks in a loop.
+    spinPassing(project) {
+        var spritesPassing = 0;
+        for (var sprite of project.sprites) {
+            var scriptsPassing = 0;
+            for (var script of sprite.scripts.filter (
+                script => script.blocks[0].opcode.includes('event_when') && script.blocks.length > 1
+            )) {
+                var containsSpin = false;
+                for (var block of script.blocks) {
+                    if (['control_repeat', 'control_repeat_until', 'control_forever'].includes(block.opcode)) {
+                        var subscripts = [];
+                        subscripts = this.subscriptsRecursive(block, subscripts);
+                        var containsTurn = false;
+                        var containsWait = false;
+                        for (var subscript of subscripts) {
+                            for (var block of subscript.blocks) {
+                                if (block.opcode.includes('motion_turn')) containsTurn = true;
+                                else if (block.opcode === 'control_wait') containsWait = true;
+                            }
+                        }
+                        if (containsTurn && containsWait) containsSpin = true;
+                    }
+                }
+                if (containsSpin) scriptsPassing++;
+            }
+            if (scriptsPassing > 0) spritesPassing++;
+        }
+        return spritesPassing;
+    }
+
+    /// Counts the number of sprites with changed names.
+    namePassing(project) {
+        var defaultNames = [];
+        if (this.strand === 'multicultural') defaultNames = ['Catrina', 'Left', 'Middle', 'Right'];
+        else if (this.strand === 'youthCulture') defaultNames = ['Jamal', 'Monster', 'Cat'];
+        else if (this.strand === 'gaming') defaultNames = ['Beep', 'Bop', 'Planet X', 'Bork'];
+        var spritesPassing = 0;
+        for (var sprite of project.sprites) {
+            if (!defaultNames.includes(sprite.name)) spritesPassing++;
+        }
+        return spritesPassing;
+    }
+
+    /// Evaluate the completion of the requirements and extensions for a given JSON representation of a project.
+    grade(json, user) {
+        if (no(json)) {
+            this.requirements = {
+                noFile: {
+                    bool: false,
+                    str: 'File not valid.'
+                }
+            }
+            return;
+        };
+        var project = new Project(json, this);
+        this.requirements = {};
+        this.extensions = {};
+        var templates = {
+            multicultural: require('./templates/events-L1-multicultural'),
+            youthCulture:  require('./templates/events-L1-youth-culture'),
+            gaming:        require('./templates/events-L1-gaming')
+        };
+        this.strand = detectStrand(project, templates);
+        console.log(this.strand);
+        this.requirements.click1 = {
+            bool: this.clickPassing(project) >= 1,
+            str: 'One sprite gets larger, speaks, and goes back to its original size when clicked.'
+        };
+        this.requirements.click2 = {
+            bool: this.clickPassing(project) >= 2,
+            str: 'Two sprites get larger, speak, and go back to their original sizes when clicked.'
+        };
+        this.requirements.click3 = {
+            bool: this.clickPassing(project) >= 3,
+            str: 'Three sprites get larger, speak, and go back to their original sizes when clicked.'
+        };
+        this.requirements.greenFlag = {
+            bool: this.greenFlagPassing(project) >= 3,
+            str: 'These three sprites all reset their sizes when the green flag is clicked.'
+        };
+        this.extensions.spin = {
+            bool: this.spinPassing(project) >= 1,
+            str: 'At least one sprite spins around using turn and wait blocks in a loop.'
+        };
+        if (this.strand === 'multicultural') {
+            this.extensions.name = {
+                bool: this.namePassing(project) >= 1,
+                str: 'At least one sprite\'s name has been customized.'
+            };
+        }
+        else if (this.strand === 'youthCulture') {
+            this.extensions.key = {
+                bool: this.keyPassing(project, 'left') >= 1,
+                str: 'The cat moves to the left when the left arrow key is pressed.'
+            };
+        }
+        else if (this.strand === 'gaming') {
+            this.requirements.key = {
+                bool: this.keyPassing(project, 'right') >= 1,
+                str: 'Bop moves to the right when the right arrow key is pressed.'
+            };
+            this.extensions.key = {
+                bool: this.keyPassing(project, 'left') >= 1,
+                str: 'Bork moves to the left when the left arrow key is pressed.'
+            }
+        }
+        return;
     }
 }
 
-},{"./scratch3":26}],21:[function(require,module,exports){
+},{"./scratch3":26,"./templates/events-L1-gaming":33,"./templates/events-L1-multicultural":34,"./templates/events-L1-youth-culture":35}],21:[function(require,module,exports){
 /* Events L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and bug fixes: Marco Anaya, Summer 2019
@@ -5263,72 +5555,7 @@ module.exports = class {
         this.extensions.changeCostumeEasel = { bool: false, str: "The easel sprite's costume is changed to show something about the student's community" }; // done
     }
 
-    arraysMatch(arr1, arr2) {
-
-        // Check if the arrays are the same length
-        if (arr1.length !== arr2.length) {
-
-            return false;
-        }
-
-        // Check if all items exist and are in the same order
-        for (var i = 0; arr1.length < i; i++) {
-            if (arr1[i] !== arr2[i]) {
-
-                return false;
-            }
-        }
-
-    };
-
-    // function that decides what strand the project is, returns a string
-    // whichStrand(projBackdrops) {
-    //     let gamingOrig = new Project(require('../grading-scripts-s3/gamingOriginal'));
-    //     let multiOrig = new Project(require('../grading-scripts-s3/multiculturalOriginal'));
-    //     let youthOrig = new Project(require('../grading-scripts-s3/youthOriginal'));
-
-    //     // gets the asset id's of the original gaming project (backdrops)
-    //     let gamingBackdrops = [];
-    //     for (let target of gamingOrig.targets) {
-    //         for (let costume of target.costumes) {
-    //             gamingBackdrops.push(costume.assetId);
-    //         }
-    //     }
-    //     // gets the asset id's of the original multicultural project (backdrops)
-    //     let multiBackdrops = [];
-    //     for (let target of multiOrig.targets) {
-    //         for (let costume of target.costumes) {
-    //             multiBackdrops.push(costume.assetId);
-    //         }
-    //     }
-    //     // gets the asset id's of the original youth culture project (backdrops)
-    //     let youthBackdrops = [];
-    //     for (let target of youthOrig.targets) {
-
-    //         for (let costume of target.costumes) {
-    //             youthBackdrops.push(costume.assetId);
-    //         }
-
-    //     }
-    //     var util = require('util');
-    //     let origUtil = util.inspect(projBackdrops);
-    //     let gamingUtil = util.inspect(gamingBackdrops);
-    //     let multiUtil = util.inspect(multiBackdrops);
-    //     let youthUtil = util.inspect(youthBackdrops);
-
-    //     if (origUtil === gamingUtil) {
-    //         return 'gaming';
-    //     }
-    //     else if (origUtil === multiUtil) {
-    //         return 'multicultural'
-    //     }
-    //     else if (origUtil === youthUtil) {
-    //         return 'youthculture';
-    //     } else {
-    //         return 'gaming';
-    //     }
-    // };
-
+   
 
     grade(fileObj, user) {
 
@@ -5353,7 +5580,6 @@ module.exports = class {
         
 
         let strand = detectStrand(project, templates);
-        console.log(strand);
 
 
         // gaming strand 
@@ -5583,7 +5809,7 @@ module.exports = class {
         }
     }
 }
-},{"../grading-scripts-s3/scratch3":26,"../grading-scripts-s3/youthOriginal":31,"./templates/scratch-basics-L1-gaming":27,"./templates/scratch-basics-L1-multicultural":28,"./templates/scratch-basics-L1-youthculture":29}],25:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":26,"../grading-scripts-s3/youthOriginal":40,"./templates/scratch-basics-L1-gaming":36,"./templates/scratch-basics-L1-multicultural":37,"./templates/scratch-basics-L1-youthculture":38}],25:[function(require,module,exports){
 /* Scratch Basics L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -5966,7 +6192,7 @@ global.Project = class {
 /// Identify which strand the project belongs to.
 global.detectStrand = function(project, templates) {
     var strand = 'generic';
-    /// Format for templates
+    /// Format for templates:
     /*
     var templates = {
         multicultural: require('./templates/events-L1-multicultural'),
@@ -6011,6 +6237,3544 @@ global.detectStrand = function(project, templates) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./context":17}],27:[function(require,module,exports){
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"c371efaccecb338cfbf99e3a526a8b42","name":"Racetrack","bitmapResolution":1,"md5ext":"c371efaccecb338cfbf99e3a526a8b42.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Bee","variables":{},"lists":{},"broadcasts":{},"blocks":{"_L+5lb=xE}1*|GpP}mAI":{"opcode":"event_whenflagclicked","next":"A=y9Z+^Mr6h6M~3h-o6%","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"A=y9Z+^Mr6h6M~3h-o6%":{"opcode":"motion_gotoxy","next":"4).rhTF;UVKCM]d8rD.F","parent":"_L+5lb=xE}1*|GpP}mAI","inputs":{"X":[1,[4,-174]],"Y":[1,[4,-10]]},"fields":{},"shadow":false,"topLevel":false},"4).rhTF;UVKCM]d8rD.F":{"opcode":"looks_switchcostumeto","next":null,"parent":"A=y9Z+^Mr6h6M~3h-o6%","inputs":{"COSTUME":[1,"iun}SZ7i%MY).{G{[c_,"]},"fields":{},"shadow":false,"topLevel":false},"iun}SZ7i%MY).{G{[c_,":{"opcode":"looks_costume","next":null,"parent":"4).rhTF;UVKCM]d8rD.F","inputs":{},"fields":{"COSTUME":["bumblebee1"]},"shadow":true,"topLevel":false},"[1EB1ggj@?fkz+qox^e0":{"opcode":"event_whenkeypressed","next":"PU-1R8}:x1|Xn%sBZ0NR","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":68,"y":267},"PU-1R8}:x1|Xn%sBZ0NR":{"opcode":"control_repeat","next":null,"parent":"[1EB1ggj@?fkz+qox^e0","inputs":{"TIMES":[1,[6,"16"]],"SUBSTACK":[2,",.@BOSQ2(?9IjIQ}S^QB"]},"fields":{},"shadow":false,"topLevel":false},",.@BOSQ2(?9IjIQ}S^QB":{"opcode":"control_wait","next":"dilrm{0V=Q9kge;PNPcm","parent":"PU-1R8}:x1|Xn%sBZ0NR","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},"dilrm{0V=Q9kge;PNPcm":{"opcode":"looks_nextcostume","next":"0]7B3.!ySNfSxa!_RaBQ","parent":",.@BOSQ2(?9IjIQ}S^QB","inputs":{},"fields":{},"shadow":false,"topLevel":false},"0]7B3.!ySNfSxa!_RaBQ":{"opcode":"motion_movesteps","next":null,"parent":"dilrm{0V=Q9kge;PNPcm","inputs":{"STEPS":[1,[4,"10"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"?iY(@IzAm~D[`rt4~ljS":{"blockId":null,"x":399.96296296296293,"y":694.8518518518518,"width":241,"height":299,"minimized":false,"text":"Build one script here. It should have the Bee flap its wings, while it stays in one location, when the down arrow key is pressed. Look at the script on the Monkey sprite."},"DuZTdlVF?Fg`(DmygOj,":{"blockId":null,"x":407.4074074074074,"y":281.5185185185186,"width":241.5,"height":297,"minimized":false,"text":"This script should have the Bee flap its wings and move across the stage to the finish line when the space key is pressed. Modify it to fix it, so it does that correctly. Look at the script on the Snake sprite."}},"currentCostume":0,"costumes":[{"assetId":"0d3069bd24c5ad7d45c85d7a751e3071","name":"bumblebee1","bitmapResolution":1,"md5ext":"0d3069bd24c5ad7d45c85d7a751e3071.svg","dataFormat":"svg","rotationCenterX":169,"rotationCenterY":90},{"assetId":"d4d66fe1d56f697d6967767e0524c4bd","name":"bumblebee2","bitmapResolution":1,"md5ext":"d4d66fe1d56f697d6967767e0524c4bd.svg","dataFormat":"svg","rotationCenterX":181,"rotationCenterY":72},{"assetId":"e575ce0d29f553050cea2507e476ef1c","name":"bumblebee3","bitmapResolution":1,"md5ext":"e575ce0d29f553050cea2507e476ef1c.svg","dataFormat":"svg","rotationCenterX":181,"rotationCenterY":88},{"assetId":"9a5999064f8028ec122670466bc49f9f","name":"bumblebee4","bitmapResolution":1,"md5ext":"9a5999064f8028ec122670466bc49f9f.svg","dataFormat":"svg","rotationCenterX":232,"rotationCenterY":72}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":146,"y":-10,"size":45.000000000000014,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Snake","variables":{},"lists":{},"broadcasts":{},"blocks":{"84[FWdbziUjC)luCL1Y]":{"opcode":"event_whenflagclicked","next":"bYip[+tH+352-wNYyiLY","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"bYip[+tH+352-wNYyiLY":{"opcode":"motion_gotoxy","next":"A]K(VWrWlD8/(4Yx(Q{;","parent":"84[FWdbziUjC)luCL1Y]","inputs":{"X":[1,[4,-211]],"Y":[1,[4,-133]]},"fields":{},"shadow":false,"topLevel":false},"A]K(VWrWlD8/(4Yx(Q{;":{"opcode":"looks_switchcostumeto","next":"!?Oznz(loP2ZL!tM,x[7","parent":"bYip[+tH+352-wNYyiLY","inputs":{"COSTUME":[1,"a+vc/w%OiJz+B+!8SH@@"]},"fields":{},"shadow":false,"topLevel":false},"a+vc/w%OiJz+B+!8SH@@":{"opcode":"looks_costume","next":null,"parent":"A]K(VWrWlD8/(4Yx(Q{;","inputs":{},"fields":{"COSTUME":["snake1"]},"shadow":true,"topLevel":false},"!?Oznz(loP2ZL!tM,x[7":{"opcode":"looks_sayforsecs","next":null,"parent":"A]K(VWrWlD8/(4Yx(Q{;","inputs":{"MESSAGE":[1,[10,"Hsss..."]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"|lKC;U3+J9Xb,Ip75%B+":{"opcode":"event_whenkeypressed","next":"Z-n76N9kiz}(b3Kxi}_T","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow"]},"shadow":false,"topLevel":true,"x":22,"y":360},"Z-n76N9kiz}(b3Kxi}_T":{"opcode":"control_wait","next":"9,|Bj?*t}Oo:G1uG=J^W","parent":"|lKC;U3+J9Xb,Ip75%B+","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},"9,|Bj?*t}Oo:G1uG=J^W":{"opcode":"looks_switchcostumeto","next":"Q*cRSp^MT+{87D1uhHV!","parent":"Z-n76N9kiz}(b3Kxi}_T","inputs":{"COSTUME":[1,"lK%my9X4{4ogMM|^.^fQ"]},"fields":{},"shadow":false,"topLevel":false},"lK%my9X4{4ogMM|^.^fQ":{"opcode":"looks_costume","next":null,"parent":"9,|Bj?*t}Oo:G1uG=J^W","inputs":{},"fields":{"COSTUME":["snake2"]},"shadow":true,"topLevel":false},"Q*cRSp^MT+{87D1uhHV!":{"opcode":"control_wait","next":"JdO}Gxnlp0S0QF[=r6%;","parent":"9,|Bj?*t}Oo:G1uG=J^W","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},"JdO}Gxnlp0S0QF[=r6%;":{"opcode":"looks_switchcostumeto","next":"rX+~p5H/,%^cr8~YMp.b","parent":"Q*cRSp^MT+{87D1uhHV!","inputs":{"COSTUME":[1,"fL*KUW)npuDtWARYc)bo"]},"fields":{},"shadow":false,"topLevel":false},"fL*KUW)npuDtWARYc)bo":{"opcode":"looks_costume","next":null,"parent":"JdO}Gxnlp0S0QF[=r6%;","inputs":{},"fields":{"COSTUME":["snake3"]},"shadow":true,"topLevel":false},"rX+~p5H/,%^cr8~YMp.b":{"opcode":"control_wait","next":"Pc4vS7,-R+A!zHDGSb?`","parent":"JdO}Gxnlp0S0QF[=r6%;","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},"Pc4vS7,-R+A!zHDGSb?`":{"opcode":"looks_switchcostumeto","next":".LNyz,=q-|3U2KYUyNG9","parent":"rX+~p5H/,%^cr8~YMp.b","inputs":{"COSTUME":[1,")]T}mdED3iq+8C=-%=e{"]},"fields":{},"shadow":false,"topLevel":false},")]T}mdED3iq+8C=-%=e{":{"opcode":"looks_costume","next":null,"parent":"Pc4vS7,-R+A!zHDGSb?`","inputs":{},"fields":{"COSTUME":["snake4"]},"shadow":true,"topLevel":false},".LNyz,=q-|3U2KYUyNG9":{"opcode":"control_wait","next":null,"parent":"Pc4vS7,-R+A!zHDGSb?`","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},"[1EB1ggj@?fkz+qox^e0":{"opcode":"event_whenkeypressed","next":"PU-1R8}:x1|Xn%sBZ0NR","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":24,"y":836},"PU-1R8}:x1|Xn%sBZ0NR":{"opcode":"control_repeat","next":null,"parent":"[1EB1ggj@?fkz+qox^e0","inputs":{"TIMES":[1,[6,"36"]],"SUBSTACK":[2,",.@BOSQ2(?9IjIQ}S^QB"]},"fields":{},"shadow":false,"topLevel":false},",.@BOSQ2(?9IjIQ}S^QB":{"opcode":"control_wait","next":"dilrm{0V=Q9kge;PNPcm","parent":"PU-1R8}:x1|Xn%sBZ0NR","inputs":{"DURATION":[1,[5,"0.2"]]},"fields":{},"shadow":false,"topLevel":false},"dilrm{0V=Q9kge;PNPcm":{"opcode":"looks_nextcostume","next":"0]7B3.!ySNfSxa!_RaBQ","parent":",.@BOSQ2(?9IjIQ}S^QB","inputs":{},"fields":{},"shadow":false,"topLevel":false},"0]7B3.!ySNfSxa!_RaBQ":{"opcode":"motion_movesteps","next":null,"parent":"dilrm{0V=Q9kge;PNPcm","inputs":{"STEPS":[1,[4,"10"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":3,"costumes":[{"assetId":"c068cd85966ad9721f4204d2726e38de","name":"snake1","bitmapResolution":1,"md5ext":"c068cd85966ad9721f4204d2726e38de.svg","dataFormat":"svg","rotationCenterX":117,"rotationCenterY":50},{"assetId":"a6457d860f2c98e5b34cb1b586579921","name":"snake2","bitmapResolution":1,"md5ext":"a6457d860f2c98e5b34cb1b586579921.svg","dataFormat":"svg","rotationCenterX":146,"rotationCenterY":58},{"assetId":"78d3c4f23c7062cf6d3bb4734de91e36","name":"snake3","bitmapResolution":1,"md5ext":"78d3c4f23c7062cf6d3bb4734de91e36.svg","dataFormat":"svg","rotationCenterX":171,"rotationCenterY":61},{"assetId":"a386b7d046bcc19fa6a45961f9eb474c","name":"snake4","bitmapResolution":1,"md5ext":"a386b7d046bcc19fa6a45961f9eb474c.svg","dataFormat":"svg","rotationCenterX":156,"rotationCenterY":57}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":149,"y":-133,"size":85,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Monkey ","variables":{},"lists":{},"broadcasts":{},"blocks":{"?K4D^S*bY*ym?y|lOQ(]":{"opcode":"event_whenflagclicked","next":"uB:@HVlzJ5]pau%QfhSs","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":38,"y":33},"uB:@HVlzJ5]pau%QfhSs":{"opcode":"looks_switchcostumeto","next":"Rf(SqwLDLJ2`eIA(id#0","parent":"?K4D^S*bY*ym?y|lOQ(]","inputs":{"COSTUME":[1,"Kh*oWNN+TaOEk@YQ[!S^"]},"fields":{},"shadow":false,"topLevel":false},"Kh*oWNN+TaOEk@YQ[!S^":{"opcode":"looks_costume","next":null,"parent":"uB:@HVlzJ5]pau%QfhSs","inputs":{},"fields":{"COSTUME":["monkey top right"]},"shadow":true,"topLevel":false},"Rf(SqwLDLJ2`eIA(id#0":{"opcode":"motion_gotoxy","next":"RFT7OOdOGndf|Q;PqI!a","parent":"uB:@HVlzJ5]pau%QfhSs","inputs":{"X":[1,[4,-12]],"Y":[1,[4,83]]},"fields":{},"shadow":false,"topLevel":false},"RFT7OOdOGndf|Q;PqI!a":{"opcode":"looks_sayforsecs","next":"Y5y.Oo7tq%RxTOhgd_kJ","parent":"Rf(SqwLDLJ2`eIA(id#0","inputs":{"MESSAGE":[1,[10,"We're having a race today!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"Y5y.Oo7tq%RxTOhgd_kJ":{"opcode":"looks_sayforsecs","next":"Fl80G8,nR:w6dt2qM1,z","parent":"RFT7OOdOGndf|Q;PqI!a","inputs":{"MESSAGE":[1,[10,"Press the down arrow to watch me wave my flag."]],"SECS":[1,[4,4]]},"fields":{},"shadow":false,"topLevel":false},"Fl80G8,nR:w6dt2qM1,z":{"opcode":"looks_sayforsecs","next":null,"parent":"Y5y.Oo7tq%RxTOhgd_kJ","inputs":{"MESSAGE":[1,[10,"Then, press the spacebar to start the race!"]],"SECS":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"vJogFI|*a1Oe*QbYto[o":{"opcode":"event_whenkeypressed","next":"uv+9+@dt=B:2@;OT5-ci","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow"]},"shadow":false,"topLevel":true,"x":41,"y":414},"uv+9+@dt=B:2@;OT5-ci":{"opcode":"control_wait","next":";]h6RB)y0d7Jk-`6%hbJ","parent":"vJogFI|*a1Oe*QbYto[o","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},";]h6RB)y0d7Jk-`6%hbJ":{"opcode":"looks_switchcostumeto","next":"_0F}rJd)Ax2=UgxOU5nr","parent":"uv+9+@dt=B:2@;OT5-ci","inputs":{"COSTUME":[1,"nv9guutkNs7%9Y?As8N["]},"fields":{},"shadow":false,"topLevel":false},"nv9guutkNs7%9Y?As8N[":{"opcode":"looks_costume","next":null,"parent":";]h6RB)y0d7Jk-`6%hbJ","inputs":{},"fields":{"COSTUME":["monkey bottom right"]},"shadow":true,"topLevel":false},"_0F}rJd)Ax2=UgxOU5nr":{"opcode":"control_wait","next":"XB1[V6^cgIX/)pg;N5F}","parent":";]h6RB)y0d7Jk-`6%hbJ","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},"XB1[V6^cgIX/)pg;N5F}":{"opcode":"looks_switchcostumeto","next":"o7lPH##L;6P(Jq^-QfaJ","parent":"_0F}rJd)Ax2=UgxOU5nr","inputs":{"COSTUME":[1,"_YEH?jyur|4S8#W1x9dK"]},"fields":{},"shadow":false,"topLevel":false},"_YEH?jyur|4S8#W1x9dK":{"opcode":"looks_costume","next":null,"parent":"XB1[V6^cgIX/)pg;N5F}","inputs":{},"fields":{"COSTUME":["monkey bottom left"]},"shadow":true,"topLevel":false},"o7lPH##L;6P(Jq^-QfaJ":{"opcode":"control_wait","next":"oD9^XbKY*`]WB;|.JP8c","parent":"XB1[V6^cgIX/)pg;N5F}","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},"oD9^XbKY*`]WB;|.JP8c":{"opcode":"looks_switchcostumeto","next":"e5%5@H#gkZb?g_LlZxBE","parent":"o7lPH##L;6P(Jq^-QfaJ","inputs":{"COSTUME":[1,"htYDR#q=j%MlVXxEUpr-"]},"fields":{},"shadow":false,"topLevel":false},"htYDR#q=j%MlVXxEUpr-":{"opcode":"looks_costume","next":null,"parent":"oD9^XbKY*`]WB;|.JP8c","inputs":{},"fields":{"COSTUME":["monkey top left"]},"shadow":true,"topLevel":false},"e5%5@H#gkZb?g_LlZxBE":{"opcode":"control_wait","next":"m=b^FuAAI-bbRY{*z-Pg","parent":"oD9^XbKY*`]WB;|.JP8c","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},"m=b^FuAAI-bbRY{*z-Pg":{"opcode":"looks_switchcostumeto","next":null,"parent":"e5%5@H#gkZb?g_LlZxBE","inputs":{"COSTUME":[1,"HSP.2[-f,|V`S,KlBB0o"]},"fields":{},"shadow":false,"topLevel":false},"HSP.2[-f,|V`S,KlBB0o":{"opcode":"looks_costume","next":null,"parent":"m=b^FuAAI-bbRY{*z-Pg","inputs":{},"fields":{"COSTUME":["monkey top right"]},"shadow":true,"topLevel":false},"}vG;i*1dT#_OS@YU:=aD":{"opcode":"event_whenkeypressed","next":"G{X7710sg5@1Sd1y@G[o","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":45,"y":937},"G{X7710sg5@1Sd1y@G[o":{"opcode":"looks_sayforsecs","next":";Od2fUM[Pm4OZ}+13:Ab","parent":"}vG;i*1dT#_OS@YU:=aD","inputs":{"MESSAGE":[1,[10,"Go!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},";Od2fUM[Pm4OZ}+13:Ab":{"opcode":"control_repeat","next":"k_R1*AYxT)5ixNyk/Mjy","parent":"G{X7710sg5@1Sd1y@G[o","inputs":{"TIMES":[1,[6,36]],"SUBSTACK":[2,"K#]My7K1F`{7fO|]yv4Y"]},"fields":{},"shadow":false,"topLevel":false},"K#]My7K1F`{7fO|]yv4Y":{"opcode":"control_wait","next":"/5y3J._OxlEW6!^_GdJ[","parent":";Od2fUM[Pm4OZ}+13:Ab","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},"/5y3J._OxlEW6!^_GdJ[":{"opcode":"looks_nextcostume","next":null,"parent":"K#]My7K1F`{7fO|]yv4Y","inputs":{},"fields":{},"shadow":false,"topLevel":false},"k_R1*AYxT)5ixNyk/Mjy":{"opcode":"looks_sayforsecs","next":null,"parent":";Od2fUM[Pm4OZ}+13:Ab","inputs":{"MESSAGE":[1,[10,"Yay!!!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"107d47ecc7377b5b3192d8ba832ef2ef","name":"monkey top right","bitmapResolution":1,"md5ext":"107d47ecc7377b5b3192d8ba832ef2ef.svg","dataFormat":"svg","rotationCenterX":139,"rotationCenterY":130},{"assetId":"c759fe2dfc5a76191f8b70bbc852337c","name":"monkey bottom right","bitmapResolution":2,"md5ext":"c759fe2dfc5a76191f8b70bbc852337c.png","dataFormat":"png","rotationCenterX":285,"rotationCenterY":248},{"assetId":"3d705748231f2e1351f78397b486a472","name":"monkey bottom left","bitmapResolution":2,"md5ext":"3d705748231f2e1351f78397b486a472.png","dataFormat":"png","rotationCenterX":275,"rotationCenterY":255},{"assetId":"1fc6c2c6386367da5a2e94a29310dd4a","name":"monkey top left","bitmapResolution":2,"md5ext":"1fc6c2c6386367da5a2e94a29310dd4a.png","dataFormat":"png","rotationCenterX":376,"rotationCenterY":276}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-12,"y":83,"size":35.000000000000014,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Kangaroo","variables":{},"lists":{},"broadcasts":{},"blocks":{"5EUiK3P1Whz.zi1RK-4S":{"opcode":"event_whenflagclicked","next":"6WDN|[yq[!y.o=*Z)y%x","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":23,"y":62},"6WDN|[yq[!y.o=*Z)y%x":{"opcode":"motion_gotoxy","next":"lj~`f0h*5^!Lf.VC[DN[","parent":"5EUiK3P1Whz.zi1RK-4S","inputs":{"X":[1,[4,-205]],"Y":[1,[4,72]]},"fields":{},"shadow":false,"topLevel":false},"lj~`f0h*5^!Lf.VC[DN[":{"opcode":"looks_switchcostumeto","next":null,"parent":"6WDN|[yq[!y.o=*Z)y%x","inputs":{"COSTUME":[1,"K%:i2?Ak*WiQvh]~p(d@"]},"fields":{},"shadow":false,"topLevel":false},"K%:i2?Ak*WiQvh]~p(d@":{"opcode":"looks_costume","next":null,"parent":"lj~`f0h*5^!Lf.VC[DN[","inputs":{},"fields":{"COSTUME":["kangaroo crouching"]},"shadow":true,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"1a3d749ac7648e42aa4a188defadd7e5","name":"kangaroo crouching","bitmapResolution":1,"md5ext":"1a3d749ac7648e42aa4a188defadd7e5.svg","dataFormat":"svg","rotationCenterX":83,"rotationCenterY":100},{"assetId":"b302b866bc09cc452e4afd9bf02b3889","name":"kangaroo half jump","bitmapResolution":1,"md5ext":"b302b866bc09cc452e4afd9bf02b3889.svg","dataFormat":"svg","rotationCenterX":83,"rotationCenterY":113},{"assetId":"59b44f7b77f8dca039e2c5ab5b25ec6e","name":"kangaroo jump","bitmapResolution":1,"md5ext":"59b44f7b77f8dca039e2c5ab5b25ec6e.svg","dataFormat":"svg","rotationCenterX":61,"rotationCenterY":92},{"assetId":"b302b866bc09cc452e4afd9bf02b3889","name":"kangaroo half jump2","bitmapResolution":1,"md5ext":"b302b866bc09cc452e4afd9bf02b3889.svg","dataFormat":"svg","rotationCenterX":83,"rotationCenterY":113}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":false,"x":-205,"y":72,"size":60,"direction":90,"draggable":false,"rotationStyle":"left-right"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190822194548","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"}}
+},{}],28:[function(require,module,exports){
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":1,"costumes":[{"assetId":"4953b97814c20b8a3dab049695d509c7","name":"073018DragonBoat_bg","bitmapResolution":2,"md5ext":"4953b97814c20b8a3dab049695d509c7.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"b9c928707e817780fe6e373ab7251e2b","name":"081018DragonBoat_bg","bitmapResolution":2,"md5ext":"b9c928707e817780fe6e373ab7251e2b.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"blue dragon boat","variables":{},"lists":{},"broadcasts":{},"blocks":{"FFR95}}V~GN]}7X5j;9K":{"opcode":"event_whenkeypressed","next":".O#5Xx[CR_kMrHY[i|Dx","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-935,"y":-1220},".O#5Xx[CR_kMrHY[i|Dx":{"opcode":"control_repeat","next":null,"parent":"FFR95}}V~GN]}7X5j;9K","inputs":{"TIMES":[1,[6,"35"]],"SUBSTACK":[2,"jNFbKFq}IuK(c[9(`oWr"]},"fields":{},"shadow":false,"topLevel":false},"jNFbKFq}IuK(c[9(`oWr":{"opcode":"looks_switchcostumeto","next":"XEW(Z076Z#9yHvZ|ZDL5","parent":".O#5Xx[CR_kMrHY[i|Dx","inputs":{"COSTUME":[1,"TP!8h)[T(:vpYEJo+3~v"]},"fields":{},"shadow":false,"topLevel":false},"TP!8h)[T(:vpYEJo+3~v":{"opcode":"looks_costume","next":null,"parent":"jNFbKFq}IuK(c[9(`oWr","inputs":{},"fields":{"COSTUME":["down_blue",null]},"shadow":true,"topLevel":false},"XEW(Z076Z#9yHvZ|ZDL5":{"opcode":"control_wait","next":"l:C@C=2n]Y;]QJPkGpGY","parent":"jNFbKFq}IuK(c[9(`oWr","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},"l:C@C=2n]Y;]QJPkGpGY":{"opcode":"motion_movesteps","next":"Gz6/Hi}oZ.0Kz[B(I[N@","parent":"XEW(Z076Z#9yHvZ|ZDL5","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"Gz6/Hi}oZ.0Kz[B(I[N@":{"opcode":"looks_nextcostume","next":"Tm(ekBMU.|y#[:tiuIxX","parent":"l:C@C=2n]Y;]QJPkGpGY","inputs":{},"fields":{},"shadow":false,"topLevel":false},"Tm(ekBMU.|y#[:tiuIxX":{"opcode":"control_wait","next":"/1p=po};l=p2wBFg.+KX","parent":"Gz6/Hi}oZ.0Kz[B(I[N@","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},"/1p=po};l=p2wBFg.+KX":{"opcode":"motion_movesteps","next":"%xgSU|a%n6?6B^:p#79W","parent":"Tm(ekBMU.|y#[:tiuIxX","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"%xgSU|a%n6?6B^:p#79W":{"opcode":"looks_nextcostume","next":"SxL%_l}47U7X-A1Gf#xQ","parent":"/1p=po};l=p2wBFg.+KX","inputs":{},"fields":{},"shadow":false,"topLevel":false},"SxL%_l}47U7X-A1Gf#xQ":{"opcode":"control_wait","next":".O92:D-$N=O;#2Jb2%TU","parent":"%xgSU|a%n6?6B^:p#79W","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},".O92:D-$N=O;#2Jb2%TU":{"opcode":"motion_movesteps","next":"++}8Ln3qt-1T4|DOUy,r","parent":"SxL%_l}47U7X-A1Gf#xQ","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"++}8Ln3qt-1T4|DOUy,r":{"opcode":"looks_nextcostume","next":null,"parent":".O92:D-$N=O;#2Jb2%TU","inputs":{},"fields":{},"shadow":false,"topLevel":false},"c+:6O#=EJUR.aX!#*%.M":{"opcode":"event_whenflagclicked","next":"{5ZSJ=*@5/!=NTcWjXa(","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1265,"y":-1517},"{5ZSJ=*@5/!=NTcWjXa(":{"opcode":"motion_gotoxy","next":"tik2?JnJviBGw^rjm`1]","parent":"c+:6O#=EJUR.aX!#*%.M","inputs":{"X":[1,[4,"-22"]],"Y":[1,[4,"123"]]},"fields":{},"shadow":false,"topLevel":false},"tik2?JnJviBGw^rjm`1]":{"opcode":"looks_switchcostumeto","next":null,"parent":"{5ZSJ=*@5/!=NTcWjXa(","inputs":{"COSTUME":[1,"c;;U)E!O()YxY;tE]I8L"]},"fields":{},"shadow":false,"topLevel":false},"c;;U)E!O()YxY;tE]I8L":{"opcode":"looks_costume","next":null,"parent":"tik2?JnJviBGw^rjm`1]","inputs":{},"fields":{"COSTUME":["down_blue",null]},"shadow":true,"topLevel":false},"m4d,Ry=}Y^jA%8TKE#d{":{"opcode":"event_whenkeypressed","next":"c=qhD{:.l#[]rRuA{Jh%","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow",null]},"shadow":false,"topLevel":true,"x":-607,"y":-1201},"c=qhD{:.l#[]rRuA{Jh%":{"opcode":"looks_switchcostumeto","next":"keG~!evr$UsJ}hvFIznM","parent":"m4d,Ry=}Y^jA%8TKE#d{","inputs":{"COSTUME":[1,";rROHx/$=g5D:aq4/;G|"]},"fields":{},"shadow":false,"topLevel":false},";rROHx/$=g5D:aq4/;G|":{"opcode":"looks_costume","next":null,"parent":"c=qhD{:.l#[]rRuA{Jh%","inputs":{},"fields":{"COSTUME":["cheer1_blue",null]},"shadow":true,"topLevel":false},"keG~!evr$UsJ}hvFIznM":{"opcode":"control_repeat","next":"+Hh%#l`Z[Qu1mLfh-H*`","parent":"c=qhD{:.l#[]rRuA{Jh%","inputs":{"TIMES":[1,[6,"2"]],"SUBSTACK":[2,"4*Iefk1%;[oeL@hQ.=ex"]},"fields":{},"shadow":false,"topLevel":false},"4*Iefk1%;[oeL@hQ.=ex":{"opcode":"control_wait","next":"=JY(;_7IgkC{d^kL+8oJ","parent":"keG~!evr$UsJ}hvFIznM","inputs":{"DURATION":[1,[5,".5"]]},"fields":{},"shadow":false,"topLevel":false},"=JY(;_7IgkC{d^kL+8oJ":{"opcode":"looks_nextcostume","next":null,"parent":"4*Iefk1%;[oeL@hQ.=ex","inputs":{},"fields":{},"shadow":false,"topLevel":false},"+Hh%#l`Z[Qu1mLfh-H*`":{"opcode":"looks_sayforsecs","next":null,"parent":"keG~!evr$UsJ}hvFIznM","inputs":{"MESSAGE":[1,[10,"Yay!"]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"0S:gt:l:0NN+W@{MR@Wm":{"opcode":"event_whenthisspriteclicked","next":"}oR.w?fGtTlORUz04YEe","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-841,"y":-1518},"}oR.w?fGtTlORUz04YEe":{"opcode":"looks_sayforsecs","next":"j/Q/{X@F3rCo{@kcyUBY","parent":"0S:gt:l:0NN+W@{MR@Wm","inputs":{"MESSAGE":[1,[10,"Press the down arrow key to see a cheer."]],"SECS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"j/Q/{X@F3rCo{@kcyUBY":{"opcode":"looks_sayforsecs","next":null,"parent":"}oR.w?fGtTlORUz04YEe","inputs":{"MESSAGE":[1,[10,"Click on the space bar to see us race!"]],"SECS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":3,"costumes":[{"assetId":"4159218d9f72e802fca2e93e61aee2c8","name":"down_blue","bitmapResolution":2,"md5ext":"4159218d9f72e802fca2e93e61aee2c8.png","dataFormat":"png","rotationCenterX":454,"rotationCenterY":50},{"assetId":"18c6aa8bb365e84a338ee0edc16e7bd0","name":"middle_blue","bitmapResolution":2,"md5ext":"18c6aa8bb365e84a338ee0edc16e7bd0.png","dataFormat":"png","rotationCenterX":452,"rotationCenterY":50},{"assetId":"47db3f356c44fe4e0e0733ac250f295e","name":"up_blue","bitmapResolution":2,"md5ext":"47db3f356c44fe4e0e0733ac250f295e.png","dataFormat":"png","rotationCenterX":457,"rotationCenterY":51},{"assetId":"f380430253f8e8da013d4b6777d55786","name":"cheer1_blue","bitmapResolution":2,"md5ext":"f380430253f8e8da013d4b6777d55786.png","dataFormat":"png","rotationCenterX":453,"rotationCenterY":51},{"assetId":"174eff4f9464966cbc03baef7b87f397","name":"cheer2_blue","bitmapResolution":2,"md5ext":"174eff4f9464966cbc03baef7b87f397.png","dataFormat":"png","rotationCenterX":453,"rotationCenterY":51}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":453,"y":123,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"red dragon boat2","variables":{},"lists":{},"broadcasts":{},"blocks":{"6}O]aJN^jh=FRZ4B%_Ck":{"opcode":"event_whenflagclicked","next":"mdXB=)t5:KSqG_Jbnm7I","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1431,"y":-995},"mdXB=)t5:KSqG_Jbnm7I":{"opcode":"motion_gotoxy","next":"Y.?XbYRER/KJ~F[QBP54","parent":"6}O]aJN^jh=FRZ4B%_Ck","inputs":{"X":[1,[4,"-22"]],"Y":[1,[4,"-43"]]},"fields":{},"shadow":false,"topLevel":false},"Y.?XbYRER/KJ~F[QBP54":{"opcode":"looks_switchcostumeto","next":"7=(OQT~_tljhP^Pc~Cgi","parent":"mdXB=)t5:KSqG_Jbnm7I","inputs":{"COSTUME":[1,"]EUK-sDeGZ.CN9)5}Vkl"]},"fields":{},"shadow":false,"topLevel":false},"]EUK-sDeGZ.CN9)5}Vkl":{"opcode":"looks_costume","next":null,"parent":"Y.?XbYRER/KJ~F[QBP54","inputs":{},"fields":{"COSTUME":["down",null]},"shadow":true,"topLevel":false},"7=(OQT~_tljhP^Pc~Cgi":{"opcode":"looks_sayforsecs","next":"H@ytYjcf=bI;xcsnM1gW","parent":"Y.?XbYRER/KJ~F[QBP54","inputs":{"MESSAGE":[1,[10,"We are dragon boat racing!"]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false},"H@ytYjcf=bI;xcsnM1gW":{"opcode":"looks_sayforsecs","next":"o9y-gE8P!s6PTuL!.h=/","parent":"7=(OQT~_tljhP^Pc~Cgi","inputs":{"MESSAGE":[1,[10,"This is a tradition that originated in China."]],"SECS":[1,[4,"7"]]},"fields":{},"shadow":false,"topLevel":false},"o9y-gE8P!s6PTuL!.h=/":{"opcode":"looks_sayforsecs","next":"IF~s%DYs(N!f-$H@!0Sy","parent":"H@ytYjcf=bI;xcsnM1gW","inputs":{"MESSAGE":[1,[10,"But now, it is celebrated all around the world!"]],"SECS":[1,[4,"7"]]},"fields":{},"shadow":false,"topLevel":false},"IF~s%DYs(N!f-$H@!0Sy":{"opcode":"looks_sayforsecs","next":null,"parent":"o9y-gE8P!s6PTuL!.h=/","inputs":{"MESSAGE":[1,[10,"Click on the Blue Dragon Boat to learn how to race!"]],"SECS":[1,[4,"8"]]},"fields":{},"shadow":false,"topLevel":false},"~vzV,)k9Smog*S=2Vxnl":{"opcode":"event_whenkeypressed","next":"wC/mHJR,(y))HXD?`r]Y","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-1439,"y":-586},"wC/mHJR,(y))HXD?`r]Y":{"opcode":"control_repeat","next":null,"parent":"~vzV,)k9Smog*S=2Vxnl","inputs":{"TIMES":[1,[6,"7"]],"SUBSTACK":[2,"RO$%71YtoH;`U(5Ow0sr"]},"fields":{},"shadow":false,"topLevel":false},"RO$%71YtoH;`U(5Ow0sr":{"opcode":"looks_switchcostumeto","next":"}Q`=g?o=6yi?Jz]/|4g{","parent":"wC/mHJR,(y))HXD?`r]Y","inputs":{"COSTUME":[1,"^yq!VUNAkeHHvfe$xbmQ"]},"fields":{},"shadow":false,"topLevel":false},"^yq!VUNAkeHHvfe$xbmQ":{"opcode":"looks_costume","next":null,"parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{},"fields":{"COSTUME":["down",null]},"shadow":true,"topLevel":false},"}Q`=g?o=6yi?Jz]/|4g{":{"opcode":"control_wait","next":"|NWa,`~hMAAZse]zo}Kq","parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{"DURATION":[1,[5,".6"]]},"fields":{},"shadow":false,"topLevel":false},"|NWa,`~hMAAZse]zo}Kq":{"opcode":"motion_movesteps","next":"x#U4xVOG?)DPyx)7Y~(r","parent":"}Q`=g?o=6yi?Jz]/|4g{","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"x#U4xVOG?)DPyx)7Y~(r":{"opcode":"looks_nextcostume","next":";QpVzrsk@Zk_{d}4I[kW","parent":"|NWa,`~hMAAZse]zo}Kq","inputs":{},"fields":{},"shadow":false,"topLevel":false},";QpVzrsk@Zk_{d}4I[kW":{"opcode":"control_wait","next":"h#G`QEI1CVFPW6iP*oo?","parent":"x#U4xVOG?)DPyx)7Y~(r","inputs":{"DURATION":[1,[5,".6"]]},"fields":{},"shadow":false,"topLevel":false},"h#G`QEI1CVFPW6iP*oo?":{"opcode":"motion_movesteps","next":"zCHOB*;ri@)7UZm6:^+T","parent":";QpVzrsk@Zk_{d}4I[kW","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"zCHOB*;ri@)7UZm6:^+T":{"opcode":"looks_nextcostume","next":"YPD_9gC5TvEmog2hb{Dv","parent":"h#G`QEI1CVFPW6iP*oo?","inputs":{},"fields":{},"shadow":false,"topLevel":false},"YPD_9gC5TvEmog2hb{Dv":{"opcode":"control_wait","next":"oYoK@Tr+-o=t[rnocZ*Q","parent":"zCHOB*;ri@)7UZm6:^+T","inputs":{"DURATION":[1,[5,".6"]]},"fields":{},"shadow":false,"topLevel":false},"oYoK@Tr+-o=t[rnocZ*Q":{"opcode":"motion_movesteps","next":null,"parent":"YPD_9gC5TvEmog2hb{Dv","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":2,"costumes":[{"assetId":"8fb24626392ea7d7ea291be86e455a87","name":"down","bitmapResolution":2,"md5ext":"8fb24626392ea7d7ea291be86e455a87.png","dataFormat":"png","rotationCenterX":470,"rotationCenterY":38},{"assetId":"5ef07742224cb206714eacc0b1a6f4a1","name":"middle","bitmapResolution":2,"md5ext":"5ef07742224cb206714eacc0b1a6f4a1.png","dataFormat":"png","rotationCenterX":470,"rotationCenterY":38},{"assetId":"416a83dcf33fab5c6a199d166738a97f","name":"up","bitmapResolution":2,"md5ext":"416a83dcf33fab5c6a199d166738a97f.png","dataFormat":"png","rotationCenterX":474,"rotationCenterY":38},{"assetId":"0379a7ff77676213e2e5b04adbf112ee","name":"cheer1","bitmapResolution":2,"md5ext":"0379a7ff77676213e2e5b04adbf112ee.png","dataFormat":"png","rotationCenterX":471,"rotationCenterY":38},{"assetId":"0fe20e56960b05a3000acb870655556d","name":"cheer2","bitmapResolution":2,"md5ext":"0fe20e56960b05a3000acb870655556d.png","dataFormat":"png","rotationCenterX":470,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":104,"y":-43,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"flags","variables":{},"lists":{},"broadcasts":{},"blocks":{"Sc~32M@N)m;,^#R_`aSK":{"opcode":"event_whenflagclicked","next":"5qphS/+N)swh5kuR}ii1","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1064,"y":-2361},"5qphS/+N)swh5kuR}ii1":{"opcode":"motion_gotoxy","next":"/8WJ}hHpXETjsV2A*[|G","parent":"Sc~32M@N)m;,^#R_`aSK","inputs":{"X":[1,[4,-2]],"Y":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"/8WJ}hHpXETjsV2A*[|G":{"opcode":"looks_switchcostumeto","next":"F~NIU+f.7qr*x~eQ+PpZ","parent":"5qphS/+N)swh5kuR}ii1","inputs":{"COSTUME":[1,"TP//JCgrUD]8R-M0Rdm-"]},"fields":{},"shadow":false,"topLevel":false},"TP//JCgrUD]8R-M0Rdm-":{"opcode":"looks_costume","next":null,"parent":"/8WJ}hHpXETjsV2A*[|G","inputs":{},"fields":{"COSTUME":["center"]},"shadow":true,"topLevel":false},"F~NIU+f.7qr*x~eQ+PpZ":{"opcode":"control_forever","next":null,"parent":"/8WJ}hHpXETjsV2A*[|G","inputs":{"SUBSTACK":[2,"J5Wbr[%[%YMJAgoO2BN-"]},"fields":{},"shadow":false,"topLevel":false},"J5Wbr[%[%YMJAgoO2BN-":{"opcode":"looks_nextcostume","next":"LQRSAf.0d2mv:eYbuaC)","parent":"F~NIU+f.7qr*x~eQ+PpZ","inputs":{},"fields":{},"shadow":false,"topLevel":false},"LQRSAf.0d2mv:eYbuaC)":{"opcode":"control_wait","next":null,"parent":"J5Wbr[%[%YMJAgoO2BN-","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":2,"costumes":[{"assetId":"b1b2a43f5f87da9f5adf53eda1c886ba","name":"left","bitmapResolution":2,"md5ext":"b1b2a43f5f87da9f5adf53eda1c886ba.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"97de43aed81c81e3f3df1a4bcf21ff64","name":"center","bitmapResolution":2,"md5ext":"97de43aed81c81e3f3df1a4bcf21ff64.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"1c3bc9cc59d4178b7cde5e064d2557d6","name":"right","bitmapResolution":2,"md5ext":"1c3bc9cc59d4178b7cde5e064d2557d6.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"97de43aed81c81e3f3df1a4bcf21ff64","name":"center2","bitmapResolution":2,"md5ext":"97de43aed81c81e3f3df1a4bcf21ff64.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":-2,"y":3,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Fish","variables":{},"lists":{},"broadcasts":{},"blocks":{"ez!h95irNu^6pqSdAR;[":{"opcode":"event_whenflagclicked","next":"@_5[:En|ymE[nBlD$2p:","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-953,"y":-1170},"@_5[:En|ymE[nBlD$2p:":{"opcode":"motion_gotoxy","next":"^8DsG#kGCoEFy0ilnK[l","parent":"ez!h95irNu^6pqSdAR;[","inputs":{"X":[1,[4,"149"]],"Y":[1,[4,"-45"]]},"fields":{},"shadow":false,"topLevel":false},"^8DsG#kGCoEFy0ilnK[l":{"opcode":"looks_switchcostumeto","next":null,"parent":"@_5[:En|ymE[nBlD$2p:","inputs":{"COSTUME":[1,"UcfBrOE?mW,]0_Ljhy0g"]},"fields":{},"shadow":false,"topLevel":false},"UcfBrOE?mW,]0_Ljhy0g":{"opcode":"looks_costume","next":null,"parent":"^8DsG#kGCoEFy0ilnK[l","inputs":{},"fields":{"COSTUME":["fish1",null]},"shadow":true,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"0109d8d6c0f4f14efd79b91923bab2fa","name":"fish1","bitmapResolution":2,"md5ext":"0109d8d6c0f4f14efd79b91923bab2fa.png","dataFormat":"png","rotationCenterX":278,"rotationCenterY":330},{"assetId":"56c27e51403099cfab2aeb7f33ebcc9a","name":"fish2","bitmapResolution":2,"md5ext":"56c27e51403099cfab2aeb7f33ebcc9a.png","dataFormat":"png","rotationCenterX":357,"rotationCenterY":347},{"assetId":"a58a5ab92ed526cf6379ce86dfec4af9","name":"fish3","bitmapResolution":2,"md5ext":"a58a5ab92ed526cf6379ce86dfec4af9.png","dataFormat":"png","rotationCenterX":328,"rotationCenterY":309},{"assetId":"7bb9688c3518ddb08c0048266b1bfd2d","name":"fish4","bitmapResolution":2,"md5ext":"7bb9688c3518ddb08c0048266b1bfd2d.png","dataFormat":"png","rotationCenterX":278,"rotationCenterY":257}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":false,"x":149,"y":-45,"size":30,"direction":92.35553230387865,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"}}
+},{}],29:[function(require,module,exports){
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":4,"costumes":[{"assetId":"4953b97814c20b8a3dab049695d509c7","name":"073018DragonBoat_bg","bitmapResolution":2,"md5ext":"4953b97814c20b8a3dab049695d509c7.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"b9c928707e817780fe6e373ab7251e2b","name":"081018DragonBoat_bg","bitmapResolution":2,"md5ext":"b9c928707e817780fe6e373ab7251e2b.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"b3892fe075aa7a88b2c7e3aba4d4b790","name":"backdrop1","bitmapResolution":1,"md5ext":"b3892fe075aa7a88b2c7e3aba4d4b790.svg","dataFormat":"svg","rotationCenterX":255.964835,"rotationCenterY":146.36328125},{"assetId":"1d75c9a6202e2415391335f5fb495c99","name":"e79fd28fe8789ff55fd9b6220037ecf5_royalty-free-gym-floor-clip-art-vector-images-illustrations-_612-612","bitmapResolution":2,"md5ext":"1d75c9a6202e2415391335f5fb495c99.png","dataFormat":"png","rotationCenterX":306,"rotationCenterY":306},{"assetId":"6e3ef0083d5bce20e2c964363514c826","name":"Basketball 1","bitmapResolution":1,"md5ext":"6e3ef0083d5bce20e2c964363514c826.svg","dataFormat":"svg","rotationCenterX":364,"rotationCenterY":212}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Andie","variables":{},"lists":{},"broadcasts":{},"blocks":{"6}O]aJN^jh=FRZ4B%_Ck":{"opcode":"event_whenflagclicked","next":"S%{DxI8Q7NR(J:EQBX~q","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1400,"y":-705},":pQz?p*Z/HkU!m^@k?b.":{"opcode":"looks_switchcostumeto","next":"N|+K}Y@sie[^.VR,-]]f","parent":"S%{DxI8Q7NR(J:EQBX~q","inputs":{"COSTUME":[1,"5geX;Qg:+ztVfv~/6TOR"]},"fields":{},"shadow":false,"topLevel":false},"5geX;Qg:+ztVfv~/6TOR":{"opcode":"looks_costume","next":null,"parent":":pQz?p*Z/HkU!m^@k?b.","inputs":{},"fields":{"COSTUME":["Andie1",null]},"shadow":true,"topLevel":false},"~vzV,)k9Smog*S=2Vxnl":{"opcode":"event_whenkeypressed","next":"RO$%71YtoH;`U(5Ow0sr","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow",null]},"shadow":false,"topLevel":true,"x":-1394,"y":-381},"RO$%71YtoH;`U(5Ow0sr":{"opcode":"looks_switchcostumeto","next":"wC/mHJR,(y))HXD?`r]Y","parent":"~vzV,)k9Smog*S=2Vxnl","inputs":{"COSTUME":[1,"^yq!VUNAkeHHvfe$xbmQ"]},"fields":{},"shadow":false,"topLevel":false},"^yq!VUNAkeHHvfe$xbmQ":{"opcode":"looks_costume","next":null,"parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{},"fields":{"COSTUME":["Andie1",null]},"shadow":true,"topLevel":false},"wC/mHJR,(y))HXD?`r]Y":{"opcode":"control_repeat","next":null,"parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{"TIMES":[1,[6,"20"]],"SUBSTACK":[2,"}Q`=g?o=6yi?Jz]/|4g{"]},"fields":{},"shadow":false,"topLevel":false},"}Q`=g?o=6yi?Jz]/|4g{":{"opcode":"control_wait","next":"x#U4xVOG?)DPyx)7Y~(r","parent":"wC/mHJR,(y))HXD?`r]Y","inputs":{"DURATION":[1,[5,".3"]]},"fields":{},"shadow":false,"topLevel":false},"x#U4xVOG?)DPyx)7Y~(r":{"opcode":"looks_nextcostume","next":null,"parent":"}Q`=g?o=6yi?Jz]/|4g{","inputs":{},"fields":{},"shadow":false,"topLevel":false},"{`iq@=gYKl2;GBWAK/*]":{"opcode":"looks_sayforsecs","next":null,"parent":"N|+K}Y@sie[^.VR,-]]f","inputs":{"MESSAGE":[1,[10,"Press the down arrow key to see us dribble."]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"N|+K}Y@sie[^.VR,-]]f":{"opcode":"looks_gotofrontback","next":"{`iq@=gYKl2;GBWAK/*]","parent":":pQz?p*Z/HkU!m^@k?b.","inputs":{},"fields":{"FRONT_BACK":["back",null]},"shadow":false,"topLevel":false},"S%{DxI8Q7NR(J:EQBX~q":{"opcode":"motion_gotoxy","next":":pQz?p*Z/HkU!m^@k?b.","parent":"6}O]aJN^jh=FRZ4B%_Ck","inputs":{"X":[1,[4,"131"]],"Y":[1,[4,"30"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"428d26cd7db0965f3cdc695f4bf7c187","name":"Andie1","bitmapResolution":1,"md5ext":"428d26cd7db0965f3cdc695f4bf7c187.svg","dataFormat":"svg","rotationCenterX":88.15144525307196,"rotationCenterY":81.55357252089803},{"assetId":"2c987528236f67bf8df4cefe21da0bd2","name":"Andie2","bitmapResolution":1,"md5ext":"2c987528236f67bf8df4cefe21da0bd2.svg","dataFormat":"svg","rotationCenterX":89.43607148025549,"rotationCenterY":64.15005150322513},{"assetId":"35297645747defb06da8fc1b43dd4366","name":"Andie3","bitmapResolution":1,"md5ext":"35297645747defb06da8fc1b43dd4366.svg","dataFormat":"svg","rotationCenterX":85.49156767224497,"rotationCenterY":64.15005493877038},{"assetId":"656df76d07ad799eb115dd96091005e0","name":"Andie4","bitmapResolution":1,"md5ext":"656df76d07ad799eb115dd96091005e0.svg","dataFormat":"svg","rotationCenterX":89.43607148025549,"rotationCenterY":64.15005150322513}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":131,"y":30,"size":80,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Jordyn","variables":{},"lists":{},"broadcasts":{},"blocks":{"FFR95}}V~GN]}7X5j;9K":{"opcode":"event_whenkeypressed","next":"RN6(fwI%ap{?|dYR4@sK","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-1559,"y":-989},"RN6(fwI%ap{?|dYR4@sK":{"opcode":"control_repeat","next":"V-V:T9r%tgtP,,9F]Lb|","parent":"FFR95}}V~GN]}7X5j;9K","inputs":{"TIMES":[1,[6,"22"]],"SUBSTACK":[2,"y3A-jV0d+}7Ka#dor(mr"]},"fields":{},"shadow":false,"topLevel":false},"y3A-jV0d+}7Ka#dor(mr":{"opcode":"control_wait","next":"Mulix|]{S}[c)MYzRS[{","parent":"RN6(fwI%ap{?|dYR4@sK","inputs":{"DURATION":[1,[5,".15"]]},"fields":{},"shadow":false,"topLevel":false},"Mulix|]{S}[c)MYzRS[{":{"opcode":"looks_nextcostume","next":"FkBPY%cvJx6;4x%Nmzj)","parent":"y3A-jV0d+}7Ka#dor(mr","inputs":{},"fields":{},"shadow":false,"topLevel":false},"FkBPY%cvJx6;4x%Nmzj)":{"opcode":"motion_movesteps","next":null,"parent":"Mulix|]{S}[c)MYzRS[{","inputs":{"STEPS":[1,[4,"20"]]},"fields":{},"shadow":false,"topLevel":false},"V-V:T9r%tgtP,,9F]Lb|":{"opcode":"looks_switchcostumeto","next":null,"parent":"RN6(fwI%ap{?|dYR4@sK","inputs":{"COSTUME":[1,"GU@U^b|Z!g*swSK+:ZM%"]},"fields":{},"shadow":false,"topLevel":false},"GU@U^b|Z!g*swSK+:ZM%":{"opcode":"looks_costume","next":null,"parent":"V-V:T9r%tgtP,,9F]Lb|","inputs":{},"fields":{"COSTUME":["Jordyn1",null]},"shadow":true,"topLevel":false},"c+:6O#=EJUR.aX!#*%.M":{"opcode":"event_whenflagclicked","next":"{5ZSJ=*@5/!=NTcWjXa(","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1579,"y":-1243},"{5ZSJ=*@5/!=NTcWjXa(":{"opcode":"motion_gotoxy","next":"tik2?JnJviBGw^rjm`1]","parent":"c+:6O#=EJUR.aX!#*%.M","inputs":{"X":[1,[4,"-200"]],"Y":[1,[4,"-40"]]},"fields":{},"shadow":false,"topLevel":false},"tik2?JnJviBGw^rjm`1]":{"opcode":"looks_switchcostumeto","next":null,"parent":"{5ZSJ=*@5/!=NTcWjXa(","inputs":{"COSTUME":[1,"c;;U)E!O()YxY;tE]I8L"]},"fields":{},"shadow":false,"topLevel":false},"c;;U)E!O()YxY;tE]I8L":{"opcode":"looks_costume","next":null,"parent":"tik2?JnJviBGw^rjm`1]","inputs":{},"fields":{"COSTUME":["Jordyn1",null]},"shadow":true,"topLevel":false},"?s;CncrOM,T4}DtB=vst":{"opcode":"event_whenkeypressed","next":"Z6Ks5#h9lz(7Qb_,-[-f","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow",null]},"shadow":false,"topLevel":true,"x":-1207,"y":-1233},"Z6Ks5#h9lz(7Qb_,-[-f":{"opcode":"control_repeat","next":"FcANosyL39HlORt?O8eS","parent":"?s;CncrOM,T4}DtB=vst","inputs":{"TIMES":[1,[6,"12"]],"SUBSTACK":[2,"f!pt@]c$J^U1[CS:C|e,"]},"fields":{},"shadow":false,"topLevel":false},"f!pt@]c$J^U1[CS:C|e,":{"opcode":"control_wait","next":"{OtG{Yv)zo!ia%}n]H95","parent":"Z6Ks5#h9lz(7Qb_,-[-f","inputs":{"DURATION":[1,[5,".3"]]},"fields":{},"shadow":false,"topLevel":false},"{OtG{Yv)zo!ia%}n]H95":{"opcode":"looks_nextcostume","next":null,"parent":"f!pt@]c$J^U1[CS:C|e,","inputs":{},"fields":{},"shadow":false,"topLevel":false},"FcANosyL39HlORt?O8eS":{"opcode":"looks_sayforsecs","next":null,"parent":"Z6Ks5#h9lz(7Qb_,-[-f","inputs":{"MESSAGE":[1,[10,"Press the space bar to watch Miguel and me dribble across the court!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"?g,x?Jb[1{AQl75%XcjG":{"blockId":".O#5Xx[CR_kMrHY[i|Dx","x":178,"y":-1048,"width":200,"height":200,"minimized":false,"text":"This longer code would prevent the standing dribble animation to overlap with the run/dribble animation"}},"currentCostume":0,"costumes":[{"assetId":"ec0c260d2321b33a7bcbffb93f1970d2","name":"Jordyn1","bitmapResolution":1,"md5ext":"ec0c260d2321b33a7bcbffb93f1970d2.svg","dataFormat":"svg","rotationCenterX":33.74546494910098,"rotationCenterY":62.69436263827484},{"assetId":"1b5edf25437124002136418e99d02dfe","name":"Jordyn2","bitmapResolution":1,"md5ext":"1b5edf25437124002136418e99d02dfe.svg","dataFormat":"svg","rotationCenterX":48.9517821174727,"rotationCenterY":62.694377914824486},{"assetId":"bf13eddeef9d2da3c0cfce155869eb88","name":"Jordyn3","bitmapResolution":1,"md5ext":"bf13eddeef9d2da3c0cfce155869eb88.svg","dataFormat":"svg","rotationCenterX":33.74546986498308,"rotationCenterY":62.69436527654966},{"assetId":"d710e71614edaf1d86e5f8c741fe3d1e","name":"Jordyn4","bitmapResolution":1,"md5ext":"d710e71614edaf1d86e5f8c741fe3d1e.svg","dataFormat":"svg","rotationCenterX":51.145432069474,"rotationCenterY":62.69435447870612}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":-200,"y":-40,"size":90,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Miguel","variables":{},"lists":{},"broadcasts":{},"blocks":{"4Z3i{QKZROpJnOe,b_DN":{"opcode":"event_whenflagclicked","next":"CWto!?+oXxrv`e~-;le[","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-2342,"y":-1454},"CWto!?+oXxrv`e~-;le[":{"opcode":"motion_gotoxy","next":"%q@JG_HRK|QtS~v/L0%h","parent":"4Z3i{QKZROpJnOe,b_DN","inputs":{"X":[1,[4,"-203"]],"Y":[1,[4,"-110"]]},"fields":{},"shadow":false,"topLevel":false},"%q@JG_HRK|QtS~v/L0%h":{"opcode":"looks_switchcostumeto","next":null,"parent":"CWto!?+oXxrv`e~-;le[","inputs":{"COSTUME":[1,"9cKXdQ14:c7[Ye~!`1/~"]},"fields":{},"shadow":false,"topLevel":false},"9cKXdQ14:c7[Ye~!`1/~":{"opcode":"looks_costume","next":null,"parent":"%q@JG_HRK|QtS~v/L0%h","inputs":{},"fields":{"COSTUME":["Miguel1",null]},"shadow":true,"topLevel":false},"[GqfrGN]^`tQ4q:Q3#JJ":{"opcode":"event_whenkeypressed","next":"QHe#Vkys)Rh+@UXqxB2{","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-2347,"y":-1175},"QHe#Vkys)Rh+@UXqxB2{":{"opcode":"control_repeat","next":null,"parent":"[GqfrGN]^`tQ4q:Q3#JJ","inputs":{"TIMES":[1,[6,"8"]],"SUBSTACK":[2,"6tV]3_1VT=^NmAx%q!g4"]},"fields":{},"shadow":false,"topLevel":false},"6tV]3_1VT=^NmAx%q!g4":{"opcode":"control_wait","next":"Qk/o|;QFt+F4$=UuayAJ","parent":"QHe#Vkys)Rh+@UXqxB2{","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},"Qk/o|;QFt+F4$=UuayAJ":{"opcode":"looks_nextcostume","next":".DjF9o3KoHe=8Yd(7:LW","parent":"6tV]3_1VT=^NmAx%q!g4","inputs":{},"fields":{},"shadow":false,"topLevel":false},".DjF9o3KoHe=8Yd(7:LW":{"opcode":"motion_movesteps","next":null,"parent":"Qk/o|;QFt+F4$=UuayAJ","inputs":{"STEPS":[1,[4,"20"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"K_1eCG@}Jr2SIUQs-r#h":{"blockId":null,"x":-1948.7407407407406,"y":-1317.9259259259259,"width":200,"height":200,"minimized":false,"text":"Build 1 script and modify a script..."},"6JV9Goq|XG$}U$mDQsYS":{"blockId":null,"x":-1952.481323521161,"y":-1102.7219852817411,"width":200,"height":200,"minimized":false,"text":"One will have Miguel dribble in place, when the down arrow key is pressed. Look at the script for Jordyn."},"w)]!x]e.9?/[4GH|+[O:":{"blockId":null,"x":-1957.481323521161,"y":-879.3301575353256,"width":200,"height":200,"minimized":false,"text":"The other will have Miguel dribble ALL the way across the basketball court when the space key is pressed. Look at Jordyn's script"}},"currentCostume":0,"costumes":[{"assetId":"8a00295a8d657ea087cc88010c3a844c","name":"Miguel1","bitmapResolution":1,"md5ext":"8a00295a8d657ea087cc88010c3a844c.svg","dataFormat":"svg","rotationCenterX":26.37499494910105,"rotationCenterY":62.69436185272684},{"assetId":"80e8002553b2cac9c3e4887a7583a65c","name":"Miguel2","bitmapResolution":1,"md5ext":"80e8002553b2cac9c3e4887a7583a65c.svg","dataFormat":"svg","rotationCenterX":49.74051742656934,"rotationCenterY":62.69436162506062},{"assetId":"5dba01afa32235f7f91a4132f3d448cd","name":"Miguel3","bitmapResolution":1,"md5ext":"5dba01afa32235f7f91a4132f3d448cd.svg","dataFormat":"svg","rotationCenterX":26.374997377707814,"rotationCenterY":62.69436159568707},{"assetId":"14904cc6bbad4a87b6f924707730dd0f","name":"Miguel4","bitmapResolution":1,"md5ext":"14904cc6bbad4a87b6f924707730dd0f.svg","dataFormat":"svg","rotationCenterX":50.926268599392586,"rotationCenterY":62.69436185272684}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-203,"y":-110,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Referee","variables":{},"lists":{},"broadcasts":{},"blocks":{"Uw:zXlolx).J/|3Vv}.(":{"opcode":"event_whenflagclicked","next":"2`:.Ap!-R]l#bQyC^ho2","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":71,"y":55},"2`:.Ap!-R]l#bQyC^ho2":{"opcode":"motion_gotoxy","next":null,"parent":"Uw:zXlolx).J/|3Vv}.(","inputs":{"X":[1,[4,"-131"]],"Y":[1,[4,"44"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":3,"costumes":[{"assetId":"7eeca5313c2e7d455482badff3079f64","name":"referee-b","bitmapResolution":1,"md5ext":"7eeca5313c2e7d455482badff3079f64.svg","dataFormat":"svg","rotationCenterX":44,"rotationCenterY":63},{"assetId":"1cd641a48499db84636d983916b62a83","name":"referee-d","bitmapResolution":1,"md5ext":"1cd641a48499db84636d983916b62a83.svg","dataFormat":"svg","rotationCenterX":50,"rotationCenterY":63},{"assetId":"5948c4160089fcc0975a867221ff2256","name":"referee-c","bitmapResolution":1,"md5ext":"5948c4160089fcc0975a867221ff2256.svg","dataFormat":"svg","rotationCenterX":55,"rotationCenterY":62},{"assetId":"46dde2baba61a7e48463ae8e58441470","name":"referee-a","bitmapResolution":1,"md5ext":"46dde2baba61a7e48463ae8e58441470.svg","dataFormat":"svg","rotationCenterX":44,"rotationCenterY":63}],"sounds":[{"assetId":"8468b9b3f11a665ee4d215afd8463b97","name":"referee whistle","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":14225,"md5ext":"8468b9b3f11a665ee4d215afd8463b97.wav"}],"volume":100,"layerOrder":2,"visible":false,"x":-131.00000000000003,"y":44,"size":80,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190822194548","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"}}
+},{}],30:[function(require,module,exports){
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {
+                "`jEk@4|i[#Fk?(8x)AV.-my variable": [
+                    "my variable",
+                    0
+                ]
+            },
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "a19648192ac39ed57e0e3835745dc370",
+                    "name": "backdrop2",
+                    "bitmapResolution": 1,
+                    "md5ext": "a19648192ac39ed57e0e3835745dc370.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 245.151245,
+                    "rotationCenterY": 235.946635
+                },
+                {
+                    "assetId": "9b44b53e66aa74487097c1c0b6d24e4c",
+                    "name": "backdrop3",
+                    "bitmapResolution": 2,
+                    "md5ext": "9b44b53e66aa74487097c1c0b6d24e4c.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "on",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Player",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "??Y2sHF$rPk*x{wRV4uz": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "MIqc5O97Sb)Xq%?nrMFY",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 13,
+                    "y": 196
+                },
+                "MIqc5O97Sb)Xq%?nrMFY": {
+                    "opcode": "motion_gotoxy",
+                    "next": "Bz1FJY1{9(0Xxx9mSW$o",
+                    "parent": "??Y2sHF$rPk*x{wRV4uz",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-219"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-110"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "Bz1FJY1{9(0Xxx9mSW$o": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": null,
+                    "parent": "MIqc5O97Sb)Xq%?nrMFY",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "d$L_?]Ne@wC}k9`~=wf#"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "d$L_?]Ne@wC}k9`~=wf#": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "Bz1FJY1{9(0Xxx9mSW$o",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "costume1",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 4,
+            "costumes": [
+                {
+                    "assetId": "029a5ed327a5770ca13897bd252175ee",
+                    "name": "costume1",
+                    "bitmapResolution": 1,
+                    "md5ext": "029a5ed327a5770ca13897bd252175ee.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 26.401670067900056,
+                    "rotationCenterY": 27.05121623249994
+                },
+                {
+                    "assetId": "f56b477e7468ad24c5c233e5109b5210",
+                    "name": "costume2",
+                    "bitmapResolution": 1,
+                    "md5ext": "f56b477e7468ad24c5c233e5109b5210.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 24.752929946900053,
+                    "rotationCenterY": 28.550438922174266
+                },
+                {
+                    "assetId": "0499ff4de3b9f0719333e63610b5807f",
+                    "name": "costume3",
+                    "bitmapResolution": 1,
+                    "md5ext": "0499ff4de3b9f0719333e63610b5807f.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 16.916918703466706,
+                    "rotationCenterY": 25.348646007484916
+                },
+                {
+                    "assetId": "fcaa5250202f94d86a86e64d8546e76f",
+                    "name": "costume4",
+                    "bitmapResolution": 1,
+                    "md5ext": "fcaa5250202f94d86a86e64d8546e76f.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 21.49995243030017,
+                    "rotationCenterY": 26.72410214783457
+                },
+                {
+                    "assetId": "1eaab5c72f31017214373559fb5dea4a",
+                    "name": "costume5",
+                    "bitmapResolution": 1,
+                    "md5ext": "1eaab5c72f31017214373559fb5dea4a.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 19.99850360330001,
+                    "rotationCenterY": 24.04521801639646
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "10eed5b6b49ec7baf1d4b3b3fad0ac99",
+                    "name": "Tada",
+                    "dataFormat": "wav",
+                    "format": "adpcm",
+                    "rate": 44100,
+                    "sampleCount": 111870,
+                    "md5ext": "10eed5b6b49ec7baf1d4b3b3fad0ac99.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": -135,
+            "y": -110,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Stairs",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "k4Y/i*iNn]`~.Iy`pJoS": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "ShZ;IIgbUKY^tp:yn{_#",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": -30,
+                    "y": 185
+                },
+                "ShZ;IIgbUKY^tp:yn{_#": {
+                    "opcode": "motion_gotoxy",
+                    "next": "6CqMz:(%pMS7$YXD/8gG",
+                    "parent": "k4Y/i*iNn]`~.Iy`pJoS",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-10"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-84"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "6CqMz:(%pMS7$YXD/8gG": {
+                    "opcode": "control_wait_until",
+                    "next": null,
+                    "parent": "ShZ;IIgbUKY^tp:yn{_#",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "c1a2905a9c95e70463cc9e04d09c72f9",
+                    "name": "Stairs",
+                    "bitmapResolution": 1,
+                    "md5ext": "c1a2905a9c95e70463cc9e04d09c72f9.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 118.8915662650603,
+                    "rotationCenterY": 46.00000000000017
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "10eed5b6b49ec7baf1d4b3b3fad0ac99",
+                    "name": "Tada",
+                    "dataFormat": "wav",
+                    "format": "adpcm",
+                    "rate": 44100,
+                    "sampleCount": 111870,
+                    "md5ext": "10eed5b6b49ec7baf1d4b3b3fad0ac99.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": 110,
+            "y": -84,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Cliff",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "|j=QVB9V]pSK6b296}S]": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "uX-r9s9Xmoqou[RJkY!F",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 126,
+                    "y": 113
+                },
+                "uX-r9s9Xmoqou[RJkY!F": {
+                    "opcode": "motion_gotoxy",
+                    "next": null,
+                    "parent": "|j=QVB9V]pSK6b296}S]",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "208"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-76"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "cff81df6d15c74786363b3440aaa05d4",
+                    "name": "costume1",
+                    "bitmapResolution": 1,
+                    "md5ext": "cff81df6d15c74786363b3440aaa05d4.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 81.498795,
+                    "rotationCenterY": 110.62501
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 4,
+            "visible": true,
+            "x": 208,
+            "y": -76,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "ChestBlue",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "2c73986a4d0181001f8d887b405f0267",
+                    "name": "ChestBlue",
+                    "bitmapResolution": 2,
+                    "md5ext": "2c73986a4d0181001f8d887b405f0267.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 34,
+                    "rotationCenterY": 23
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": 174.99999999999997,
+            "y": -25,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190822194548",
+        "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Safari/605.1.15"
+    }
+}
+},{}],31:[function(require,module,exports){
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {
+                "`jEk@4|i[#Fk?(8x)AV.-my variable": [
+                    "my variable",
+                    0
+                ]
+            },
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "5b9526271796822e9c0b5c5df5f84aa7",
+                    "name": "Philadelphia",
+                    "bitmapResolution": 2,
+                    "md5ext": "5b9526271796822e9c0b5c5df5f84aa7.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 358
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "on",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Marchers",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "P3/@mVJG*Qzh*D[#Z;WP": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "ZC!W8ll;A72/[xp2~o1x",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 64,
+                    "y": 98
+                },
+                "ZC!W8ll;A72/[xp2~o1x": {
+                    "opcode": "motion_gotoxy",
+                    "next": null,
+                    "parent": "P3/@mVJG*Qzh*D[#Z;WP",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-210"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-88"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "b172d63c30c13a7f4534d3aff1e5121f",
+                    "name": "Marching",
+                    "bitmapResolution": 1,
+                    "md5ext": "b172d63c30c13a7f4534d3aff1e5121f.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 311.6818209605366,
+                    "rotationCenterY": 124.82613
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": -210,
+            "y": -88,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Speaker",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "o.2V2xVQZi9Tj[_lzA}c": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "4$Kbnqgs@`W0t,h:fnYP",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 69,
+                    "y": 76
+                },
+                "4$Kbnqgs@`W0t,h:fnYP": {
+                    "opcode": "motion_gotoxy",
+                    "next": "HIC5Xv%R(MS84aIWNez8",
+                    "parent": "o.2V2xVQZi9Tj[_lzA}c",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "19"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-69"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "HIC5Xv%R(MS84aIWNez8": {
+                    "opcode": "control_wait_until",
+                    "next": null,
+                    "parent": "4$Kbnqgs@`W0t,h:fnYP",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 4,
+            "costumes": [
+                {
+                    "assetId": "1abe1fe2be27d5d2013223c2fe94245b",
+                    "name": "Sideways",
+                    "bitmapResolution": 1,
+                    "md5ext": "1abe1fe2be27d5d2013223c2fe94245b.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 123.0827225184876,
+                    "rotationCenterY": 77.64271440353008
+                },
+                {
+                    "assetId": "c3a8bc66575a22249130ee46800e1457",
+                    "name": "Walking1",
+                    "bitmapResolution": 1,
+                    "md5ext": "c3a8bc66575a22249130ee46800e1457.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 90.95484663969467,
+                    "rotationCenterY": 75.56834843601908
+                },
+                {
+                    "assetId": "c3a8bc66575a22249130ee46800e1457",
+                    "name": "Walking4",
+                    "bitmapResolution": 1,
+                    "md5ext": "c3a8bc66575a22249130ee46800e1457.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 90.95484663969467,
+                    "rotationCenterY": 75.56834843601908
+                },
+                {
+                    "assetId": "4ef5927ef6f16aca401b904f393378e3",
+                    "name": "Walking2",
+                    "bitmapResolution": 1,
+                    "md5ext": "4ef5927ef6f16aca401b904f393378e3.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 90.95484663969467,
+                    "rotationCenterY": 75.56834843601908
+                },
+                {
+                    "assetId": "4d1028c2076d480971bdfe2739bd8d33",
+                    "name": "Speaking",
+                    "bitmapResolution": 1,
+                    "md5ext": "4d1028c2076d480971bdfe2739bd8d33.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 115.33703224900373,
+                    "rotationCenterY": 83.56885228653631
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                },
+                {
+                    "assetId": "684ffae7bc3a65e35e9f0aaf7a579dd5",
+                    "name": "Clapping",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 168320,
+                    "md5ext": "684ffae7bc3a65e35e9f0aaf7a579dd5.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": 19,
+            "y": -69,
+            "size": 60,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Podium",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "7vWA0r(r|[s,JPRy4xmS": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "=Tz)E4nE=v?~f=+Y.(AL",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 201,
+                    "y": 109
+                },
+                "=Tz)E4nE=v?~f=+Y.(AL": {
+                    "opcode": "looks_gotofrontback",
+                    "next": null,
+                    "parent": "7vWA0r(r|[s,JPRy4xmS",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "a8b17ce836f928538e2388d5139ba3f5",
+                    "name": "costume1",
+                    "bitmapResolution": 1,
+                    "md5ext": "a8b17ce836f928538e2388d5139ba3f5.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": -29.423219892494387,
+                    "rotationCenterY": 43.04309027915377
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 4,
+            "visible": true,
+            "x": 72.00000000000003,
+            "y": -81,
+            "size": 70,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Poster-Holder",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "de63edc84352c8150d58fff6fb2b2e72",
+                    "name": "costume1",
+                    "bitmapResolution": 1,
+                    "md5ext": "de63edc84352c8150d58fff6fb2b2e72.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 119,
+                    "rotationCenterY": 104
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": 222,
+            "y": -22.000000000000014,
+            "size": 60,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190822194548",
+        "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Safari/605.1.15"
+    }
+}
+},{}],32:[function(require,module,exports){
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {
+                "9[N1%n{g*z~#XXcW(=Nm-set score-": [
+                    "set score",
+                    0
+                ],
+                "9[N1%n{g*z~#XXcW(=Nm-set-": [
+                    "set",
+                    0
+                ],
+                "9[N1%n{g*z~#XXcW(=Nm-score-": [
+                    "score",
+                    3
+                ]
+            },
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 1,
+            "costumes": [
+                {
+                    "assetId": "5c3298ae33014a6eb91686cd1cda041e",
+                    "name": "Field",
+                    "bitmapResolution": 1,
+                    "md5ext": "5c3298ae33014a6eb91686cd1cda041e.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 240,
+                    "rotationCenterY": 180
+                },
+                {
+                    "assetId": "76ec17562f05dfa42f80ee5842cdf862",
+                    "name": "Field & Bleachers",
+                    "bitmapResolution": 1,
+                    "md5ext": "76ec17562f05dfa42f80ee5842cdf862.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 240,
+                    "rotationCenterY": 180
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Jaime ",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "dil)YZ{H0})IuwHAwS%C": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "Ax?tNQzDgE?2:BrDnzJ2",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 33,
+                    "y": 59
+                },
+                "Ax?tNQzDgE?2:BrDnzJ2": {
+                    "opcode": "motion_gotoxy",
+                    "next": ".Pb?svcZ*[O+MYgWr;o7",
+                    "parent": "dil)YZ{H0})IuwHAwS%C",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-210"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-90"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ".Pb?svcZ*[O+MYgWr;o7": {
+                    "opcode": "control_wait",
+                    "next": null,
+                    "parent": "Ax?tNQzDgE?2:BrDnzJ2",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                ".01"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {
+                "AWlo:7:weqt;e=rdrhDb": {
+                    "blockId": "z=ft#ukk{%ud|P~YyngQ",
+                    "x": 426.6666666666667,
+                    "y": 164.4814814814815,
+                    "width": 298.5,
+                    "height": 574.2,
+                    "minimized": false,
+                    "text": "This short wait block is here to make sure Jaime and the Soccer Ball are both at the correct starting location before Jaime points in the direction of the ball. \r\rWithout this wait block, Jaime sometimes starts running to where the ball used to be. If that happens, they never touch and the ball never gets kicked to the goal! "
+                }
+            },
+            "currentCostume": 7,
+            "costumes": [
+                {
+                    "assetId": "9be3e09f29ce023f14139f35b272b6ba",
+                    "name": "Frame 1",
+                    "bitmapResolution": 2,
+                    "md5ext": "9be3e09f29ce023f14139f35b272b6ba.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 34,
+                    "rotationCenterY": 66
+                },
+                {
+                    "assetId": "87334428f6134349d715ead14ef2db66",
+                    "name": "Frame 2",
+                    "bitmapResolution": 2,
+                    "md5ext": "87334428f6134349d715ead14ef2db66.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 66
+                },
+                {
+                    "assetId": "8b8a5cc5729cdc75ab017f2c4a359f63",
+                    "name": "Frame 3",
+                    "bitmapResolution": 2,
+                    "md5ext": "8b8a5cc5729cdc75ab017f2c4a359f63.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 28,
+                    "rotationCenterY": 66
+                },
+                {
+                    "assetId": "d0d840cb399a9854d3be9c8302f8176f",
+                    "name": "Frame 4",
+                    "bitmapResolution": 2,
+                    "md5ext": "d0d840cb399a9854d3be9c8302f8176f.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 28,
+                    "rotationCenterY": 66
+                },
+                {
+                    "assetId": "3fbbb48583b515619c8fc36c013a6028",
+                    "name": "Frame 5",
+                    "bitmapResolution": 2,
+                    "md5ext": "3fbbb48583b515619c8fc36c013a6028.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 66
+                },
+                {
+                    "assetId": "7996b885bf9aafdfb35986ee63eb5b0d",
+                    "name": "Frame 6",
+                    "bitmapResolution": 2,
+                    "md5ext": "7996b885bf9aafdfb35986ee63eb5b0d.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 28,
+                    "rotationCenterY": 66
+                },
+                {
+                    "assetId": "f382c08216827cbd77bb622ffd10e4b2",
+                    "name": "Frame 7",
+                    "bitmapResolution": 2,
+                    "md5ext": "f382c08216827cbd77bb622ffd10e4b2.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 28,
+                    "rotationCenterY": 66
+                },
+                {
+                    "assetId": "d2441984420dc12e4c6c7fd212aea60f",
+                    "name": "Frame 8",
+                    "bitmapResolution": 2,
+                    "md5ext": "d2441984420dc12e4c6c7fd212aea60f.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 66
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": -35.000103043560046,
+            "y": -90.18990849223357,
+            "size": 85,
+            "direction": 90.06217689848177,
+            "draggable": false,
+            "rotationStyle": "left-right"
+        },
+        {
+            "isStage": false,
+            "name": "Soccer Ball",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "W9IY!IPYXclx:rLq,5mA": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "F,[mZXKyFmp9`JB-45R%",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 38,
+                    "y": 110
+                },
+                "arz%}0!yQ3+83Sy`Xv(+": {
+                    "opcode": "control_wait_until",
+                    "next": null,
+                    "parent": ":YKUti-f_hdztd/oSD93",
+                    "inputs": {
+                        "CONDITION": [
+                            1,
+                            null
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "F,[mZXKyFmp9`JB-45R%": {
+                    "opcode": "motion_gotoxy",
+                    "next": ":YKUti-f_hdztd/oSD93",
+                    "parent": "W9IY!IPYXclx:rLq,5mA",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-13"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-105"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ":YKUti-f_hdztd/oSD93": {
+                    "opcode": "control_wait",
+                    "next": "arz%}0!yQ3+83Sy`Xv(+",
+                    "parent": "F,[mZXKyFmp9`JB-45R%",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                ".01"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "b0e4c224f58b27443a98847d1b0c31d8",
+                    "name": "Soccer Ball",
+                    "bitmapResolution": 1,
+                    "md5ext": "b0e4c224f58b27443a98847d1b0c31d8.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 6,
+                    "rotationCenterY": 7
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                },
+                {
+                    "assetId": "4b36eebf22be4667fc2f15b78c805b4c",
+                    "name": "cheer",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 125056,
+                    "md5ext": "4b36eebf22be4667fc2f15b78c805b4c.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": 176.3261695126244,
+            "y": -89.01245679671165,
+            "size": 200,
+            "direction": 85.17314121887702,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Goal",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "c5d41b3ccd53838595eb021b1cf1fd62",
+                    "name": "Goal",
+                    "bitmapResolution": 1,
+                    "md5ext": "c5d41b3ccd53838595eb021b1cf1fd62.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 34.5,
+                    "rotationCenterY": 49.5
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "53a3c2e27d1fb5fdb14aaf0cb41e7889",
+                    "name": "boing",
+                    "dataFormat": "wav",
+                    "format": "adpcm",
+                    "rate": 44100,
+                    "sampleCount": 14238,
+                    "md5ext": "53a3c2e27d1fb5fdb14aaf0cb41e7889.wav"
+                },
+                {
+                    "assetId": "4b36eebf22be4667fc2f15b78c805b4c",
+                    "name": "cheer",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 125056,
+                    "md5ext": "4b36eebf22be4667fc2f15b78c805b4c.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": 211,
+            "y": -77,
+            "size": 85.000000000001,
+            "direction": -90,
+            "draggable": false,
+            "rotationStyle": "don't rotate"
+        }
+    ],
+    "monitors": [
+        {
+            "id": "9[N1%n{g*z~#XXcW(=Nm-set score-",
+            "mode": "default",
+            "opcode": "data_variable",
+            "params": {
+                "VARIABLE": "set score"
+            },
+            "spriteName": null,
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 5,
+            "y": 5,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        },
+        {
+            "id": "9[N1%n{g*z~#XXcW(=Nm-set-",
+            "mode": "default",
+            "opcode": "data_variable",
+            "params": {
+                "VARIABLE": "set"
+            },
+            "spriteName": null,
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 5,
+            "y": 32,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        },
+        {
+            "id": "9[N1%n{g*z~#XXcW(=Nm-score-",
+            "mode": "default",
+            "opcode": "data_variable",
+            "params": {
+                "VARIABLE": "score"
+            },
+            "spriteName": null,
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 4,
+            "y": 9,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        }
+    ],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190822194548",
+        "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Safari/605.1.15"
+    }
+}
+},{}],33:[function(require,module,exports){
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {
+                "`jEk@4|i[#Fk?(8x)AV.-my variable": [
+                    "my variable",
+                    0
+                ]
+            },
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 1,
+            "costumes": [
+                {
+                    "assetId": "47282ff0f7047c6fab9c94b531abf721",
+                    "name": "Stars",
+                    "bitmapResolution": 2,
+                    "md5ext": "47282ff0f7047c6fab9c94b531abf721.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                },
+                {
+                    "assetId": "dba17f2fe831a28e41afd2f16b3993bd",
+                    "name": "backdrop1",
+                    "bitmapResolution": 1,
+                    "md5ext": "dba17f2fe831a28e41afd2f16b3993bd.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 265.064915,
+                    "rotationCenterY": 190.96325000000002
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "on",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Beep",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                ")Hw|G=u4#L%Zd-93?klR": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "?u,_biB+AH,,#qg:~vqd",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 107,
+                    "y": 62
+                },
+                "?u,_biB+AH,,#qg:~vqd": {
+                    "opcode": "looks_setsizeto",
+                    "next": "jy`M@`#/cIa[J^J,VT=1",
+                    "parent": ")Hw|G=u4#L%Zd-93?klR",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "jy`M@`#/cIa[J^J,VT=1": {
+                    "opcode": "motion_gotoxy",
+                    "next": null,
+                    "parent": "?u,_biB+AH,,#qg:~vqd",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-186"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "18"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "t|bmz5;Q}:rNy[co)*O2": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "n,Jx3PAt=U)^.LI%r*:0",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 339,
+                    "y": 456
+                },
+                "n,Jx3PAt=U)^.LI%r*:0": {
+                    "opcode": "motion_movesteps",
+                    "next": "Y{ZPTfuuH$48xsUu:gm.",
+                    "parent": "t|bmz5;Q}:rNy[co)*O2",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "10"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "Y{ZPTfuuH$48xsUu:gm.": {
+                    "opcode": "looks_gotofrontback",
+                    "next": null,
+                    "parent": "n,Jx3PAt=U)^.LI%r*:0",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "LS]=|K@nurX.X+[H[Zp.": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "K!ln[rllBL6TJO,Rl@(t",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 353,
+                    "y": 68
+                },
+                "K!ln[rllBL6TJO,Rl@(t": {
+                    "opcode": "looks_changesizeby",
+                    "next": "vnjYUZ`7:zZdj)Rur0bj",
+                    "parent": "LS]=|K@nurX.X+[H[Zp.",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                "30"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "vnjYUZ`7:zZdj)Rur0bj": {
+                    "opcode": "looks_gotofrontback",
+                    "next": "w?z$I6Xd^b{Oi}r|[eGk",
+                    "parent": "K!ln[rllBL6TJO,Rl@(t",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "w?z$I6Xd^b{Oi}r|[eGk": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "9z*ZOpKlm~n~tlIZmPOD",
+                    "parent": "vnjYUZ`7:zZdj)Rur0bj",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "I'm Beep!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "9z*ZOpKlm~n~tlIZmPOD": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "4u|V)g0~q^SQG=Zv_0+$",
+                    "parent": "w?z$I6Xd^b{Oi}r|[eGk",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Press the space bar so that I'll win!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "4u|V)g0~q^SQG=Zv_0+$": {
+                    "opcode": "looks_changesizeby",
+                    "next": null,
+                    "parent": "9z*ZOpKlm~n~tlIZmPOD",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                "-30"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "1fe9913ae93d928a15df521a051d7eea",
+                    "name": "ship1",
+                    "bitmapResolution": 1,
+                    "md5ext": "1fe9913ae93d928a15df521a051d7eea.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 171,
+                    "rotationCenterY": 62.89999999999988
+                },
+                {
+                    "assetId": "c032dfbd8bbcd1123cf9c8c9c42c0645",
+                    "name": "ship2",
+                    "bitmapResolution": 1,
+                    "md5ext": "c032dfbd8bbcd1123cf9c8c9c42c0645.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 171,
+                    "rotationCenterY": 129.33301078616773
+                },
+                {
+                    "assetId": "9dde9bb4f9ecbe50edadc7fcda466b58",
+                    "name": "beep1",
+                    "bitmapResolution": 1,
+                    "md5ext": "9dde9bb4f9ecbe50edadc7fcda466b58.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 45.56039300326347,
+                    "rotationCenterY": 69.33720008723701
+                },
+                {
+                    "assetId": "c85a3e6d7729cda3f818e8fc7570eb8f",
+                    "name": "beep2",
+                    "bitmapResolution": 1,
+                    "md5ext": "c85a3e6d7729cda3f818e8fc7570eb8f.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 56.01039300326346,
+                    "rotationCenterY": 69.77782508723702
+                },
+                {
+                    "assetId": "518be59a39827d405a5cd0da55d9e875",
+                    "name": "sled1",
+                    "bitmapResolution": 1,
+                    "md5ext": "518be59a39827d405a5cd0da55d9e875.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 88.98236,
+                    "rotationCenterY": 82.19345008723701
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": -186,
+            "y": 18,
+            "size": 50,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Bop",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "IK9aK;Oy{S~RKlL@`/?v": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "AR:)++|{,CX=MXlPW7A@",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 119,
+                    "y": 26
+                },
+                "AR:)++|{,CX=MXlPW7A@": {
+                    "opcode": "motion_gotoxy",
+                    "next": "qs?R^0_~bvbVh+vA6Rk;",
+                    "parent": "IK9aK;Oy{S~RKlL@`/?v",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-191"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-25"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "qs?R^0_~bvbVh+vA6Rk;": {
+                    "opcode": "looks_setsizeto",
+                    "next": "G7ctbN^~.TcWF!904;bQ",
+                    "parent": "AR:)++|{,CX=MXlPW7A@",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "G7ctbN^~.TcWF!904;bQ": {
+                    "opcode": "looks_gotofrontback",
+                    "next": null,
+                    "parent": "qs?R^0_~bvbVh+vA6Rk;",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "bab12501f87e1c00e953379a18307c56",
+                    "name": "ship1",
+                    "bitmapResolution": 1,
+                    "md5ext": "bab12501f87e1c00e953379a18307c56.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 176,
+                    "rotationCenterY": 24.5
+                },
+                {
+                    "assetId": "eb33c13405d8ece7d42825eb37e381e3",
+                    "name": "ship2",
+                    "bitmapResolution": 1,
+                    "md5ext": "eb33c13405d8ece7d42825eb37e381e3.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 175.804685,
+                    "rotationCenterY": 81.357469606723
+                },
+                {
+                    "assetId": "d04e62a14da7cd53c6b23e0bd7003c78",
+                    "name": "bop1",
+                    "bitmapResolution": 1,
+                    "md5ext": "d04e62a14da7cd53c6b23e0bd7003c78.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 76.59364512826346,
+                    "rotationCenterY": 46.51863602473705
+                },
+                {
+                    "assetId": "504e016eed3bff1bbe8a227f3df53f09",
+                    "name": "bop2",
+                    "bitmapResolution": 1,
+                    "md5ext": "504e016eed3bff1bbe8a227f3df53f09.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 76.59364300326348,
+                    "rotationCenterY": 46.518635087237016
+                },
+                {
+                    "assetId": "18a46c151425df3ce265da8cfa406489",
+                    "name": "sled1",
+                    "bitmapResolution": 1,
+                    "md5ext": "18a46c151425df3ce265da8cfa406489.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 119.28115943750001,
+                    "rotationCenterY": 79.377367337237
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 4,
+            "visible": true,
+            "x": -191,
+            "y": -25,
+            "size": 50,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Planet X",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "cmh7xhE`E:+upjW4lIm[": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "wUiTg*%taA~OmVyHl.Y~",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 108,
+                    "y": 115
+                },
+                "wUiTg*%taA~OmVyHl.Y~": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "_usXI:FR8i8usSlD,/{)",
+                    "parent": "cmh7xhE`E:+upjW4lIm[",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Who can rescue Bork first?"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "_usXI:FR8i8usSlD,/{)": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "wUiTg*%taA~OmVyHl.Y~",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click on the purple spaceship for instructions."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 7,
+            "costumes": [
+                {
+                    "assetId": "3b79be8b6ef90f241ce0df0de5687e38",
+                    "name": "costume1 ",
+                    "bitmapResolution": 1,
+                    "md5ext": "3b79be8b6ef90f241ce0df0de5687e38.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 138.71355034962338,
+                    "rotationCenterY": 131.1600067607962
+                },
+                {
+                    "assetId": "9a35721ea22d7866ce7e2424bec55dec",
+                    "name": "costume2",
+                    "bitmapResolution": 1,
+                    "md5ext": "9a35721ea22d7866ce7e2424bec55dec.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 138.71354821113795,
+                    "rotationCenterY": 131.1600091352506
+                },
+                {
+                    "assetId": "dd8dd572064baacfd4c997287b471ae5",
+                    "name": "costume3",
+                    "bitmapResolution": 1,
+                    "md5ext": "dd8dd572064baacfd4c997287b471ae5.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 138.71354607265252,
+                    "rotationCenterY": 131.160011509705
+                },
+                {
+                    "assetId": "1bf472a6abe923dcfef3f24fdcbdfe31",
+                    "name": "costume4",
+                    "bitmapResolution": 1,
+                    "md5ext": "1bf472a6abe923dcfef3f24fdcbdfe31.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 138.71354286151458,
+                    "rotationCenterY": 131.1600123744544
+                },
+                {
+                    "assetId": "ac482dc9abd0d65f08e3eae8e177565a",
+                    "name": "costume5",
+                    "bitmapResolution": 1,
+                    "md5ext": "ac482dc9abd0d65f08e3eae8e177565a.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 138.71354072302915,
+                    "rotationCenterY": 131.1600147489088
+                },
+                {
+                    "assetId": "c31201968e2a3fa435610cb91aea3888",
+                    "name": "costume6",
+                    "bitmapResolution": 1,
+                    "md5ext": "c31201968e2a3fa435610cb91aea3888.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 138.71353858454376,
+                    "rotationCenterY": 131.1600171233632
+                },
+                {
+                    "assetId": "8f89a526a1dfad2baaf46ed3a2d7a748",
+                    "name": "costume7",
+                    "bitmapResolution": 1,
+                    "md5ext": "8f89a526a1dfad2baaf46ed3a2d7a748.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 138.71353644605836,
+                    "rotationCenterY": 131.16000949781758
+                },
+                {
+                    "assetId": "653079912256ec68d2b130232d172e04",
+                    "name": "costume8",
+                    "bitmapResolution": 1,
+                    "md5ext": "653079912256ec68d2b130232d172e04.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 112,
+                    "rotationCenterY": 126
+                },
+                {
+                    "assetId": "a5cbfd13c5efaaed99a9253eac258bb1",
+                    "name": "costume9",
+                    "bitmapResolution": 1,
+                    "md5ext": "a5cbfd13c5efaaed99a9253eac258bb1.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 134,
+                    "rotationCenterY": 125
+                },
+                {
+                    "assetId": "a53f10e8da56d38de783ce4d2750d7bf",
+                    "name": "costume10",
+                    "bitmapResolution": 1,
+                    "md5ext": "a53f10e8da56d38de783ce4d2750d7bf.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 127,
+                    "rotationCenterY": 130
+                },
+                {
+                    "assetId": "6930e1a6307b5c9ed9bbef3bde266b54",
+                    "name": "costume11",
+                    "bitmapResolution": 1,
+                    "md5ext": "6930e1a6307b5c9ed9bbef3bde266b54.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 129,
+                    "rotationCenterY": 127
+                },
+                {
+                    "assetId": "a6a297e536e0ee8bdc64eab8ac12d2aa",
+                    "name": "costume12",
+                    "bitmapResolution": 1,
+                    "md5ext": "a6a297e536e0ee8bdc64eab8ac12d2aa.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 145.86591931239406,
+                    "rotationCenterY": 157.6903320812774
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": 174.00000000000003,
+            "y": 8,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Bork",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 5,
+            "costumes": [
+                {
+                    "assetId": "a355064d89d776d706ce73ea63768d53",
+                    "name": "ship1",
+                    "bitmapResolution": 1,
+                    "md5ext": "a355064d89d776d706ce73ea63768d53.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 146.3331508280487,
+                    "rotationCenterY": 145.765020900729
+                },
+                {
+                    "assetId": "29861b82c8949aca5afa5d36b6feaae8",
+                    "name": "ship2",
+                    "bitmapResolution": 1,
+                    "md5ext": "29861b82c8949aca5afa5d36b6feaae8.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 127.18394470641091,
+                    "rotationCenterY": 182.09893330507907
+                },
+                {
+                    "assetId": "f291559ece9109053d03a62fcbf9af33",
+                    "name": "ship3",
+                    "bitmapResolution": 1,
+                    "md5ext": "f291559ece9109053d03a62fcbf9af33.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 126.7879248948387,
+                    "rotationCenterY": 140
+                },
+                {
+                    "assetId": "7614d9b95b24d012d72ed6d4f1ad6e3f",
+                    "name": "bork1",
+                    "bitmapResolution": 1,
+                    "md5ext": "7614d9b95b24d012d72ed6d4f1ad6e3f.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 66.59362797680515,
+                    "rotationCenterY": 38.51862212869321
+                },
+                {
+                    "assetId": "90b27333efdd829b010fc36f94a068b2",
+                    "name": "bork2",
+                    "bitmapResolution": 1,
+                    "md5ext": "90b27333efdd829b010fc36f94a068b2.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 66.5936334271878,
+                    "rotationCenterY": 41.71125196320858
+                },
+                {
+                    "assetId": "d71c685913a2a2e1bd1c0a561e169a35",
+                    "name": "bork3",
+                    "bitmapResolution": 1,
+                    "md5ext": "d71c685913a2a2e1bd1c0a561e169a35.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 77.89664936195814,
+                    "rotationCenterY": 45.51862270055594
+                },
+                {
+                    "assetId": "2e801a9b114912e0050e9b52ef923379",
+                    "name": "sled1",
+                    "bitmapResolution": 1,
+                    "md5ext": "2e801a9b114912e0050e9b52ef923379.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 119.28116,
+                    "rotationCenterY": 91.51862135027797
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": 131,
+            "y": 17.999999999999986,
+            "size": 60.00000000000001,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190813192748",
+        "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
+    }
+}
+
+},{}],34:[function(require,module,exports){
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "0fdc016498ad18ef64083324fc555e07",
+                    "name": "Ofrenda",
+                    "bitmapResolution": 2,
+                    "md5ext": "0fdc016498ad18ef64083324fc555e07.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Catrina",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "hhI-UM#;XV/}FN!T75=O": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "n.v*p~!1x;LzrE#aVJn=",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 16,
+                    "y": 18
+                },
+                "n.v*p~!1x;LzrE#aVJn=": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "_JN(d|ySH,Mh2muwwiu;",
+                    "parent": "hhI-UM#;XV/}FN!T75=O",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "This is an Ofrenda. It is a traditional ritual for the Mexican Día de los Muertos celebration. "
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                6
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "_JN(d|ySH,Mh2muwwiu;": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "n.v*p~!1x;LzrE#aVJn=",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click on the space bar key to learn more about Día de los Muertos."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                5
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "jyoFe@W21fl/YG4-K0HV": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "0Tpp4fyP/cwt]Xci4%c}",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 16,
+                    "y": 271
+                },
+                "0Tpp4fyP/cwt]Xci4%c}": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "!Q|p9#+:C8i8N^IuIr?h",
+                    "parent": "jyoFe@W21fl/YG4-K0HV",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Día de los Muertos is celebrated on November 1st and 2nd. It is a time to celebrate our ancestors and be with our families."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                7
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "!Q|p9#+:C8i8N^IuIr?h": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "BYR*l6tNynN^zR?hlMCo",
+                    "parent": "0Tpp4fyP/cwt]Xci4%c}",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Photos of loved ones who have died as well as their favorite foods are left out to welcome them home for the night.  "
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                7
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "BYR*l6tNynN^zR?hlMCo": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "!Q|p9#+:C8i8N^IuIr?h",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click on one of the pictures of my family members to learn about them."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                6
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "647ed8ab0fc6dcbc70e9aa3eda75edbb",
+                    "name": "Catrina",
+                    "bitmapResolution": 2,
+                    "md5ext": "647ed8ab0fc6dcbc70e9aa3eda75edbb.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 192,
+                    "rotationCenterY": 228
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": -181.3,
+            "y": -28.80000000000001,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Left",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "kM%BH#W(*9LZtQa]U(V.": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "cg=pg0XvI1*3~}~TY*;%",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 15,
+                    "y": 22
+                },
+                "cg=pg0XvI1*3~}~TY*;%": {
+                    "opcode": "looks_setsizeto",
+                    "next": null,
+                    "parent": "kM%BH#W(*9LZtQa]U(V.",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "8+onh*iCmBn~5GY(sy;p": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "}VBgCH{K:oDh6pV0h.pi",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 15,
+                    "y": 275
+                },
+                "}VBgCH{K:oDh6pV0h.pi": {
+                    "opcode": "looks_gotofrontback",
+                    "next": "taz8m.4x_rVweL9%J@(3",
+                    "parent": "8+onh*iCmBn~5GY(sy;p",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "taz8m.4x_rVweL9%J@(3": {
+                    "opcode": "looks_changesizeby",
+                    "next": "Y5!LLf.Gqemqe/6!)t=e",
+                    "parent": "}VBgCH{K:oDh6pV0h.pi",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "Y5!LLf.Gqemqe/6!)t=e": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "Q.gGFO#r}[Z@fzClmRq-",
+                    "parent": "taz8m.4x_rVweL9%J@(3",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "I am Grandpa John."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                2
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "Q.gGFO#r}[Z@fzClmRq-": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "sPl?mFlNaaD_l]+QJ.CW",
+                    "parent": "Y5!LLf.Gqemqe/6!)t=e",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "I loved to cook with my grandchildren."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                4
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "sPl?mFlNaaD_l]+QJ.CW": {
+                    "opcode": "looks_changesizeby",
+                    "next": null,
+                    "parent": "Q.gGFO#r}[Z@fzClmRq-",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                -100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 3,
+            "costumes": [
+                {
+                    "assetId": "7f24161f04680291faeb630df4dd5085",
+                    "name": "person1",
+                    "bitmapResolution": 2,
+                    "md5ext": "7f24161f04680291faeb630df4dd5085.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 66,
+                    "rotationCenterY": 86
+                },
+                {
+                    "assetId": "5eb6486c7167f691023e24b52a1b88f9",
+                    "name": "person2",
+                    "bitmapResolution": 1,
+                    "md5ext": "5eb6486c7167f691023e24b52a1b88f9.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 31,
+                    "rotationCenterY": 42
+                },
+                {
+                    "assetId": "d09a00414b05cee69c76d00585b8d66b",
+                    "name": "person3",
+                    "bitmapResolution": 1,
+                    "md5ext": "d09a00414b05cee69c76d00585b8d66b.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 33,
+                    "rotationCenterY": 42
+                },
+                {
+                    "assetId": "8900e1f586f49453f2e7501e3fe4cfdd",
+                    "name": "person4",
+                    "bitmapResolution": 2,
+                    "md5ext": "8900e1f586f49453f2e7501e3fe4cfdd.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 64,
+                    "rotationCenterY": 86
+                },
+                {
+                    "assetId": "08ab2e17ccc33f08537f0c83fcc7fb94",
+                    "name": "person5",
+                    "bitmapResolution": 2,
+                    "md5ext": "08ab2e17ccc33f08537f0c83fcc7fb94.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 60,
+                    "rotationCenterY": 90
+                },
+                {
+                    "assetId": "c15dd7c24b82019df099416b5bea68d6",
+                    "name": "person6",
+                    "bitmapResolution": 1,
+                    "md5ext": "c15dd7c24b82019df099416b5bea68d6.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 32,
+                    "rotationCenterY": 46
+                },
+                {
+                    "assetId": "a815e04689a83e14ccf2422c600cfe4c",
+                    "name": "person7",
+                    "bitmapResolution": 1,
+                    "md5ext": "a815e04689a83e14ccf2422c600cfe4c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 43
+                },
+                {
+                    "assetId": "09c1ba15733f0c6377ef36cff5e6a0e5",
+                    "name": "person8",
+                    "bitmapResolution": 1,
+                    "md5ext": "09c1ba15733f0c6377ef36cff5e6a0e5.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 32,
+                    "rotationCenterY": 43
+                },
+                {
+                    "assetId": "b26fdbf0cbee8d0b2766f3cd2ea7a490",
+                    "name": "pet1",
+                    "bitmapResolution": 1,
+                    "md5ext": "b26fdbf0cbee8d0b2766f3cd2ea7a490.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 31,
+                    "rotationCenterY": 41
+                },
+                {
+                    "assetId": "11fba26009af8c1b36cdb07527d37f1c",
+                    "name": "pet2",
+                    "bitmapResolution": 1,
+                    "md5ext": "11fba26009af8c1b36cdb07527d37f1c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 40
+                },
+                {
+                    "assetId": "3bab46e52650e819aae5e5c57edb3b0e",
+                    "name": "pet3",
+                    "bitmapResolution": 1,
+                    "md5ext": "3bab46e52650e819aae5e5c57edb3b0e.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 19,
+                    "rotationCenterY": 37
+                },
+                {
+                    "assetId": "25daceea601ed530456bc6fa24a26c15",
+                    "name": "pet4",
+                    "bitmapResolution": 1,
+                    "md5ext": "25daceea601ed530456bc6fa24a26c15.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 20,
+                    "rotationCenterY": 37
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": -71,
+            "y": 56,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Middle",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "6vO}g1Tn]HuzZYGP8=y2": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "4G]%`kG5j!MdWz97Y1}e",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 15,
+                    "y": 22
+                },
+                "4G]%`kG5j!MdWz97Y1}e": {
+                    "opcode": "looks_setsizeto",
+                    "next": null,
+                    "parent": "6vO}g1Tn]HuzZYGP8=y2",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "e?qr@5tmZQxY(E0,M{59": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "/f[ltBij)7]5Jtg|W(1%",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 18,
+                    "y": 241
+                },
+                "/f[ltBij)7]5Jtg|W(1%": {
+                    "opcode": "looks_gotofrontback",
+                    "next": null,
+                    "parent": "e?qr@5tmZQxY(E0,M{59",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "4ba11d5f6d1ed2d208d17715d130cb9e",
+                    "name": "pet3",
+                    "bitmapResolution": 2,
+                    "md5ext": "4ba11d5f6d1ed2d208d17715d130cb9e.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 50,
+                    "rotationCenterY": 84
+                },
+                {
+                    "assetId": "087dd33db6c7d5eeaad4150ab881d9d1",
+                    "name": "pet4",
+                    "bitmapResolution": 1,
+                    "md5ext": "087dd33db6c7d5eeaad4150ab881d9d1.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 24,
+                    "rotationCenterY": 43
+                },
+                {
+                    "assetId": "0c5b40f70385fcc1f8f53954f818f2ed",
+                    "name": "pet1",
+                    "bitmapResolution": 1,
+                    "md5ext": "0c5b40f70385fcc1f8f53954f818f2ed.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "6b6d55f95a4d13f6c132b29d96e1a11e",
+                    "name": "pet2",
+                    "bitmapResolution": 1,
+                    "md5ext": "6b6d55f95a4d13f6c132b29d96e1a11e.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 41
+                },
+                {
+                    "assetId": "42f79997429705f763eb27b9b05ba5bb",
+                    "name": "person6",
+                    "bitmapResolution": 1,
+                    "md5ext": "42f79997429705f763eb27b9b05ba5bb.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "44cf3ec60b8282766ae03dc5565889f2",
+                    "name": "person8",
+                    "bitmapResolution": 1,
+                    "md5ext": "44cf3ec60b8282766ae03dc5565889f2.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 37,
+                    "rotationCenterY": 47
+                },
+                {
+                    "assetId": "d3c271339a5e31d67571a6fc2f16daba",
+                    "name": "person5",
+                    "bitmapResolution": 1,
+                    "md5ext": "d3c271339a5e31d67571a6fc2f16daba.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 37,
+                    "rotationCenterY": 46
+                },
+                {
+                    "assetId": "e2df341a1cb5a6c47b74ba64d6f84d57",
+                    "name": "person7",
+                    "bitmapResolution": 1,
+                    "md5ext": "e2df341a1cb5a6c47b74ba64d6f84d57.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 46
+                },
+                {
+                    "assetId": "e162f14bec31f175c2064fb245159c7c",
+                    "name": "person1",
+                    "bitmapResolution": 1,
+                    "md5ext": "e162f14bec31f175c2064fb245159c7c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "d9bd6a50ef48f3b0ebd402c8d75f4cb1",
+                    "name": "person2",
+                    "bitmapResolution": 1,
+                    "md5ext": "d9bd6a50ef48f3b0ebd402c8d75f4cb1.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 36,
+                    "rotationCenterY": 44
+                },
+                {
+                    "assetId": "67de18ea5831da13fba2dd9a7e07827c",
+                    "name": "person4",
+                    "bitmapResolution": 1,
+                    "md5ext": "67de18ea5831da13fba2dd9a7e07827c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 38,
+                    "rotationCenterY": 46
+                },
+                {
+                    "assetId": "b7862ddeff16907801331ec1598b835e",
+                    "name": "person3",
+                    "bitmapResolution": 1,
+                    "md5ext": "b7862ddeff16907801331ec1598b835e.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 37,
+                    "rotationCenterY": 44
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 4,
+            "visible": true,
+            "x": 6,
+            "y": 53,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Right",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 2,
+            "costumes": [
+                {
+                    "assetId": "49c12ffb44165bb3f3fda8d202a046b8",
+                    "name": "person5",
+                    "bitmapResolution": 2,
+                    "md5ext": "49c12ffb44165bb3f3fda8d202a046b8.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 60,
+                    "rotationCenterY": 90
+                },
+                {
+                    "assetId": "f2483e067cdfd2c35b613fea24980a30",
+                    "name": "person6",
+                    "bitmapResolution": 1,
+                    "md5ext": "f2483e067cdfd2c35b613fea24980a30.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 32,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "d8a943604322f0f5f2f435d3cd940b85",
+                    "name": "person8",
+                    "bitmapResolution": 1,
+                    "md5ext": "d8a943604322f0f5f2f435d3cd940b85.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 29,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "04adcf04fb8d1026d62f5ee9c3ad7d42",
+                    "name": "person7",
+                    "bitmapResolution": 1,
+                    "md5ext": "04adcf04fb8d1026d62f5ee9c3ad7d42.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 29,
+                    "rotationCenterY": 47
+                },
+                {
+                    "assetId": "1356d2e5866dc1daff05814408c1167c",
+                    "name": "pet2",
+                    "bitmapResolution": 1,
+                    "md5ext": "1356d2e5866dc1daff05814408c1167c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 42
+                },
+                {
+                    "assetId": "6a108c4dbd2c2265c2bb5908f9a79398",
+                    "name": "pet1",
+                    "bitmapResolution": 1,
+                    "md5ext": "6a108c4dbd2c2265c2bb5908f9a79398.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 29,
+                    "rotationCenterY": 44
+                },
+                {
+                    "assetId": "07166695718b3712d36435cef0bfa346",
+                    "name": "pet4",
+                    "bitmapResolution": 1,
+                    "md5ext": "07166695718b3712d36435cef0bfa346.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 17,
+                    "rotationCenterY": 40
+                },
+                {
+                    "assetId": "71b02eaaab47f60b1bc94579213d1d18",
+                    "name": "pet3",
+                    "bitmapResolution": 1,
+                    "md5ext": "71b02eaaab47f60b1bc94579213d1d18.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 18,
+                    "rotationCenterY": 41
+                },
+                {
+                    "assetId": "bc2691b6a5df3c506d69a4966dfb3628",
+                    "name": "person2",
+                    "bitmapResolution": 1,
+                    "md5ext": "bc2691b6a5df3c506d69a4966dfb3628.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 32,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "721091c90a3ea19d1c8bd85f7fdf4824",
+                    "name": "person1",
+                    "bitmapResolution": 1,
+                    "md5ext": "721091c90a3ea19d1c8bd85f7fdf4824.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "60425642ecdb9faed9feb69e178dcdd2",
+                    "name": "person3",
+                    "bitmapResolution": 1,
+                    "md5ext": "60425642ecdb9faed9feb69e178dcdd2.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 45
+                },
+                {
+                    "assetId": "07c3da9d5c02aaee8092d19642f94e3c",
+                    "name": "person4",
+                    "bitmapResolution": 1,
+                    "md5ext": "07c3da9d5c02aaee8092d19642f94e3c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 31,
+                    "rotationCenterY": 45
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": 71,
+            "y": 54,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190813192748",
+        "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
+    }
+}
+
+},{}],35:[function(require,module,exports){
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "a362161676714e6cd5c6d720547817d5",
+                    "name": "courtyard",
+                    "bitmapResolution": 2,
+                    "md5ext": "a362161676714e6cd5c6d720547817d5.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Jamal",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "73/K=FP)GVQLI-wUsnJ|": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "}%6,]+;TseI8:@asB9eH",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 46,
+                    "y": 74
+                },
+                "0z1!lZDenX,SZ:4QWkF:": {
+                    "opcode": "looks_setsizeto",
+                    "next": "(5[hu{1=uH.J?E^4r(~)",
+                    "parent": "}%6,]+;TseI8:@asB9eH",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                "60"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "i`x-8yLimj(13c3dzjIw": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "!aXre*as=;7wZ4l-jAC_",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 91,
+                    "y": 340
+                },
+                "!aXre*as=;7wZ4l-jAC_": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "i`x-8yLimj(13c3dzjIw",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Minimo!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "KDzF~kf,]OocH8gZN2IE": {
+                    "opcode": "looks_gotofrontback",
+                    "next": "=~@BIdz=vjjZL/Di~o(*",
+                    "parent": "xf21f|F9gQ2s=s%FzM)P",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "cyB#IOz:/lCBZdFq27nJ": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "xf21f|F9gQ2s=s%FzM)P",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 538,
+                    "y": 122
+                },
+                "xf21f|F9gQ2s=s%FzM)P": {
+                    "opcode": "looks_changesizeby",
+                    "next": "KDzF~kf,]OocH8gZN2IE",
+                    "parent": "cyB#IOz:/lCBZdFq27nJ",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "QCnmWw~%2`su?71YfD)r": {
+                    "opcode": "looks_changesizeby",
+                    "next": null,
+                    "parent": "=~@BIdz=vjjZL/Di~o(*",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                "-50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "=~@BIdz=vjjZL/Di~o(*": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "QCnmWw~%2`su?71YfD)r",
+                    "parent": "KDzF~kf,]OocH8gZN2IE",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Press the space bar to do some magic. "
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "(5[hu{1=uH.J?E^4r(~)": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "0z1!lZDenX,SZ:4QWkF:",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click on me for instructions."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "}%6,]+;TseI8:@asB9eH": {
+                    "opcode": "motion_gotoxy",
+                    "next": "0z1!lZDenX,SZ:4QWkF:",
+                    "parent": "73/K=FP)GVQLI-wUsnJ|",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-25"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-41"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 8,
+            "costumes": [
+                {
+                    "assetId": "693c376e737af6eb9be6cd7115c893e1",
+                    "name": "Witch 1",
+                    "bitmapResolution": 2,
+                    "md5ext": "693c376e737af6eb9be6cd7115c893e1.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 346
+                },
+                {
+                    "assetId": "82f3df3a42627bc33fcea826e26f9ff4",
+                    "name": "Witch 2",
+                    "bitmapResolution": 2,
+                    "md5ext": "82f3df3a42627bc33fcea826e26f9ff4.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 346
+                },
+                {
+                    "assetId": "bf2788e393d35ca53bac9d40efc38911",
+                    "name": "Witch 3",
+                    "bitmapResolution": 2,
+                    "md5ext": "bf2788e393d35ca53bac9d40efc38911.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 346
+                },
+                {
+                    "assetId": "cca489e9caf72e68e2cb1fc5c40f902f",
+                    "name": "Witch 4",
+                    "bitmapResolution": 2,
+                    "md5ext": "cca489e9caf72e68e2cb1fc5c40f902f.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 346
+                },
+                {
+                    "assetId": "6d7091094236416678775c44ff64dfcd",
+                    "name": "Witch 5",
+                    "bitmapResolution": 2,
+                    "md5ext": "6d7091094236416678775c44ff64dfcd.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 346
+                },
+                {
+                    "assetId": "1e4ce6f6412036d8dfaf2e543ee4975d",
+                    "name": "Wizard 1",
+                    "bitmapResolution": 2,
+                    "md5ext": "1e4ce6f6412036d8dfaf2e543ee4975d.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 356
+                },
+                {
+                    "assetId": "a17f08c55acf5ebf9f789d95c44d578e",
+                    "name": "Wizard 2",
+                    "bitmapResolution": 2,
+                    "md5ext": "a17f08c55acf5ebf9f789d95c44d578e.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 356
+                },
+                {
+                    "assetId": "396814cd71c312f27de864cc3f248a0d",
+                    "name": "Wizard 3",
+                    "bitmapResolution": 2,
+                    "md5ext": "396814cd71c312f27de864cc3f248a0d.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 356
+                },
+                {
+                    "assetId": "be247e831fea557a43d0bbe85d685ed1",
+                    "name": "Wizard 4",
+                    "bitmapResolution": 2,
+                    "md5ext": "be247e831fea557a43d0bbe85d685ed1.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 356
+                },
+                {
+                    "assetId": "6d655cb61af1444a9569ce280d6d3383",
+                    "name": "Wizard 5",
+                    "bitmapResolution": 2,
+                    "md5ext": "6d655cb61af1444a9569ce280d6d3383.png",
+                    "dataFormat": "png",
+                    "rotationCenterX": 338,
+                    "rotationCenterY": 356
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": -60,
+            "y": -41,
+            "size": 60.00000000000001,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Monster",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "VPKLazkV}Ih(~ceuerQ!": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "JY$I_;vD}Njo;gdoLQ;*",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 77,
+                    "y": 68
+                },
+                "JY$I_;vD}Njo;gdoLQ;*": {
+                    "opcode": "motion_gotoxy",
+                    "next": "XGxvNer$A%#I1sQLS3~D",
+                    "parent": "VPKLazkV}Ih(~ceuerQ!",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "40"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-29"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "XGxvNer$A%#I1sQLS3~D": {
+                    "opcode": "looks_setsizeto",
+                    "next": "heI|`ne,I%7yKaK@uy*T",
+                    "parent": "JY$I_;vD}Njo;gdoLQ;*",
+                    "inputs": {
+                        "SIZE": [
+                            1,
+                            [
+                                4,
+                                "45"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "~Ta~h%{oyzDJkNgB0Ar*": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "1K)/uYKqz?SyP7XP*^H;",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 84,
+                    "y": 326
+                },
+                "1K)/uYKqz?SyP7XP*^H;": {
+                    "opcode": "control_wait",
+                    "next": "uR_ri`oBD|rjMgU?FM6[",
+                    "parent": "~Ta~h%{oyzDJkNgB0Ar*",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                ".3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "uR_ri`oBD|rjMgU?FM6[": {
+                    "opcode": "looks_changesizeby",
+                    "next": "qeL@)l};UkUk/5=yMJfJ",
+                    "parent": "1K)/uYKqz?SyP7XP*^H;",
+                    "inputs": {
+                        "CHANGE": [
+                            1,
+                            [
+                                4,
+                                "-10"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "qeL@)l};UkUk/5=yMJfJ": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "uR_ri`oBD|rjMgU?FM6[",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Help! I'm shrinking..."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "heI|`ne,I%7yKaK@uy*T": {
+                    "opcode": "looks_gotofrontback",
+                    "next": null,
+                    "parent": "XGxvNer$A%#I1sQLS3~D",
+                    "inputs": {},
+                    "fields": {
+                        "FRONT_BACK": [
+                            "front",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "21aaff40f8741327cb79b49765b936d2",
+                    "name": "ghost",
+                    "bitmapResolution": 1,
+                    "md5ext": "21aaff40f8741327cb79b49765b936d2.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 327.76250964222845,
+                    "rotationCenterY": 257.5494098687525
+                },
+                {
+                    "assetId": "40678a7b7c9856c50d9d2469a646f75d",
+                    "name": "cerberus",
+                    "bitmapResolution": 1,
+                    "md5ext": "40678a7b7c9856c50d9d2469a646f75d.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 238.00040007170497,
+                    "rotationCenterY": 179.94064073824006
+                },
+                {
+                    "assetId": "6e9595a213b8a6f999b255442e6f3936",
+                    "name": "owl",
+                    "bitmapResolution": 1,
+                    "md5ext": "6e9595a213b8a6f999b255442e6f3936.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 237.86389223861505,
+                    "rotationCenterY": 182.60606156491636
+                },
+                {
+                    "assetId": "e87005524ef37b2492b7d3ef4c60a74b",
+                    "name": "Minotaur",
+                    "bitmapResolution": 1,
+                    "md5ext": "e87005524ef37b2492b7d3ef4c60a74b.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 261.80950927734375,
+                    "rotationCenterY": 311.7650451660156
+                },
+                {
+                    "assetId": "84f57cc303311897ec158533620ef80a",
+                    "name": "Pink-Monster",
+                    "bitmapResolution": 1,
+                    "md5ext": "84f57cc303311897ec158533620ef80a.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 208.5,
+                    "rotationCenterY": 238
+                },
+                {
+                    "assetId": "8a92d14193f4f21669e849a9d9ed0534",
+                    "name": "Dragon",
+                    "bitmapResolution": 1,
+                    "md5ext": "8a92d14193f4f21669e849a9d9ed0534.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 1608.5065134277343,
+                    "rotationCenterY": 911.3315122070312
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": 40,
+            "y": -29,
+            "size": 40,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Cat",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "5fd638b2ff36d311493830ebf35b893b",
+                    "name": "cat1",
+                    "bitmapResolution": 1,
+                    "md5ext": "5fd638b2ff36d311493830ebf35b893b.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 88.00446848131384,
+                    "rotationCenterY": 70.56565467089568
+                },
+                {
+                    "assetId": "49c6e3be85f53eb0611478e2b42fec2b",
+                    "name": "cat2",
+                    "bitmapResolution": 1,
+                    "md5ext": "49c6e3be85f53eb0611478e2b42fec2b.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 66.7904327804867,
+                    "rotationCenterY": 27.065782158774567
+                },
+                {
+                    "assetId": "ac20e1f89530205acfffd7be4591e138",
+                    "name": "cat3",
+                    "bitmapResolution": 1,
+                    "md5ext": "ac20e1f89530205acfffd7be4591e138.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 883.0755004882812,
+                    "rotationCenterY": 833.4295043945312
+                },
+                {
+                    "assetId": "a827a07ddea183ca618a10d9563ce9b0",
+                    "name": "cat4",
+                    "bitmapResolution": 1,
+                    "md5ext": "a827a07ddea183ca618a10d9563ce9b0.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 570.0643920898438,
+                    "rotationCenterY": 358.7921142578125
+                },
+                {
+                    "assetId": "2fc2371b446dc9d3826e20d9a68e8ef2",
+                    "name": "cat5",
+                    "bitmapResolution": 1,
+                    "md5ext": "2fc2371b446dc9d3826e20d9a68e8ef2.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 372.0450134277344,
+                    "rotationCenterY": 526.2000122070312
+                },
+                {
+                    "assetId": "1b277f5ef9cbfd6f30efe6f98721392d",
+                    "name": "cat6",
+                    "bitmapResolution": 1,
+                    "md5ext": "1b277f5ef9cbfd6f30efe6f98721392d.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 715,
+                    "rotationCenterY": 1028.5
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": 164.99999999999997,
+            "y": -67,
+            "size": 50,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190813192748",
+        "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
+    }
+}
+
+},{}],36:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -6218,7 +9982,7 @@ module.exports={
                 }
             },
             "comments": {},
-            "currentCostume": 4,
+            "currentCostume": 0,
             "costumes": [
                 {
                     "assetId": "be898107fe99d3c8a66152520abfcc9b",
@@ -6232,13 +9996,13 @@ module.exports={
             ],
             "sounds": [
                 {
-                    "assetId": "10eed5b6b49ec7baf1d4b3b3fad0ac99",
-                    "name": "Tada",
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
                     "dataFormat": "wav",
-                    "format": "adpcm",
+                    "format": "",
                     "rate": 44100,
-                    "sampleCount": 111870,
-                    "md5ext": "10eed5b6b49ec7baf1d4b3b3fad0ac99.wav"
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
                 }
             ],
             "volume": 100,
@@ -6433,24 +10197,6 @@ module.exports={
                     "rotationCenterX": 12,
                     "rotationCenterY": 128
                 },
-                "=Tz)E4nE=v?~f=+Y.(AL": {
-                    "opcode": "looks_gotofrontback",
-                    "next": null,
-                    "parent": "7vWA0r(r|[s,JPRy4xmS",
-                    "inputs": {},
-                    "fields": {
-                        "FRONT_BACK": [
-                            "front",
-                            null
-                        ]
-                    },
-                    "shadow": false,
-                    "topLevel": false
-                }
-            },
-            "comments": {},
-            "currentCostume": 0,
-            "costumes": [
                 {
                     "assetId": "7b435be3a639d4d937c9653fbb72382d",
                     "name": "hedgehog_purple",
@@ -6473,7 +10219,7 @@ module.exports={
                 }
             ],
             "volume": 100,
-            "layerOrder": 4,
+            "layerOrder": 1,
             "visible": true,
             "x": 99,
             "y": -50.99999999999998,
@@ -6510,28 +10256,15 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
     }
 }
-},{}],28:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"e6bf56f64eb4e7e6c97ec6c97e90d023","name":"Holi Background","bitmapResolution":1,"md5ext":"e6bf56f64eb4e7e6c97ec6c97e90d023.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Neha","variables":{},"lists":{},"broadcasts":{},"blocks":{"6*c`Xv=UPZ2te:JB2+U*":{"opcode":"event_whenflagclicked","next":"1,sGaB#:WD/!fp4ecgw=","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-67,"y":-587},"1,sGaB#:WD/!fp4ecgw=":{"opcode":"motion_gotoxy","next":"0*gfG!}+dNBRamr1EdBt","parent":"6*c`Xv=UPZ2te:JB2+U*","inputs":{"X":[1,[4,"28"]],"Y":[1,[4,"-51"]]},"fields":{},"shadow":false,"topLevel":false},"0*gfG!}+dNBRamr1EdBt":{"opcode":"looks_switchcostumeto","next":"y;SD_2:1H=d-=o]rf3Nq","parent":"1,sGaB#:WD/!fp4ecgw=","inputs":{"COSTUME":[1,"-XUo5ONrDRD76UyvwKL?"]},"fields":{},"shadow":false,"topLevel":false},"-XUo5ONrDRD76UyvwKL?":{"opcode":"looks_costume","next":null,"parent":"0*gfG!}+dNBRamr1EdBt","inputs":{},"fields":{"COSTUME":["Neha1",null]},"shadow":true,"topLevel":false},"y;SD_2:1H=d-=o]rf3Nq":{"opcode":"control_wait","next":"#;GgQ}*l)tV4E{1NPadV","parent":"0*gfG!}+dNBRamr1EdBt","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"#;GgQ}*l)tV4E{1NPadV":{"opcode":"looks_sayforsecs","next":"GBVU3I7+QD=TSfHx]bhU","parent":"y;SD_2:1H=d-=o]rf3Nq","inputs":{"MESSAGE":[1,[10,"Hi, I'm Neha!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"GBVU3I7+QD=TSfHx]bhU":{"opcode":"looks_sayforsecs","next":"lTPM~|:Xs,_if#cv*}5O","parent":"#;GgQ}*l)tV4E{1NPadV","inputs":{"MESSAGE":[1,[10,"We are celebrating Holi, a traditional Hindu festival from India!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false},"lTPM~|:Xs,_if#cv*}5O":{"opcode":"looks_sayforsecs","next":"n%]__?|Z8]rI5Nb?gViq","parent":"GBVU3I7+QD=TSfHx]bhU","inputs":{"MESSAGE":[1,[10,"We use colorful powders and pastes to celebrate the beginning of Spring!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false},"n%]__?|Z8]rI5Nb?gViq":{"opcode":"looks_sayforsecs","next":",M3195%JsXVXc(d1Zg:L","parent":"lTPM~|:Xs,_if#cv*}5O","inputs":{"MESSAGE":[1,[10,"I'm holding some gulal!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},",M3195%JsXVXc(d1Zg:L":{"opcode":"looks_sayforsecs","next":null,"parent":"n%]__?|Z8]rI5Nb?gViq","inputs":{"MESSAGE":[1,[10,"Press the space bar to meet my friends!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},"|0_-JyE+)[h*:1fdtiA4":{"opcode":"event_whenthisspriteclicked","next":"^oA(iul1kHd(0wr^6Bw{","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-69,"y":-82},"^oA(iul1kHd(0wr^6Bw{":{"opcode":"looks_switchcostumeto","next":"|7PoJdXk{ra2Uw|t`GbT","parent":"|0_-JyE+)[h*:1fdtiA4","inputs":{"COSTUME":[1,"N9bZPF:pJOq6u.zxph*s"]},"fields":{},"shadow":false,"topLevel":false},"N9bZPF:pJOq6u.zxph*s":{"opcode":"looks_costume","next":null,"parent":"^oA(iul1kHd(0wr^6Bw{","inputs":{},"fields":{"COSTUME":["Neha1",null]},"shadow":true,"topLevel":false},"|7PoJdXk{ra2Uw|t`GbT":{"opcode":"looks_sayforsecs","next":"Om]!9q+lw!s+4zF:/CG!","parent":"^oA(iul1kHd(0wr^6Bw{","inputs":{"MESSAGE":[1,[10,"3..."]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"Om]!9q+lw!s+4zF:/CG!":{"opcode":"looks_sayforsecs","next":"J6bm|w{z^q-RA%hf)afc","parent":"|7PoJdXk{ra2Uw|t`GbT","inputs":{"MESSAGE":[1,[10,"2..."]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"J6bm|w{z^q-RA%hf)afc":{"opcode":"looks_sayforsecs","next":"dBNdJtA%:m:n8TAUuL^K","parent":"Om]!9q+lw!s+4zF:/CG!","inputs":{"MESSAGE":[1,[10,"1!"]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"dBNdJtA%:m:n8TAUuL^K":{"opcode":"control_repeat","next":"GV:wKN`D#AUVaKS?5jmD","parent":"J6bm|w{z^q-RA%hf)afc","inputs":{"TIMES":[1,[6,"4"]],"SUBSTACK":[2,"x@m(|CWR`%*`#b~;!2OT"]},"fields":{},"shadow":false,"topLevel":false},"x@m(|CWR`%*`#b~;!2OT":{"opcode":"control_wait","next":".Z=GpTw~p|F,B38JSn^t","parent":"dBNdJtA%:m:n8TAUuL^K","inputs":{"DURATION":[1,[5,"0.7"]]},"fields":{},"shadow":false,"topLevel":false},".Z=GpTw~p|F,B38JSn^t":{"opcode":"looks_nextcostume","next":null,"parent":"x@m(|CWR`%*`#b~;!2OT","inputs":{},"fields":{},"shadow":false,"topLevel":false},"GV:wKN`D#AUVaKS?5jmD":{"opcode":"looks_say","next":null,"parent":"dBNdJtA%:m:n8TAUuL^K","inputs":{"MESSAGE":[1,[10,"Happy Holi!"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"588e1905e5323f75328276def2ac0116","name":"Neha1","bitmapResolution":1,"md5ext":"588e1905e5323f75328276def2ac0116.svg","dataFormat":"svg","rotationCenterX":45.99999113010236,"rotationCenterY":87},{"assetId":"8a174573e7d4a7885954acd2afad19ea","name":"Neha2","bitmapResolution":1,"md5ext":"8a174573e7d4a7885954acd2afad19ea.svg","dataFormat":"svg","rotationCenterX":123.41460248739168,"rotationCenterY":114.40293820688679},{"assetId":"500b791f9f077dd2377bc56033912b9a","name":"Neha3","bitmapResolution":1,"md5ext":"500b791f9f077dd2377bc56033912b9a.svg","dataFormat":"svg","rotationCenterX":133.59915850034727,"rotationCenterY":174.0481588381853},{"assetId":"c53eeb50bcdf509cb1522d378c9e380b","name":"Neha4","bitmapResolution":1,"md5ext":"c53eeb50bcdf509cb1522d378c9e380b.svg","dataFormat":"svg","rotationCenterX":128.6803772733968,"rotationCenterY":116.40943091603478},{"assetId":"9d660677a26fe0b657bc3e43da838c8e","name":"Neha5","bitmapResolution":1,"md5ext":"9d660677a26fe0b657bc3e43da838c8e.svg","dataFormat":"svg","rotationCenterX":90.9947,"rotationCenterY":85.4763088644717}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":28,"y":-51,"size":139.99999999999997,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Brad","variables":{},"lists":{},"broadcasts":{},"blocks":{"CBEwU.S^!3v*m}+l(2:*":{"opcode":"event_whenflagclicked","next":"R|3)LWe?;VLJtzxlX@8}","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"R|3)LWe?;VLJtzxlX@8}":{"opcode":"motion_gotoxy","next":"9sO:y?e(89=wDBQEX*84","parent":"CBEwU.S^!3v*m}+l(2:*","inputs":{"X":[1,[4,220]],"Y":[1,[4,-13]]},"fields":{},"shadow":false,"topLevel":false},"9sO:y?e(89=wDBQEX*84":{"opcode":"looks_switchcostumeto","next":null,"parent":"R|3)LWe?;VLJtzxlX@8}","inputs":{"COSTUME":[1,"4!H7s8i9Lh.C(?SHMT_O"]},"fields":{},"shadow":false,"topLevel":false},"4!H7s8i9Lh.C(?SHMT_O":{"opcode":"looks_costume","next":null,"parent":"9sO:y?e(89=wDBQEX*84","inputs":{},"fields":{"COSTUME":["Brad1"]},"shadow":true,"topLevel":false},"7rU;-waLK?7n!U94pB].":{"opcode":"event_whenkeypressed","next":"BYyQeX2S2e2l[UHn#0bq","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":32,"y":304},"BYyQeX2S2e2l[UHn#0bq":{"opcode":"motion_movesteps","next":"SpljqntHJxfGDV;.4%#M","parent":"7rU;-waLK?7n!U94pB].","inputs":{"STEPS":[1,[4,-64]]},"fields":{},"shadow":false,"topLevel":false},"SpljqntHJxfGDV;.4%#M":{"opcode":"looks_sayforsecs","next":"m+[^4mRsSN%SjOXJ}+_t","parent":"BYyQeX2S2e2l[UHn#0bq","inputs":{"MESSAGE":[1,[10,"Hello, I'm Brad!"]],"SECS":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"m+[^4mRsSN%SjOXJ}+_t":{"opcode":"looks_sayforsecs","next":null,"parent":"SpljqntHJxfGDV;.4%#M","inputs":{"MESSAGE":[1,[10,"I'm holding a pichkari, a water squirter filled with colored water!"]],"SECS":[1,[4,6]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"dae278db1e4c65e9b70d966aa9a40429","name":"Brad1","bitmapResolution":1,"md5ext":"dae278db1e4c65e9b70d966aa9a40429.svg","dataFormat":"svg","rotationCenterX":37.99999373388661,"rotationCenterY":86.99998370205938}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":220,"y":-13,"size":135.00000000000003,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Kristen","variables":{},"lists":{},"broadcasts":{},"blocks":{"[M~hMK`q/NYs#*-;ZiuH":{"opcode":"event_whenflagclicked","next":"H~_UJ8~bO+^zXvT^^^le","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"H~_UJ8~bO+^zXvT^^^le":{"opcode":"motion_gotoxy","next":"@DsqwPSbeqW_?Pi{uYT]","parent":"[M~hMK`q/NYs#*-;ZiuH","inputs":{"X":[1,[4,-215]],"Y":[1,[4,-13]]},"fields":{},"shadow":false,"topLevel":false},"@DsqwPSbeqW_?Pi{uYT]":{"opcode":"looks_switchcostumeto","next":null,"parent":"H~_UJ8~bO+^zXvT^^^le","inputs":{"COSTUME":[1,"?+RpBU3RL5~YKwsi/rIw"]},"fields":{},"shadow":false,"topLevel":false},"?+RpBU3RL5~YKwsi/rIw":{"opcode":"looks_costume","next":null,"parent":"@DsqwPSbeqW_?Pi{uYT]","inputs":{},"fields":{"COSTUME":["Kristen1"]},"shadow":true,"topLevel":false},"Jf4;4?`|e1udP=94]ErE":{"opcode":"event_whenkeypressed","next":"9aY%RY8/M5ayiAqP@a7U","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":27,"y":261},"9aY%RY8/M5ayiAqP@a7U":{"opcode":"control_wait","next":"Pz:xDRpqyDJNLlR5?;,0","parent":"Jf4;4?`|e1udP=94]ErE","inputs":{"DURATION":[1,[5,"10"]]},"fields":{},"shadow":false,"topLevel":false},"Pz:xDRpqyDJNLlR5?;,0":{"opcode":"motion_movesteps","next":"-n-db;lg-!(lyaGFo;AQ","parent":"9aY%RY8/M5ayiAqP@a7U","inputs":{"STEPS":[1,[4,64]]},"fields":{},"shadow":false,"topLevel":false},"-n-db;lg-!(lyaGFo;AQ":{"opcode":"looks_sayforsecs","next":"4*Ly{a-GE~GGb~khP7#P","parent":"Pz:xDRpqyDJNLlR5?;,0","inputs":{"MESSAGE":[1,[10,"Hi, I'm Kristen!"]],"SECS":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"4*Ly{a-GE~GGb~khP7#P":{"opcode":"looks_sayforsecs","next":"(P/J:UdY/Q,8|p4}V!P=","parent":"-n-db;lg-!(lyaGFo;AQ","inputs":{"MESSAGE":[1,[10,"I'm using squeeze bottles."]],"SECS":[1,[4,4]]},"fields":{},"shadow":false,"topLevel":false},"(P/J:UdY/Q,8|p4}V!P=":{"opcode":"looks_sayforsecs","next":null,"parent":"4*Ly{a-GE~GGb~khP7#P","inputs":{"MESSAGE":[1,[10,"Click on Neha to see her celebrate!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"5c740972a1f49202719b50e896bd0cf6","name":"Kristen1","bitmapResolution":1,"md5ext":"5c740972a1f49202719b50e896bd0cf6.svg","dataFormat":"svg","rotationCenterX":62.000001871426775,"rotationCenterY":87.08308115522249}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-215,"y":-13,"size":135.00000000000003,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
-},{}],29:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 module.exports={
     "targets": [
         {
             "isStage": true,
             "name": "Stage",
-            "variables": {
-                "9[N1%n{g*z~#XXcW(=Nm-set score-": [
-                    "set score",
-                    0
-                ],
-                "9[N1%n{g*z~#XXcW(=Nm-set-": [
-                    "set",
-                    0
-                ],
-                "9[N1%n{g*z~#XXcW(=Nm-score-": [
-                    "score",
-                    3
-                ]
-            },
+            "variables": {},
             "lists": {},
             "broadcasts": {},
             "blocks": {},
@@ -6651,29 +10384,6 @@ module.exports={
                     "fields": {},
                     "shadow": false,
                     "topLevel": false
-                }
-            },
-            "comments": {
-                "AWlo:7:weqt;e=rdrhDb": {
-                    "blockId": "z=ft#ukk{%ud|P~YyngQ",
-                    "x": 426.6666666666667,
-                    "y": 164.4814814814815,
-                    "width": 298.5,
-                    "height": 574.2,
-                    "minimized": false,
-                    "text": "This short wait block is here to make sure Jaime and the Soccer Ball are both at the correct starting location before Jaime points in the direction of the ball. \r\rWithout this wait block, Jaime sometimes starts running to where the ball used to be. If that happens, they never touch and the ball never gets kicked to the goal! "
-                }
-            },
-            "currentCostume": 7,
-            "costumes": [
-                {
-                    "assetId": "9be3e09f29ce023f14139f35b272b6ba",
-                    "name": "Frame 1",
-                    "bitmapResolution": 2,
-                    "md5ext": "9be3e09f29ce023f14139f35b272b6ba.png",
-                    "dataFormat": "png",
-                    "rotationCenterX": 34,
-                    "rotationCenterY": 66
                 },
                 "u=@^[0kNfQx.2*Xvk0TX": {
                     "opcode": "looks_sayforsecs",
@@ -6721,14 +10431,14 @@ module.exports={
                     "next": ",`%kTB=!2Lz#4m!W2OpL",
                     "parent": "C;QZb9TtC1(Ov9vkC+$f",
                     "inputs": {
-                        "X": [
+                        "MESSAGE": [
                             1,
                             [
                                 10,
                                 "Welcome to Scratch!"
                             ]
                         ],
-                        "Y": [
+                        "SECS": [
                             1,
                             [
                                 4,
@@ -7055,7 +10765,7 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
     }
 }
-},{}],30:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class {
@@ -7160,9 +10870,9 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":26}],31:[function(require,module,exports){
-arguments[4][29][0].apply(exports,arguments)
-},{"dup":29}],32:[function(require,module,exports){
+},{"./scratch3":26}],40:[function(require,module,exports){
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"38be88e8026768d4606fe1932b05d258","name":"backdrop","bitmapResolution":2,"md5ext":"38be88e8026768d4606fe1932b05d258.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"India","variables":{},"lists":{},"broadcasts":{},"blocks":{"{?%H[3PODtzIOzw3NUAD":{"opcode":"event_whenflagclicked","next":"X9F`sK3d.L!x-cTWVaGz","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":0,"y":0},"X9F`sK3d.L!x-cTWVaGz":{"opcode":"motion_gotoxy","next":"kBZo|n~NnzgG!crdI1E;","parent":"{?%H[3PODtzIOzw3NUAD","inputs":{"X":[1,[4,"-215"]],"Y":[1,[4,"-145"]]},"fields":{},"shadow":false,"topLevel":false},"kBZo|n~NnzgG!crdI1E;":{"opcode":"motion_movesteps","next":"u=@^[0kNfQx.2*Xvk0TX","parent":"X9F`sK3d.L!x-cTWVaGz","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"u=@^[0kNfQx.2*Xvk0TX":{"opcode":"looks_sayforsecs","next":"C;QZb9TtC1(Ov9vkC+$f","parent":"kBZo|n~NnzgG!crdI1E;","inputs":{"MESSAGE":[1,[10,"Hello! My name is India."]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},"C;QZb9TtC1(Ov9vkC+$f":{"opcode":"motion_movesteps","next":"=6=T6QR$yee::D$b8~s{","parent":"u=@^[0kNfQx.2*Xvk0TX","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"=6=T6QR$yee::D$b8~s{":{"opcode":"looks_sayforsecs","next":",`%kTB=!2Lz#4m!W2OpL","parent":"C;QZb9TtC1(Ov9vkC+$f","inputs":{"MESSAGE":[1,[10,"Welcome to Scratch!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},",`%kTB=!2Lz#4m!W2OpL":{"opcode":"motion_movesteps","next":"{Ipink+*Ul#QILZqGvdF","parent":"=6=T6QR$yee::D$b8~s{","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"{Ipink+*Ul#QILZqGvdF":{"opcode":"looks_sayforsecs","next":null,"parent":",`%kTB=!2Lz#4m!W2OpL","inputs":{"MESSAGE":[1,[10,"Click the Space Bar to see some of the things I like."]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"fec9549b732165ec6d09991de08b69cd","name":"character (1)","bitmapResolution":1,"md5ext":"fec9549b732165ec6d09991de08b69cd.svg","dataFormat":"svg","rotationCenterX":78.87000274658203,"rotationCenterY":165.80999755859375}],"sounds":[],"volume":100,"layerOrder":2,"visible":true,"x":-65,"y":-145,"size":162.8369844855632,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"easel","variables":{},"lists":{},"broadcasts":{},"blocks":{"XYmoOsQpwwb~bRU[WtDb":{"opcode":"event_whenkeypressed","next":"NX*(%@1qK}o{lJ)1dp(L","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":56,"y":66},"NX*(%@1qK}o{lJ)1dp(L":{"opcode":"looks_switchcostumeto","next":"A*?(6=CMw!5NQvy3GoJz","parent":"XYmoOsQpwwb~bRU[WtDb","inputs":{"COSTUME":[1,"uxs{_T(3Fk%RETANj%^X"]},"fields":{},"shadow":false,"topLevel":false},"uxs{_T(3Fk%RETANj%^X":{"opcode":"looks_costume","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{},"fields":{"COSTUME":["easel",null]},"shadow":true,"topLevel":false},"A*?(6=CMw!5NQvy3GoJz":{"opcode":"control_repeat","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{"TIMES":[1,[6,"7"]],"SUBSTACK":[2,"MkZ9YIg7M,WuN@FR]l:o"]},"fields":{},"shadow":false,"topLevel":false},"*i@~ROBKeTP[#l_7v/_-":{"opcode":"control_wait","next":null,"parent":"MkZ9YIg7M,WuN@FR]l:o","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"MkZ9YIg7M,WuN@FR]l:o":{"opcode":"looks_nextcostume","next":"*i@~ROBKeTP[#l_7v/_-","parent":"A*?(6=CMw!5NQvy3GoJz","inputs":{},"fields":{},"shadow":false,"topLevel":false},"3?,1QT}D[0#@^jvT!J*^":{"opcode":"event_whenthisspriteclicked","next":"gPD.*ilWONI2U7F-SE[}","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":51,"y":455},"gPD.*ilWONI2U7F-SE[}":{"opcode":"looks_sayforsecs","next":null,"parent":"3?,1QT}D[0#@^jvT!J*^","inputs":{"MESSAGE":[1,[10,"Tada!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":7,"costumes":[{"assetId":"47a257ec82df9b221a9c8a0da1174652","name":"easel","bitmapResolution":1,"md5ext":"47a257ec82df9b221a9c8a0da1174652.svg","dataFormat":"svg","rotationCenterX":72,"rotationCenterY":100.5},{"assetId":"f80c9c273a7542f28fc0a0aa16f80532","name":"easel-sports","bitmapResolution":1,"md5ext":"f80c9c273a7542f28fc0a0aa16f80532.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"25fc936818594e0f67f48ffd39ee06b2","name":"easel-animals","bitmapResolution":1,"md5ext":"25fc936818594e0f67f48ffd39ee06b2.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"6a904db737d12cc410bd18e0e3837f1a","name":"easel-music","bitmapResolution":1,"md5ext":"6a904db737d12cc410bd18e0e3837f1a.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"eb955b9d6d17d5358e1c66ca5dbc4648","name":"easel-neighborhood","bitmapResolution":1,"md5ext":"eb955b9d6d17d5358e1c66ca5dbc4648.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"4c0e56f2cc17d497d76070033ab08654","name":"easel-travel","bitmapResolution":1,"md5ext":"4c0e56f2cc17d497d76070033ab08654.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"ba4d4b1af1eafdda9b882c0f51ced3ff","name":"easel-astronomy","bitmapResolution":1,"md5ext":"ba4d4b1af1eafdda9b882c0f51ced3ff.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"b0841fa4e9ea101a530022a9b4758d14","name":"easel-video-games","bitmapResolution":1,"md5ext":"b0841fa4e9ea101a530022a9b4758d14.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422}],"sounds":[],"volume":100,"layerOrder":1,"visible":true,"x":144,"y":-52,"size":150,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[{"id":"undefined_costumenumbername_number","mode":"default","opcode":"looks_costumenumbername","params":{"NUMBER_NAME":"number"},"spriteName":"Helen","value":"","width":0,"height":0,"x":5,"y":5,"visible":false,"sliderMin":0,"sliderMax":100,"isDiscrete":true}],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190822194548","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
+},{}],41:[function(require,module,exports){
 /// Provides necessary scripts for index.html.
 
 /// Requirements (scripts)
@@ -7171,7 +10881,7 @@ var graders = {
   scratchBasicsL2: { name: 'Scratch Basics L2',      file: require('./grading-scripts-s3/scratch-basics-L2') },
   animationL1:     { name: 'Animation L1',           file: require('./grading-scripts-s3/animation-L1')      },
   animationL2:     { name: 'Animation L2',           file: require('./grading-scripts-s3/animation-L2')      },
-  eventsL1:        { name: 'Events L1',              file: require('./grading-scripts-s3/events-L1')         },
+  eventsL1:        { name: 'Events L1',              file: require('./grading-scripts-s3/events-L1-syn')         },
   eventsL2:        { name: 'Events L2',              file: require('./grading-scripts-s3/events-L2')         },
   condLoopsL1:     { name: 'Conditional Loops L1',   file: require('./grading-scripts-s3/cond-loops-L1')        },
   condLoopsL2:     { name: 'Conditional Loops L2',   file: require('./grading-scripts-s3/cond-loops-L2')   },
@@ -7580,7 +11290,7 @@ function noError() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-},{"./act1-grading-scripts/aboutMe":1,"./act1-grading-scripts/animal-parade":2,"./act1-grading-scripts/dance-party":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/knockKnock":5,"./act1-grading-scripts/name-poem":7,"./act1-grading-scripts/ofrenda":8,"./act1-grading-scripts/onTheFarm":9,"./act1-grading-scripts/scavengerHunt":11,"./grading-scripts-s3/animation-L1":12,"./grading-scripts-s3/animation-L2":13,"./grading-scripts-s3/complex-conditionals-L1":14,"./grading-scripts-s3/cond-loops-L1":15,"./grading-scripts-s3/cond-loops-L2":16,"./grading-scripts-s3/decomp-L1":18,"./grading-scripts-s3/decomp-L2":19,"./grading-scripts-s3/events-L1":20,"./grading-scripts-s3/events-L2":21,"./grading-scripts-s3/one-way-sync-L1":22,"./grading-scripts-s3/one-way-sync-L2":23,"./grading-scripts-s3/scratch-basics-L1":24,"./grading-scripts-s3/scratch-basics-L2":25,"./grading-scripts-s3/two-way-sync-L1":30}],33:[function(require,module,exports){
+},{"./act1-grading-scripts/aboutMe":1,"./act1-grading-scripts/animal-parade":2,"./act1-grading-scripts/dance-party":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/knockKnock":5,"./act1-grading-scripts/name-poem":7,"./act1-grading-scripts/ofrenda":8,"./act1-grading-scripts/onTheFarm":9,"./act1-grading-scripts/scavengerHunt":11,"./grading-scripts-s3/animation-L1":12,"./grading-scripts-s3/animation-L2":13,"./grading-scripts-s3/complex-conditionals-L1":14,"./grading-scripts-s3/cond-loops-L1":15,"./grading-scripts-s3/cond-loops-L2":16,"./grading-scripts-s3/decomp-L1":18,"./grading-scripts-s3/decomp-L2":19,"./grading-scripts-s3/events-L1-syn":20,"./grading-scripts-s3/events-L2":21,"./grading-scripts-s3/one-way-sync-L1":22,"./grading-scripts-s3/one-way-sync-L2":23,"./grading-scripts-s3/scratch-basics-L1":24,"./grading-scripts-s3/scratch-basics-L2":25,"./grading-scripts-s3/two-way-sync-L1":39}],42:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -7640,6 +11350,7 @@ function runTimeout(fun) {
             return cachedSetTimeout.call(this, fun, 0);
         }
     }
+
 
 }
 function runClearTimeout(marker) {
@@ -7765,7 +11476,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],34:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -7790,14 +11501,14 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],35:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],36:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -8387,4 +12098,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":35,"_process":33,"inherits":34}]},{},[32]);
+},{"./support/isBuffer":44,"_process":42,"inherits":43}]},{},[41]);

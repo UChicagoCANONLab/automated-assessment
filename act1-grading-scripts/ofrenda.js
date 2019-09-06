@@ -49,7 +49,7 @@ module.exports = class {
         let origCostumeMiddle = 0;
         let origLeftDialogue = '';
 
-        // gets the costumes from the original project 
+        // gets the costumes from the original project and stores it in an array
         var oldCostumes = [];
         for (let origTarget of original.targets) {
             if (origTarget.name === 'Left') {
@@ -58,6 +58,7 @@ module.exports = class {
                 oldCostumes.push(origCostumeLeft);
                 for (let block in origTarget.blocks) {
                     if (origTarget.blocks[block].opcode === 'looks_sayforsecs') {
+                        // gets the original dialogue
                         origLeftDialogue = origTarget.blocks[block].inputs.MESSAGE[1][1];
                     }
                 }
@@ -93,7 +94,9 @@ module.exports = class {
             if (target.isStage) {
                 continue;
             }
-           
+
+            // finds the dialogue and current costume for each sprite, left middle and right
+            // checks that each diaglogue is not equal to the original/makes sure that the sprite has dialogue
             if (target.name === 'Left') {
                 let cost1 = target.currentCostume;
                 leftCost = target.costumes[cost1].assetId;
@@ -116,28 +119,33 @@ module.exports = class {
                     this.requirements.leftCostume.bool = true;
                 }
             }
-            // make sure that the code is not the same as the original here, copy in from the bottom
+            
+
             if (target.name === 'Middle') {
                 let cost2 = target.currentCostume;
                 midCost = target.costumes[cost2].assetId;
                 newCostumes.push(midCost);
                 for (let block in target.blocks) {
+                    // is checking that the sprite is interactive
                     if (target.blocks[block].opcode === 'event_whenthisspriteclicked') {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             continue;
+                            // makes sure that the interactive script is DIFFERENT from the original project
                         } else if ((target.blocks[block].next === "/f[ltBij)7]5Jtg|W(1%") && (target.blocks[block].parent === null)) {
                             let nextBlock = target.blocks[block].next;
+                            // makes sure that there is a block following the when sprite clicked block
                             if (target.blocks[nextBlock].next === null) {
                                 continue;
-                                // means that they have added another block to the script, meaning it is different from 
-                                // the original
+                                // if next block is not null
                             } else {
                                 midInteraction = true;
                             }
+                            // if next block is different from the one in the original
                         } else {
                             midInteraction = true;
                         }
                     }
+                    // gets the dialogue for the middle sprite
                     if (soundOptions.includes(target.blocks[block].opcode)) {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             continue;
@@ -146,6 +154,7 @@ module.exports = class {
                         }
                     }
                 }
+                // sets the requirements
                 if (midInteraction) {
                     this.requirements.interactiveMiddle.bool = true;
                 }
@@ -163,6 +172,8 @@ module.exports = class {
                 rightCost = target.costumes[cost3].assetId;
                 newCostumes.push(rightCost);
                 for (let block in target.blocks) {
+                    // checks that the sprite is interactive by making sure that when
+                    // sprite clicked is use in a script
                     if (target.blocks[block].opcode === 'event_whenthisspriteclicked') {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             continue;
@@ -171,6 +182,7 @@ module.exports = class {
                             rightInteraction = true;
                         }
                     }
+                    // gets the dialogue
                     if (soundOptions.includes(target.blocks[block].opcode)) {
                         if (target.blocks[block].next === null && target.blocks[block].parent === null) {
                             continue;
@@ -179,6 +191,7 @@ module.exports = class {
                         }
                     }
                 }
+                // sets the requirements
                 if (rightInteraction) {
                     this.requirements.interactiveRight.bool = true;
                 }
@@ -195,7 +208,8 @@ module.exports = class {
 
         // --------------------------------------------------------------------------------------------------------- //
 
-    
+        // general case, checks in the case that the students changed the sprite names
+
         let speaks = false;
         let interactive = false;
         let numInteractive = 0;
@@ -211,11 +225,11 @@ module.exports = class {
                 continue;
             } else if (target.isStage) { continue;}
             else {
-                //console.log(speaks);
+               
                 for (let script in target.scripts) {
                     for (let block in target.scripts[script].blocks) {
                         if (soundOptions.includes(target.scripts[script].blocks[block].opcode)) {
-                           // console.log(speaks);
+                            // finds a sound block and makes sure that it is used in instances that are NOT from the original
                             if ((target.scripts[script].blocks[block].next === "Q.gGFO#r}[Z@fzClmRq-") &&
                                 (target.scripts[script].blocks[block].parent === "taz8m.4x_rVweL9%J@(3") &&
                                 (target.scripts[script].blocks[block].inputs.MESSAGE[1][1] === "I am Grandpa John.")) {
@@ -226,13 +240,13 @@ module.exports = class {
                                 continue;
                             }
                             else {
-                                    
+                                    // sets speaks boolean to true
                                     speaks = true;
                                 }
                         }
 
+                        // checks for an interactive sprite that is used in instances that are NOT from the original
                         if (target.scripts[script].blocks[block].opcode === 'event_whenthisspriteclicked') {
-                           
                             if (target.scripts[script].blocks[block].next === "}VBgCH{K:oDh6pV0h.pi" && target.scripts[script].blocks[block].parent === null) {
                                 continue;
                             } else if (target.scripts[script].blocks[block].next === "/f[ltBij)7]5Jtg|W(1%" && target.scripts[script].blocks[block].parent === null) {
@@ -247,6 +261,8 @@ module.exports = class {
                                 }
                         }
 
+                        // looks for certain blocks and makes sure that they are in a script
+                        // sets the extensions
                         // extensions
                         if (target.scripts[script].blocks[block].opcode === 'sound_playuntildone') {
                             if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
@@ -272,7 +288,7 @@ module.exports = class {
                     }
                     
                 }
-               
+               // for every sprite that fulfills that the boolean, number incremented
                 if (speaks === true) {
                     numSpeaking ++;
                 }
@@ -285,7 +301,7 @@ module.exports = class {
             }
         }
        
-       
+       // counts the number of sprites that fulfill each requirement
         if (numSpeaking >= 1) {
             this.requirements.speaking1.bool = true;
         }
@@ -319,7 +335,7 @@ module.exports = class {
             this.requirements.costume1.bool = true;
         } 
         if (numCostumes === 2) {
-           // this.requirements.costume2.bool = true;
+           this.requirements.costume2.bool = true;
         }
         else if (numCostumes === 3) {
             this.requirements.costume3.bool = true;

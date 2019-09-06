@@ -12,67 +12,124 @@ module.exports = class {
     }
 
     initReqs() {
-        this.requirements.stop = {bool: false, str: 'Vehicle sprite stops when touching another sprite or another color'}; // check condition in repeat until
-        this.requirements.speak = {bool: false, str: 'Vehicle sprite says something or makes a sound when it stops'}; // check block after repeat until 
-        this.requirements.moves = {bool: false, str: 'Vehicle sprite moves across the stage in a looping fashion'}; // check contents of the loop
+        this.requirements.stop = { bool: false, str: 'Vehicle sprite stops when touching another sprite or another color' }; // done
+        this.requirements.speak = { bool: false, str: 'Vehicle sprite says something or makes a sound when it stops' }; // done
+        this.requirements.moves = { bool: false, str: 'Vehicle sprite moves across the stage in a looping fashion' }; // done
+        this.extensions.addCostume = { bool: false, str: 'Another costume is added to the current mode of transportation' }; // done
+        this.extensions.nextCostume = { bool: false, str: 'The sprite is animated with a "next costume" block' }; // done
+        this.extensions.touchingNewSprite = { bool: false, str: 'The sprite stops when it touches a new sprite added from the sprite library' };
+        this.extensions.repeatBlock = { bool: false, str: 'Repeat blocks added to animate another sprite' }; // done
     }
 
     grade(fileObj, user) {
         var project = new Project(fileObj, null);
         this.initReqs();
 
+        let numRepeat = 0;
+      
+        let allCostumes = 0;
+        let sprites = [];
+        let objectTouching = null;
+        let touching = null;
+        let moveOptions = ['motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy', 'motion_glideto', 'motion_goto', 'motion_gotoxy']
+        let soundOptions = ['sound_playuntildone', 'sound_play', 'looks_say', 'looks_sayforsecs']
         for (let target of project.targets) {
             if (target.isStage) {
                 continue;
             }
-            else {        
-                for (let block in target.blocks) {
-                    
-                    // script starting with the when green flag clicked block
-                    if (target.blocks[block].opcode === 'event_whenflagclicked') {
-                        
-                        let b = new Block(target,block);
-                        let childBlocks = b.childBlocks();
-                        for (let i = 0; i < childBlocks.length; i ++) {
-                            if (childBlocks[i].opcode === 'control_repeat_until') {
-                                // checks if a sound is made once the loop is over
-                                var soundOptions = ['sound_playuntildone', 'sound_play', 'looks_say', 'looks_sayforsecs']
-                                let nextBlock = childBlocks[i].next;
+            else {
+                sprites.push(target.name);
+                for (let script of target.scripts) {
+                    // a script that starts with an event block
+                    if (script.blocks[0].opcode.includes('event_')) {
+                        for (let i = 0; i < script.blocks.length; i++) {
+                            // checking to see if a repeat block is used
+                            
+                            if (script.blocks[i].opcode.includes('control_repeat')) {
+                                console.log(target.name)
+                                numRepeat++;
+
+                                //checks to see if a sound is is made once the loop is over
+                                let nextBlock = script.blocks[i].next;
+                               
+                                // if there is no next block continue
                                 if (nextBlock === null) {
-                                    this.requirements.speak.bool = false;
-                                } else if (soundOptions.includes(target.blocks[nextBlock].opcode)) {
+                                    continue;
+                                }
+                                // if the next block is a sound block, set the requirement
+                                else if (soundOptions.includes(target.blocks[nextBlock].opcode)) {
                                     this.requirements.speak.bool = true;
                                 }
-                                if (childBlocks[i].inputs.CONDITION) {
-                                    let condition = childBlocks[i].inputs.CONDITION[1];
+                                
+                                
+                                let condition = script.blocks[i].inputs.CONDITION[1];
+                                
 
-                                    if (target.blocks[condition].opcode === 'sensing_touchingobject') {
-                                        let touching = target.blocks[condition].inputs.TOUCHINGOBJECTMENU[1];
-                                        var objectTouching = target.blocks[touching].fields.TOUCHINGOBJECTMENU[0];
-                                    }
-                                    
-                                    // checks to see if it stops when it is touching a color
-                                    if ((target.blocks[condition].opcode === 'sensing_touchingcolor') ||
-                                        (target.blocks[condition].opcode === 'sensing_coloristouchingcolor')) {
-                                        this.requirements.stop.bool = true;
-                                    }
-                                    
-                                    let substack = childBlocks[i].inputs.SUBSTACK[1];
-                                    var moveOptions = ['motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy', 'motion_glideto', 'motion_goto', 'motion_gotoxy']
-                                    if (moveOptions.includes(target.blocks[substack].opcode)) {
-                                        this.requirements.moves.bool = true;
+                                if (target.blocks[condition].opcode === 'sensing_touchingobject') {
+                                    touching = target.blocks[condition].inputs.TOUCHINGOBJECTMENU[1];
+                                    objectTouching = target.blocks[touching].fields.TOUCHINGOBJECTMENU[0];
+                        
+                                }
+                                // checks that it stops when touching a color
+                                else if ((target.blocks[condition].opcode === 'sensing_touchingcolor') ||
+                                    (target.blocks[condition].opcode === 'sensing_coloristouchingcolor')) {
+                                    this.requirements.stop.bool = true;
+                                }
+
+                                let substack = script.blocks[i].inputs.SUBSTACK[1];
+                                
+                              
+                                // there is only one block in the loop and that is a move block
+                                if (moveOptions.includes(target.blocks[substack].opcode)) {
+                                   
+                                    this.requirements.moves.bool = true;
+                                } else {
+                                    // there are multiple blocks in the loop, iterate through them to see 
+                                    while (target.blocks[substack].next !== null) {
+                                      
+                                        
+                                        if (moveOptions.includes(target.blocks[substack].opcode)) {
+                                            
+                                            this.requirements.moves.bool = true;
+                                        }
+                                        if (target.blocks[substack].opcode === 'looks_switchcostumeto') {
+                                            this.extensions.nextCostume.bool = true;
+                                        }
+                                        substack = target.blocks[substack].next;
                                     }
                                 }
+
+
                             }
+                     
                         }
-                    }  
+                    }
                 }
+                allCostumes += target.costumes.length;
             }
-            // checks to see if it stops when it is touching another sprite
-            if (target.name === objectTouching) {
-                this.requirements.stop.bool = true;
+        }
+        if(sprites.includes(objectTouching)) {
+            this.requirements.stop.bool = true;
+        }
+       
+        if (allCostumes > 12) {
+            this.extensions.addCostume.bool = true;
+        }
+        
+        
+       
+        
+        if (numRepeat > 1) {
+            this.extensions.repeatBlock.bool = true;
+        }
+        
+        if (project.sprites.length > 2) {
+            if (objectTouching !== 'Sign') {
+                this.extensions.touchingNewSprite.bool = true;
             }
         }
     }
 }
 
+                
+  
