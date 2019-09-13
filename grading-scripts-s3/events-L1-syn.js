@@ -3,7 +3,7 @@ require('./scratch3');
 module.exports = class GradeEventsL1 {
 
     /// Identify all subscripts of a block, recursively.
-    subscriptsRecursive(block, array) {
+    subscriptsRecursive(block, array = []) {
         if (block.subscripts.length) {
             for (var subscript of block.subscripts) {
                 array.push(subscript);
@@ -159,7 +159,6 @@ module.exports = class GradeEventsL1 {
             gaming:        require('./templates/events-L1-gaming')
         };
         this.strand = detectStrand(project, templates);
-        console.log(this.strand);
         this.requirements.click1 = {
             bool: this.clickPassing(project) >= 1,
             str: 'One sprite gets larger, speaks, and goes back to its original size when clicked.'

@@ -14,12 +14,19 @@ global.no = function(x) {
 /// Container class for Scratch blocks.
 global.Block = class {
     constructor(target, block, within=null) {
+        if (no(target.blocks[block]) || !block) {
+            this = null;
+            return;
+        }
         Object.assign(this, target.blocks[block]);
         this.id = block;
         this.context = new Context(target.context, false);
         this.target = target;
         this.subscripts = this.subScripts();
+        this.subscriptsRecursive = this.subscriptsRecursive();
         this.within = within;
+        this.conditionBlock = this.conditionBlock();
+        this.inputBlocks = this.inputBlocks();
     }
 
     /// Internal function that converts a block to a Block.
@@ -47,6 +54,25 @@ global.Block = class {
         return this.toBlock(this.inputs.CONDITION[1], this);
     }
 
+    /// Returns an array of the blocks that are referenced in "fields" and "inputs."
+    /// They correspond to menus, conditions, subscript heads, etc.
+    inputBlocks() {
+        var array = [];
+        for (var input in this.inputs) {
+            var inputBlock = this.toBlock(this.inputs[input][1]);
+            if (inputBlock) {
+                array.push(inputBlock);
+            }
+        }
+        for (var field in this.fields) {
+            var fieldBlock = this.toBlock(this.fields[field][1]);
+            if (fieldBlock) {
+                array.push(fieldBlock);
+            }
+        }
+        return array;
+    }
+
     /// Returns an array representing the script that contains the block.
     childBlocks(within=null) {
         var array = [];
@@ -71,6 +97,22 @@ global.Block = class {
         }
         return array;
     }
+
+    /// Identify all subscripts of a block, recursively.
+    subscriptsRecursive(array = []) {
+        if (this.subscripts.length) {
+            for (var subscript of this.subscripts) {
+                array.push(subscript);
+                if (subscript.blocks.length) {
+                    for (var block of subscript.blocks) {
+                        this.subscriptsRecursive(block, array);
+                    }
+                }
+            }
+        }
+        return array;
+    }
+
     /// Checks if the
     isWithin(compareBlock=(block => true)) {
         var outerBlock = this.within;
@@ -81,6 +123,12 @@ global.Block = class {
             outerBlock = outerBlock.within;
         }
         return null;
+    }
+
+    /// Returns a given input of the block as a float if it exists.
+    floatInput(name) {
+        var input = this.inputs[name];
+        if (input && input[1] && input[1][1])
     }
 }
 
@@ -155,6 +203,9 @@ global.Target = class {
         for (var script of this.scripts) {
             this.context.sublayers.push(script.context);
         }
+        this.validScripts = this.scripts.filter(script =>
+            script.blocks.length > 1 && script.blocks[0].opcode.includes('event_when')
+        );
     }
 }
 

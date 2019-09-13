@@ -8,7 +8,7 @@ var graders = {
   animationL2:     { name: 'Animation L2',           file: require('./grading-scripts-s3/animation-L2')      },
   eventsL1:        { name: 'Events L1',              file: require('./grading-scripts-s3/events-L1-syn')         },
   eventsL2:        { name: 'Events L2',              file: require('./grading-scripts-s3/events-L2')         },
-  condLoopsL1:     { name: 'Conditional Loops L1',   file: require('./grading-scripts-s3/cond-loops-L1')        },
+  condLoopsL1:     { name: 'Conditional Loops L1',   file: require('./grading-scripts-s3/cond-loops-L1-syn')        },
   condLoopsL2:     { name: 'Conditional Loops L2',   file: require('./grading-scripts-s3/cond-loops-L2')   },
   decompL1:        { name: 'Decomp. by Sequence L1', file: require('./grading-scripts-s3/decomp-L1')         },
   decompL2:        { name: 'Decomp. by Sequence L2', file: require('./grading-scripts-s3/decomp-L2')         },
