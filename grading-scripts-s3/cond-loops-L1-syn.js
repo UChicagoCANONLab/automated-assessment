@@ -5,11 +5,12 @@ module.exports = class GradeCondLoopsL1 extends Grader {
 
     init(project) {
         let strandTemplates = {
-            multicultural: require('./templates/events-L1-multicultural'),
-            youthCulture:  require('./templates/events-L1-youth-culture'),
-            gaming:        require('./templates/events-L1-gaming')
+            multicultural: require('./templates/conditional-loops-L1-multicultural'),
+            youthCulture:  require('./templates/conditional-loops-L1-youth-culture'),
+            gaming:        require('./templates/conditional-loops-L1-gaming')
         };
         this.strand = detectStrand(project, strandTemplates, 'youthCulture');
+        console.log(this.strand);
         if (this.strand === 'multicultural') {
             this.requirements = [
                 new Requirement('Choose a different costume for the float.', this.testCostumes(project)),
@@ -42,13 +43,12 @@ module.exports = class GradeCondLoopsL1 extends Grader {
 
     testCostumes(project) {
         for (let sprite of project.sprites) {
-            for (let costume of sprite.costumes) {
-                if (this.strand === 'multicultural' && costume.name === 'Butterfly Float') {
-                    return false;
-                }
-                if (this.strand === 'youthCulture' && costume.name === 'Sedan') {
-                    return false;
-                }
+            let costumeName = sprite.costumes[sprite.currentCostume].name;
+            if (this.strand === 'multicultural' && costumeName === 'Butterfly Float') {
+                return false;
+            }
+            if (this.strand === 'youthCulture' && costumeName === 'Sedan') {
+                return false;
             }
         }
         return true;
@@ -70,7 +70,7 @@ module.exports = class GradeCondLoopsL1 extends Grader {
                     let stopsForExtension = false;
                     if (block.opcode === 'control_repeat_until') {
                         for (let subscript of block.subscriptsRecursive) {
-                            for (let subblock of subscript) {
+                            for (let subblock of subscript.blocks) {
                                 if (subblock.opcode === 'motion_movesteps') {
                                     moves = true;
                                     movesForExtension = true;
@@ -161,7 +161,7 @@ module.exports = class GradeCondLoopsL1 extends Grader {
                     let duration = 0;
                     if (block.opcode === 'control_repeat_until') {
                         for (let subscript of block.subscriptsRecursive) {
-                            for (let subblock of subscript) {
+                            for (let subblock of subscript.blocks) {
                                 if (subblock.opcode === 'motion_movesteps') {
                                     steps += subblock.inputs.STEPS[1][1];
                                 }
@@ -231,7 +231,6 @@ module.exports = class GradeCondLoopsL1 extends Grader {
                             }
                         }
                     }
-
                 }
             }
         }

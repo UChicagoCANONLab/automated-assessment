@@ -59,21 +59,16 @@ global.detectStrand = function(project, templates, defaultStrand = 'generic') {
 
 global.Requirement = class {
 
-    constructor(description, evaluator, initialValue = false) {
+    constructor(description, evaluator) {
         this.str = description;
-        this.evaluator = evaluator;
-        this.bool = initialValue;
-    }
-
-    evaluate(project) {
-        this.bool = this.evaluator(project);
+        this.bool = evaluator;
     }
 }
 
 global.Extension = class extends Requirement {
 
-    constructor(description, evaluator, initialValue = false) {
-        super(description, evaluator, initialValue);
+    constructor(description, evaluator) {
+        super(description, evaluator);
     }
 }
 
@@ -95,10 +90,10 @@ global.Grader = class {
         this.extensions = [];
         this.init(project);
         for (var requirement of this.requirements) {
-            requirement.evaluate(project);
+            console.log(requirement.bool);
         }
         for (var extension of this.extensions) {
-            extension.evaluate(project);
+            console.log(extension.bool);
         }
     }
 }

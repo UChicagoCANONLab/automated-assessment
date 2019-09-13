@@ -14,19 +14,15 @@ global.no = function(x) {
 /// Container class for Scratch blocks.
 global.Block = class {
     constructor(target, block, within=null) {
-        if (no(target.blocks[block]) || !block) {
-            this = null;
-            return;
-        }
         Object.assign(this, target.blocks[block]);
         this.id = block;
         this.context = new Context(target.context, false);
         this.target = target;
         this.subscripts = this.subScripts();
-        this.subscriptsRecursive = this.subscriptsRecursive();
+        this.subscriptsRecursive = this.subscriptsRecursiveHelper();
         this.within = within;
-        this.conditionBlock = this.conditionBlock();
-        this.inputBlocks = this.inputBlocks();
+        this.conditionBlock = this.conditionBlockHelper();
+        this.inputBlocks = this.inputBlocksHelper();
     }
 
     /// Internal function that converts a block to a Block.
@@ -49,14 +45,14 @@ global.Block = class {
     }
 
     /// Returns the conditional statement of the block, if it exists.
-    conditionBlock() {
-        if (no(this.inputs.CONDITION)) return null;
+    conditionBlockHelper() {
+        if (no(this.inputs) || no(this.inputs.CONDITION)) return null;
         return this.toBlock(this.inputs.CONDITION[1], this);
     }
 
     /// Returns an array of the blocks that are referenced in "fields" and "inputs."
     /// They correspond to menus, conditions, subscript heads, etc.
-    inputBlocks() {
+    inputBlocksHelper() {
         var array = [];
         for (var input in this.inputs) {
             var inputBlock = this.toBlock(this.inputs[input][1]);
@@ -99,18 +95,18 @@ global.Block = class {
     }
 
     /// Identify all subscripts of a block, recursively.
-    subscriptsRecursive(array = []) {
+    subscriptsRecursiveHelper(scriptArray = []) {
         if (this.subscripts.length) {
             for (var subscript of this.subscripts) {
-                array.push(subscript);
+                scriptArray.push(subscript);
                 if (subscript.blocks.length) {
                     for (var block of subscript.blocks) {
-                        this.subscriptsRecursive(block, array);
+                        block.subscriptsRecursiveHelper(scriptArray);
                     }
                 }
             }
         }
-        return array;
+        return scriptArray;
     }
 
     /// Checks if the
@@ -128,7 +124,10 @@ global.Block = class {
     /// Returns a given input of the block as a float if it exists.
     floatInput(name) {
         var input = this.inputs[name];
-        if (input && input[1] && input[1][1])
+        if (input && input[1] && input[1][1]) {
+            return parseFloat(input[1][1]);
+        }
+        return 0;
     }
 }
 
