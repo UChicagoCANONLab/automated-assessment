@@ -73,31 +73,31 @@ module.exports = class GradeCondLoopsL1 extends Grader {
                             for (let subblock of subscript.blocks) {
                                 if (subblock.opcode === 'motion_movesteps') {
                                     moves = true;
+                                }
+                                if (opcodeLists.changeXY.includes(subblock.opcode)) {
                                     movesForExtension = true;
                                 }
                             }
                         }
                         if (block.conditionBlock) {
-                            for (let sensingBlock of block.conditionBlock.inputBlocks) {
-                                for (let menuBlock of sensingBlock.inputBlocks) {
-                                    if (menuBlock.opcode === 'sensing_touchingobjectmenu') {
-                                        let touchingObject = menuBlock.fields.TOUCHINGOBJECTMENU[0];
-                                        if (this.strand === 'multicultural' && (touchingObject !== 'King Momo' || sprite.name === 'Toucan')) {
-                                            stops = true;
-                                        }
-                                        if (this.strand === 'youthCulture' && touchingObject !== 'Stop') {
-                                            stops = true;
-                                        }
-                                        if (this.strand === 'gaming' && touchingObject !== 'Bee') {
-                                            stops = true;
-                                        }
-                                        stopsForExtension = true;
+                            for (let menuBlock of block.conditionBlock.inputBlocks) {
+                                if (menuBlock.opcode === 'sensing_touchingobjectmenu') {
+                                    let touchingObject = menuBlock.fields.TOUCHINGOBJECTMENU[0];
+                                    if (this.strand === 'multicultural' && (touchingObject !== 'King Momo' || sprite.name === 'Toucan')) {
+                                        stops = true;
                                     }
-                                }
-                                if (sensingBlock.opcode === 'sensing_touchingcolor') {
-                                    stops = true;
+                                    if (this.strand === 'youthCulture' && touchingObject !== 'Stop') {
+                                        stops = true;
+                                    }
+                                    if (this.strand === 'gaming' && touchingObject !== 'Bee') {
+                                        stops = true;
+                                    }
                                     stopsForExtension = true;
                                 }
+                            }
+                            if (block.conditionBlock.opcode === 'sensing_touchingcolor') {
+                                stops = true;
+                                stopsForExtension = true;
                             }
                         }
                     }

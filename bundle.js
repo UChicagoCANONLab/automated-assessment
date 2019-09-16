@@ -4750,31 +4750,31 @@ module.exports = class GradeCondLoopsL1 extends Grader {
                             for (let subblock of subscript.blocks) {
                                 if (subblock.opcode === 'motion_movesteps') {
                                     moves = true;
+                                }
+                                if (opcodeLists.changeXY.includes(subblock.opcode)) {
                                     movesForExtension = true;
                                 }
                             }
                         }
                         if (block.conditionBlock) {
-                            for (let sensingBlock of block.conditionBlock.inputBlocks) {
-                                for (let menuBlock of sensingBlock.inputBlocks) {
-                                    if (menuBlock.opcode === 'sensing_touchingobjectmenu') {
-                                        let touchingObject = menuBlock.fields.TOUCHINGOBJECTMENU[0];
-                                        if (this.strand === 'multicultural' && (touchingObject !== 'King Momo' || sprite.name === 'Toucan')) {
-                                            stops = true;
-                                        }
-                                        if (this.strand === 'youthCulture' && touchingObject !== 'Stop') {
-                                            stops = true;
-                                        }
-                                        if (this.strand === 'gaming' && touchingObject !== 'Bee') {
-                                            stops = true;
-                                        }
-                                        stopsForExtension = true;
+                            for (let menuBlock of block.conditionBlock.inputBlocks) {
+                                if (menuBlock.opcode === 'sensing_touchingobjectmenu') {
+                                    let touchingObject = menuBlock.fields.TOUCHINGOBJECTMENU[0];
+                                    if (this.strand === 'multicultural' && (touchingObject !== 'King Momo' || sprite.name === 'Toucan')) {
+                                        stops = true;
                                     }
-                                }
-                                if (sensingBlock.opcode === 'sensing_touchingcolor') {
-                                    stops = true;
+                                    if (this.strand === 'youthCulture' && touchingObject !== 'Stop') {
+                                        stops = true;
+                                    }
+                                    if (this.strand === 'gaming' && touchingObject !== 'Bee') {
+                                        stops = true;
+                                    }
                                     stopsForExtension = true;
                                 }
+                            }
+                            if (block.conditionBlock.opcode === 'sensing_touchingcolor') {
+                                stops = true;
+                                stopsForExtension = true;
                             }
                         }
                     }
@@ -6276,12 +6276,6 @@ global.Grader = class {
         this.requirements = [];
         this.extensions = [];
         this.init(project);
-        for (var requirement of this.requirements) {
-            console.log(requirement.bool);
-        }
-        for (var extension of this.extensions) {
-            console.log(extension.bool);
-        }
     }
 }
 
@@ -7320,6 +7314,20 @@ global.detectStrand = function(project, templates) {
         }
     }
     return strand;
+}
+
+global.opcodeLists = {
+    changeXY: [
+        'motion_changexby',
+        'motion_changeyby',
+        'motion_movesteps',
+        'motion_glidesecstoxy',
+        'motion_glideto',
+        'motion_goto',
+        'motion_gotoxy',
+        'motion_setx',
+        'motion_sety'
+    ]
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})

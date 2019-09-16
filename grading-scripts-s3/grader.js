@@ -89,11 +89,5 @@ global.Grader = class {
         this.requirements = [];
         this.extensions = [];
         this.init(project);
-        for (var requirement of this.requirements) {
-            console.log(requirement.bool);
-        }
-        for (var extension of this.extensions) {
-            console.log(extension.bool);
-        }
     }
 }

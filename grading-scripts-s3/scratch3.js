@@ -272,3 +272,17 @@ global.detectStrand = function(project, templates) {
     }
     return strand;
 }
+
+global.opcodeLists = {
+    changeXY: [
+        'motion_changexby',
+        'motion_changeyby',
+        'motion_movesteps',
+        'motion_glidesecstoxy',
+        'motion_glideto',
+        'motion_goto',
+        'motion_gotoxy',
+        'motion_setx',
+        'motion_sety'
+    ]
+}
