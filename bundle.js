@@ -11978,18 +11978,18 @@ module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists"
 
 /// Requirements (scripts)
 var graders = {
-  scratchBasicsL1: { name: 'Scratch Basics L1',      file: require('./grading-scripts-s3/scratch-basics-L1') },
-  scratchBasicsL2: { name: 'Scratch Basics L2',      file: require('./grading-scripts-s3/scratch-basics-L2') },
+  scratchBasicsL1: { name: 'Scratch Basics L2',      file: require('./grading-scripts-s3/scratch-basics-L1') },
+  scratchBasicsL2_create: { name: 'Scratch Basics L3',      file: require('./grading-scripts-s3/scratch-basics-L2') },
   animationL1:     { name: 'Animation L1',           file: require('./grading-scripts-s3/animation-L1')      },
-  animationL2:     { name: 'Animation L2',           file: require('./grading-scripts-s3/animation-L2')      },
+  animationL2_create:     { name: 'Animation L2',           file: require('./grading-scripts-s3/animation-L2')      },
   eventsL1:        { name: 'Events L1',              file: require('./grading-scripts-s3/events-L1-syn')         },
-  eventsL2:        { name: 'Events L2',              file: require('./grading-scripts-s3/events-L2')         },
+  eventsL2_create:        { name: 'Events L2',              file: require('./grading-scripts-s3/events-L2')         },
   condLoopsL1:     { name: 'Conditional Loops L1',   file: require('./grading-scripts-s3/cond-loops-L1-syn')        },
-  condLoopsL2:     { name: 'Conditional Loops L2',   file: require('./grading-scripts-s3/cond-loops-L2')   },
+  condLoopsL2_create:     { name: 'Conditional Loops L2',   file: require('./grading-scripts-s3/cond-loops-L2')   },
   decompL1:        { name: 'Decomp. by Sequence L1', file: require('./grading-scripts-s3/decomp-L1')         },
-  decompL2:        { name: 'Decomp. by Sequence L2', file: require('./grading-scripts-s3/decomp-L2')         },
+  decompL2_create:        { name: 'Decomp. by Sequence L2', file: require('./grading-scripts-s3/decomp-L2')         },
   oneWaySyncL1:    { name: 'One-Way Sync L1',        file: require('./grading-scripts-s3/one-way-sync-L1')   },
-  oneWaySyncL2:    { name: 'One-Way Sync L2',        file: require('./grading-scripts-s3/one-way-sync-L2')   },
+  oneWaySyncL2_create:    { name: 'One-Way Sync L2',        file: require('./grading-scripts-s3/one-way-sync-L2')   },
   twoWaySyncL1:    { name: 'Two-Way Sync L1',        file: require('./grading-scripts-s3/two-way-sync-L1')   },
   complexConditionalsL1: {name: 'Complex Conditionals L1', file: require('./grading-scripts-s3/complex-conditionals-L1')},
 };
@@ -12049,12 +12049,29 @@ window.formHelper = function() {
 window.fillUnitsHTML = function() {
   var HTMLString = '';
   for (var graderKey in graders) {
+    let graderName = graders[graderKey].name;
+    let isCreate = graderKey.includes('create');
+    if (!isCreate) {
+      HTMLString += '<br><hr>';
+      HTMLString += '<label class = "unit_name">';
+      HTMLString += graderName.substring(0, graderName.length - 2);
+      HTMLString += '</label>'
+    }
     HTMLString += '<a onclick="drop_handler(\'' + graderKey + '\')" class = unitselector>'
     HTMLString += '<label class = "unitlabel">';
-    HTMLString += '<img src="pictures/' + graderKey + '.png">';
-    HTMLString += graders[graderKey].name;
+    if (isCreate) {
+      HTMLString += '<img src = "pictures/create.png">';
+      HTMLString += graderName.substring(graderName.length - 2);
+      HTMLString += ' Create';
+    }
+    else {
+      HTMLString += '<img src="pictures/' + graderKey.substring(0, graderKey.length - 2) + '.png">';
+      HTMLString += graderName.substring(graderName.length - 2);
+      HTMLString += ' Modify';
+    }
     HTMLString += '</label> </a>';
   }
+  HTMLString += '<hr>'
   document.getElementById("unitsHTML").innerHTML = HTMLString;
 }
 
@@ -12126,7 +12143,7 @@ window.onclick = function(event) {
 
   if (event.target.matches('#process_button')) {
     $('html, body').animate({
-      scrollTop: 750
+      scrollTop: 600
     }, 800);
   }
 

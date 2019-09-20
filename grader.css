@@ -4,7 +4,7 @@ html {
   z-index: 1;
   background: #F0DDD6;
   font-weight: lighter;
-  color: #123D6A;
+  color: black;
 }
 
 body {
@@ -12,9 +12,8 @@ body {
   margin: 30px auto;
   display:block;
   z-index: 2;
-  background-color: #F0DDD6;
 
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: 'Comfortaa', Helvetica, Arial, sans-serif;
 }
 
 h1 {
@@ -24,48 +23,56 @@ h1 {
   padding: 20px 20px 17px 20px;
   font-weight: lighter;
 
-  color: #aa3a51;
+  color: black;
   display: block;
-  background-color: #F0DDD6;
-  border-bottom: 2px solid #aa3a51;
+  border-bottom: 2px solid black;
+}
+
+.unit_name {
+  display: inline-block;
+  text-align: left;
+  vertical-align: 400%;
+  padding: 15px;
+  width: 120px;
+  font-size: 20px;
 }
 
 .unit_container {
   display: block;
   width: 100%;
   text-align: left;
-  margin-top: -15px;
+  border: 2px solid black;
 }
 
 .unit_container p {
   text-align: left;
-  text-transform: lowercase;
   display: inline-block;
   padding: 1px;
-  font-weight: bold;
-  color: #123D6A;
+  font-weight: normal;
+  color: black;
   font-size: 18px;
 }
 
 .units {
-  margin-top: -10px;
   display: block;
   width: 100%;
-  border: 2px solid #123D6A;
-  padding: 9px;
+  height: 50%;
+  padding: 20px;
+  overflow: auto;
   box-sizing:border-box;
 }
 
 .unitlabel {
   display: inline-block;
-  width: 170px;
+  width: 160px;
+  height: 160px;
   padding: 5px;
   box-sizing:border-box;
 
   text-align: center;
-  font-size: 13px;
-  vertical-align:top;
-  color: #123D6A;
+  font-size: 16px;
+  vertical-align: center;
+  color: black;
 }
 
 .unitlabel img{ /* IMAGE STYLES */
@@ -90,6 +97,11 @@ h1 {
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5) !important;
 }
 
+.dynamic {
+  font-family: Helvetica, Arial, sans-serif;
+  padding: 15px;
+}
+
 form {
   margin-top: 20px;
 }
@@ -99,7 +111,7 @@ form p {
   text-transform: lowercase;
   display: block;
   font-weight: bold;
-  color: #123D6A;
+  color: black;
   font-size: 18px;
   padding: 1px;
   margin-bottom: 10px;
@@ -115,7 +127,7 @@ form p {
     font-size:13px;
     line-height:1.5;
     display:inline-block;
-    color: #123D6A;
+    color: black;
     margin-right: 5px;
 }
 
@@ -124,9 +136,10 @@ form p {
     font-size: 13px;
     line-height: 1.5;
     width: calc(25% - 10px);
-    padding: 10px;
+    padding: 12px;
     color: white;
-    background-color: #123D6A;
+    background-color: black;
+    border: 0px;
 }
 
 .btn:hover, .btn:focus {
@@ -152,7 +165,7 @@ form p {
     text-transform: lowercase;
     display: block;
     font-weight: bold;
-    color: #123D6A;
+    color: black;
     font-size: 18px;
     padding: 1px;
     margin-bottom: 10px;
@@ -197,4 +210,11 @@ form p {
 #myProgress {
     visibility: hidden;
     padding-bottom: 25px;
+}
+
+#report {
+  align-self: left;
+  background-color:#ccffcc;
+  margin: 0px;
+  width: 100%;
 }
