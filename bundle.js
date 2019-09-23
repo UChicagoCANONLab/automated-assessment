@@ -12057,7 +12057,7 @@ window.fillUnitsHTML = function() {
       HTMLString += graderName.substring(0, graderName.length - 2);
       HTMLString += '</label>'
     }
-    HTMLString += '<a onclick="drop_handler(\'' + graderKey + '\')" class = unitselector>'
+    HTMLString += '<a onclick="drop_handler(\'' + graderKey + '\')" class = unitselector>';
     HTMLString += '<label class = "unitlabel">';
     if (isCreate) {
       HTMLString += '<img src = "pictures/create.png">';
@@ -12071,7 +12071,7 @@ window.fillUnitsHTML = function() {
     }
     HTMLString += '</label> </a>';
   }
-  HTMLString += '<hr>'
+  HTMLString += '<hr>';
   document.getElementById("unitsHTML").innerHTML = HTMLString;
 }
 
@@ -12134,6 +12134,7 @@ $(document).ready(function(){
 window.drop_handler = function(graderKey) {
   gradeObj = new allGraders[graderKey].file;
   console.log("Selected " + allGraders[graderKey].name);
+  document.getElementById("selectedUnit").innerHTML = 'Grading  ' + allGraders[graderKey].name;
 }
 
 window.onclick = function(event) {
@@ -12143,8 +12144,8 @@ window.onclick = function(event) {
 
   if (event.target.matches('#process_button')) {
     $('html, body').animate({
-      scrollTop: 600
-    }, 800);
+      scrollTop: 1400
+    }, 300);
   }
 
   var droplinks = document.getElementsByClassName("dropdown_menu");
