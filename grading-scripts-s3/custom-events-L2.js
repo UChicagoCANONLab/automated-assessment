@@ -1,10 +1,10 @@
 /* Custom Events L2 Autograder
  * Scratch 3 (original) version: Anna Zipp, Summer 2019
  *
- * NOTE: This module's art is being redone right now, 
- *       so sprite names may change. 
+ * NOTE: This module's art is being redone right now,
+ *       so sprite names may change.
  *       I created global variables for the sprite names, they can be changed
- *       so the whole code doesn't have to be changed completely. 
+ *       so the whole code doesn't have to be changed completely.
  */
 
 require('./scratch3');
@@ -26,11 +26,11 @@ function iterateBlocks(script, func) {
 // Global variables that hold the sprite names that can be changed
 // see note at top
 /*
-var PLAYER = "Robot";  
-var ANNOUNCER = "Planet";  
-var BIG_TARGET = "Big Donut";  
-var LITTLE_TARGET = "Little Donut";  
-var EXTRA = "Octopus";  
+var PLAYER = "Robot";
+var ANNOUNCER = "Planet";
+var BIG_TARGET = "Big Donut";
+var LITTLE_TARGET = "Little Donut";
+var EXTRA = "Octopus";
 var START_BUTTON = "Start Button";
 */
 
@@ -46,7 +46,7 @@ module.exports = class {
     // initialize the requirement and extension objects to be graded
     init() {
         this.requirements = {
-            timerHalfway: {bool: false, str: 'Added a condition to check when the timer has elapsed halfway (10 seconds).'},  
+            timerHalfway: {bool: false, str: 'Added a condition to check when the timer has elapsed halfway (10 seconds).'},
             timeAnnounced: {bool: false, str: 'An announcement is made when timer is halfway up.'},
             pointAdded: {bool: false, str: 'Score changes by 1 when Big Donut is touched.'},
             youWin: {bool: false, str: 'Added a condition to check when the score exceeds a certain number of points.'},
@@ -73,7 +73,7 @@ module.exports = class {
 
             if ((setVar.includes("core")) && (setNum === "0")) {
                 this.requirements.scoreInitialized.bool = true;
-            } 
+            }
         }
     }
 
@@ -85,7 +85,7 @@ module.exports = class {
         };
 
         // iterate through each of the sprite's scripts that start with an event
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) {  
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) {
             let eventBlock = script.blocks[0];
 
             // scripts that start with "When Green Flag Clicked"
@@ -98,7 +98,7 @@ module.exports = class {
             }
 
             // scripts that start with "When I Receive 'start'"
-            if ((eventBlock.opcode === "event_whenbroadcastreceived") && (eventBlock.fields.BROADCAST_OPTION[0] === "start")) {  
+            if ((eventBlock.opcode === "event_whenbroadcastreceived") && (eventBlock.fields.BROADCAST_OPTION[0] === "start")) {
                 iterateBlocks(script, (block, level) => {
                     let opcode = block.opcode;
 
@@ -110,7 +110,7 @@ module.exports = class {
                         let firstSubBlock = block.subScripts();
                         let firstSubscript = (firstSubBlock.length) ? firstSubBlock[0] : [];
 
-                        let ifCondition = block.conditionBlock();  // the operator block
+                        let ifCondition = block.conditionBlock;  // the operator block
 
                         if (ifCondition !== null) {
 
@@ -126,7 +126,7 @@ module.exports = class {
                                     // check for a broadcast block, and store the broadcast message
                                     iterateBlocks(firstSubscript, (block, level) => {
                                         let opcode = block.opcode;
-                            
+
                                         if (opcode === "event_broadcast") {
                                             broadcastMessages.halftimeMessage = block.inputs.BROADCAST_INPUT[1][1];
                                         }
@@ -137,8 +137,8 @@ module.exports = class {
                             } else if (ifCondition.opcode === "operator_gt") {
                                 let gtVar = ifCondition.inputs.OPERAND1[1][1];
                                 let gtNum = ifCondition.inputs.OPERAND2[1][1];
-                                
-                                // check for an "if score > #" block 
+
+                                // check for an "if score > #" block
                                 // user could name the variable "Score" or "score", so only checking for "core"
                                 if ((gtVar.includes("core")) && (gtNum > 1)) {
                                     this.requirements.youWin.bool = true;
@@ -146,7 +146,7 @@ module.exports = class {
                                     // check for a broadcast block, and store the broadcast message
                                     iterateBlocks(firstSubscript, (block, level) => {
                                         let opcode = block.opcode;
-                            
+
                                         if (opcode === "event_broadcast") {
                                             broadcastMessages.youWinMessage = block.inputs.BROADCAST_INPUT[1][1];
                                         }
@@ -155,7 +155,7 @@ module.exports = class {
 
                             // "If X is touching Y, then..." blocks
                             } else if (ifCondition.opcode === "sensing_touchingobject") {
-                                let touchMenu = ifCondition.toBlock(ifCondition.inputs.TOUCHINGOBJECTMENU[1]);    
+                                let touchMenu = ifCondition.toBlock(ifCondition.inputs.TOUCHINGOBJECTMENU[1]);
                                 if ((touchMenu !== null) && (touchMenu.opcode === "sensing_touchingobjectmenu")) {
                                     let touchTarget = touchMenu.fields.TOUCHINGOBJECTMENU[0];
 
@@ -164,23 +164,23 @@ module.exports = class {
                                     if (touchTarget === BIG_TARGET) {
                                         iterateBlocks(firstSubscript, (block, level) => {
                                             let opcode = block.opcode;
-                                                
+
                                             // check for a "change 'score' by 1" block
-                                            if (opcode === "data_changevariableby") { 
+                                            if (opcode === "data_changevariableby") {
                                                 let changeNum = block.inputs.VALUE[1][1];
                                                 let changeVar = block.fields.VARIABLE[0];
-                                                
+
                                                 if ((changeNum === "1") && (changeVar.includes("core"))) {
                                                     this.requirements.pointAdded.bool = true;
                                                 }
                                             }
                                         });
-                                    } else if (touchTarget === LITTLE_TARGET) { 
+                                    } else if (touchTarget === LITTLE_TARGET) {
                                         iterateBlocks(firstSubscript, (block, level) => {
                                             let opcode = block.opcode;
-                                                
+
                                             // check for a "change 'score' by #>1" block
-                                            if (opcode === "data_changevariableby") {  
+                                            if (opcode === "data_changevariableby") {
                                                 let changeNum = block.inputs.VALUE[1][1];
                                                 let changeVar = block.fields.VARIABLE[0];
                                                 if ((+changeNum > 1) && (changeVar.includes("core"))) {
@@ -198,7 +198,7 @@ module.exports = class {
                                     }
                                 }
                             }
-                        }   
+                        }
                     }
                 });
             }
@@ -211,7 +211,7 @@ module.exports = class {
         let youWinBroadcast = broadcastReturns.youWinMessage;
 
         // iterate through each of the sprite's scripts that start with event blocks
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) {  
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) {
             let eventBlock = script.blocks[0];
 
             // scripts that start with "When Green Flag Clicked"
@@ -239,9 +239,9 @@ module.exports = class {
                     iterateBlocks(script, (block, level) => {
                         let opcode = block.opcode;
                         // check for set score/Score to 0
-                        this.checkScoreInit(block);                                             
-                    }); 
-                // if broadcast message is for halftime 
+                        this.checkScoreInit(block);
+                    });
+                // if broadcast message is for halftime
                 } else if ((halftimeBroadcast !== null) && (eventBlock.fields.BROADCAST_OPTION[0] === halftimeBroadcast)) {
                     iterateBlocks(script, (block, level) => {
                         let opcode = block.opcode;
@@ -265,14 +265,14 @@ module.exports = class {
     }
 
     // grade sprites other than Player and Announcer
-    // primarily to check for score initialization 
+    // primarily to check for score initialization
     gradeOther(sprite) {
         // iterate through each of the sprite's scripts that start with event blocks
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) {  
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) {
             let eventBlock = script.blocks[0];
 
-            if ((eventBlock.opcode === "event_whenflagclicked") 
-                || ((eventBlock.opcode === "event_whenbroadcastreceived") && (eventBlock.fields.BROADCAST_OPTION[0] === "start")) 
+            if ((eventBlock.opcode === "event_whenflagclicked")
+                || ((eventBlock.opcode === "event_whenbroadcastreceived") && (eventBlock.fields.BROADCAST_OPTION[0] === "start"))
                 || ((eventBlock.opcode === "event_whenthisspriteclicked") && (sprite.name === START_BUTTON))) {
 
                 iterateBlocks(script, (block, level) => {
@@ -301,7 +301,7 @@ module.exports = class {
             if (!(target.isStage)) {  // if target is a sprite
                 if (target.name === PLAYER) {
                     broadcastReturns = this.gradePlayer(target);
-                } else if (target.name === ANNOUNCER) {  
+                } else if (target.name === ANNOUNCER) {
                     // TODO: may have to store this target and grade it after the for loop,
                     // in case the Announcer is graded before the Player, and broadcast messages aren't stored
                     this.gradeAnnouncer(target, broadcastReturns);
@@ -310,20 +310,20 @@ module.exports = class {
                 }
             } else {  // if target is a stage
 
-                // store all variables in an array 
+                // store all variables in an array
                 for (let variable in target.variables) {
                     allStageVariables.push(target.variables[variable][0]);
                 }
 
-                // store all broadcast messages in an array 
+                // store all broadcast messages in an array
                 for (let msg in target.broadcasts) {
-                    allStageBroadcasts.push(target.broadcasts[msg]);    
-                }            
+                    allStageBroadcasts.push(target.broadcasts[msg]);
+                }
             }
         }
 
         // if user adds any additional variables (other than "timer" and "score"/"Score")
-        // then the extra features extension is fulfilled 
+        // then the extra features extension is fulfilled
         for (let varIndex in allStageVariables) {
             if (!(["timer", "score", "Score"].includes(allStageVariables[varIndex]))) {
                 this.extensions.extraFeatures.bool = true;
@@ -331,15 +331,15 @@ module.exports = class {
         }
 
         // if user adds any additional broadcast messages (other than "start", "gameover", or their messages for halftime or youwin)
-        // then the extra features extension is fulfilled 
+        // then the extra features extension is fulfilled
         let defaultMsgs = ["start", "gameover"];
         if (broadcastReturns.halftimeMessage) defaultMsgs.push(broadcastReturns.halftimeMessage);
         if (broadcastReturns.youWinMessage) defaultMsgs.push(broadcastReturns.youWinMessage);
-    
+
         for (let msgIndex in allStageBroadcasts) {
             if (!(defaultMsgs.includes(allStageBroadcasts[msgIndex]))) {
-                this.extensions.extraFeatures.bool = true;  
+                this.extensions.extraFeatures.bool = true;
             }
         }
-    }  
+    }
 }

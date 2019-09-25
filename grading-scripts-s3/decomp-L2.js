@@ -24,7 +24,7 @@ module.exports = class {
     // initialize the requirement and extension objects to be graded
     init() {
         this.requirements = {
-            addBackdrop: {bool: false, str: 'Added a new backdrop.'},  
+            addBackdrop: {bool: false, str: 'Added a new backdrop.'},
             addThreeSprites: {bool: false, str: 'Added at least three sprites.'},
             twoSpritesGoTo: {bool: false, str: 'Two sprites use the "goto x:_ y:_" block.'},
             sequentialAction: {bool: false, str: 'Two sprites have sequential action in a loop that animates them.'},
@@ -41,10 +41,10 @@ module.exports = class {
     // and return the opcode of what its touching target conditon is
     getCondOpcode(block) {
         let targetCond = null;
-        let inputCond = block.conditionBlock();  // the input condition block       
+        let inputCond = block.conditionBlock;  // the input condition block
         if ((inputCond !== null) && ("sensing_touchingobject" === inputCond.opcode)) {
             // find the specific field entered into the input condition block
-            let condSelected = inputCond.toBlock(inputCond.inputs.TOUCHINGOBJECTMENU[1]);                          
+            let condSelected = inputCond.toBlock(inputCond.inputs.TOUCHINGOBJECTMENU[1]);
             if ((condSelected !== null) && (condSelected.opcode === "sensing_touchingobjectmenu")) {
                 targetCond = condSelected.fields.TOUCHINGOBJECTMENU[0];
             }
@@ -52,20 +52,20 @@ module.exports = class {
         return targetCond;
     }
 
-    // given a loop block, look for a move, wait, and costume block for sequential action/animation 
+    // given a loop block, look for a move, wait, and costume block for sequential action/animation
     findSequentialAction(block) {
         let foundMove = false;
-        let foundWait = false; 
+        let foundWait = false;
         let foundCostume = false;
 
         let subBlocks = block.subScripts();
 
         for (var subScript of subBlocks) {
             iterateBlocks(subScript, (block, level) => {
-                let subop = block.opcode; 
+                let subop = block.opcode;
 
                 if (subop === 'motion_movesteps') {
-                    foundMove = true; 
+                    foundMove = true;
                 }
                 if (subop === 'control_wait') {
                     foundWait = true;
@@ -74,17 +74,17 @@ module.exports = class {
                     foundCostume = true;
                 }
             });
-        }   
+        }
         return (foundMove && foundCostume && foundWait);
     }
 
     gradeSprite(sprite) {
         var knownBlocks = [
             'event_whenflagclicked',
-            'motion_gotoxy', 
-            'motion_movesteps', 
-            'looks_costume', 
-            'looks_switchcostumeto',  
+            'motion_gotoxy',
+            'motion_movesteps',
+            'looks_costume',
+            'looks_switchcostumeto',
             'control_wait',
             'control_wait_until',
             'control_repeat',
@@ -99,12 +99,12 @@ module.exports = class {
         var waitingUntil = [];
         var repeatingUntil = [];
         var seqAction = false;
-        var diffActions = false; 
+        var diffActions = false;
 
-        // iterate through the sprite's scripts that start with an event block 
+        // iterate through the sprite's scripts that start with an event block
         for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) {
-            
-            var eventBlock = script.blocks[0]; 
+
+            var eventBlock = script.blocks[0];
             if (eventBlock.next !== null) {
                 iterateBlocks(script, (block, level) => {
                     var opcode = block.opcode;
@@ -125,25 +125,25 @@ module.exports = class {
                         if (targetSprite != null) {
                             repeatingUntil.push(targetSprite);
                         }
-                    } 
+                    }
 
                     // if sprite uses new action blocks
                     if (!(knownBlocks.includes(opcode)) && (opcode.includes("motion_") || opcode.includes("looks_"))) {
                         diffActions = true;
                     }
 
-                    // if sprite uses a sound block 
+                    // if sprite uses a sound block
                     if (["sound_play", "sound_playuntildone"].includes(opcode)) {
                         this.extensions.soundBlock.bool = true;
-                    } 
+                    }
 
                     // search a loop for sequential action blocks (wait, move, costume)
-                    if (opcode.includes("control_repeat")) { 
+                    if (opcode.includes("control_repeat")) {
                         seqAction = seqAction || this.findSequentialAction(block);
-                    }              
+                    }
                 });
             }
-        }        
+        }
 
         return {
             name: sprite.name,
@@ -177,9 +177,9 @@ module.exports = class {
                 // checks if student changed from default blank backdrop
                 // TODO: does not check if the student painted over the white backdrop
                 if (target.costumes[0].name !== 'backdrop1' || target.costumes.length > 1) {
-                    this.requirements.addBackdrop.bool = true; 
+                    this.requirements.addBackdrop.bool = true;
                 }
-                continue; 
+                continue;
             } else {    // if not a stage, then it's a sprite
                 totalSprites++;
 
@@ -216,7 +216,7 @@ module.exports = class {
         if (numSpritesTouching >= 2) {
             // if at least one sprite uses "wait until" and at least one sprite uses "repeat until"
             if ((Object.keys(waitUntilTargets).length >= 1) && (Object.keys(repeatUntilTargets).length >= 1)) {
-                // check to see if Sprites A and B have wait/repeat until blocks that target each other 
+                // check to see if Sprites A and B have wait/repeat until blocks that target each other
                 for (let currKey in waitUntilTargets) {
                     for (var i = 0; i < waitUntilTargets[currKey].length; i++) {
                         let currTarget = waitUntilTargets[currKey][i];

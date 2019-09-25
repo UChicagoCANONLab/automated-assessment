@@ -22,7 +22,7 @@ module.exports = class {
     // initialize the requirement and extension objects to be graded
     init() {
         this.requirements = {
-            bluePainted: {bool: false, str: 'Switches Paint Mix costume to "Blue Paint Mix" when Blue is selected.'},  
+            bluePainted: {bool: false, str: 'Switches Paint Mix costume to "Blue Paint Mix" when Blue is selected.'},
             yellowPainted: {bool: false, str: 'Switches Paint Mix sprite to "Yellow Paint Mix" when Yellow is selected.'},
             purpleMixed: {bool: false, str: 'Paint Mix switches to "Purple Paint Mix" and broadcasts "purple" if Blue & Red selected.'},
             greenMixed: {bool: false, str: 'Paint Mix switches to "Green Paint Mix" and broadcasts "green" if Blue & Yellow selected.'},
@@ -56,7 +56,7 @@ module.exports = class {
             blue: false,
         };
 
-        let ifCondition = block.conditionBlock();  // the operator block       
+        let ifCondition = block.conditionBlock;  // the operator block
         if (ifCondition !== null) {
             if ("operator_equals" === ifCondition.opcode) {
                 let colorSelected = this.getColor(ifCondition);
@@ -82,16 +82,16 @@ module.exports = class {
                     color3 = this.getColor(operand2);
                 } else {  // if left side of "and" is NOT also an "and" block
                     color1 = this.getColor(operand1);
-                } 
+                }
 
                 // check second side of "and"
                 if (operand2.opcode === "operator_and") {  // if right side of "and" is also an "and" block
                     color2 = this.getColor(operand2.toBlock(operand2.inputs.OPERAND1[1]));
                     color3 = this.getColor(operand2.toBlock(operand2.inputs.OPERAND2[1]));
-                    // color 1 will have already been set above 
+                    // color 1 will have already been set above
                 } else {  // if right side of "and" is NOT also an "and" block
                     color2 = this.getColor(operand2);
-                } 
+                }
 
                 if (color1 === "Red") {
                     colorReqs.red = true;
@@ -100,7 +100,7 @@ module.exports = class {
                 } else if (color1 === "Blue") {
                     colorReqs.blue = true;
                 }
-                
+
                 if (color2 === "Red") {
                     colorReqs.red = true;
                 } else if (color2 === "Yellow") {
@@ -130,7 +130,7 @@ module.exports = class {
 
         let i = 0;
 
-        // iterate through the blocks in each subscript in the array 
+        // iterate through the blocks in each subscript in the array
         for (i; i < array.length; i++) {
             iterateBlocks(array[i], (block, level) => {
                 let opcode = block.opcode;
@@ -149,8 +149,8 @@ module.exports = class {
     }
 
     gradePaintMix(sprite) {
-        // iterate through each of the sprite's scripts that start with the event 'When I Receive' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenbroadcastreceived"))) {  
+        // iterate through each of the sprite's scripts that start with the event 'When I Receive'
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenbroadcastreceived"))) {
             let eventBlock = script.blocks[0];
             if (eventBlock.fields.BROADCAST_OPTION[0] === "mix paint") {
                 iterateBlocks(script, (block, level) => {
@@ -160,13 +160,13 @@ module.exports = class {
                         let colors = this.checkColors(block);
                         let subBlocks = block.subScripts();
                         let subReqs = this.checkSubscript(subBlocks);
-                        
+
                         // if only one color is selected
-                        if (!colors.red && !colors.yellow && colors.blue) { 
+                        if (!colors.red && !colors.yellow && colors.blue) {
                             if (subReqs.costumeTo === "Blue Paint Mix") {
                                 this.requirements.bluePainted.bool = true;
                             }
-                        } else if (!colors.red && colors.yellow && !colors.blue) {  
+                        } else if (!colors.red && colors.yellow && !colors.blue) {
                             if (subReqs.costumeTo === "Yellow Paint Mix") {
                                 this.requirements.yellowPainted.bool = true;
                             }
@@ -196,16 +196,16 @@ module.exports = class {
     // check Artist Sprite's "When I Receive" scripts for a sound block
     checkSound(sprite) {
         let sound = false;
-        // iterate through each of the sprite's scripts that start with the event 'When I Receive' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenbroadcastreceived"))) {  
+        // iterate through each of the sprite's scripts that start with the event 'When I Receive'
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenbroadcastreceived"))) {
             iterateBlocks(script, (block, level) => {
                 let opcode = block.opcode;
                 if (["sound_playuntildone","sound_play"].includes(opcode)) {
-                    sound = true;           
+                    sound = true;
                 }
             });
         }
-        return sound;         
+        return sound;
     }
 
     // main grading function
@@ -237,5 +237,5 @@ module.exports = class {
                 }
             }
         }
-    }    
+    }
 }

@@ -51,10 +51,10 @@ module.exports = class {
     // and return the opcode of what its touching target conditon is
     getCondOpcode(block) {
         let targetCond;
-        let inputCond = block.conditionBlock();  // the input condition block       
+        let inputCond = block.conditionBlock;  // the input condition block
         if ((inputCond !== null) && ("sensing_touchingobject" === inputCond.opcode)) {
             // find the specific field entered into the input condition block
-            let condSelected = inputCond.toBlock(inputCond.inputs.TOUCHINGOBJECTMENU[1]);                          
+            let condSelected = inputCond.toBlock(inputCond.inputs.TOUCHINGOBJECTMENU[1]);
             if ((condSelected !== null) && (condSelected.opcode === "sensing_touchingobjectmenu")) {
                 targetCond = condSelected.fields.TOUCHINGOBJECTMENU[0];
             }
@@ -62,7 +62,7 @@ module.exports = class {
         return targetCond;
     }
 
-    // Check the blocks/scripts only inside a conditional loop 
+    // Check the blocks/scripts only inside a conditional loop
     gradeCondLoop(block, targetCondition) {
         let condLoopReqs = {
             repeatLoop: false,
@@ -72,7 +72,7 @@ module.exports = class {
         };
 
         // check block's condition input
-        let blockCond = this.getCondOpcode(block);            
+        let blockCond = this.getCondOpcode(block);
 
         // if the correct targetCondition is selected ("Soccer Ball" if sprite is Jaime, or vice versa)
         if (blockCond === targetCondition) {
@@ -82,10 +82,10 @@ module.exports = class {
             var repeatUntilSubs = block.subScripts();
             for (var subScript of repeatUntilSubs) {
                 iterateBlocks(subScript, (block, level) => {
-                    let subop = block.opcode; 
+                    let subop = block.opcode;
 
                     if (subop === 'motion_movesteps') {
-                        condLoopReqs.moveBlock = true; 
+                        condLoopReqs.moveBlock = true;
                     }
                     if (subop === 'control_wait') {
                         condLoopReqs.waitBlock = true;
@@ -94,7 +94,7 @@ module.exports = class {
                         condLoopReqs.costumeBlock = true;
                     }
                 });
-            }                                   
+            }
         }
         return condLoopReqs;
     }
@@ -113,17 +113,17 @@ module.exports = class {
 
         if ((opcode === "control_wait_until") || (opcode === "control_repeat_until")) {
             remainingBlocks = block.childBlocks();
-        } else if (opcode.includes("control_if")) { 
+        } else if (opcode.includes("control_if")) {
             // restrict remainingBlocks to the blocks within the If
             let nextIf = block.toBlock(block.inputs.SUBSTACK[1]);
             remainingBlocks = nextIf.childBlocks();
         }
-        
+
         for (let rBlock of remainingBlocks) {
             let rCode = rBlock.opcode;
 
             // check for sound block
-            if (["sound_playuntildone","sound_play"].includes(rCode)) {             
+            if (["sound_playuntildone","sound_play"].includes(rCode)) {
                 // check if sound block plays a sound
                 let soundBlock = rBlock.toBlock(rBlock.inputs.SOUND_MENU[1]);
                 if (soundBlock !== null) {
@@ -131,14 +131,14 @@ module.exports = class {
                     if (soundSelected !== null) {
                         extns.soundPlays = true;
                         /* if you want to restrict the sound to only "cheer", "Cheer", or "Goal Cheer"
-                        commented out for now, bc some students may want to use different sounds   
+                        commented out for now, bc some students may want to use different sounds
                         if ((soundSelected.includes("cheer")) || soundSelected.includes("Cheer")) {
                             cheerSelected = true;
                         }
                         */
                     }
                 }
-            // check for movement after condition is met    
+            // check for movement after condition is met
             } else if (rCode.includes("motion_move") || rCode.includes("motion_goto") || rCode.includes("motion_glide")) {
                 extns.movement = true;
             }
@@ -148,11 +148,11 @@ module.exports = class {
 
     gradeJaime(sprite) {
         let condLoopReqs;
-        // iterating through each of the sprite's scripts that start with the event 'When Green Flag Clicked' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenflagclicked"))) {  
+        // iterating through each of the sprite's scripts that start with the event 'When Green Flag Clicked'
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenflagclicked"))) {
             iterateBlocks(script, (block, level) => {
                 let opcode = block.opcode;
-                
+
                 if (opcode.includes("control_repeat_until")) {
                     condLoopReqs = this.gradeCondLoop(block, "Soccer Ball");
                     if (condLoopReqs.repeatLoop) this.requirements.jaimeRepeats.bool = true;
@@ -175,18 +175,18 @@ module.exports = class {
         let condLoopReqs;
         let afterCondReqs;
 
-        // iterating through each of the sprite's scripts that start with the event 'When Green Flag Clicked' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenflagclicked"))) { 
+        // iterating through each of the sprite's scripts that start with the event 'When Green Flag Clicked'
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenflagclicked"))) {
             iterateBlocks(script, (block, level) => {
                 let opcode = block.opcode;
                 let targetCond = this.getCondOpcode(block);
-                
+
                 if (opcode.includes("control_wait_until")) {
                     // If Ball has "Wait Until Touching _" block
                     if (targetCond === "Jaime ") {
                         this.requirements.ballWaitsUntil.bool = true;
                     } else if (targetCond === "Goal") {
-                        afterCondReqs = this.checkAfter(block); 
+                        afterCondReqs = this.checkAfter(block);
                         if (afterCondReqs.soundPlays) this.extensions.cheerSounds.bool = true;
                     }
                 } else if (opcode.includes("control_repeat_until")) {
@@ -205,20 +205,20 @@ module.exports = class {
                         if (afterCondReqs.soundPlays) this.extensions.cheerSounds.bool = true;
                     } else if (!(["Goal", "Jaime "].includes(targetCond))) {//&& totnumSprites > 3? ) {
                         // if ball moves after "If touching goalie", goalieBlocks req fulfilled
-                        // TODO: probably need to check this req more rigorously 
-                        if (afterCondReqs.movement) this.extensions.goalieBlocks.bool = true; 
-                    } 
+                        // TODO: probably need to check this req more rigorously
+                        if (afterCondReqs.movement) this.extensions.goalieBlocks.bool = true;
+                    }
                 }
             });
         }
     }
 
     gradeGoal(sprite) {
-        // iterating through each of the sprite's scripts that start with the event 'When Green Flag Clicked' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenflagclicked"))) {  
+        // iterating through each of the sprite's scripts that start with the event 'When Green Flag Clicked'
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenflagclicked"))) {
             iterateBlocks(script, (block, level) => {
                 let opcode = block.opcode;
-                
+
                 if (["control_wait_until","control_if"].includes(opcode)) {
                     let targetCond = this.getCondOpcode(block);
                     if (targetCond === "Soccer Ball") {
@@ -227,20 +227,20 @@ module.exports = class {
                     }
                 }
             });
-        } 
+        }
     }
 
     gradeGoalie(sprite) {
-        // iterating through each of the sprite's scripts that start with the event 'When _ Key Pressed' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenkeypressed"))) { 
+        // iterating through each of the sprite's scripts that start with the event 'When _ Key Pressed'
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenkeypressed"))) {
             let eventBlock = script.blocks[0];
             let keyOption = eventBlock.fields.KEY_OPTION[0];
- 
+
             if (keyOption === "left arrow") {
                 let pointedLeft = false;
                 let negSteps = false;
                 iterateBlocks(script, (block, level) => {
-                    let opcode = block.opcode; 
+                    let opcode = block.opcode;
                     if (opcode.includes("motion_pointindirection")) {
                         if (block.inputs.DIRECTION[1][1][0] === "-") {  // if first character is - (negative)
                             pointedLeft = true;
@@ -260,7 +260,7 @@ module.exports = class {
                 let pointedRight = true;
                 let negSteps = false;
                 iterateBlocks(script, (block, level) => {
-                    let opcode = block.opcode; 
+                    let opcode = block.opcode;
                     if (opcode.includes("motion_pointindirection")) {
                         if (block.inputs.DIRECTION[1][1][0] === "-") {  // if first character is - (negative)
                             pointedRight = false;
@@ -271,10 +271,10 @@ module.exports = class {
                             negSteps = true;
                         }
                     }
-                });  
-                
+                });
+
                 if ((pointedRight && !negSteps) || (!pointedRight && negSteps)){
-                    this.extensions.goalieMovesRight.bool = true; 
+                    this.extensions.goalieMovesRight.bool = true;
                 }
             }
         }
@@ -298,12 +298,12 @@ module.exports = class {
                 } else if (target.name === "Goal") {
                     if (!(this.extensions.cheerSounds.bool)) {
                         this.gradeGoal(target);
-                    } 
+                    }
                 } else {   // if not Jaime, Ball, or Goal, sprite must be added goalie
                     this.extensions.goalieAdded.bool = true;
                     this.gradeGoalie(target);
                 }
             }
         }
-    }    
+    }
 }

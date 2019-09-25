@@ -41,7 +41,7 @@ module.exports = class {
         }
     }
 
-    // Given a "And" block where one of the sides could be another "And" block, find the colors selected 
+    // Given a "And" block where one of the sides could be another "And" block, find the colors selected
     getMultColors(block) {
         let colors = [];
 
@@ -72,7 +72,7 @@ module.exports = class {
         return colors;
     }
 
-    // check if a block correctly sets the varibale NumColors to Red + Yellow + Blue 
+    // check if a block correctly sets the varibale NumColors to Red + Yellow + Blue
     checkNumColors(secondBlock) {
         let initColors = {
             red: false,
@@ -140,8 +140,8 @@ module.exports = class {
         if (block.opcode === "looks_switchcostumeto") {
             let costumeBlock = block.toBlock(block.inputs.COSTUME[1]);
             if (costumeBlock && (costumeBlock.opcode === "looks_costume")) {
-                costume = costumeBlock.fields.COSTUME[0]; 
-            } 
+                costume = costumeBlock.fields.COSTUME[0];
+            }
         }
         return costume;
     }
@@ -155,16 +155,16 @@ module.exports = class {
         let purple = false;
         let green = false;
 
-        // iterate through each of the sprite's scripts that start with the event 'When I Receive' 
+        // iterate through each of the sprite's scripts that start with the event 'When I Receive'
         for (let script of sprite.scripts.filter(s => s.blocks[0].opcode === "event_whenbroadcastreceived")) {
             let eventBlock = script.blocks[0];
 
             if (eventBlock.fields.BROADCAST_OPTION[0] === "mix paint") {  // for some reason the Json for L2 capitalizes "mix paint", whereas in L1 it didnt
-                // check whether first block after "when I recieve 'mix paint'" initializes NumColors variable correctly 
+                // check whether first block after "when I recieve 'mix paint'" initializes NumColors variable correctly
                 let secondBlock = eventBlock.nextBlock();
                 this.checkNumColors(secondBlock);
 
-                // check remaining blocks in the script 
+                // check remaining blocks in the script
                 script.traverseBlocks((block, level) => {
                     // find "Switch Costume To" block
                     if (block.opcode === "looks_switchcostumeto") {
@@ -180,7 +180,7 @@ module.exports = class {
                         // Find the first "If/Then" block that contains the "switch costume to" block
                         let innerIf = block.isWithin();
                         if ((innerIf !== null) && (innerIf.opcode === "control_if")) {
-                            let innerCond = innerIf.conditionBlock();
+                            let innerCond = innerIf.conditionBlock;
                             if (innerCond !== null) {
                                 // check if brown is mixed, regardless of whether it is nested in another conditional
                                 let colors = this.getMultColors(innerCond);
@@ -193,7 +193,7 @@ module.exports = class {
                                 // Find the outer-most "If/Then" block, which the inner "If/Then" should be nested within
                                 let outerIf = innerIf.isWithin();
                                 if ((outerIf !== null) && (outerIf.opcode === "control_if")) {
-                                    let outerCond = outerIf.conditionBlock();
+                                    let outerCond = outerIf.conditionBlock;
                                     if ((outerCond !== null) && (outerCond.opcode === "operator_equals")) {
                                         let in1 = outerCond.inputs.OPERAND1[1][1];
                                         let in2 = outerCond.inputs.OPERAND2[1][1];
@@ -226,7 +226,7 @@ module.exports = class {
                                             }
 
                                             if (costume.includes("Orange Paint Mix") && broadcasts.includes("orange")) {
-                                                if (colors.includes("Red") && colors.includes("Yellow")) orange = true;    
+                                                if (colors.includes("Red") && colors.includes("Yellow")) orange = true;
                                             } else if (costume.includes("Purple Paint Mix") && broadcasts.includes("purple")) {
                                                 if (colors.includes("Blue") && colors.includes("Red")) purple = true;
                                             } else if (costume.includes("Green Paint Mix") && broadcasts.includes("green")) {
@@ -237,7 +237,7 @@ module.exports = class {
                                                 this.requirements.twoCondNested.bool = true;
                                             }
 
-                                        // Condition for if three colors are selected 
+                                        // Condition for if three colors are selected
                                         } else if (((in1 === "NumColors") && (in2 === "3")) || ((in1 === "3") && (in2 === "NumColors"))) {
                                             this.extensions.threeCondSet.bool = true;
 
@@ -256,7 +256,7 @@ module.exports = class {
                     if (block.opcode.includes("sound_play")) {
                         let potentialOuterIf = block.isWithin();
                         if ((potentialOuterIf !== null) && (potentialOuterIf.opcode === "control_if")) {
-                            let cond = potentialOuterIf.conditionBlock();
+                            let cond = potentialOuterIf.conditionBlock;
                             if ((cond !== null) && (cond.opcode === "operator_equals")) {
                                 let in1 = cond.inputs.OPERAND1[1][1];
                                 let in2 = cond.inputs.OPERAND2[1][1];

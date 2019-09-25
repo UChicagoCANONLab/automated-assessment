@@ -4457,7 +4457,7 @@ module.exports = class {
     // initialize the requirement and extension objects to be graded
     init() {
         this.requirements = {
-            bluePainted: {bool: false, str: 'Switches Paint Mix costume to "Blue Paint Mix" when Blue is selected.'},  
+            bluePainted: {bool: false, str: 'Switches Paint Mix costume to "Blue Paint Mix" when Blue is selected.'},
             yellowPainted: {bool: false, str: 'Switches Paint Mix sprite to "Yellow Paint Mix" when Yellow is selected.'},
             purpleMixed: {bool: false, str: 'Paint Mix switches to "Purple Paint Mix" and broadcasts "purple" if Blue & Red selected.'},
             greenMixed: {bool: false, str: 'Paint Mix switches to "Green Paint Mix" and broadcasts "green" if Blue & Yellow selected.'},
@@ -4491,7 +4491,7 @@ module.exports = class {
             blue: false,
         };
 
-        let ifCondition = block.conditionBlock();  // the operator block       
+        let ifCondition = block.conditionBlock;  // the operator block
         if (ifCondition !== null) {
             if ("operator_equals" === ifCondition.opcode) {
                 let colorSelected = this.getColor(ifCondition);
@@ -4517,16 +4517,16 @@ module.exports = class {
                     color3 = this.getColor(operand2);
                 } else {  // if left side of "and" is NOT also an "and" block
                     color1 = this.getColor(operand1);
-                } 
+                }
 
                 // check second side of "and"
                 if (operand2.opcode === "operator_and") {  // if right side of "and" is also an "and" block
                     color2 = this.getColor(operand2.toBlock(operand2.inputs.OPERAND1[1]));
                     color3 = this.getColor(operand2.toBlock(operand2.inputs.OPERAND2[1]));
-                    // color 1 will have already been set above 
+                    // color 1 will have already been set above
                 } else {  // if right side of "and" is NOT also an "and" block
                     color2 = this.getColor(operand2);
-                } 
+                }
 
                 if (color1 === "Red") {
                     colorReqs.red = true;
@@ -4535,7 +4535,7 @@ module.exports = class {
                 } else if (color1 === "Blue") {
                     colorReqs.blue = true;
                 }
-                
+
                 if (color2 === "Red") {
                     colorReqs.red = true;
                 } else if (color2 === "Yellow") {
@@ -4565,7 +4565,7 @@ module.exports = class {
 
         let i = 0;
 
-        // iterate through the blocks in each subscript in the array 
+        // iterate through the blocks in each subscript in the array
         for (i; i < array.length; i++) {
             iterateBlocks(array[i], (block, level) => {
                 let opcode = block.opcode;
@@ -4584,8 +4584,8 @@ module.exports = class {
     }
 
     gradePaintMix(sprite) {
-        // iterate through each of the sprite's scripts that start with the event 'When I Receive' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenbroadcastreceived"))) {  
+        // iterate through each of the sprite's scripts that start with the event 'When I Receive'
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenbroadcastreceived"))) {
             let eventBlock = script.blocks[0];
             if (eventBlock.fields.BROADCAST_OPTION[0] === "mix paint") {
                 iterateBlocks(script, (block, level) => {
@@ -4595,13 +4595,13 @@ module.exports = class {
                         let colors = this.checkColors(block);
                         let subBlocks = block.subScripts();
                         let subReqs = this.checkSubscript(subBlocks);
-                        
+
                         // if only one color is selected
-                        if (!colors.red && !colors.yellow && colors.blue) { 
+                        if (!colors.red && !colors.yellow && colors.blue) {
                             if (subReqs.costumeTo === "Blue Paint Mix") {
                                 this.requirements.bluePainted.bool = true;
                             }
-                        } else if (!colors.red && colors.yellow && !colors.blue) {  
+                        } else if (!colors.red && colors.yellow && !colors.blue) {
                             if (subReqs.costumeTo === "Yellow Paint Mix") {
                                 this.requirements.yellowPainted.bool = true;
                             }
@@ -4631,16 +4631,16 @@ module.exports = class {
     // check Artist Sprite's "When I Receive" scripts for a sound block
     checkSound(sprite) {
         let sound = false;
-        // iterate through each of the sprite's scripts that start with the event 'When I Receive' 
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenbroadcastreceived"))) {  
+        // iterate through each of the sprite's scripts that start with the event 'When I Receive'
+        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_whenbroadcastreceived"))) {
             iterateBlocks(script, (block, level) => {
                 let opcode = block.opcode;
                 if (["sound_playuntildone","sound_play"].includes(opcode)) {
-                    sound = true;           
+                    sound = true;
                 }
             });
         }
-        return sound;         
+        return sound;
     }
 
     // main grading function
@@ -4672,8 +4672,9 @@ module.exports = class {
                 }
             }
         }
-    }    
+    }
 }
+
 },{"./scratch3":31}],19:[function(require,module,exports){
 require('./grader');
 require('./scratch3');
@@ -5159,7 +5160,7 @@ module.exports = class {
     // and return the opcode of what its touching target conditon is
     getTouchTarget(block) {
         let targetCond = null;
-        let inputCond = block.conditionBlock();  // the input condition block       
+        let inputCond = block.conditionBlock;  // the input condition block
         if ((inputCond !== null) && ("sensing_touchingobject" === inputCond.opcode)) {
             // find the specific field entered into the input condition block
             let condSelected = inputCond.toBlock(inputCond.inputs.TOUCHINGOBJECTMENU[1]);
@@ -5189,7 +5190,7 @@ module.exports = class {
             score: 0,
         }
 
-        // iterate through each of the sprite's scripts that start with 'When Green Flag Clicked' 
+        // iterate through each of the sprite's scripts that start with 'When Green Flag Clicked'
         for (let script of sprite.scripts.filter(s => s.blocks[0].opcode === "event_whenflagclicked")) {
             script.traverseBlocks((block, level) => {
                 // check for movement to the right
@@ -5200,7 +5201,7 @@ module.exports = class {
                     if (stepNumber > 0) {
                         report.moves = true;
 
-                        // check if the move block is within a loop 
+                        // check if the move block is within a loop
                         let potentialLoop = block.isWithin();
                         if (potentialLoop !== null) {
                             // if the move block is within a "repeat until touching" loop
@@ -5222,11 +5223,11 @@ module.exports = class {
                                         report.score++;
                                     }
 
-                                    // Create a script of all the blocks immediately after the repeatUntilTouching loop 
+                                    // Create a script of all the blocks immediately after the repeatUntilTouching loop
                                     let blockAfterLoop = potentialLoop.nextBlock();
-                                    // if the repeatUntilTouching loop is within another loop, create another script of the blocks following that outer loop 
+                                    // if the repeatUntilTouching loop is within another loop, create another script of the blocks following that outer loop
                                     let blockOutsideLoop = potentialLoop.isWithin();
-                            
+
                                     if (blockAfterLoop !== null) {
                                         let scriptAfterLoop = new Script(blockAfterLoop, blockAfterLoop.target);
 
@@ -5269,7 +5270,7 @@ module.exports = class {
                                             if (currBlock.opcode === "control_wait") {
                                                 waitBlockFound = true;
                                             }
-                                            // if sprite "jumps" after a wait block has already been used 
+                                            // if sprite "jumps" after a wait block has already been used
                                             // TODO: this just checks for a "change/set y" block
                                             // more rigorous evaluation should check for other types of vertical motion (like multiple gotoXY blocks, checking up/down differences in the y-coordinate)
                                             if (["motion_sety", "motion_changeyby"].includes(currBlock.opcode) && waitBlockFound) {
@@ -5290,7 +5291,7 @@ module.exports = class {
                     // check for negative steps/movement to the left, inside a repeat until touching block (for "Bounce" extension)
                     if (stepNumber < 0) {
                         report.movesLeft = true;
-                        // check if the move block is within a loop 
+                        // check if the move block is within a loop
                         let potentialLoop = block.isWithin();
                         if (potentialLoop !== null) {
                             // if the move block is within a "repeat until touching" loop
@@ -5353,16 +5354,33 @@ module.exports = class {
     // B: Speaker, Ball, Stairs
     // C: Poster Holder, Goal, Cliff
     // Extra: Sprite that Walks across the road and says something, Goalie, sprite that goes to Blue Treasure Chest
-    sortSprites(reports) {
+    sortSprites(reports, project) {
+        let defaultObj = {
+            name: null,
+            moves: false,
+            movesTo: [],
+            stops: false,
+            stopsAt: [],
+            waits: false,
+            waitsFor: [],
+            sounds: false,
+            changesCostumeToSpeaking: false,
+            jumps: false,
+            jumpsAfter: { saySpeech: false, waitBlock: false },
+            movesLeft: false,
+            bouncesTowards: [],
+            speaks: false,
+            score: 0,
+        }
         let sprites = {
-            A: null,
-            B: null,
-            C: null,
-            Extra: null,
+            A: defaultObj,
+            B: defaultObj,
+            C: defaultObj,
+            Extra: defaultObj,
         }
 
         // Identify Sprite B first
-        let maxBScore = 0;
+        let maxBScore = -1;
         for (let possibleB of reports) {
             let currBScore = possibleB.score;
 
@@ -5378,7 +5396,7 @@ module.exports = class {
         }
 
         // after Sprite B, find Sprite A
-        let maxAScore = 0;
+        let maxAScore = -1;
         for (let possibleA of reports) {
             if (possibleA.name !== sprites.B.name) {
                 let currAScore = 0;
@@ -5392,7 +5410,7 @@ module.exports = class {
                         maxAScore = currAScore;
                         sprites.A = possibleA;
                     }
-                } 
+                }
             }
         }
 
@@ -5406,7 +5424,7 @@ module.exports = class {
         }
 
         // find Extra sprite, if any. (Checks requirements for Multicultural and Gaming strand. In Youth Culture strand, any new sprite will be accepted)
-        let maxExtraScore = 0;
+        let maxExtraScore = -1;
         if (reports.length > 4) {
             for (let remainingSprite of reports) {
                 if ((remainingSprite.name !== sprites.B.name) && (remainingSprite.name !== sprites.A.name) && (remainingSprite.name !== sprites.C.name)) {
@@ -5443,7 +5461,7 @@ module.exports = class {
             }
         }
 
-        let sortedSprites = this.sortSprites(spriteReports);
+        let sortedSprites = this.sortSprites(spriteReports, project);
         let spriteA = sortedSprites.A;
         let spriteB = sortedSprites.B;
         let spriteC = sortedSprites.C;
@@ -5540,7 +5558,7 @@ module.exports = class {
                         }
                     }
 
-                if ((numWaitsForA > 1) || spriteB.bouncesTowards.includes(spriteA.name)) {  
+                if ((numWaitsForA > 1) || spriteB.bouncesTowards.includes(spriteA.name)) {
                     if (numBounces > 1) this.extensions.stairsBounce.bool = true;
                 }
             }
@@ -5551,6 +5569,7 @@ module.exports = class {
         }
     }
 }
+
 },{"./scratch3":31,"./templates/decomp-L1-gaming.json":38,"./templates/decomp-L1-multicultural.json":39,"./templates/decomp-L1-youthculture.json":40}],23:[function(require,module,exports){
 /* Decomposition by Sequence L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
@@ -5578,7 +5597,7 @@ module.exports = class {
     // initialize the requirement and extension objects to be graded
     init() {
         this.requirements = {
-            addBackdrop: {bool: false, str: 'Added a new backdrop.'},  
+            addBackdrop: {bool: false, str: 'Added a new backdrop.'},
             addThreeSprites: {bool: false, str: 'Added at least three sprites.'},
             twoSpritesGoTo: {bool: false, str: 'Two sprites use the "goto x:_ y:_" block.'},
             sequentialAction: {bool: false, str: 'Two sprites have sequential action in a loop that animates them.'},
@@ -5595,10 +5614,10 @@ module.exports = class {
     // and return the opcode of what its touching target conditon is
     getCondOpcode(block) {
         let targetCond = null;
-        let inputCond = block.conditionBlock();  // the input condition block       
+        let inputCond = block.conditionBlock;  // the input condition block
         if ((inputCond !== null) && ("sensing_touchingobject" === inputCond.opcode)) {
             // find the specific field entered into the input condition block
-            let condSelected = inputCond.toBlock(inputCond.inputs.TOUCHINGOBJECTMENU[1]);                          
+            let condSelected = inputCond.toBlock(inputCond.inputs.TOUCHINGOBJECTMENU[1]);
             if ((condSelected !== null) && (condSelected.opcode === "sensing_touchingobjectmenu")) {
                 targetCond = condSelected.fields.TOUCHINGOBJECTMENU[0];
             }
@@ -5606,20 +5625,20 @@ module.exports = class {
         return targetCond;
     }
 
-    // given a loop block, look for a move, wait, and costume block for sequential action/animation 
+    // given a loop block, look for a move, wait, and costume block for sequential action/animation
     findSequentialAction(block) {
         let foundMove = false;
-        let foundWait = false; 
+        let foundWait = false;
         let foundCostume = false;
 
         let subBlocks = block.subScripts();
 
         for (var subScript of subBlocks) {
             iterateBlocks(subScript, (block, level) => {
-                let subop = block.opcode; 
+                let subop = block.opcode;
 
                 if (subop === 'motion_movesteps') {
-                    foundMove = true; 
+                    foundMove = true;
                 }
                 if (subop === 'control_wait') {
                     foundWait = true;
@@ -5628,17 +5647,17 @@ module.exports = class {
                     foundCostume = true;
                 }
             });
-        }   
+        }
         return (foundMove && foundCostume && foundWait);
     }
 
     gradeSprite(sprite) {
         var knownBlocks = [
             'event_whenflagclicked',
-            'motion_gotoxy', 
-            'motion_movesteps', 
-            'looks_costume', 
-            'looks_switchcostumeto',  
+            'motion_gotoxy',
+            'motion_movesteps',
+            'looks_costume',
+            'looks_switchcostumeto',
             'control_wait',
             'control_wait_until',
             'control_repeat',
@@ -5653,12 +5672,12 @@ module.exports = class {
         var waitingUntil = [];
         var repeatingUntil = [];
         var seqAction = false;
-        var diffActions = false; 
+        var diffActions = false;
 
-        // iterate through the sprite's scripts that start with an event block 
+        // iterate through the sprite's scripts that start with an event block
         for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) {
-            
-            var eventBlock = script.blocks[0]; 
+
+            var eventBlock = script.blocks[0];
             if (eventBlock.next !== null) {
                 iterateBlocks(script, (block, level) => {
                     var opcode = block.opcode;
@@ -5679,25 +5698,25 @@ module.exports = class {
                         if (targetSprite != null) {
                             repeatingUntil.push(targetSprite);
                         }
-                    } 
+                    }
 
                     // if sprite uses new action blocks
                     if (!(knownBlocks.includes(opcode)) && (opcode.includes("motion_") || opcode.includes("looks_"))) {
                         diffActions = true;
                     }
 
-                    // if sprite uses a sound block 
+                    // if sprite uses a sound block
                     if (["sound_play", "sound_playuntildone"].includes(opcode)) {
                         this.extensions.soundBlock.bool = true;
-                    } 
+                    }
 
                     // search a loop for sequential action blocks (wait, move, costume)
-                    if (opcode.includes("control_repeat")) { 
+                    if (opcode.includes("control_repeat")) {
                         seqAction = seqAction || this.findSequentialAction(block);
-                    }              
+                    }
                 });
             }
-        }        
+        }
 
         return {
             name: sprite.name,
@@ -5731,9 +5750,9 @@ module.exports = class {
                 // checks if student changed from default blank backdrop
                 // TODO: does not check if the student painted over the white backdrop
                 if (target.costumes[0].name !== 'backdrop1' || target.costumes.length > 1) {
-                    this.requirements.addBackdrop.bool = true; 
+                    this.requirements.addBackdrop.bool = true;
                 }
-                continue; 
+                continue;
             } else {    // if not a stage, then it's a sprite
                 totalSprites++;
 
@@ -5770,7 +5789,7 @@ module.exports = class {
         if (numSpritesTouching >= 2) {
             // if at least one sprite uses "wait until" and at least one sprite uses "repeat until"
             if ((Object.keys(waitUntilTargets).length >= 1) && (Object.keys(repeatUntilTargets).length >= 1)) {
-                // check to see if Sprites A and B have wait/repeat until blocks that target each other 
+                // check to see if Sprites A and B have wait/repeat until blocks that target each other
                 for (let currKey in waitUntilTargets) {
                     for (var i = 0; i < waitUntilTargets[currKey].length; i++) {
                         let currTarget = waitUntilTargets[currKey][i];
@@ -5794,6 +5813,7 @@ module.exports = class {
         }
     }
 }
+
 },{"./scratch3":31}],24:[function(require,module,exports){
 require('./scratch3');
 

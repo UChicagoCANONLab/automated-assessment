@@ -70,7 +70,7 @@ module.exports = class {
     // and return the opcode of what its touching target conditon is
     getTouchTarget(block) {
         let targetCond = null;
-        let inputCond = block.conditionBlock();  // the input condition block       
+        let inputCond = block.conditionBlock;  // the input condition block
         if ((inputCond !== null) && ("sensing_touchingobject" === inputCond.opcode)) {
             // find the specific field entered into the input condition block
             let condSelected = inputCond.toBlock(inputCond.inputs.TOUCHINGOBJECTMENU[1]);
@@ -100,7 +100,7 @@ module.exports = class {
             score: 0,
         }
 
-        // iterate through each of the sprite's scripts that start with 'When Green Flag Clicked' 
+        // iterate through each of the sprite's scripts that start with 'When Green Flag Clicked'
         for (let script of sprite.scripts.filter(s => s.blocks[0].opcode === "event_whenflagclicked")) {
             script.traverseBlocks((block, level) => {
                 // check for movement to the right
@@ -111,7 +111,7 @@ module.exports = class {
                     if (stepNumber > 0) {
                         report.moves = true;
 
-                        // check if the move block is within a loop 
+                        // check if the move block is within a loop
                         let potentialLoop = block.isWithin();
                         if (potentialLoop !== null) {
                             // if the move block is within a "repeat until touching" loop
@@ -133,11 +133,11 @@ module.exports = class {
                                         report.score++;
                                     }
 
-                                    // Create a script of all the blocks immediately after the repeatUntilTouching loop 
+                                    // Create a script of all the blocks immediately after the repeatUntilTouching loop
                                     let blockAfterLoop = potentialLoop.nextBlock();
-                                    // if the repeatUntilTouching loop is within another loop, create another script of the blocks following that outer loop 
+                                    // if the repeatUntilTouching loop is within another loop, create another script of the blocks following that outer loop
                                     let blockOutsideLoop = potentialLoop.isWithin();
-                            
+
                                     if (blockAfterLoop !== null) {
                                         let scriptAfterLoop = new Script(blockAfterLoop, blockAfterLoop.target);
 
@@ -180,7 +180,7 @@ module.exports = class {
                                             if (currBlock.opcode === "control_wait") {
                                                 waitBlockFound = true;
                                             }
-                                            // if sprite "jumps" after a wait block has already been used 
+                                            // if sprite "jumps" after a wait block has already been used
                                             // TODO: this just checks for a "change/set y" block
                                             // more rigorous evaluation should check for other types of vertical motion (like multiple gotoXY blocks, checking up/down differences in the y-coordinate)
                                             if (["motion_sety", "motion_changeyby"].includes(currBlock.opcode) && waitBlockFound) {
@@ -201,7 +201,7 @@ module.exports = class {
                     // check for negative steps/movement to the left, inside a repeat until touching block (for "Bounce" extension)
                     if (stepNumber < 0) {
                         report.movesLeft = true;
-                        // check if the move block is within a loop 
+                        // check if the move block is within a loop
                         let potentialLoop = block.isWithin();
                         if (potentialLoop !== null) {
                             // if the move block is within a "repeat until touching" loop
@@ -264,16 +264,33 @@ module.exports = class {
     // B: Speaker, Ball, Stairs
     // C: Poster Holder, Goal, Cliff
     // Extra: Sprite that Walks across the road and says something, Goalie, sprite that goes to Blue Treasure Chest
-    sortSprites(reports) {
+    sortSprites(reports, project) {
+        let defaultObj = {
+            name: null,
+            moves: false,
+            movesTo: [],
+            stops: false,
+            stopsAt: [],
+            waits: false,
+            waitsFor: [],
+            sounds: false,
+            changesCostumeToSpeaking: false,
+            jumps: false,
+            jumpsAfter: { saySpeech: false, waitBlock: false },
+            movesLeft: false,
+            bouncesTowards: [],
+            speaks: false,
+            score: 0,
+        }
         let sprites = {
-            A: null,
-            B: null,
-            C: null,
-            Extra: null,
+            A: defaultObj,
+            B: defaultObj,
+            C: defaultObj,
+            Extra: defaultObj,
         }
 
         // Identify Sprite B first
-        let maxBScore = 0;
+        let maxBScore = -1;
         for (let possibleB of reports) {
             let currBScore = possibleB.score;
 
@@ -289,7 +306,7 @@ module.exports = class {
         }
 
         // after Sprite B, find Sprite A
-        let maxAScore = 0;
+        let maxAScore = -1;
         for (let possibleA of reports) {
             if (possibleA.name !== sprites.B.name) {
                 let currAScore = 0;
@@ -303,7 +320,7 @@ module.exports = class {
                         maxAScore = currAScore;
                         sprites.A = possibleA;
                     }
-                } 
+                }
             }
         }
 
@@ -317,7 +334,7 @@ module.exports = class {
         }
 
         // find Extra sprite, if any. (Checks requirements for Multicultural and Gaming strand. In Youth Culture strand, any new sprite will be accepted)
-        let maxExtraScore = 0;
+        let maxExtraScore = -1;
         if (reports.length > 4) {
             for (let remainingSprite of reports) {
                 if ((remainingSprite.name !== sprites.B.name) && (remainingSprite.name !== sprites.A.name) && (remainingSprite.name !== sprites.C.name)) {
@@ -354,7 +371,7 @@ module.exports = class {
             }
         }
 
-        let sortedSprites = this.sortSprites(spriteReports);
+        let sortedSprites = this.sortSprites(spriteReports, project);
         let spriteA = sortedSprites.A;
         let spriteB = sortedSprites.B;
         let spriteC = sortedSprites.C;
@@ -451,7 +468,7 @@ module.exports = class {
                         }
                     }
 
-                if ((numWaitsForA > 1) || spriteB.bouncesTowards.includes(spriteA.name)) {  
+                if ((numWaitsForA > 1) || spriteB.bouncesTowards.includes(spriteA.name)) {
                     if (numBounces > 1) this.extensions.stairsBounce.bool = true;
                 }
             }
