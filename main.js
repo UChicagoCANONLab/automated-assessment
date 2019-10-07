@@ -58,6 +58,9 @@ var gradeObj = null;
 
 var IS_LOADING = false;
 
+/* Experimental feature */
+let downloadEnabled = false;
+
 /// HTML helpers
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -124,7 +127,7 @@ window.buttonHandler = async function() {
   IS_LOADING = true;
   var requestURL = document.getElementById('inches_input').value;
   var studioID = parseInt(requestURL.match(/\d+/));
-  crawl(studioID, 0, []);
+  await crawl(studioID, 0, []);
 }
 
 /* Initializes global variables. */
@@ -205,7 +208,7 @@ function get(url) {
 async function crawl(studioID, offset, projectIdentifiers) {
     if (!offset) console.log('Grading studio ' + studioID);
     get('https://chord.cs.uchicago.edu/scratch/studio/' + studioID + '/offset/' + offset)
-    .then(function(result) {
+    .then(async function(result) {
         var studioResponse = JSON.parse(result.target.response);
         /// Keep crawling or return?
         if (studioResponse.length === 0) {
@@ -216,7 +219,8 @@ async function crawl(studioID, offset, projectIdentifiers) {
               IS_LOADING = false;
             }
             for (var projectIdentifier of projectIdentifiers) {
-                gradeProject(projectIdentifier);
+                await gradeProject(projectIdentifier);
+                await new Promise((resolve, reject) => setTimeout(resolve, 300));
             }
             return;
         }
@@ -224,24 +228,27 @@ async function crawl(studioID, offset, projectIdentifiers) {
             for (var projectOverview of studioResponse) {
                 projectIdentifiers.push(new ProjectIdentifier(projectOverview));
             }
-            crawl(studioID, offset + 20, projectIdentifiers);
+            await crawl(studioID, offset + 20, projectIdentifiers);
         }
     });
 }
 
-function gradeProject(projectIdentifier) {
+async function gradeProject(projectIdentifier) {
     var projectID = projectIdentifier.id;
     var projectAuthor = projectIdentifier.author;
     console.log('Grading project ' + projectID);
     get('https://chord.cs.uchicago.edu/scratch/project/' + projectID)
-    .then(function(result) {
-        var project = JSON.parse(result.target.response);
-        if (project.targets === undefined) {
+    .then(async function(result) {
+        var projectJSON = JSON.parse(result.target.response);
+        if (downloadEnabled) {
+          downloadProject(projectID, result.target.response);
+        }
+        if (projectJSON.targets === undefined) {
           console.log('Project ' + projectID + ' could not be found');
           return;
         }
         try {
-          analyze(project, projectAuthor, projectID);
+          analyze(projectJSON, projectAuthor, projectID);
         }
         catch (err) {
           console.log('Error grading project ' + projectID);
@@ -249,6 +256,18 @@ function gradeProject(projectIdentifier) {
         }
         printReportList();
     });
+}
+
+function downloadProject(projectID, projectJSON) {
+  let hiddenElement = document.createElement('a');
+  hiddenElement.style.display = 'none';
+  hiddenElement.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(projectJSON));
+  hiddenElement.setAttribute('download', projectID);
+  document.body.appendChild(hiddenElement);
+  hiddenElement.click();
+  document.body.removeChild(hiddenElement);
+  console.log('Downloaded ' + projectID);
+  return;
 }
 
 function analyze(fileObj, user, id) {

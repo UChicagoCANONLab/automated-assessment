@@ -10,7 +10,6 @@ module.exports = class GradeCondLoopsL1 extends Grader {
             gaming:        require('./templates/conditional-loops-L1-gaming')
         };
         this.strand = detectStrand(project, strandTemplates, 'youthCulture');
-        console.log(this.strand);
         if (this.strand === 'multicultural') {
             this.requirements = [
                 new Requirement('Choose a different costume for the float.', this.testCostumes(project)),

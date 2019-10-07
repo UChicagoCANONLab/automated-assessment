@@ -23,6 +23,8 @@ global.Block = class {
         this.within = within;
         this.conditionBlock = this.conditionBlockHelper();
         this.inputBlocks = this.inputBlocksHelper();
+        this.startTime = 0;
+        this.duration = this.durationHelper();
     }
 
     /// Internal function that converts a block to a Block.
@@ -62,11 +64,30 @@ global.Block = class {
         }
         for (var field in this.fields) {
             var fieldBlock = this.toBlock(this.fields[field][1]);
-            if (fieldBlock) {
+            if (fieldBlock && fieldBlock.opcode) {
                 array.push(fieldBlock);
             }
         }
         return array;
+    }
+
+    /// Returns the number of seconds this block takes to execute.
+    durationHelper() {
+        if (!this || !this.opcode) {
+            return 0;
+        }
+        if (this.opcode.includes('motion_glide')) {
+            return this.floatInput();
+        }
+        else if (this.opcode === 'looks_thinkforsecs' || this.opcode === 'looks_sayforsecs') {
+            return this.floatInput('SECS');
+        }
+        else if (this.opcode === 'control_wait') {
+            return this.floatInput('DURATION');
+        }
+        else {
+            return 0;
+        }
     }
 
     /// Returns an array representing the script that contains the block.
@@ -142,7 +163,10 @@ global.Script = class {
 
         }
         this.subscripts = [];
+        let time = 0;
         for (var block of this.blocks) {
+            block.startTime = time;
+            time += block.duration;
             for (var subscript of block.subscripts) {
                 if (subscript.blocks.length) {
                     this.subscripts.push(subscript);
@@ -238,37 +262,42 @@ global.detectStrand = function(project, templates) {
         gaming:        require('./templates/events-L1-gaming')
     };
     */
-    var projectAssetIDs = [];
-    for (var target of project.targets) {
-        for (var costume of target.costumes) {
-            projectAssetIDs.push(costume.assetId);
-        }
-        for (var sound of target.sounds) {
-            projectAssetIDs.push(sound.assetId);
-        }
-    }
-    var highScore = 0;
-    for (var template in templates) {
-        var templateFile = templates[template];
-        var templateAssetIDs = [];
-        for (var target of templateFile.targets) {
+    try {
+        var projectAssetIDs = [];
+        for (var target of project.targets) {
             for (var costume of target.costumes) {
-                templateAssetIDs.push(costume.assetId);
+                projectAssetIDs.push(costume.assetId);
             }
             for (var sound of target.sounds) {
-                templateAssetIDs.push(sound.assetId);
+                projectAssetIDs.push(sound.assetId);
             }
         }
-        var templateScore = 0;
-        for (var projectAssetID of projectAssetIDs) {
-            if (templateAssetIDs.includes(projectAssetID)) {
-                templateScore++;
+        var highScore = 0;
+        for (var template in templates) {
+            var templateFile = templates[template];
+            var templateAssetIDs = [];
+            for (var target of templateFile.targets) {
+                for (var costume of target.costumes) {
+                    templateAssetIDs.push(costume.assetId);
+                }
+                for (var sound of target.sounds) {
+                    templateAssetIDs.push(sound.assetId);
+                }
             }
-            if (templateScore > highScore) {
-                strand = template;
-                highScore = templateScore;
+            var templateScore = 0;
+            for (var projectAssetID of projectAssetIDs) {
+                if (templateAssetIDs.includes(projectAssetID)) {
+                    templateScore++;
+                }
+                if (templateScore > highScore) {
+                    strand = template;
+                    highScore = templateScore;
+                }
             }
         }
+    }
+    catch(err) {
+        console.log(err);
     }
     return strand;
 }
@@ -284,5 +313,11 @@ global.opcodeLists = {
         'motion_gotoxy',
         'motion_setx',
         'motion_sety'
+    ],
+    speak: [
+        'looks_say',
+        'looks_sayforsecs',
+        'looks_think',
+        'looks_thinkforsecs'
     ]
 }

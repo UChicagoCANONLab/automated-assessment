@@ -4688,7 +4688,6 @@ module.exports = class GradeCondLoopsL1 extends Grader {
             gaming:        require('./templates/conditional-loops-L1-gaming')
         };
         this.strand = detectStrand(project, strandTemplates, 'youthCulture');
-        console.log(this.strand);
         if (this.strand === 'multicultural') {
             this.requirements = [
                 new Requirement('Choose a different costume for the float.', this.testCostumes(project)),
@@ -6860,7 +6859,7 @@ module.exports = class {
         }
     }
 }
-},{"../grading-scripts-s3/scratch3":31,"../grading-scripts-s3/youthOriginal":48,"./templates/scratch-basics-L1-gaming":44,"./templates/scratch-basics-L1-multicultural":45,"./templates/scratch-basics-L1-youthculture":46}],30:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":31,"../grading-scripts-s3/youthOriginal":51,"./templates/scratch-basics-L1-gaming":44,"./templates/scratch-basics-L1-multicultural":45,"./templates/scratch-basics-L1-youthculture":46}],30:[function(require,module,exports){
 /* Scratch Basics L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -7086,6 +7085,8 @@ global.Block = class {
         this.within = within;
         this.conditionBlock = this.conditionBlockHelper();
         this.inputBlocks = this.inputBlocksHelper();
+        this.startTime = 0;
+        this.duration = this.durationHelper();
     }
 
     /// Internal function that converts a block to a Block.
@@ -7125,11 +7126,30 @@ global.Block = class {
         }
         for (var field in this.fields) {
             var fieldBlock = this.toBlock(this.fields[field][1]);
-            if (fieldBlock) {
+            if (fieldBlock && fieldBlock.opcode) {
                 array.push(fieldBlock);
             }
         }
         return array;
+    }
+
+    /// Returns the number of seconds this block takes to execute.
+    durationHelper() {
+        if (!this || !this.opcode) {
+            return 0;
+        }
+        if (this.opcode.includes('motion_glide')) {
+            return this.floatInput();
+        }
+        else if (this.opcode === 'looks_thinkforsecs' || this.opcode === 'looks_sayforsecs') {
+            return this.floatInput('SECS');
+        }
+        else if (this.opcode === 'control_wait') {
+            return this.floatInput('DURATION');
+        }
+        else {
+            return 0;
+        }
     }
 
     /// Returns an array representing the script that contains the block.
@@ -7205,7 +7225,10 @@ global.Script = class {
 
         }
         this.subscripts = [];
+        let time = 0;
         for (var block of this.blocks) {
+            block.startTime = time;
+            time += block.duration;
             for (var subscript of block.subscripts) {
                 if (subscript.blocks.length) {
                     this.subscripts.push(subscript);
@@ -7301,37 +7324,42 @@ global.detectStrand = function(project, templates) {
         gaming:        require('./templates/events-L1-gaming')
     };
     */
-    var projectAssetIDs = [];
-    for (var target of project.targets) {
-        for (var costume of target.costumes) {
-            projectAssetIDs.push(costume.assetId);
-        }
-        for (var sound of target.sounds) {
-            projectAssetIDs.push(sound.assetId);
-        }
-    }
-    var highScore = 0;
-    for (var template in templates) {
-        var templateFile = templates[template];
-        var templateAssetIDs = [];
-        for (var target of templateFile.targets) {
+    try {
+        var projectAssetIDs = [];
+        for (var target of project.targets) {
             for (var costume of target.costumes) {
-                templateAssetIDs.push(costume.assetId);
+                projectAssetIDs.push(costume.assetId);
             }
             for (var sound of target.sounds) {
-                templateAssetIDs.push(sound.assetId);
+                projectAssetIDs.push(sound.assetId);
             }
         }
-        var templateScore = 0;
-        for (var projectAssetID of projectAssetIDs) {
-            if (templateAssetIDs.includes(projectAssetID)) {
-                templateScore++;
+        var highScore = 0;
+        for (var template in templates) {
+            var templateFile = templates[template];
+            var templateAssetIDs = [];
+            for (var target of templateFile.targets) {
+                for (var costume of target.costumes) {
+                    templateAssetIDs.push(costume.assetId);
+                }
+                for (var sound of target.sounds) {
+                    templateAssetIDs.push(sound.assetId);
+                }
             }
-            if (templateScore > highScore) {
-                strand = template;
-                highScore = templateScore;
+            var templateScore = 0;
+            for (var projectAssetID of projectAssetIDs) {
+                if (templateAssetIDs.includes(projectAssetID)) {
+                    templateScore++;
+                }
+                if (templateScore > highScore) {
+                    strand = template;
+                    highScore = templateScore;
+                }
             }
         }
+    }
+    catch(err) {
+        console.log(err);
     }
     return strand;
 }
@@ -7347,6 +7375,12 @@ global.opcodeLists = {
         'motion_gotoxy',
         'motion_setx',
         'motion_sety'
+    ],
+    speak: [
+        'looks_say',
+        'looks_sayforsecs',
+        'looks_think',
+        'looks_thinkforsecs'
     ]
 }
 
@@ -11887,113 +11921,109 @@ module.exports={
     }
 }
 },{}],47:[function(require,module,exports){
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"7b59e3c3cd3ec7a9ff1499ae7ad0f79a","name":"hand in hallway iphone w: name","bitmapResolution":2,"md5ext":"7b59e3c3cd3ec7a9ff1499ae7ad0f79a.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Basketball","variables":{},"lists":{},"broadcasts":{},"blocks":{"Xv-Endey!BbY..-VD:)]":{"opcode":"event_whenflagclicked","next":"FG(H`DtDM]NB}C!M}x:j","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"FG(H`DtDM]NB}C!M}x:j":{"opcode":"sound_play","next":"I1KeKKubTFU?QWq7}Myu","parent":"Xv-Endey!BbY..-VD:)]","inputs":{"SOUND_MENU":[1,"`V#`75q{.O)!E0x*eNge"]},"fields":{},"shadow":false,"topLevel":false},"`V#`75q{.O)!E0x*eNge":{"opcode":"sound_sounds_menu","next":null,"parent":"FG(H`DtDM]NB}C!M}x:j","inputs":{},"fields":{"SOUND_MENU":["boing"]},"shadow":true,"topLevel":false},"I1KeKKubTFU?QWq7}Myu":{"opcode":"looks_thinkforsecs","next":"IfHnM9X)N2O%SYxhh?+r","parent":"FG(H`DtDM]NB}C!M}x:j","inputs":{"MESSAGE":[1,[10,"Hey!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"IfHnM9X)N2O%SYxhh?+r":{"opcode":"control_wait","next":null,"parent":"I1KeKKubTFU?QWq7}Myu","inputs":{"DURATION":[1,[5,2]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"gV6Y}?gnF~}viknGKJxZ":{"blockId":null,"x":444,"y":39.6,"width":261,"height":325.6,"minimized":false,"text":"Add two more lines of text to the conversation - one for each sprite. \r\rBe sure to use wait blocks to synchronize the conversation! "}},"currentCostume":0,"costumes":[{"assetId":"c5e41b7b0c37fa47d850e58e13f2c2c6","name":"basketball","bitmapResolution":1,"md5ext":"c5e41b7b0c37fa47d850e58e13f2c2c6.svg","dataFormat":"svg","rotationCenterX":36,"rotationCenterY":-17}],"sounds":[{"assetId":"53a3c2e27d1fb5fdb14aaf0cb41e7889","name":"boing","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":7113,"md5ext":"53a3c2e27d1fb5fdb14aaf0cb41e7889.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":16,"y":55,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Rainbow","variables":{},"lists":{},"broadcasts":{},"blocks":{"h%]_u4BasZFDtgMhl5UB":{"opcode":"event_whenflagclicked","next":"+;%OI3%-II/qzQh8QC8T","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"+;%OI3%-II/qzQh8QC8T":{"opcode":"control_wait","next":"slNuul3C|C,sDMI2jvR?","parent":"h%]_u4BasZFDtgMhl5UB","inputs":{"DURATION":[1,[5,2]]},"fields":{},"shadow":false,"topLevel":false},"slNuul3C|C,sDMI2jvR?":{"opcode":"sound_play","next":"Zu0dPVz+a,tNFA.pGF0E","parent":"+;%OI3%-II/qzQh8QC8T","inputs":{"SOUND_MENU":[1,"{:pWe[3-+.foJQ_Uy|5D"]},"fields":{},"shadow":false,"topLevel":false},"{:pWe[3-+.foJQ_Uy|5D":{"opcode":"sound_sounds_menu","next":null,"parent":"slNuul3C|C,sDMI2jvR?","inputs":{},"fields":{"SOUND_MENU":["pop"]},"shadow":true,"topLevel":false},"Zu0dPVz+a,tNFA.pGF0E":{"opcode":"looks_thinkforsecs","next":null,"parent":"slNuul3C|C,sDMI2jvR?","inputs":{"MESSAGE":[1,[10,"How r u?"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"4b5e631517784303a68b1be661a25e5d","name":"rainbow","bitmapResolution":1,"md5ext":"4b5e631517784303a68b1be661a25e5d.svg","dataFormat":"svg","rotationCenterX":72,"rotationCenterY":-24}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":52,"y":-51,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190918022946","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36"}}
+},{}],48:[function(require,module,exports){
+arguments[4][47][0].apply(exports,arguments)
+},{"dup":47}],49:[function(require,module,exports){
+arguments[4][47][0].apply(exports,arguments)
+},{"dup":47}],50:[function(require,module,exports){
+require('./grader');
 require('./scratch3');
 
-module.exports = class {
+module.exports = class GradeTwoWaySyncL1 extends Grader {
 
-    init() {
-        this.requirements = {
-            synced:     { bool: false, str: 'Text messages are correctly synchronized using wait blocks.' },
-            talkTwice:  { bool: false, str: 'Each sprite talks at least twice.'                           }
+    init(project) {
+        let strandTemplates = {
+            multicultural: require('./templates/two-way-sync-L1-multicultural'),
+            youthCulture:  require('./templates/two-way-sync-L1-youth-culture'),
+            gaming:        require('./templates/two-way-sync-L1-gaming')
         };
-        this.extensions =   {
-            talkMore:   { bool: false, str: 'Added more synchronized messages to each sprite.'            },
-            addedSound: { bool: false, str: 'Added a sound other than "boing" or "pop."'                  }
-        };
+        this.strand = detectStrand(project, strandTemplates, 'youthCulture');
+        this.strand = 'youthCulture';
+        if (this.strand === 'multicultural') {
+
+        }
+        else if (this.strand === 'youthCulture') {
+            this.requirements = [
+                new Requirement('Add two more text messages to the conversation, one for each sprite.', this.testTalk(project)),
+                new Requirement('Make the cow interrupt while the sheep\'s think bubble is still visible.', this.testSync(project))
+            ]
+            this.extensions = [
+                new Extension('Add more messages to the texting conversation.', this.testExtraLines()),
+                new Extension('Customize your project using sounds and other Scratch elements!', this.testCustom(project))
+            ]
+        }
+        else if (this.strand === 'gaming') {
+
+        }
     }
 
-    grade(json, user) {
-        this.init();
-        if (no(json)) return;
-        var project = new Project(json, this);
-        /// Test each pairing of scripts across sprites.
-        var scriptPairs = [];
-        for (var sprite1 of project.sprites) {
-            for (var sprite2 of project.sprites) {
-                for (var script1 of sprite1.scripts.filter(
-                    script1 =>
-                    script1.blocks.length > 1 &&
-                    script1.blocks[0].opcode.includes('event_when'))) {
-                    for (var script2 of sprite2.scripts.filter(
-                        script2 =>
-                        script2.blocks.length > 1 &&
-                        script2.blocks[0].opcode === script1.blocks[0].opcode
-                        )) {
-                        var messageTimes1 = this.checkScript(sprite1, script1);
-                        var messageTimes2 = this.checkScript(sprite2, script2);
-                        console.log(messageTimes1);
-                        console.log(messageTimes2);
-                        var synced = 1;
-                        for (var i = 0; i < messageTimes1.length && i < messageTimes2.length; i++) {
+    messageTimes(script) {
+        let times = [];
+        for (let block of script.blocks) {
+            if (opcodeLists.speak.includes(block.opcode)) {
+                times.push(block.startTime);
+            }
+        }
+        return times;
+    }
+
+    testTalk(project) {
+        let spritesPassing = 0;
+        let longerScript = false;
+        for (let sprite of project.sprites) {
+            let scriptsPassing = 0;
+            for (let script of sprite.validScripts) {
+                scriptsPassing += this.messageTimes(script).length > 1;
+                if (this.messageTimes(script).length > 2) {
+                    longerScript = true;
+                }
+            }
+            spritesPassing += scriptsPassing > 0;
+        }
+        return (spritesPassing > 1 && longerScript);
+    }
+
+    testSync(project) {
+        for (let sprite1 of project.sprites) {
+            for (let sprite2 of project.sprites.filter(sprite => sprite !== sprite1)) {
+                for (let script1 of sprite1.validScripts) {
+                    for (let script2 of sprite2.validScripts) {
+                        let messageTimes1 = this.messageTimes(script1);
+                        let messageTimes2 = this.messageTimes(script2);
+                        let synced = true;
+                        for (let i = 0; i < messageTimes1.length && i < messageTimes2.length; i++) {
                             if (messageTimes1[i] >= messageTimes2[i]) {
-                                synced = 0;
+                                synced = false;
                             }
                         }
-                        var talkTwice = (messageTimes1.length > 1) && (messageTimes2.length > 1);
-                        var talkMore  = (messageTimes1.length > 2) && (messageTimes2.length > 2);
-                        scriptPairs.push({
-                            script1: script1,
-                            script2: script2,
-                            synced: synced,
-                            talkTwice: talkTwice,
-                            talkMore: talkMore,
-                            score: synced + talkTwice
-                        });
+                        let talksTwice = (messageTimes1.length > 1) && (messageTimes2.length > 1);
+                        let talksMore  = (messageTimes1.length > 2) && (messageTimes2.length > 2);
+                        if (synced && talksMore) {
+                            this.extraLinesPassing = true;
+                        }
+                        if (synced && talksTwice) {
+                            return true;
+                        }
                     }
                 }
             }
         }
-        var bestScore = -1;
-        var bestScriptPair = scriptPairs[0];
-        for (var scriptPair of scriptPairs) {
-            if (scriptPair.score > bestScore) {
-                bestScore = scriptPair.score;
-                bestScriptPair = scriptPair;
-            }
-        }
-        this.requirements.synced.bool    = bestScriptPair.synced;
-        this.requirements.talkTwice.bool = bestScriptPair.talkTwice;
-        this.extensions.talkMore.bool    = bestScriptPair.talkMore;
+        return false;
     }
 
-    /// Returns an array of times (in seconds after the event) at which this script makes the sprite talk or think.
-    /// Also checks for any new sounds.
-    checkScript(sprite, script) {
-        var scriptTime = 0;
-        var messageTimes = [];
-        var isSpeaking = false;
-        for (var block of script.blocks) {
-            if (block.opcode === 'control_wait') {
-                scriptTime += parseFloat(block.inputs.DURATION[1][1]);
-                isSpeaking = false;
-            }
-            else if (block.opcode === 'looks_thinkforsecs' || block.opcode === 'looks_sayforsecs') {
-                if (!isSpeaking) messageTimes.push(scriptTime);
-                scriptTime += parseFloat(block.inputs.SECS[1][1]);
-                isSpeaking = true;
-            }
-            else if (block.opcode === 'sound_play') {
-                try {
-                    var soundName = sprite.blocks[block.inputs.SOUND_MENU[1]].fields.SOUND_MENU[0];
-                    if (soundName !== 'boing' && soundName !== 'pop') {
-                        this.extensions.addedSound.bool = true;
-                    }
-                }
-                catch (err) {
-                    console.log(err);
-                }
-            }
-            else {
-                isSpeaking = false;
-            }
-        }
-        return messageTimes;
+    testExtraLines() {
+        return this.extraLinesPassing;
+    }
+
+    testCustom() {
+        return false; /// Working on a more general customization detector to deploy across graders
     }
 }
 
-},{"./scratch3":31}],48:[function(require,module,exports){
+},{"./grader":26,"./scratch3":31,"./templates/two-way-sync-L1-gaming":47,"./templates/two-way-sync-L1-multicultural":48,"./templates/two-way-sync-L1-youth-culture":49}],51:[function(require,module,exports){
 module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":3,"costumes":[{"assetId":"2b0bddaf727e6bb95131290ae2549ac4","name":"background3","bitmapResolution":2,"md5ext":"2b0bddaf727e6bb95131290ae2549ac4.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"a81668321aa3dcc0fc185d3e36ae76f6","name":"Room 1","bitmapResolution":2,"md5ext":"a81668321aa3dcc0fc185d3e36ae76f6.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"e5f794c8756ca0cead5cb7e7fe354c41","name":"Playground","bitmapResolution":2,"md5ext":"e5f794c8756ca0cead5cb7e7fe354c41.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"38be88e8026768d4606fe1932b05d258","name":"backdrop","bitmapResolution":2,"md5ext":"38be88e8026768d4606fe1932b05d258.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"India","variables":{},"lists":{},"broadcasts":{},"blocks":{"{?%H[3PODtzIOzw3NUAD":{"opcode":"event_whenflagclicked","next":"X9F`sK3d.L!x-cTWVaGz","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":0,"y":0},"X9F`sK3d.L!x-cTWVaGz":{"opcode":"motion_gotoxy","next":"kBZo|n~NnzgG!crdI1E;","parent":"{?%H[3PODtzIOzw3NUAD","inputs":{"X":[1,[4,"-215"]],"Y":[1,[4,"-145"]]},"fields":{},"shadow":false,"topLevel":false},"kBZo|n~NnzgG!crdI1E;":{"opcode":"motion_movesteps","next":"u=@^[0kNfQx.2*Xvk0TX","parent":"X9F`sK3d.L!x-cTWVaGz","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"u=@^[0kNfQx.2*Xvk0TX":{"opcode":"looks_sayforsecs","next":"C;QZb9TtC1(Ov9vkC+$f","parent":"kBZo|n~NnzgG!crdI1E;","inputs":{"MESSAGE":[1,[10,"Hello! My name is India."]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},"C;QZb9TtC1(Ov9vkC+$f":{"opcode":"motion_movesteps","next":"=6=T6QR$yee::D$b8~s{","parent":"u=@^[0kNfQx.2*Xvk0TX","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"=6=T6QR$yee::D$b8~s{":{"opcode":"looks_sayforsecs","next":",`%kTB=!2Lz#4m!W2OpL","parent":"C;QZb9TtC1(Ov9vkC+$f","inputs":{"MESSAGE":[1,[10,"Welcome to Scratch!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},",`%kTB=!2Lz#4m!W2OpL":{"opcode":"motion_movesteps","next":"{Ipink+*Ul#QILZqGvdF","parent":"=6=T6QR$yee::D$b8~s{","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"{Ipink+*Ul#QILZqGvdF":{"opcode":"looks_sayforsecs","next":null,"parent":",`%kTB=!2Lz#4m!W2OpL","inputs":{"MESSAGE":[1,[10,"Click the Space Bar to see some of the things I like."]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"fec9549b732165ec6d09991de08b69cd","name":"character (1)","bitmapResolution":1,"md5ext":"fec9549b732165ec6d09991de08b69cd.svg","dataFormat":"svg","rotationCenterX":78.87000274658203,"rotationCenterY":165.80999755859375}],"sounds":[],"volume":100,"layerOrder":2,"visible":true,"x":-165,"y":-145,"size":162.8369844855632,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"easel","variables":{},"lists":{},"broadcasts":{},"blocks":{"XYmoOsQpwwb~bRU[WtDb":{"opcode":"event_whenkeypressed","next":"NX*(%@1qK}o{lJ)1dp(L","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":56,"y":66},"NX*(%@1qK}o{lJ)1dp(L":{"opcode":"looks_switchcostumeto","next":"A*?(6=CMw!5NQvy3GoJz","parent":"XYmoOsQpwwb~bRU[WtDb","inputs":{"COSTUME":[1,"uxs{_T(3Fk%RETANj%^X"]},"fields":{},"shadow":false,"topLevel":false},"uxs{_T(3Fk%RETANj%^X":{"opcode":"looks_costume","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{},"fields":{"COSTUME":["easel-music",null]},"shadow":true,"topLevel":false},"A*?(6=CMw!5NQvy3GoJz":{"opcode":"control_repeat","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{"TIMES":[1,[6,"7"]],"SUBSTACK":[2,"MkZ9YIg7M,WuN@FR]l:o"]},"fields":{},"shadow":false,"topLevel":false},"MkZ9YIg7M,WuN@FR]l:o":{"opcode":"looks_nextcostume","next":"*i@~ROBKeTP[#l_7v/_-","parent":"A*?(6=CMw!5NQvy3GoJz","inputs":{},"fields":{},"shadow":false,"topLevel":false},"*i@~ROBKeTP[#l_7v/_-":{"opcode":"control_wait","next":null,"parent":"MkZ9YIg7M,WuN@FR]l:o","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"3?,1QT}D[0#@^jvT!J*^":{"opcode":"event_whenthisspriteclicked","next":"gPD.*ilWONI2U7F-SE[}","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":51,"y":455},"gPD.*ilWONI2U7F-SE[}":{"opcode":"looks_sayforsecs","next":null,"parent":"3?,1QT}D[0#@^jvT!J*^","inputs":{"MESSAGE":[1,[10,"Tada!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":7,"costumes":[{"assetId":"47a257ec82df9b221a9c8a0da1174652","name":"easel","bitmapResolution":1,"md5ext":"47a257ec82df9b221a9c8a0da1174652.svg","dataFormat":"svg","rotationCenterX":72,"rotationCenterY":100.5},{"assetId":"f80c9c273a7542f28fc0a0aa16f80532","name":"easel-sports","bitmapResolution":1,"md5ext":"f80c9c273a7542f28fc0a0aa16f80532.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"25fc936818594e0f67f48ffd39ee06b2","name":"easel-animals","bitmapResolution":1,"md5ext":"25fc936818594e0f67f48ffd39ee06b2.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"6a904db737d12cc410bd18e0e3837f1a","name":"easel-music","bitmapResolution":1,"md5ext":"6a904db737d12cc410bd18e0e3837f1a.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"eb955b9d6d17d5358e1c66ca5dbc4648","name":"easel-neighborhood","bitmapResolution":1,"md5ext":"eb955b9d6d17d5358e1c66ca5dbc4648.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"4c0e56f2cc17d497d76070033ab08654","name":"easel-travel","bitmapResolution":1,"md5ext":"4c0e56f2cc17d497d76070033ab08654.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"ba4d4b1af1eafdda9b882c0f51ced3ff","name":"easel-astronomy","bitmapResolution":1,"md5ext":"ba4d4b1af1eafdda9b882c0f51ced3ff.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"b0841fa4e9ea101a530022a9b4758d14","name":"easel-video-games","bitmapResolution":1,"md5ext":"b0841fa4e9ea101a530022a9b4758d14.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422}],"sounds":[],"volume":100,"layerOrder":1,"visible":true,"x":144,"y":-52,"size":150,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[{"id":"undefined_costumenumbername_number","mode":"default","opcode":"looks_costumenumbername","params":{"NUMBER_NAME":"number"},"spriteName":"Helen","value":"","width":0,"height":0,"x":5,"y":5,"visible":false,"sliderMin":0,"sliderMax":100,"isDiscrete":true}],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
-},{}],49:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 /// Provides necessary scripts for index.html.
 
 /// Requirements (scripts)
@@ -12053,6 +12083,9 @@ var complete_projects = 0;
 var gradeObj = null;
 
 var IS_LOADING = false;
+
+/* Experimental feature */
+let downloadEnabled = false;
 
 /// HTML helpers
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -12120,7 +12153,7 @@ window.buttonHandler = async function() {
   IS_LOADING = true;
   var requestURL = document.getElementById('inches_input').value;
   var studioID = parseInt(requestURL.match(/\d+/));
-  crawl(studioID, 0, []);
+  await crawl(studioID, 0, []);
 }
 
 /* Initializes global variables. */
@@ -12201,7 +12234,7 @@ function get(url) {
 async function crawl(studioID, offset, projectIdentifiers) {
     if (!offset) console.log('Grading studio ' + studioID);
     get('https://chord.cs.uchicago.edu/scratch/studio/' + studioID + '/offset/' + offset)
-    .then(function(result) {
+    .then(async function(result) {
         var studioResponse = JSON.parse(result.target.response);
         /// Keep crawling or return?
         if (studioResponse.length === 0) {
@@ -12212,7 +12245,8 @@ async function crawl(studioID, offset, projectIdentifiers) {
               IS_LOADING = false;
             }
             for (var projectIdentifier of projectIdentifiers) {
-                gradeProject(projectIdentifier);
+                await gradeProject(projectIdentifier);
+                await new Promise((resolve, reject) => setTimeout(resolve, 300));
             }
             return;
         }
@@ -12220,24 +12254,27 @@ async function crawl(studioID, offset, projectIdentifiers) {
             for (var projectOverview of studioResponse) {
                 projectIdentifiers.push(new ProjectIdentifier(projectOverview));
             }
-            crawl(studioID, offset + 20, projectIdentifiers);
+            await crawl(studioID, offset + 20, projectIdentifiers);
         }
     });
 }
 
-function gradeProject(projectIdentifier) {
+async function gradeProject(projectIdentifier) {
     var projectID = projectIdentifier.id;
     var projectAuthor = projectIdentifier.author;
     console.log('Grading project ' + projectID);
     get('https://chord.cs.uchicago.edu/scratch/project/' + projectID)
-    .then(function(result) {
-        var project = JSON.parse(result.target.response);
-        if (project.targets === undefined) {
+    .then(async function(result) {
+        var projectJSON = JSON.parse(result.target.response);
+        if (downloadEnabled) {
+          downloadProject(projectID, result.target.response);
+        }
+        if (projectJSON.targets === undefined) {
           console.log('Project ' + projectID + ' could not be found');
           return;
         }
         try {
-          analyze(project, projectAuthor, projectID);
+          analyze(projectJSON, projectAuthor, projectID);
         }
         catch (err) {
           console.log('Error grading project ' + projectID);
@@ -12245,6 +12282,18 @@ function gradeProject(projectIdentifier) {
         }
         printReportList();
     });
+}
+
+function downloadProject(projectID, projectJSON) {
+  let hiddenElement = document.createElement('a');
+  hiddenElement.style.display = 'none';
+  hiddenElement.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(projectJSON));
+  hiddenElement.setAttribute('download', projectID);
+  document.body.appendChild(hiddenElement);
+  hiddenElement.click();
+  document.body.removeChild(hiddenElement);
+  console.log('Downloaded ' + projectID);
+  return;
 }
 
 function analyze(fileObj, user, id) {
@@ -12429,4 +12478,4 @@ function noError() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-},{"./act1-grading-scripts/aboutMe":5,"./act1-grading-scripts/animal-parade":6,"./act1-grading-scripts/dance-party":7,"./act1-grading-scripts/final-project":8,"./act1-grading-scripts/knockKnock":9,"./act1-grading-scripts/name-poem":11,"./act1-grading-scripts/ofrenda":12,"./act1-grading-scripts/onTheFarm":13,"./act1-grading-scripts/scavengerHunt":15,"./grading-scripts-s3/animation-L1":16,"./grading-scripts-s3/animation-L2":17,"./grading-scripts-s3/complex-conditionals-L1":18,"./grading-scripts-s3/cond-loops-L1-syn":19,"./grading-scripts-s3/cond-loops-L2":20,"./grading-scripts-s3/decomp-L1":22,"./grading-scripts-s3/decomp-L2":23,"./grading-scripts-s3/events-L1-syn":24,"./grading-scripts-s3/events-L2":25,"./grading-scripts-s3/one-way-sync-L1":27,"./grading-scripts-s3/one-way-sync-L2":28,"./grading-scripts-s3/scratch-basics-L1":29,"./grading-scripts-s3/scratch-basics-L2":30,"./grading-scripts-s3/two-way-sync-L1":47}]},{},[49]);
+},{"./act1-grading-scripts/aboutMe":5,"./act1-grading-scripts/animal-parade":6,"./act1-grading-scripts/dance-party":7,"./act1-grading-scripts/final-project":8,"./act1-grading-scripts/knockKnock":9,"./act1-grading-scripts/name-poem":11,"./act1-grading-scripts/ofrenda":12,"./act1-grading-scripts/onTheFarm":13,"./act1-grading-scripts/scavengerHunt":15,"./grading-scripts-s3/animation-L1":16,"./grading-scripts-s3/animation-L2":17,"./grading-scripts-s3/complex-conditionals-L1":18,"./grading-scripts-s3/cond-loops-L1-syn":19,"./grading-scripts-s3/cond-loops-L2":20,"./grading-scripts-s3/decomp-L1":22,"./grading-scripts-s3/decomp-L2":23,"./grading-scripts-s3/events-L1-syn":24,"./grading-scripts-s3/events-L2":25,"./grading-scripts-s3/one-way-sync-L1":27,"./grading-scripts-s3/one-way-sync-L2":28,"./grading-scripts-s3/scratch-basics-L1":29,"./grading-scripts-s3/scratch-basics-L2":30,"./grading-scripts-s3/two-way-sync-L1":50}]},{},[52]);
