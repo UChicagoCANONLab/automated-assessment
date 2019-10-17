@@ -6,6 +6,7 @@
   "dependencies": {
     "adm-zip": "^0.4.13",
     "browserify": "^16.5.0",
+    "csv-parse": "^4.6.3",
     "objects-to-csv": "^1.3.3",
     "papaparse": "^5.0.2",
     "unzipper": "^0.9.11",
