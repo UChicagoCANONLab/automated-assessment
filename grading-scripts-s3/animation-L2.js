@@ -23,7 +23,7 @@ module.exports = class {
             moreThanOneAnimation: {bool: false, str: "Student experiments with at least two types of animation."}
         }
         // project-wide variables
-        this.animationTypes = new Set([]);
+        this.animationTypes = [];
     }
 
     // the main grading function
@@ -62,7 +62,7 @@ module.exports = class {
         this.extensions.moreAnimations.bool = spritesAnimatedInMotion > 1 || spritesAnimatedInPlace > 2;
 
         //counts the number of animation (motion) blocks used
-        this.extensions.moreThanOneAnimation.bool = (this.animationTypes.size >= 1)
+        this.extensions.moreThanOneAnimation.bool = (this.animationTypes.length >= 1)
     }
     // make animation more strict
     // helper function for grading an individual sprite
@@ -82,6 +82,9 @@ module.exports = class {
                     loopTracker[loopID].costume = loopTracker[loopID].costume || block.opcode.includes('costume');
                     loopTracker[loopID].wait = loopTracker[loopID].wait || (block.opcode === 'control_wait');
                     loopTracker[loopID].move = loopTracker[loopID].move || block.opcode.includes('motion_');
+                    if (block.opcode.includes("motion_")) {
+                        if (!this.animationTypes.includes(block.pcode)) this.animationTypes.push(block.opcode);
+                    } 
                 }
             }, loops);
         }
