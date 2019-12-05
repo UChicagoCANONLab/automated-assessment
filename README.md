@@ -4,6 +4,10 @@ Grades a studio of Scratch projects by Scratch Encore module standards.
 
 ## Files
 
+### bundle.js
+* Generated on command by browserify to manage dependencies in browsers.
+* Run `browserify main.js -o bundle.js` to update bundle.js after making changes in main.js or its dependencies, so that they show up in the browser.
+
 ### index.html
 
 * HTML body and elements.

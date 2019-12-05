@@ -12033,10 +12033,10 @@ module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists"
 var graders = {
     scratchBasicsL1: { name: 'Scratch Basics L2', file: require('./grading-scripts-s3/scratch-basics-L1') },
     scratchBasicsL2_create: { name: 'Scratch Basics L3', file: require('./grading-scripts-s3/scratch-basics-L2') },
-    animationL1: { name: 'Animation L1', file: require('./grading-scripts-s3/animation-L1') },
-    animationL2_create: { name: 'Animation L2', file: require('./grading-scripts-s3/animation-L2') },
     eventsL1: { name: 'Events L1', file: require('./grading-scripts-s3/events-L1-syn') },
     eventsL2_create: { name: 'Events L2', file: require('./grading-scripts-s3/events-L2') },
+    animationL1: { name: 'Animation L1', file: require('./grading-scripts-s3/animation-L1') },
+    animationL2_create: { name: 'Animation L2', file: require('./grading-scripts-s3/animation-L2') },
     condLoopsL1: { name: 'Conditional Loops L1', file: require('./grading-scripts-s3/cond-loops-L1-syn') },
     condLoopsL2_create: { name: 'Conditional Loops L2', file: require('./grading-scripts-s3/cond-loops-L2') },
     decompL1: { name: 'Decomp. by Sequence L1', file: require('./grading-scripts-s3/decomp-L1') },
