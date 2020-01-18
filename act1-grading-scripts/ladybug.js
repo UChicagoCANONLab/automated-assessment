@@ -253,7 +253,7 @@ module.exports = class {
                             if (onAphid) {
                                 let nextBlock = target.blocks[i].next;
                                 if (target.blocks[nextBlock].opcode === 'procedures_call') {
-                                    if (target.blocks[nextBlock].mutation.proccode === 'Eat Aphid') {
+                                    if (target.blocks[nextBlock].mutation.proccode.toLowerCase() === 'eat aphid') {
                                         if (failed === false) {
                                             aphidsEaten++;
                                         }
@@ -265,7 +265,7 @@ module.exports = class {
 
                     //checks if 'Eat Aphid' block is connected to a script
                     if (target.blocks[block].opcode === 'procedures_call') {
-                        if (target.blocks[block].mutation.proccode === 'Eat Aphid') {
+                        if (target.blocks[block].mutation.proccode.toLowerCase() === 'eat aphid') {
                             if (target.blocks[block].parent !== null) {
                                 this.requirements.eatAphidBlock.bool = true;
                             }
