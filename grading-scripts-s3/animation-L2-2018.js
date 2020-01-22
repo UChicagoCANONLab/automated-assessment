@@ -1,6 +1,10 @@
 /* Animation L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and minor bug fixes: Marco Anaya, Summer 2019
+For static analysis, Anna Zipp commented out 
+    - "HaveBackdrop" requirement (lines 16,103-106)
+    - "atLeastThreeSprites" (lines 17, 141)
+and added an info object for Block Usage CSV's and graphs (Autumn 2019)
 */
 
 require('./scratch3');
@@ -10,8 +14,8 @@ module.exports = class {
     // which will be used below
     init() {
         this.requirements = {
-            HaveBackdrop: {bool: false, str: "Background has an image."},
-            atLeastThreeSprites: {bool: false, str: "There are at least 3 sprites."},
+           // HaveBackdrop: {bool: false, str: "Background has an image."},
+           // atLeastThreeSprites: {bool: false, str: "There are at least 3 sprites."},
             Loop: {bool: false, str: "The main sprite has a loop."},
             Move: {bool: false, str: "The main sprite moves."},
             Costume: {bool: false, str: "The main sprite changes costume."},
@@ -26,38 +30,71 @@ module.exports = class {
         }
         // project-wide variables
         this.animationTypes = [];
+
+        this.info = {
+            blocks: 0,
+            sprites: 0,
+            spritesWith1Script: 0,
+            spritesWith2Scripts: 0,
+            //holiday: null,
+            guidingUser: false,
+           //family: false,
+            blockTypes: new Set([]),
+            strings: [],
+            score: 0 //requirement score
+        }
     }
     // helper function for grading an individual sprite
     gradeSprite(sprite) {
-
         var spriteDanceReqs = {
             loop: false,
             move: false,
             costume: false,
-            wait: false
+            wait: false,
         };
-        var spriteDanceScore = 0
+        var spriteDanceScore = 0;
+        var validScripts = 0;
+        var events = [];
         // and the following additional requirements
         var isAnimated = false;
         var danceOnClick = false;
         //iterating through each of the sprite's scripts, ensuring that only those that start with an event block are counted
         for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) { 
-
             var reqs = {loop: false, wait: false, costume: false, move: false};
             // search through each block and execute the given callback function
             // that determines what to look for and what to do (through side effects) for each block
             script.traverseBlocks((block, level) => {
                 var opcode = block.opcode;
 
+                if (opcode in this.info.blockTypes) {
+                    
+                } else {
+                    this.info.blockTypes.add(opcode);
+                    this.info.blocks++;
+                }
+
                 reqs.loop = reqs.loop || ['control_forever', 'control_repeat', 'control_repeat_until'].includes(opcode);
                 reqs.costume = reqs.costume || ['looks_switchcostumeto', 'looks_nextcostume'].includes(opcode);
                 reqs.wait = reqs.wait || (opcode == 'control_wait');
+
+                if (opcode.includes('say')) {
+                    let string = block.inputs.MESSAGE[1][1].toLowerCase();
+                    this.info.strings.push(string);
+                    if (!this.info.guidingUser) {
+                        for (let keyword of ['press', 'click']) {
+                            if (string.includes(keyword)) {
+                                this.info.guidingUser = true;
+                                break;
+                            }
+                        }
+                    }
+                }
                 if (opcode.includes("motion_")) {
                     reqs.move = true;
                     if (!this.animationTypes.includes(opcode)) this.animationTypes.push(opcode);
                 } 
             });
-            
+
             isAnimated = isAnimated || (reqs.loop && reqs.wait && (reqs.costume || reqs.move));
 
             var scriptScore = Object.values(reqs).reduce((sum, val) => sum + val, 0);
@@ -71,8 +108,23 @@ module.exports = class {
                         danceOnClick = true;
                     }
                 }
-            }            
+            }  
+            
+            var event = script.blocks[0];
+            // adds to list of unique events and scripts
+            if (!events.includes(event.opcode)) {
+                events.push(event.opcode);
+                if (script.blocks.length > 1) {
+                    validScripts++;
+                }
+            }
+            if (validScripts >=2) {
+                this.info.spritesWith2Scripts++;
+            } else if (validScripts >= 1) {
+                this.info.spritesWith1Script++;
+            }
         }
+
         return {
             name: sprite.name,
             danceScore: spriteDanceScore,
@@ -96,26 +148,26 @@ module.exports = class {
 
         // initializes sprite class for each sprite and adds scripts
         for(var target of project.targets){
-            if(target.isStage){ 
-                if (target.costumes.length > 1) {
-                    this.requirements.HaveBackdrop.bool = true;  
-                }
-                continue;
-            }
-            var report = this.gradeSprite(target);
-            if (!bestReport || report.danceScore > bestReport.danceScore) 
-                bestReport = report;
-            // for each sprite that is animated, increase counter
-            if (report.animated) animatedSprites++;
+            if (target.isStage) { 
+                // if (target.costumes.length > 1) {
+                //     this.requirements.HaveBackdrop.bool = true;  
+                // }
+                // continue;
+            } else {
+                this.info.sprites++;
+                var report = this.gradeSprite(target);
+                if (!bestReport || report.danceScore > bestReport.danceScore)
+                    bestReport = report;
+                // for each sprite that is animated, increase counter
+                if (report.animated) animatedSprites++;
 
-            // for each sprite that dances on the click event, icnrease counter
-            if (report.danceOnClick) danceOnClick++;
+                // for each sprite that dances on the click event, icnrease counter
+                if (report.danceOnClick) danceOnClick++;
+            }
         }
         
         // sprite most likely to be the chosen sprite
-        var chosen = bestReport;
-
-        
+        var chosen = bestReport; 
         if (chosen) {
             // Set lesson requirements to those of "chosen" sprite
             this.requirements.Loop.bool = chosen.reqs.loop;
@@ -126,7 +178,6 @@ module.exports = class {
             this.requirements.Dance.bool = (chosen.danceScore === 4);
         }
         
-        
         // checks if there are more than 1 and 2 animated sprites
         this.requirements.SecondAnimated.bool = (animatedSprites > 1);
         this.requirements.ThirdAnimated.bool = (animatedSprites > 2);
@@ -135,9 +186,14 @@ module.exports = class {
         this.extensions.multipleDancingOnClick.bool = (danceOnClick > 1);
 
         //checks if there were at least 3 sprites (the minus 1 accounts for the Stage target, which isn't a sprite)
-        this.requirements.atLeastThreeSprites.bool = (project.targets.length - 1 >= 3);
+        //this.requirements.atLeastThreeSprites.bool = (project.targets.length - 1 >= 3);
 
         //counts the number of animation (motion) blocks used
-        this.extensions.moreThanOneAnimation.bool = (this.animationTypes.length > 1)
+        this.extensions.moreThanOneAnimation.bool = (this.animationTypes.length > 1);
+
+
+
+        delete this.info.strings;
+        this.info.score = Object.values(this.requirements).reduce((sum, r) => sum + (r.bool? 1 : 0), 0);
     }
 }

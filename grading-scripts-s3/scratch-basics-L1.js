@@ -35,18 +35,14 @@ module.exports = class {
    
 
     grade(fileObj, user) {
-
         var project = new Project(fileObj, null);
         // call function that takes in the project, decides what strand it is in, that function returns a string
 
-
         let projBackdrops = [];
         for (let target of project.targets) {
-
             for (let costume of target.costumes) {
                 projBackdrops.push(costume.assetId);
             }
-
         }
 
         var templates = {
@@ -55,36 +51,27 @@ module.exports = class {
             gaming: require('./templates/scratch-basics-L1-gaming')
         };
         
-
         let strand = detectStrand(project, templates);
 
+        let sayBlocks = ['looks_say', 'looks_sayforsecs'];
 
         // gaming strand 
         if (strand === 'gaming') {
-
             this.initReqsGaming();
-            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
             let sayCarl = false;
-
             let sayBlocksGaming = 0;
 
             for (let target of project.targets) {
                 if (target.isStage) { continue; }
                 else {
-
-
                     for (let script of target.scripts) {
                         for (let i = 0; i < script.blocks.length; i++) {
-
-
                             // makes sure that the script starts with an event block
                             if (script.blocks[0].opcode.includes('event_')) {
-                                if (script.blocks[i].opcode === 'looks_sayforsecs') {
-
+                                if (script.blocks[i].opcode.includes('looks_say')) {
                                     // finds the block with specified message
                                     if (script.blocks[i].inputs.MESSAGE[1][1] === 'Click the Space Bar to see Helen the Amazing Color Changing Hedgehog.') {
                                         let next = i + 1;
-
                                         // checks the next block to make sure it is not undefined, if it is not, checks to see if it is a say block
                                         if (script.blocks[next] !== undefined) {
                                             if (sayBlocks.includes(script.blocks[next].opcode)) {
@@ -94,17 +81,13 @@ module.exports = class {
                                         }
                                     }
                                 }
-
                                 // checks to see if there is any block that moves 10 steps
                                 if (script.blocks[i].opcode === 'motion_movesteps') {
-
-
                                     if (script.blocks[i].inputs.STEPS[1][1] === '10') {
                                         this.extensions.carlMoves.bool = true;
                                     }
                                 }
-
-                                if (sayBlocks.includes(script.blocks[i].opcode)) {
+                                if (sayBlocks.includes(script.blocks[i].opcode) && target.name.includes('elen')) {
                                     sayBlocksGaming++;
                                 }
                             }
@@ -113,22 +96,22 @@ module.exports = class {
                 }
             }
             // requirement not fulfilled
-            if (sayCarl === false) {
-                if (sayBlocksGaming > 4) {
-                    this.extensions.helenSpeaks.bool = true;
-                }
-            }
-
-            if (sayBlocksGaming > 5) {
+            // if (sayCarl === false) {
+            //     if (sayBlocksGaming > 4) {
+            //         this.extensions.helenSpeaks.bool = true;
+            //     }
+            // } else {
+            //     if (sayBlocksGaming > 5) {
+            //         this.extensions.helenSpeaks.bool = true;
+            //     }   
+            // }
+            if (sayBlocksGaming > 1) {
                 this.extensions.helenSpeaks.bool = true;
             }
-            
         }
-
 
         if (strand === 'multicultural') {
             this.initReqsMulticultural();
-            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
             let sayBlocksMulticultural = 0;
             let sayNeha = false;
 
@@ -136,18 +119,13 @@ module.exports = class {
                 if (target.isStage) { continue; }
                 else {
                     for (let script of target.scripts) {
-
                         for (let i = 0; i < script.blocks.length; i++) {
-
                             // makes sure that the script starts with an event block
                             if (script.blocks[0].opcode.includes('event_')) {
-                                if (script.blocks[i].opcode === 'looks_say') {
-
-
+                                if (script.blocks[i].opcode.includes('looks_say')) {
                                     // finds the block with the specified message
                                     if (script.blocks[i].inputs.MESSAGE[1][1] === 'Happy Holi!') {
                                         let next = i + 1;
-
                                         // checks the next block to make sure it is not undefined, if it not, checks to see if it is a say block
                                         if (script.blocks[next] !== undefined) {
                                             if (sayBlocks.includes(script.blocks[next].opcode)) {
@@ -157,16 +135,14 @@ module.exports = class {
                                         }
                                     }
                                 }
-
                                 // checks to see if there is a block that moves 10 steps
                                 if (script.blocks[i].opcode === 'motion_movesteps') {
                                     if (script.blocks[i].inputs.STEPS[1][1] === '10') {
                                         this.extensions.nehaMoves.bool = true;
                                     }
                                 }
-
                                 // if there is a say block in the sprite that is brad and the message is different from what he says
-                                if (sayBlocks.includes(script.blocks[i].opcode)) {
+                                if (sayBlocks.includes(script.blocks[i].opcode) && target.name.includes('rad')) {
                                     sayBlocksMulticultural++;
                                 }
                             }
@@ -174,20 +150,21 @@ module.exports = class {
                     }
                 }
             }
-            if (sayNeha === false) {
-                if (sayBlocksMulticultural > 14) {
-                    this.extensions.bradSpeaks.bool = true;
-                }
-            }
-            // checks to see if there is one more than the original say block count, exlcuding the say block needed for the requirement
-            if (sayBlocksMulticultural > 15) {
+            // if (sayNeha === false) {
+            //     if (sayBlocksMulticultural > 14) {
+            //         this.extensions.bradSpeaks.bool = true;
+            //     }
+            // }
+            // // checks to see if there is one more than the original say block count, exlcuding the say block needed for the requirement
+            // if (sayBlocksMulticultural > 15) {
+            //     this.extensions.bradSpeaks.bool = true;
+            // }
+            if (sayBlocksMulticultural > 2) {
                 this.extensions.bradSpeaks.bool = true;
             }
         }
 
-
         if (strand === 'youthCulture') {
-
             // make an array of the original costumes from the original project
             this.initReqsYouthCulture();
             let origCostumes = [];
@@ -209,7 +186,6 @@ module.exports = class {
                 }
             }
 
-
             if (origCostumes.length !== newCostumes.length) {
                 this.extensions.changeCostumeEasel.bool = true;
             } else {
@@ -221,28 +197,20 @@ module.exports = class {
                 }
             }
 
-
-            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
-            
             let sayBlocksYouthCulture = 0;
             let sayIndia = false;
 
             for (let target of project.targets) {
                 if (target.isStage) { continue; }
                 else {
-
-
                     for (let script of target.scripts) {
                         for (let i = 0; i < script.blocks.length; i++) {
-
                             //makes sure that the script starts with an event block
                             if (script.blocks[0].opcode.includes('event_')) {
-                                if (script.blocks[i].opcode === 'looks_sayforsecs') {
-
+                                if (script.blocks[i].opcode.includes('looks_say')) {
                                     // find the block with the specified message
                                     if (script.blocks[i].inputs.MESSAGE[1][1] === 'Click the Space Bar to see some of the things I like.') {
                                         let next = i + 1;
-
                                         // checks the next block to make sure it is not undefined, if it is not, checks to see that the block after that is a say block
                                         if (script.blocks[next] !== undefined) {
                                             if (sayBlocks.includes(script.blocks[next].opcode)) {
@@ -262,27 +230,25 @@ module.exports = class {
                             }
 
                             // counts the number of say blocks
-                            if (sayBlocks.includes(script.blocks[i].opcode)) {
+                            if (sayBlocks.includes(script.blocks[i].opcode) && target.name.includes('asel')) {
                                 sayBlocksYouthCulture++;
                             }
-
                         }
                     }
-
-
                 }
             }
             
-            if (sayIndia === false) {
-                if (sayBlocksYouthCulture > 4) {
-                    this.extensions.easelSaysSomethingElse.bool = true;
-                }
-            }
-
-            if (sayBlocksYouthCulture > 5) {
+            // if (sayIndia === false) {
+            //     if (sayBlocksYouthCulture > 4) {
+            //         this.extensions.easelSaysSomethingElse.bool = true;
+            //     }
+            // }
+            // if (sayBlocksYouthCulture > 5) {
+            //     this.extensions.easelSaysSomethingElse.bool = true;
+            // }  
+            if (sayBlocksYouthCulture > 1) {
                 this.extensions.easelSaysSomethingElse.bool = true;
             }
-             
         }
     }
 }
