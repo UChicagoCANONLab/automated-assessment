@@ -4115,6 +4115,7 @@ module.exports = class GradeCondLoopsL1 extends Grader {
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
 Scratch 3 updates: Saranya Turimella, Summer 2019
+Static analysis code (info object) added for Block Usage CSVs and Graphs: Anna Zipp, Autumn 2019
 */
 require('../grading-scripts-s3/scratch3')
 
@@ -4132,6 +4133,17 @@ module.exports = class {
         this.extensions.nextCostume = { bool: false, str: 'The sprite is animated with a "next costume" block' }; // done
         this.extensions.touchingNewSprite = { bool: false, str: 'The sprite stops when it touches a new sprite added from the sprite library' };
         this.extensions.repeatBlock = { bool: false, str: 'Repeat blocks added to animate another sprite' }; // done
+    
+        this.info = {
+            blocks: 0,
+            sprites: 0,
+            spritesWith1Script: 0,
+            spritesWith2Scripts: 0,
+            guidingUser: false,
+            blockTypes: new Set([]),
+            strings: [],
+            score: 0 //requirement score
+        }
     }
 
     grade(fileObj, user) {
@@ -4139,13 +4151,18 @@ module.exports = class {
         this.initReqs();
 
         let numRepeat = 0;
-      
+         
         let allCostumes = 0;
         let sprites = [];
         let objectTouching = null;
         let touching = null;
         let moveOptions = ['motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy', 'motion_glideto', 'motion_goto', 'motion_gotoxy']
         let soundOptions = ['sound_playuntildone', 'sound_play', 'looks_say', 'looks_sayforsecs']
+        
+        // static analysis variables
+        var validScripts = 0;
+        var events = [];
+
         for (let target of project.targets) {
             if (target.isStage) {
                 continue;
@@ -4159,7 +4176,7 @@ module.exports = class {
                             // checking to see if a repeat block is used
                             
                             if (script.blocks[i].opcode.includes('control_repeat')) {
-                                console.log(target.name)
+                                //console.log(target.name)
                                 numRepeat++;
 
                                 //checks to see if a sound is is made once the loop is over
@@ -4175,40 +4192,44 @@ module.exports = class {
                                 }
                                 
                                 
-                                let condition = script.blocks[i].inputs.CONDITION[1];
+                                let condition = (script.blocks[i]).conditionBlock;
+                                if (condition != undefined) {
+                                    let condBlock = target.blocks[condition];
+                                    if (condBlock) {
+                                        if (target.blocks[condition].opcode === 'sensing_touchingobject') {
+                                            touching = target.blocks[condition].inputs.TOUCHINGOBJECTMENU[1];
+                                            objectTouching = target.blocks[touching].fields.TOUCHINGOBJECTMENU[0];
                                 
-
-                                if (target.blocks[condition].opcode === 'sensing_touchingobject') {
-                                    touching = target.blocks[condition].inputs.TOUCHINGOBJECTMENU[1];
-                                    objectTouching = target.blocks[touching].fields.TOUCHINGOBJECTMENU[0];
-                        
-                                }
-                                // checks that it stops when touching a color
-                                else if ((target.blocks[condition].opcode === 'sensing_touchingcolor') ||
-                                    (target.blocks[condition].opcode === 'sensing_coloristouchingcolor')) {
-                                    this.requirements.stop.bool = true;
+                                        }
+                                        // checks that it stops when touching a color
+                                        else if ((target.blocks[condition].opcode === 'sensing_touchingcolor') ||
+                                            (target.blocks[condition].opcode === 'sensing_coloristouchingcolor')) {
+                                            this.requirements.stop.bool = true;
+                                        }   
+                                    }
                                 }
 
                                 let substack = script.blocks[i].inputs.SUBSTACK[1];
                                 
-                              
+                                if (substack) {
                                 // there is only one block in the loop and that is a move block
-                                if (moveOptions.includes(target.blocks[substack].opcode)) {
-                                   
-                                    this.requirements.moves.bool = true;
-                                } else {
-                                    // there are multiple blocks in the loop, iterate through them to see 
-                                    while (target.blocks[substack].next !== null) {
-                                      
+                                    if (moveOptions.includes(target.blocks[substack].opcode)) {
+                                    
+                                        this.requirements.moves.bool = true;
+                                    } else {
+                                        // there are multiple blocks in the loop, iterate through them to see 
+                                        while (target.blocks[substack].next !== null) {
                                         
-                                        if (moveOptions.includes(target.blocks[substack].opcode)) {
                                             
-                                            this.requirements.moves.bool = true;
+                                            if (moveOptions.includes(target.blocks[substack].opcode)) {
+                                                
+                                                this.requirements.moves.bool = true;
+                                            }
+                                            if ((target.blocks[substack].opcode === 'looks_switchcostumeto') || (target.blocks[substack].opcode === 'looks_nextcostume')) {
+                                                this.extensions.nextCostume.bool = true;
+                                            }
+                                            substack = target.blocks[substack].next;
                                         }
-                                        if (target.blocks[substack].opcode === 'looks_switchcostumeto') {
-                                            this.extensions.nextCostume.bool = true;
-                                        }
-                                        substack = target.blocks[substack].next;
                                     }
                                 }
 
@@ -4219,6 +4240,53 @@ module.exports = class {
                     }
                 }
                 allCostumes += target.costumes.length;
+
+                // Static analysis code
+                this.info.sprites++; 
+                //iterating through each of the sprite's scripts that start with an event block
+                for (var script of target.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) { 
+                    // search through each block and execute the given callback function
+                    // that determines what to look for and what to do (through side effects) for each block
+                    script.traverseBlocks((block, level) => {
+                        var opcode = block.opcode;
+
+                        if (opcode in this.info.blockTypes) {
+                            // do nothing
+                        } else {
+                            this.info.blockTypes.add(opcode);
+                            this.info.blocks++;
+                        }
+
+                        if (opcode.includes('say')) {
+                            let string = block.inputs.MESSAGE[1][1].toLowerCase();
+                            this.info.strings.push(string);
+                            if (!this.info.guidingUser) {
+                                for (let keyword of ['press', 'click']) {
+                                    if (string.includes(keyword)) {
+                                        this.info.guidingUser = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                    });
+
+                    var event = script.blocks[0];
+                    // adds to list of unique events and scripts
+                    if (!events.includes(event.opcode)) {
+                        events.push(event.opcode);
+                        if (script.blocks.length > 1) {
+                            validScripts++;
+                        }
+                    }
+                    if (validScripts >=2) {
+                        this.info.spritesWith2Scripts++;
+                    } else if (validScripts >= 1) {
+                        this.info.spritesWith1Script++;
+                    }
+                }
+
             }
         }
         if(sprites.includes(objectTouching)) {
@@ -4227,20 +4295,21 @@ module.exports = class {
        
         if (allCostumes > 12) {
             this.extensions.addCostume.bool = true;
-        }
-        
-        
-       
+        }       
         
         if (numRepeat > 1) {
             this.extensions.repeatBlock.bool = true;
         }
         
         if (project.sprites.length > 2) {
-            if (objectTouching !== 'Sign') {
+            if ((objectTouching !== 'Sign') || (objectTouching !== 'Stop')) {
                 this.extensions.touchingNewSprite.bool = true;
             }
         }
+
+        // Static analysis code
+        delete this.info.strings;
+        this.info.score = Object.values(this.requirements).reduce((sum, r) => sum + (r.bool? 1 : 0), 0);
     }
 }
 
@@ -5803,18 +5872,14 @@ module.exports = class {
    
 
     grade(fileObj, user) {
-
         var project = new Project(fileObj, null);
         // call function that takes in the project, decides what strand it is in, that function returns a string
 
-
         let projBackdrops = [];
         for (let target of project.targets) {
-
             for (let costume of target.costumes) {
                 projBackdrops.push(costume.assetId);
             }
-
         }
 
         var templates = {
@@ -5823,36 +5888,27 @@ module.exports = class {
             gaming: require('./templates/scratch-basics-L1-gaming')
         };
         
-
         let strand = detectStrand(project, templates);
 
+        let sayBlocks = ['looks_say', 'looks_sayforsecs'];
 
         // gaming strand 
         if (strand === 'gaming') {
-
             this.initReqsGaming();
-            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
             let sayCarl = false;
-
             let sayBlocksGaming = 0;
 
             for (let target of project.targets) {
                 if (target.isStage) { continue; }
                 else {
-
-
                     for (let script of target.scripts) {
                         for (let i = 0; i < script.blocks.length; i++) {
-
-
                             // makes sure that the script starts with an event block
                             if (script.blocks[0].opcode.includes('event_')) {
-                                if (script.blocks[i].opcode === 'looks_sayforsecs') {
-
+                                if (script.blocks[i].opcode.includes('looks_say')) {
                                     // finds the block with specified message
                                     if (script.blocks[i].inputs.MESSAGE[1][1] === 'Click the Space Bar to see Helen the Amazing Color Changing Hedgehog.') {
                                         let next = i + 1;
-
                                         // checks the next block to make sure it is not undefined, if it is not, checks to see if it is a say block
                                         if (script.blocks[next] !== undefined) {
                                             if (sayBlocks.includes(script.blocks[next].opcode)) {
@@ -5862,17 +5918,13 @@ module.exports = class {
                                         }
                                     }
                                 }
-
                                 // checks to see if there is any block that moves 10 steps
                                 if (script.blocks[i].opcode === 'motion_movesteps') {
-
-
                                     if (script.blocks[i].inputs.STEPS[1][1] === '10') {
                                         this.extensions.carlMoves.bool = true;
                                     }
                                 }
-
-                                if (sayBlocks.includes(script.blocks[i].opcode)) {
+                                if (sayBlocks.includes(script.blocks[i].opcode) && target.name.includes('elen')) {
                                     sayBlocksGaming++;
                                 }
                             }
@@ -5881,22 +5933,22 @@ module.exports = class {
                 }
             }
             // requirement not fulfilled
-            if (sayCarl === false) {
-                if (sayBlocksGaming > 4) {
-                    this.extensions.helenSpeaks.bool = true;
-                }
-            }
-
-            if (sayBlocksGaming > 5) {
+            // if (sayCarl === false) {
+            //     if (sayBlocksGaming > 4) {
+            //         this.extensions.helenSpeaks.bool = true;
+            //     }
+            // } else {
+            //     if (sayBlocksGaming > 5) {
+            //         this.extensions.helenSpeaks.bool = true;
+            //     }   
+            // }
+            if (sayBlocksGaming > 1) {
                 this.extensions.helenSpeaks.bool = true;
             }
-            
         }
-
 
         if (strand === 'multicultural') {
             this.initReqsMulticultural();
-            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
             let sayBlocksMulticultural = 0;
             let sayNeha = false;
 
@@ -5904,18 +5956,13 @@ module.exports = class {
                 if (target.isStage) { continue; }
                 else {
                     for (let script of target.scripts) {
-
                         for (let i = 0; i < script.blocks.length; i++) {
-
                             // makes sure that the script starts with an event block
                             if (script.blocks[0].opcode.includes('event_')) {
-                                if (script.blocks[i].opcode === 'looks_say') {
-
-
+                                if (script.blocks[i].opcode.includes('looks_say')) {
                                     // finds the block with the specified message
                                     if (script.blocks[i].inputs.MESSAGE[1][1] === 'Happy Holi!') {
                                         let next = i + 1;
-
                                         // checks the next block to make sure it is not undefined, if it not, checks to see if it is a say block
                                         if (script.blocks[next] !== undefined) {
                                             if (sayBlocks.includes(script.blocks[next].opcode)) {
@@ -5925,16 +5972,14 @@ module.exports = class {
                                         }
                                     }
                                 }
-
                                 // checks to see if there is a block that moves 10 steps
                                 if (script.blocks[i].opcode === 'motion_movesteps') {
                                     if (script.blocks[i].inputs.STEPS[1][1] === '10') {
                                         this.extensions.nehaMoves.bool = true;
                                     }
                                 }
-
                                 // if there is a say block in the sprite that is brad and the message is different from what he says
-                                if (sayBlocks.includes(script.blocks[i].opcode)) {
+                                if (sayBlocks.includes(script.blocks[i].opcode) && target.name.includes('rad')) {
                                     sayBlocksMulticultural++;
                                 }
                             }
@@ -5942,20 +5987,22 @@ module.exports = class {
                     }
                 }
             }
-            if (sayNeha === false) {
-                if (sayBlocksMulticultural > 14) {
-                    this.extensions.bradSpeaks.bool = true;
-                }
-            }
-            // checks to see if there is one more than the original say block count, exlcuding the say block needed for the requirement
-            if (sayBlocksMulticultural > 15) {
+            // if (sayNeha === false) {
+            //     if (sayBlocksMulticultural > 14) {
+            //         this.extensions.bradSpeaks.bool = true;
+            //     }
+            // }
+            // // checks to see if there is one more than the original say block count, exlcuding the say block needed for the requirement
+            // if (sayBlocksMulticultural > 15) {
+            //     this.extensions.bradSpeaks.bool = true;
+            // }
+            if (sayBlocksMulticultural > 2) {
+                console.log('SayblocksMulti count is:' + sayBlocksMulticultural);
                 this.extensions.bradSpeaks.bool = true;
             }
         }
 
-
         if (strand === 'youthCulture') {
-
             // make an array of the original costumes from the original project
             this.initReqsYouthCulture();
             let origCostumes = [];
@@ -5977,7 +6024,6 @@ module.exports = class {
                 }
             }
 
-
             if (origCostumes.length !== newCostumes.length) {
                 this.extensions.changeCostumeEasel.bool = true;
             } else {
@@ -5989,28 +6035,20 @@ module.exports = class {
                 }
             }
 
-
-            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
-            
             let sayBlocksYouthCulture = 0;
             let sayIndia = false;
 
             for (let target of project.targets) {
                 if (target.isStage) { continue; }
                 else {
-
-
                     for (let script of target.scripts) {
                         for (let i = 0; i < script.blocks.length; i++) {
-
                             //makes sure that the script starts with an event block
                             if (script.blocks[0].opcode.includes('event_')) {
-                                if (script.blocks[i].opcode === 'looks_sayforsecs') {
-
+                                if (script.blocks[i].opcode.includes('looks_say')) {
                                     // find the block with the specified message
                                     if (script.blocks[i].inputs.MESSAGE[1][1] === 'Click the Space Bar to see some of the things I like.') {
                                         let next = i + 1;
-
                                         // checks the next block to make sure it is not undefined, if it is not, checks to see that the block after that is a say block
                                         if (script.blocks[next] !== undefined) {
                                             if (sayBlocks.includes(script.blocks[next].opcode)) {
@@ -6030,27 +6068,25 @@ module.exports = class {
                             }
 
                             // counts the number of say blocks
-                            if (sayBlocks.includes(script.blocks[i].opcode)) {
+                            if (sayBlocks.includes(script.blocks[i].opcode) && target.name.includes('asel')) {
                                 sayBlocksYouthCulture++;
                             }
-
                         }
                     }
-
-
                 }
             }
             
-            if (sayIndia === false) {
-                if (sayBlocksYouthCulture > 4) {
-                    this.extensions.easelSaysSomethingElse.bool = true;
-                }
-            }
-
-            if (sayBlocksYouthCulture > 5) {
+            // if (sayIndia === false) {
+            //     if (sayBlocksYouthCulture > 4) {
+            //         this.extensions.easelSaysSomethingElse.bool = true;
+            //     }
+            // }
+            // if (sayBlocksYouthCulture > 5) {
+            //     this.extensions.easelSaysSomethingElse.bool = true;
+            // }  
+            if (sayBlocksYouthCulture > 1) {
                 this.extensions.easelSaysSomethingElse.bool = true;
             }
-             
         }
     }
 }
@@ -10607,7 +10643,917 @@ module.exports={
     }
 }
 },{}],41:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"e6bf56f64eb4e7e6c97ec6c97e90d023","name":"Holi Background","bitmapResolution":1,"md5ext":"e6bf56f64eb4e7e6c97ec6c97e90d023.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Neha","variables":{},"lists":{},"broadcasts":{},"blocks":{"6*c`Xv=UPZ2te:JB2+U*":{"opcode":"event_whenflagclicked","next":"1,sGaB#:WD/!fp4ecgw=","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-67,"y":-587},"1,sGaB#:WD/!fp4ecgw=":{"opcode":"motion_gotoxy","next":"0*gfG!}+dNBRamr1EdBt","parent":"6*c`Xv=UPZ2te:JB2+U*","inputs":{"X":[1,[4,"28"]],"Y":[1,[4,"-51"]]},"fields":{},"shadow":false,"topLevel":false},"0*gfG!}+dNBRamr1EdBt":{"opcode":"looks_switchcostumeto","next":"y;SD_2:1H=d-=o]rf3Nq","parent":"1,sGaB#:WD/!fp4ecgw=","inputs":{"COSTUME":[1,"-XUo5ONrDRD76UyvwKL?"]},"fields":{},"shadow":false,"topLevel":false},"-XUo5ONrDRD76UyvwKL?":{"opcode":"looks_costume","next":null,"parent":"0*gfG!}+dNBRamr1EdBt","inputs":{},"fields":{"COSTUME":["Neha1",null]},"shadow":true,"topLevel":false},"y;SD_2:1H=d-=o]rf3Nq":{"opcode":"control_wait","next":"#;GgQ}*l)tV4E{1NPadV","parent":"0*gfG!}+dNBRamr1EdBt","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"#;GgQ}*l)tV4E{1NPadV":{"opcode":"looks_sayforsecs","next":"GBVU3I7+QD=TSfHx]bhU","parent":"y;SD_2:1H=d-=o]rf3Nq","inputs":{"MESSAGE":[1,[10,"Hi, I'm Neha!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"GBVU3I7+QD=TSfHx]bhU":{"opcode":"looks_sayforsecs","next":"lTPM~|:Xs,_if#cv*}5O","parent":"#;GgQ}*l)tV4E{1NPadV","inputs":{"MESSAGE":[1,[10,"We are celebrating Holi, a traditional Hindu festival from India!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false},"lTPM~|:Xs,_if#cv*}5O":{"opcode":"looks_sayforsecs","next":"n%]__?|Z8]rI5Nb?gViq","parent":"GBVU3I7+QD=TSfHx]bhU","inputs":{"MESSAGE":[1,[10,"We use colorful powders and pastes to celebrate the beginning of Spring!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false},"n%]__?|Z8]rI5Nb?gViq":{"opcode":"looks_sayforsecs","next":",M3195%JsXVXc(d1Zg:L","parent":"lTPM~|:Xs,_if#cv*}5O","inputs":{"MESSAGE":[1,[10,"I'm holding some gulal!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},",M3195%JsXVXc(d1Zg:L":{"opcode":"looks_sayforsecs","next":null,"parent":"n%]__?|Z8]rI5Nb?gViq","inputs":{"MESSAGE":[1,[10,"Press the space bar to meet my friends!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},"|0_-JyE+)[h*:1fdtiA4":{"opcode":"event_whenthisspriteclicked","next":"^oA(iul1kHd(0wr^6Bw{","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-69,"y":-82},"^oA(iul1kHd(0wr^6Bw{":{"opcode":"looks_switchcostumeto","next":"|7PoJdXk{ra2Uw|t`GbT","parent":"|0_-JyE+)[h*:1fdtiA4","inputs":{"COSTUME":[1,"N9bZPF:pJOq6u.zxph*s"]},"fields":{},"shadow":false,"topLevel":false},"N9bZPF:pJOq6u.zxph*s":{"opcode":"looks_costume","next":null,"parent":"^oA(iul1kHd(0wr^6Bw{","inputs":{},"fields":{"COSTUME":["Neha1",null]},"shadow":true,"topLevel":false},"|7PoJdXk{ra2Uw|t`GbT":{"opcode":"looks_sayforsecs","next":"Om]!9q+lw!s+4zF:/CG!","parent":"^oA(iul1kHd(0wr^6Bw{","inputs":{"MESSAGE":[1,[10,"3..."]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"Om]!9q+lw!s+4zF:/CG!":{"opcode":"looks_sayforsecs","next":"J6bm|w{z^q-RA%hf)afc","parent":"|7PoJdXk{ra2Uw|t`GbT","inputs":{"MESSAGE":[1,[10,"2..."]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"J6bm|w{z^q-RA%hf)afc":{"opcode":"looks_sayforsecs","next":"dBNdJtA%:m:n8TAUuL^K","parent":"Om]!9q+lw!s+4zF:/CG!","inputs":{"MESSAGE":[1,[10,"1!"]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"dBNdJtA%:m:n8TAUuL^K":{"opcode":"control_repeat","next":"GV:wKN`D#AUVaKS?5jmD","parent":"J6bm|w{z^q-RA%hf)afc","inputs":{"TIMES":[1,[6,"4"]],"SUBSTACK":[2,"x@m(|CWR`%*`#b~;!2OT"]},"fields":{},"shadow":false,"topLevel":false},"x@m(|CWR`%*`#b~;!2OT":{"opcode":"control_wait","next":".Z=GpTw~p|F,B38JSn^t","parent":"dBNdJtA%:m:n8TAUuL^K","inputs":{"DURATION":[1,[5,"0.7"]]},"fields":{},"shadow":false,"topLevel":false},".Z=GpTw~p|F,B38JSn^t":{"opcode":"looks_nextcostume","next":null,"parent":"x@m(|CWR`%*`#b~;!2OT","inputs":{},"fields":{},"shadow":false,"topLevel":false},"GV:wKN`D#AUVaKS?5jmD":{"opcode":"looks_say","next":null,"parent":"dBNdJtA%:m:n8TAUuL^K","inputs":{"MESSAGE":[1,[10,"Happy Holi!"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"588e1905e5323f75328276def2ac0116","name":"Neha1","bitmapResolution":1,"md5ext":"588e1905e5323f75328276def2ac0116.svg","dataFormat":"svg","rotationCenterX":45.99999113010236,"rotationCenterY":87},{"assetId":"8a174573e7d4a7885954acd2afad19ea","name":"Neha2","bitmapResolution":1,"md5ext":"8a174573e7d4a7885954acd2afad19ea.svg","dataFormat":"svg","rotationCenterX":123.41460248739168,"rotationCenterY":114.40293820688679},{"assetId":"500b791f9f077dd2377bc56033912b9a","name":"Neha3","bitmapResolution":1,"md5ext":"500b791f9f077dd2377bc56033912b9a.svg","dataFormat":"svg","rotationCenterX":133.59915850034727,"rotationCenterY":174.0481588381853},{"assetId":"c53eeb50bcdf509cb1522d378c9e380b","name":"Neha4","bitmapResolution":1,"md5ext":"c53eeb50bcdf509cb1522d378c9e380b.svg","dataFormat":"svg","rotationCenterX":128.6803772733968,"rotationCenterY":116.40943091603478},{"assetId":"9d660677a26fe0b657bc3e43da838c8e","name":"Neha5","bitmapResolution":1,"md5ext":"9d660677a26fe0b657bc3e43da838c8e.svg","dataFormat":"svg","rotationCenterX":90.9947,"rotationCenterY":85.4763088644717}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":28,"y":-51,"size":139.99999999999997,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Brad","variables":{},"lists":{},"broadcasts":{},"blocks":{"CBEwU.S^!3v*m}+l(2:*":{"opcode":"event_whenflagclicked","next":"R|3)LWe?;VLJtzxlX@8}","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"R|3)LWe?;VLJtzxlX@8}":{"opcode":"motion_gotoxy","next":"9sO:y?e(89=wDBQEX*84","parent":"CBEwU.S^!3v*m}+l(2:*","inputs":{"X":[1,[4,220]],"Y":[1,[4,-13]]},"fields":{},"shadow":false,"topLevel":false},"9sO:y?e(89=wDBQEX*84":{"opcode":"looks_switchcostumeto","next":null,"parent":"R|3)LWe?;VLJtzxlX@8}","inputs":{"COSTUME":[1,"4!H7s8i9Lh.C(?SHMT_O"]},"fields":{},"shadow":false,"topLevel":false},"4!H7s8i9Lh.C(?SHMT_O":{"opcode":"looks_costume","next":null,"parent":"9sO:y?e(89=wDBQEX*84","inputs":{},"fields":{"COSTUME":["Brad1"]},"shadow":true,"topLevel":false},"7rU;-waLK?7n!U94pB].":{"opcode":"event_whenkeypressed","next":"BYyQeX2S2e2l[UHn#0bq","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":32,"y":304},"BYyQeX2S2e2l[UHn#0bq":{"opcode":"motion_movesteps","next":"SpljqntHJxfGDV;.4%#M","parent":"7rU;-waLK?7n!U94pB].","inputs":{"STEPS":[1,[4,-64]]},"fields":{},"shadow":false,"topLevel":false},"SpljqntHJxfGDV;.4%#M":{"opcode":"looks_sayforsecs","next":"m+[^4mRsSN%SjOXJ}+_t","parent":"BYyQeX2S2e2l[UHn#0bq","inputs":{"MESSAGE":[1,[10,"Hello, I'm Brad!"]],"SECS":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"m+[^4mRsSN%SjOXJ}+_t":{"opcode":"looks_sayforsecs","next":null,"parent":"SpljqntHJxfGDV;.4%#M","inputs":{"MESSAGE":[1,[10,"I'm holding a pichkari, a water squirter filled with colored water!"]],"SECS":[1,[4,6]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"dae278db1e4c65e9b70d966aa9a40429","name":"Brad1","bitmapResolution":1,"md5ext":"dae278db1e4c65e9b70d966aa9a40429.svg","dataFormat":"svg","rotationCenterX":37.99999373388661,"rotationCenterY":86.99998370205938}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":220,"y":-13,"size":135.00000000000003,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Kristen","variables":{},"lists":{},"broadcasts":{},"blocks":{"[M~hMK`q/NYs#*-;ZiuH":{"opcode":"event_whenflagclicked","next":"H~_UJ8~bO+^zXvT^^^le","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"H~_UJ8~bO+^zXvT^^^le":{"opcode":"motion_gotoxy","next":"@DsqwPSbeqW_?Pi{uYT]","parent":"[M~hMK`q/NYs#*-;ZiuH","inputs":{"X":[1,[4,-215]],"Y":[1,[4,-13]]},"fields":{},"shadow":false,"topLevel":false},"@DsqwPSbeqW_?Pi{uYT]":{"opcode":"looks_switchcostumeto","next":null,"parent":"H~_UJ8~bO+^zXvT^^^le","inputs":{"COSTUME":[1,"?+RpBU3RL5~YKwsi/rIw"]},"fields":{},"shadow":false,"topLevel":false},"?+RpBU3RL5~YKwsi/rIw":{"opcode":"looks_costume","next":null,"parent":"@DsqwPSbeqW_?Pi{uYT]","inputs":{},"fields":{"COSTUME":["Kristen1"]},"shadow":true,"topLevel":false},"Jf4;4?`|e1udP=94]ErE":{"opcode":"event_whenkeypressed","next":"9aY%RY8/M5ayiAqP@a7U","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":27,"y":261},"9aY%RY8/M5ayiAqP@a7U":{"opcode":"control_wait","next":"Pz:xDRpqyDJNLlR5?;,0","parent":"Jf4;4?`|e1udP=94]ErE","inputs":{"DURATION":[1,[5,"10"]]},"fields":{},"shadow":false,"topLevel":false},"Pz:xDRpqyDJNLlR5?;,0":{"opcode":"motion_movesteps","next":"-n-db;lg-!(lyaGFo;AQ","parent":"9aY%RY8/M5ayiAqP@a7U","inputs":{"STEPS":[1,[4,64]]},"fields":{},"shadow":false,"topLevel":false},"-n-db;lg-!(lyaGFo;AQ":{"opcode":"looks_sayforsecs","next":"4*Ly{a-GE~GGb~khP7#P","parent":"Pz:xDRpqyDJNLlR5?;,0","inputs":{"MESSAGE":[1,[10,"Hi, I'm Kristen!"]],"SECS":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"4*Ly{a-GE~GGb~khP7#P":{"opcode":"looks_sayforsecs","next":"(P/J:UdY/Q,8|p4}V!P=","parent":"-n-db;lg-!(lyaGFo;AQ","inputs":{"MESSAGE":[1,[10,"I'm using squeeze bottles."]],"SECS":[1,[4,4]]},"fields":{},"shadow":false,"topLevel":false},"(P/J:UdY/Q,8|p4}V!P=":{"opcode":"looks_sayforsecs","next":null,"parent":"4*Ly{a-GE~GGb~khP7#P","inputs":{"MESSAGE":[1,[10,"Click on Neha to see her celebrate!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"5c740972a1f49202719b50e896bd0cf6","name":"Kristen1","bitmapResolution":1,"md5ext":"5c740972a1f49202719b50e896bd0cf6.svg","dataFormat":"svg","rotationCenterX":62.000001871426775,"rotationCenterY":87.08308115522249}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-215,"y":-13,"size":135.00000000000003,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "e6bf56f64eb4e7e6c97ec6c97e90d023",
+                    "name": "Holi Background",
+                    "bitmapResolution": 1,
+                    "md5ext": "e6bf56f64eb4e7e6c97ec6c97e90d023.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 240,
+                    "rotationCenterY": 180
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Neha",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "6*c`Xv=UPZ2te:JB2+U*": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "1,sGaB#:WD/!fp4ecgw=",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": -67,
+                    "y": -587
+                },
+                "1,sGaB#:WD/!fp4ecgw=": {
+                    "opcode": "motion_gotoxy",
+                    "next": "0*gfG!}+dNBRamr1EdBt",
+                    "parent": "6*c`Xv=UPZ2te:JB2+U*",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "28"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-51"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "0*gfG!}+dNBRamr1EdBt": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": "y;SD_2:1H=d-=o]rf3Nq",
+                    "parent": "1,sGaB#:WD/!fp4ecgw=",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "-XUo5ONrDRD76UyvwKL?"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "-XUo5ONrDRD76UyvwKL?": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "0*gfG!}+dNBRamr1EdBt",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "Neha1",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "y;SD_2:1H=d-=o]rf3Nq": {
+                    "opcode": "control_wait",
+                    "next": "#;GgQ}*l)tV4E{1NPadV",
+                    "parent": "0*gfG!}+dNBRamr1EdBt",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                "1"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "#;GgQ}*l)tV4E{1NPadV": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "GBVU3I7+QD=TSfHx]bhU",
+                    "parent": "y;SD_2:1H=d-=o]rf3Nq",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Hi, I'm Neha!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "GBVU3I7+QD=TSfHx]bhU": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "lTPM~|:Xs,_if#cv*}5O",
+                    "parent": "#;GgQ}*l)tV4E{1NPadV",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "We are celebrating Holi, a traditional Hindu festival from India!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "4"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "lTPM~|:Xs,_if#cv*}5O": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "n%]__?|Z8]rI5Nb?gViq",
+                    "parent": "GBVU3I7+QD=TSfHx]bhU",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "We use colorful powders and pastes to celebrate the beginning of Spring!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "4"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "n%]__?|Z8]rI5Nb?gViq": {
+                    "opcode": "looks_sayforsecs",
+                    "next": ",M3195%JsXVXc(d1Zg:L",
+                    "parent": "lTPM~|:Xs,_if#cv*}5O",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "I'm holding some gulal!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ",M3195%JsXVXc(d1Zg:L": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "n%]__?|Z8]rI5Nb?gViq",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Press the space bar to meet my friends!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "|0_-JyE+)[h*:1fdtiA4": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "^oA(iul1kHd(0wr^6Bw{",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": -69,
+                    "y": -82
+                },
+                "^oA(iul1kHd(0wr^6Bw{": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": "|7PoJdXk{ra2Uw|t`GbT",
+                    "parent": "|0_-JyE+)[h*:1fdtiA4",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "N9bZPF:pJOq6u.zxph*s"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "N9bZPF:pJOq6u.zxph*s": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "^oA(iul1kHd(0wr^6Bw{",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "Neha1",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "|7PoJdXk{ra2Uw|t`GbT": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "Om]!9q+lw!s+4zF:/CG!",
+                    "parent": "^oA(iul1kHd(0wr^6Bw{",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "3..."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "1"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "Om]!9q+lw!s+4zF:/CG!": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "J6bm|w{z^q-RA%hf)afc",
+                    "parent": "|7PoJdXk{ra2Uw|t`GbT",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "2..."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "1"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "J6bm|w{z^q-RA%hf)afc": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "dBNdJtA%:m:n8TAUuL^K",
+                    "parent": "Om]!9q+lw!s+4zF:/CG!",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "1!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "1"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "dBNdJtA%:m:n8TAUuL^K": {
+                    "opcode": "control_repeat",
+                    "next": "GV:wKN`D#AUVaKS?5jmD",
+                    "parent": "J6bm|w{z^q-RA%hf)afc",
+                    "inputs": {
+                        "TIMES": [
+                            1,
+                            [
+                                6,
+                                "4"
+                            ]
+                        ],
+                        "SUBSTACK": [
+                            2,
+                            "x@m(|CWR`%*`#b~;!2OT"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "x@m(|CWR`%*`#b~;!2OT": {
+                    "opcode": "control_wait",
+                    "next": ".Z=GpTw~p|F,B38JSn^t",
+                    "parent": "dBNdJtA%:m:n8TAUuL^K",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                "0.7"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ".Z=GpTw~p|F,B38JSn^t": {
+                    "opcode": "looks_nextcostume",
+                    "next": null,
+                    "parent": "x@m(|CWR`%*`#b~;!2OT",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "GV:wKN`D#AUVaKS?5jmD": {
+                    "opcode": "looks_say",
+                    "next": null,
+                    "parent": "dBNdJtA%:m:n8TAUuL^K",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Happy Holi!"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "588e1905e5323f75328276def2ac0116",
+                    "name": "Neha1",
+                    "bitmapResolution": 1,
+                    "md5ext": "588e1905e5323f75328276def2ac0116.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 45.99999113010236,
+                    "rotationCenterY": 87
+                },
+                {
+                    "assetId": "8a174573e7d4a7885954acd2afad19ea",
+                    "name": "Neha2",
+                    "bitmapResolution": 1,
+                    "md5ext": "8a174573e7d4a7885954acd2afad19ea.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 123.41460248739168,
+                    "rotationCenterY": 114.40293820688679
+                },
+                {
+                    "assetId": "500b791f9f077dd2377bc56033912b9a",
+                    "name": "Neha3",
+                    "bitmapResolution": 1,
+                    "md5ext": "500b791f9f077dd2377bc56033912b9a.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 133.59915850034727,
+                    "rotationCenterY": 174.0481588381853
+                },
+                {
+                    "assetId": "c53eeb50bcdf509cb1522d378c9e380b",
+                    "name": "Neha4",
+                    "bitmapResolution": 1,
+                    "md5ext": "c53eeb50bcdf509cb1522d378c9e380b.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 128.6803772733968,
+                    "rotationCenterY": 116.40943091603478
+                },
+                {
+                    "assetId": "9d660677a26fe0b657bc3e43da838c8e",
+                    "name": "Neha5",
+                    "bitmapResolution": 1,
+                    "md5ext": "9d660677a26fe0b657bc3e43da838c8e.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 90.9947,
+                    "rotationCenterY": 85.4763088644717
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": 28,
+            "y": -51,
+            "size": 139.99999999999997,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Brad",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "CBEwU.S^!3v*m}+l(2:*": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "R|3)LWe?;VLJtzxlX@8}",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 15,
+                    "y": 22
+                },
+                "R|3)LWe?;VLJtzxlX@8}": {
+                    "opcode": "motion_gotoxy",
+                    "next": "9sO:y?e(89=wDBQEX*84",
+                    "parent": "CBEwU.S^!3v*m}+l(2:*",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                220
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                -13
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "9sO:y?e(89=wDBQEX*84": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": null,
+                    "parent": "R|3)LWe?;VLJtzxlX@8}",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "4!H7s8i9Lh.C(?SHMT_O"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "4!H7s8i9Lh.C(?SHMT_O": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "9sO:y?e(89=wDBQEX*84",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "Brad1"
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "7rU;-waLK?7n!U94pB].": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "BYyQeX2S2e2l[UHn#0bq",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 32,
+                    "y": 304
+                },
+                "BYyQeX2S2e2l[UHn#0bq": {
+                    "opcode": "motion_movesteps",
+                    "next": "SpljqntHJxfGDV;.4%#M",
+                    "parent": "7rU;-waLK?7n!U94pB].",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                -64
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "SpljqntHJxfGDV;.4%#M": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "m+[^4mRsSN%SjOXJ}+_t",
+                    "parent": "BYyQeX2S2e2l[UHn#0bq",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Hello, I'm Brad!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                3
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "m+[^4mRsSN%SjOXJ}+_t": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "SpljqntHJxfGDV;.4%#M",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "I'm holding a pichkari, a water squirter filled with colored water!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                6
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "dae278db1e4c65e9b70d966aa9a40429",
+                    "name": "Brad1",
+                    "bitmapResolution": 1,
+                    "md5ext": "dae278db1e4c65e9b70d966aa9a40429.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 37.99999373388661,
+                    "rotationCenterY": 86.99998370205938
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": 220,
+            "y": -13,
+            "size": 135.00000000000003,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Kristen",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "[M~hMK`q/NYs#*-;ZiuH": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "H~_UJ8~bO+^zXvT^^^le",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 15,
+                    "y": 22
+                },
+                "H~_UJ8~bO+^zXvT^^^le": {
+                    "opcode": "motion_gotoxy",
+                    "next": "@DsqwPSbeqW_?Pi{uYT]",
+                    "parent": "[M~hMK`q/NYs#*-;ZiuH",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                -215
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                -13
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "@DsqwPSbeqW_?Pi{uYT]": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": null,
+                    "parent": "H~_UJ8~bO+^zXvT^^^le",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "?+RpBU3RL5~YKwsi/rIw"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "?+RpBU3RL5~YKwsi/rIw": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "@DsqwPSbeqW_?Pi{uYT]",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "Kristen1"
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "Jf4;4?`|e1udP=94]ErE": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "9aY%RY8/M5ayiAqP@a7U",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 27,
+                    "y": 261
+                },
+                "9aY%RY8/M5ayiAqP@a7U": {
+                    "opcode": "control_wait",
+                    "next": "Pz:xDRpqyDJNLlR5?;,0",
+                    "parent": "Jf4;4?`|e1udP=94]ErE",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                "10"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "Pz:xDRpqyDJNLlR5?;,0": {
+                    "opcode": "motion_movesteps",
+                    "next": "-n-db;lg-!(lyaGFo;AQ",
+                    "parent": "9aY%RY8/M5ayiAqP@a7U",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                64
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "-n-db;lg-!(lyaGFo;AQ": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "4*Ly{a-GE~GGb~khP7#P",
+                    "parent": "Pz:xDRpqyDJNLlR5?;,0",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Hi, I'm Kristen!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                3
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "4*Ly{a-GE~GGb~khP7#P": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "(P/J:UdY/Q,8|p4}V!P=",
+                    "parent": "-n-db;lg-!(lyaGFo;AQ",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "I'm using squeeze bottles."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                4
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "(P/J:UdY/Q,8|p4}V!P=": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "4*Ly{a-GE~GGb~khP7#P",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click on Neha to see her celebrate!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "4"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "5c740972a1f49202719b50e896bd0cf6",
+                    "name": "Kristen1",
+                    "bitmapResolution": 1,
+                    "md5ext": "5c740972a1f49202719b50e896bd0cf6.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 62.000001871426775,
+                    "rotationCenterY": 87.08308115522249
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": -215,
+            "y": -13,
+            "size": 135.00000000000003,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190813192748",
+        "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
+    }
+}
 },{}],42:[function(require,module,exports){
 module.exports={
     "targets": [
