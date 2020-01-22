@@ -1,4 +1,812 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+},{}],2:[function(require,module,exports){
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],3:[function(require,module,exports){
+module.exports = function isBuffer(arg) {
+  return arg && typeof arg === 'object'
+    && typeof arg.copy === 'function'
+    && typeof arg.fill === 'function'
+    && typeof arg.readUInt8 === 'function';
+}
+},{}],4:[function(require,module,exports){
+(function (process,global){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+var formatRegExp = /%[sdj%]/g;
+exports.format = function(f) {
+  if (!isString(f)) {
+    var objects = [];
+    for (var i = 0; i < arguments.length; i++) {
+      objects.push(inspect(arguments[i]));
+    }
+    return objects.join(' ');
+  }
+
+  var i = 1;
+  var args = arguments;
+  var len = args.length;
+  var str = String(f).replace(formatRegExp, function(x) {
+    if (x === '%%') return '%';
+    if (i >= len) return x;
+    switch (x) {
+      case '%s': return String(args[i++]);
+      case '%d': return Number(args[i++]);
+      case '%j':
+        try {
+          return JSON.stringify(args[i++]);
+        } catch (_) {
+          return '[Circular]';
+        }
+      default:
+        return x;
+    }
+  });
+  for (var x = args[i]; i < len; x = args[++i]) {
+    if (isNull(x) || !isObject(x)) {
+      str += ' ' + x;
+    } else {
+      str += ' ' + inspect(x);
+    }
+  }
+  return str;
+};
+
+
+// Mark that a method should not be used.
+// Returns a modified function which warns once by default.
+// If --no-deprecation is set, then it is a no-op.
+exports.deprecate = function(fn, msg) {
+  // Allow for deprecating things in the process of starting up.
+  if (isUndefined(global.process)) {
+    return function() {
+      return exports.deprecate(fn, msg).apply(this, arguments);
+    };
+  }
+
+  if (process.noDeprecation === true) {
+    return fn;
+  }
+
+  var warned = false;
+  function deprecated() {
+    if (!warned) {
+      if (process.throwDeprecation) {
+        throw new Error(msg);
+      } else if (process.traceDeprecation) {
+        console.trace(msg);
+      } else {
+        console.error(msg);
+      }
+      warned = true;
+    }
+    return fn.apply(this, arguments);
+  }
+
+  return deprecated;
+};
+
+
+var debugs = {};
+var debugEnviron;
+exports.debuglog = function(set) {
+  if (isUndefined(debugEnviron))
+    debugEnviron = process.env.NODE_DEBUG || '';
+  set = set.toUpperCase();
+  if (!debugs[set]) {
+    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
+      var pid = process.pid;
+      debugs[set] = function() {
+        var msg = exports.format.apply(exports, arguments);
+        console.error('%s %d: %s', set, pid, msg);
+      };
+    } else {
+      debugs[set] = function() {};
+    }
+  }
+  return debugs[set];
+};
+
+
+/**
+ * Echos the value of a value. Trys to print the value out
+ * in the best way possible given the different types.
+ *
+ * @param {Object} obj The object to print out.
+ * @param {Object} opts Optional options object that alters the output.
+ */
+/* legacy: obj, showHidden, depth, colors*/
+function inspect(obj, opts) {
+  // default options
+  var ctx = {
+    seen: [],
+    stylize: stylizeNoColor
+  };
+  // legacy...
+  if (arguments.length >= 3) ctx.depth = arguments[2];
+  if (arguments.length >= 4) ctx.colors = arguments[3];
+  if (isBoolean(opts)) {
+    // legacy...
+    ctx.showHidden = opts;
+  } else if (opts) {
+    // got an "options" object
+    exports._extend(ctx, opts);
+  }
+  // set default options
+  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
+  if (isUndefined(ctx.depth)) ctx.depth = 2;
+  if (isUndefined(ctx.colors)) ctx.colors = false;
+  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
+  if (ctx.colors) ctx.stylize = stylizeWithColor;
+  return formatValue(ctx, obj, ctx.depth);
+}
+exports.inspect = inspect;
+
+
+// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
+inspect.colors = {
+  'bold' : [1, 22],
+  'italic' : [3, 23],
+  'underline' : [4, 24],
+  'inverse' : [7, 27],
+  'white' : [37, 39],
+  'grey' : [90, 39],
+  'black' : [30, 39],
+  'blue' : [34, 39],
+  'cyan' : [36, 39],
+  'green' : [32, 39],
+  'magenta' : [35, 39],
+  'red' : [31, 39],
+  'yellow' : [33, 39]
+};
+
+// Don't use 'blue' not visible on cmd.exe
+inspect.styles = {
+  'special': 'cyan',
+  'number': 'yellow',
+  'boolean': 'yellow',
+  'undefined': 'grey',
+  'null': 'bold',
+  'string': 'green',
+  'date': 'magenta',
+  // "name": intentionally not styling
+  'regexp': 'red'
+};
+
+
+function stylizeWithColor(str, styleType) {
+  var style = inspect.styles[styleType];
+
+  if (style) {
+    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
+           '\u001b[' + inspect.colors[style][1] + 'm';
+  } else {
+    return str;
+  }
+}
+
+
+function stylizeNoColor(str, styleType) {
+  return str;
+}
+
+
+function arrayToHash(array) {
+  var hash = {};
+
+  array.forEach(function(val, idx) {
+    hash[val] = true;
+  });
+
+  return hash;
+}
+
+
+function formatValue(ctx, value, recurseTimes) {
+  // Provide a hook for user-specified inspect functions.
+  // Check that value is an object with an inspect function on it
+  if (ctx.customInspect &&
+      value &&
+      isFunction(value.inspect) &&
+      // Filter out the util module, it's inspect function is special
+      value.inspect !== exports.inspect &&
+      // Also filter out any prototype objects using the circular check.
+      !(value.constructor && value.constructor.prototype === value)) {
+    var ret = value.inspect(recurseTimes, ctx);
+    if (!isString(ret)) {
+      ret = formatValue(ctx, ret, recurseTimes);
+    }
+    return ret;
+  }
+
+  // Primitive types cannot have properties
+  var primitive = formatPrimitive(ctx, value);
+  if (primitive) {
+    return primitive;
+  }
+
+  // Look up the keys of the object.
+  var keys = Object.keys(value);
+  var visibleKeys = arrayToHash(keys);
+
+  if (ctx.showHidden) {
+    keys = Object.getOwnPropertyNames(value);
+  }
+
+  // IE doesn't make error fields non-enumerable
+  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
+  if (isError(value)
+      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
+    return formatError(value);
+  }
+
+  // Some type of object without properties can be shortcutted.
+  if (keys.length === 0) {
+    if (isFunction(value)) {
+      var name = value.name ? ': ' + value.name : '';
+      return ctx.stylize('[Function' + name + ']', 'special');
+    }
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    }
+    if (isDate(value)) {
+      return ctx.stylize(Date.prototype.toString.call(value), 'date');
+    }
+    if (isError(value)) {
+      return formatError(value);
+    }
+  }
+
+  var base = '', array = false, braces = ['{', '}'];
+
+  // Make Array say that they are Array
+  if (isArray(value)) {
+    array = true;
+    braces = ['[', ']'];
+  }
+
+  // Make functions say that they are functions
+  if (isFunction(value)) {
+    var n = value.name ? ': ' + value.name : '';
+    base = ' [Function' + n + ']';
+  }
+
+  // Make RegExps say that they are RegExps
+  if (isRegExp(value)) {
+    base = ' ' + RegExp.prototype.toString.call(value);
+  }
+
+  // Make dates with properties first say the date
+  if (isDate(value)) {
+    base = ' ' + Date.prototype.toUTCString.call(value);
+  }
+
+  // Make error with message first say the error
+  if (isError(value)) {
+    base = ' ' + formatError(value);
+  }
+
+  if (keys.length === 0 && (!array || value.length == 0)) {
+    return braces[0] + base + braces[1];
+  }
+
+  if (recurseTimes < 0) {
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    } else {
+      return ctx.stylize('[Object]', 'special');
+    }
+  }
+
+  ctx.seen.push(value);
+
+  var output;
+  if (array) {
+    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
+  } else {
+    output = keys.map(function(key) {
+      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
+    });
+  }
+
+  ctx.seen.pop();
+
+  return reduceToSingleString(output, base, braces);
+}
+
+
+function formatPrimitive(ctx, value) {
+  if (isUndefined(value))
+    return ctx.stylize('undefined', 'undefined');
+  if (isString(value)) {
+    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
+                                             .replace(/'/g, "\\'")
+                                             .replace(/\\"/g, '"') + '\'';
+    return ctx.stylize(simple, 'string');
+  }
+  if (isNumber(value))
+    return ctx.stylize('' + value, 'number');
+  if (isBoolean(value))
+    return ctx.stylize('' + value, 'boolean');
+  // For some reason typeof null is "object", so special case here.
+  if (isNull(value))
+    return ctx.stylize('null', 'null');
+}
+
+
+function formatError(value) {
+  return '[' + Error.prototype.toString.call(value) + ']';
+}
+
+
+function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
+  var output = [];
+  for (var i = 0, l = value.length; i < l; ++i) {
+    if (hasOwnProperty(value, String(i))) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          String(i), true));
+    } else {
+      output.push('');
+    }
+  }
+  keys.forEach(function(key) {
+    if (!key.match(/^\d+$/)) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          key, true));
+    }
+  });
+  return output;
+}
+
+
+function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
+  var name, str, desc;
+  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
+  if (desc.get) {
+    if (desc.set) {
+      str = ctx.stylize('[Getter/Setter]', 'special');
+    } else {
+      str = ctx.stylize('[Getter]', 'special');
+    }
+  } else {
+    if (desc.set) {
+      str = ctx.stylize('[Setter]', 'special');
+    }
+  }
+  if (!hasOwnProperty(visibleKeys, key)) {
+    name = '[' + key + ']';
+  }
+  if (!str) {
+    if (ctx.seen.indexOf(desc.value) < 0) {
+      if (isNull(recurseTimes)) {
+        str = formatValue(ctx, desc.value, null);
+      } else {
+        str = formatValue(ctx, desc.value, recurseTimes - 1);
+      }
+      if (str.indexOf('\n') > -1) {
+        if (array) {
+          str = str.split('\n').map(function(line) {
+            return '  ' + line;
+          }).join('\n').substr(2);
+        } else {
+          str = '\n' + str.split('\n').map(function(line) {
+            return '   ' + line;
+          }).join('\n');
+        }
+      }
+    } else {
+      str = ctx.stylize('[Circular]', 'special');
+    }
+  }
+  if (isUndefined(name)) {
+    if (array && key.match(/^\d+$/)) {
+      return str;
+    }
+    name = JSON.stringify('' + key);
+    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+      name = name.substr(1, name.length - 2);
+      name = ctx.stylize(name, 'name');
+    } else {
+      name = name.replace(/'/g, "\\'")
+                 .replace(/\\"/g, '"')
+                 .replace(/(^"|"$)/g, "'");
+      name = ctx.stylize(name, 'string');
+    }
+  }
+
+  return name + ': ' + str;
+}
+
+
+function reduceToSingleString(output, base, braces) {
+  var numLinesEst = 0;
+  var length = output.reduce(function(prev, cur) {
+    numLinesEst++;
+    if (cur.indexOf('\n') >= 0) numLinesEst++;
+    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
+  }, 0);
+
+  if (length > 60) {
+    return braces[0] +
+           (base === '' ? '' : base + '\n ') +
+           ' ' +
+           output.join(',\n  ') +
+           ' ' +
+           braces[1];
+  }
+
+  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
+}
+
+
+// NOTE: These type checking functions intentionally don't use `instanceof`
+// because it is fragile and can be easily faked with `Object.create()`.
+function isArray(ar) {
+  return Array.isArray(ar);
+}
+exports.isArray = isArray;
+
+function isBoolean(arg) {
+  return typeof arg === 'boolean';
+}
+exports.isBoolean = isBoolean;
+
+function isNull(arg) {
+  return arg === null;
+}
+exports.isNull = isNull;
+
+function isNullOrUndefined(arg) {
+  return arg == null;
+}
+exports.isNullOrUndefined = isNullOrUndefined;
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+exports.isNumber = isNumber;
+
+function isString(arg) {
+  return typeof arg === 'string';
+}
+exports.isString = isString;
+
+function isSymbol(arg) {
+  return typeof arg === 'symbol';
+}
+exports.isSymbol = isSymbol;
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+exports.isUndefined = isUndefined;
+
+function isRegExp(re) {
+  return isObject(re) && objectToString(re) === '[object RegExp]';
+}
+exports.isRegExp = isRegExp;
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+exports.isObject = isObject;
+
+function isDate(d) {
+  return isObject(d) && objectToString(d) === '[object Date]';
+}
+exports.isDate = isDate;
+
+function isError(e) {
+  return isObject(e) &&
+      (objectToString(e) === '[object Error]' || e instanceof Error);
+}
+exports.isError = isError;
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+exports.isFunction = isFunction;
+
+function isPrimitive(arg) {
+  return arg === null ||
+         typeof arg === 'boolean' ||
+         typeof arg === 'number' ||
+         typeof arg === 'string' ||
+         typeof arg === 'symbol' ||  // ES6 symbol
+         typeof arg === 'undefined';
+}
+exports.isPrimitive = isPrimitive;
+
+exports.isBuffer = require('./support/isBuffer');
+
+function objectToString(o) {
+  return Object.prototype.toString.call(o);
+}
+
+
+function pad(n) {
+  return n < 10 ? '0' + n.toString(10) : n.toString(10);
+}
+
+
+var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+              'Oct', 'Nov', 'Dec'];
+
+// 26 Feb 16:19:34
+function timestamp() {
+  var d = new Date();
+  var time = [pad(d.getHours()),
+              pad(d.getMinutes()),
+              pad(d.getSeconds())].join(':');
+  return [d.getDate(), months[d.getMonth()], time].join(' ');
+}
+
+
+// log is just a thin wrapper to console.log that prepends a timestamp
+exports.log = function() {
+  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
+};
+
+
+/**
+ * Inherit the prototype methods from one constructor into another.
+ *
+ * The Function.prototype.inherits from lang.js rewritten as a standalone
+ * function (not on Function.prototype). NOTE: If this file is to be loaded
+ * during bootstrapping this function needs to be rewritten using some native
+ * functions as prototype setup using normal JavaScript does not work as
+ * expected during bootstrapping (see mirror.js in r114903).
+ *
+ * @param {function} ctor Constructor function which needs to inherit the
+ *     prototype.
+ * @param {function} superCtor Constructor function to inherit prototype from.
+ */
+exports.inherits = require('inherits');
+
+exports._extend = function(origin, add) {
+  // Don't do anything if add isn't an object
+  if (!add || !isObject(add)) return origin;
+
+  var keys = Object.keys(add);
+  var i = keys.length;
+  while (i--) {
+    origin[keys[i]] = add[keys[i]];
+  }
+  return origin;
+};
+
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./support/isBuffer":3,"_process":2,"inherits":1}],5:[function(require,module,exports){
 /*
 Act 1 About Me Grader
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -146,7 +954,7 @@ module.exports = class {
     }
 }
 
-},{"../grading-scripts-s3/scratch3":27}],2:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":31}],6:[function(require,module,exports){
 /*
 Act 1 Animal Parade Autograder
 Initial version and testing: Zipporah Klain
@@ -240,7 +1048,7 @@ module.exports = class {
         }
     }
 }
-},{"../grading-scripts-s3/scratch3":27}],3:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":31}],7:[function(require,module,exports){
 /*
 Act 1 Dance Party Autograder
 Initial version and testing: Zipporah Klain
@@ -382,7 +1190,7 @@ module.exports = class {
         if (scriptedSprites >= 2) {this.requirements.scripts.bool=true;}
     }
 }
-},{"../grading-scripts-s3/scratch3":27}],4:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":31}],8:[function(require,module,exports){
 /*
 Act 1 Final Project Autograder
 Initial version and testing: Zipporah Klain
@@ -512,7 +1320,7 @@ module.exports = class {
     }
 
 }
-},{"../grading-scripts-s3/scratch3":27}],5:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":31}],9:[function(require,module,exports){
 /*
 Act 1 Knock Knock Autograder
 Initial version and testing: Saranya Turimella and Zipporah Klain, 2019
@@ -627,7 +1435,7 @@ module.exports = class {
 
     }
 }
-},{"../grading-scripts-s3/scratch3":27,"util":52}],6:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":31,"util":4}],10:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -1539,7 +2347,7 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0 Safari/605.1.15"
     }
 }
-},{}],7:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /* 
 Act 1 Name Poem Autograder
 Initial version and testing: Saranya Turimella and Zipporah Klain, 2019
@@ -1838,7 +2646,7 @@ module.exports = class {
 
 
 
-},{"../act1-grading-scripts/name-poem-original-test":6,"../grading-scripts-s3/scratch3":27}],8:[function(require,module,exports){
+},{"../act1-grading-scripts/name-poem-original-test":10,"../grading-scripts-s3/scratch3":31}],12:[function(require,module,exports){
 /*
 Act 1 Events Ofrenda Autograder
 Intital version and testing: Saranya Turimella, Summer 2019
@@ -2183,7 +2991,7 @@ module.exports = class {
         }
     }
 } 
-},{"../act1-grading-scripts/originalOfrenda-test":10,"../grading-scripts-s3/scratch3":27}],9:[function(require,module,exports){
+},{"../act1-grading-scripts/originalOfrenda-test":14,"../grading-scripts-s3/scratch3":31}],13:[function(require,module,exports){
 
 /*
 On the Farm Autograde: Intial Version and testing: Saranya Turimella, Summer 2019
@@ -2338,7 +3146,7 @@ module.exports = class {
     }
 }
 
-},{"../grading-scripts-s3/scratch3":27}],10:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":31}],14:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -3184,7 +3992,7 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"
     }
 }
-},{}],11:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /* 
 Scavenger Hunt Autograder
 Initial Version and testing: Saranya Turimella
@@ -3342,7 +4150,7 @@ module.exports = class {
 
 
 
-},{"../grading-scripts-s3/scratch3":27}],12:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":31}],16:[function(require,module,exports){
 require('./scratch3');
 
 const loops = ['control_forever', 'control_repeat', 'control_repeat_until'];
@@ -3525,7 +4333,7 @@ module.exports = class {
 
 }
 
-},{"./scratch3":27,"./templates/animation-L1-gaming.json":28,"./templates/animation-L1-multicultural.json":29,"./templates/animation-L1-youth-culture.json":30}],13:[function(require,module,exports){
+},{"./scratch3":31,"./templates/animation-L1-gaming.json":32,"./templates/animation-L1-multicultural.json":33,"./templates/animation-L1-youth-culture.json":34}],17:[function(require,module,exports){
 /* Animation L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and minor bug fixes: Marco Anaya, Summer 2019
@@ -3627,7 +4435,7 @@ module.exports = class {
         };
     }
 }
-},{"./scratch3":27}],14:[function(require,module,exports){
+},{"./scratch3":31}],18:[function(require,module,exports){
 /* Complex Conditionals L1(TIPP&SEE Modify) Autograder
  * Scratch 3 (original) version: Anna Zipp, Summer 2019
  */
@@ -3870,7 +4678,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":27}],15:[function(require,module,exports){
+},{"./scratch3":31}],19:[function(require,module,exports){
 require('./grader');
 require('./scratch3');
 
@@ -4110,12 +4918,11 @@ module.exports = class GradeCondLoopsL1 extends Grader {
     }
 }
 
-},{"./grader":22,"./scratch3":27,"./templates/conditional-loops-L1-gaming":31,"./templates/conditional-loops-L1-multicultural":32,"./templates/conditional-loops-L1-youth-culture":33}],16:[function(require,module,exports){
+},{"./grader":26,"./scratch3":31,"./templates/conditional-loops-L1-gaming":35,"./templates/conditional-loops-L1-multicultural":36,"./templates/conditional-loops-L1-youth-culture":37}],20:[function(require,module,exports){
 /* Conditional Loops L2 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
 Scratch 3 updates: Saranya Turimella, Summer 2019
-Static analysis code (info object) added for Block Usage CSVs and Graphs: Anna Zipp, Autumn 2019
 */
 require('../grading-scripts-s3/scratch3')
 
@@ -4133,17 +4940,6 @@ module.exports = class {
         this.extensions.nextCostume = { bool: false, str: 'The sprite is animated with a "next costume" block' }; // done
         this.extensions.touchingNewSprite = { bool: false, str: 'The sprite stops when it touches a new sprite added from the sprite library' };
         this.extensions.repeatBlock = { bool: false, str: 'Repeat blocks added to animate another sprite' }; // done
-    
-        this.info = {
-            blocks: 0,
-            sprites: 0,
-            spritesWith1Script: 0,
-            spritesWith2Scripts: 0,
-            guidingUser: false,
-            blockTypes: new Set([]),
-            strings: [],
-            score: 0 //requirement score
-        }
     }
 
     grade(fileObj, user) {
@@ -4151,18 +4947,13 @@ module.exports = class {
         this.initReqs();
 
         let numRepeat = 0;
-         
+      
         let allCostumes = 0;
         let sprites = [];
         let objectTouching = null;
         let touching = null;
         let moveOptions = ['motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy', 'motion_glideto', 'motion_goto', 'motion_gotoxy']
         let soundOptions = ['sound_playuntildone', 'sound_play', 'looks_say', 'looks_sayforsecs']
-        
-        // static analysis variables
-        var validScripts = 0;
-        var events = [];
-
         for (let target of project.targets) {
             if (target.isStage) {
                 continue;
@@ -4176,7 +4967,7 @@ module.exports = class {
                             // checking to see if a repeat block is used
                             
                             if (script.blocks[i].opcode.includes('control_repeat')) {
-                                //console.log(target.name)
+                                console.log(target.name)
                                 numRepeat++;
 
                                 //checks to see if a sound is is made once the loop is over
@@ -4192,44 +4983,40 @@ module.exports = class {
                                 }
                                 
                                 
-                                let condition = (script.blocks[i]).conditionBlock;
-                                if (condition != undefined) {
-                                    let condBlock = target.blocks[condition];
-                                    if (condBlock) {
-                                        if (target.blocks[condition].opcode === 'sensing_touchingobject') {
-                                            touching = target.blocks[condition].inputs.TOUCHINGOBJECTMENU[1];
-                                            objectTouching = target.blocks[touching].fields.TOUCHINGOBJECTMENU[0];
+                                let condition = script.blocks[i].inputs.CONDITION[1];
                                 
-                                        }
-                                        // checks that it stops when touching a color
-                                        else if ((target.blocks[condition].opcode === 'sensing_touchingcolor') ||
-                                            (target.blocks[condition].opcode === 'sensing_coloristouchingcolor')) {
-                                            this.requirements.stop.bool = true;
-                                        }   
-                                    }
+
+                                if (target.blocks[condition].opcode === 'sensing_touchingobject') {
+                                    touching = target.blocks[condition].inputs.TOUCHINGOBJECTMENU[1];
+                                    objectTouching = target.blocks[touching].fields.TOUCHINGOBJECTMENU[0];
+                        
+                                }
+                                // checks that it stops when touching a color
+                                else if ((target.blocks[condition].opcode === 'sensing_touchingcolor') ||
+                                    (target.blocks[condition].opcode === 'sensing_coloristouchingcolor')) {
+                                    this.requirements.stop.bool = true;
                                 }
 
                                 let substack = script.blocks[i].inputs.SUBSTACK[1];
                                 
-                                if (substack) {
+                              
                                 // there is only one block in the loop and that is a move block
-                                    if (moveOptions.includes(target.blocks[substack].opcode)) {
-                                    
-                                        this.requirements.moves.bool = true;
-                                    } else {
-                                        // there are multiple blocks in the loop, iterate through them to see 
-                                        while (target.blocks[substack].next !== null) {
+                                if (moveOptions.includes(target.blocks[substack].opcode)) {
+                                   
+                                    this.requirements.moves.bool = true;
+                                } else {
+                                    // there are multiple blocks in the loop, iterate through them to see 
+                                    while (target.blocks[substack].next !== null) {
+                                      
                                         
+                                        if (moveOptions.includes(target.blocks[substack].opcode)) {
                                             
-                                            if (moveOptions.includes(target.blocks[substack].opcode)) {
-                                                
-                                                this.requirements.moves.bool = true;
-                                            }
-                                            if ((target.blocks[substack].opcode === 'looks_switchcostumeto') || (target.blocks[substack].opcode === 'looks_nextcostume')) {
-                                                this.extensions.nextCostume.bool = true;
-                                            }
-                                            substack = target.blocks[substack].next;
+                                            this.requirements.moves.bool = true;
                                         }
+                                        if (target.blocks[substack].opcode === 'looks_switchcostumeto') {
+                                            this.extensions.nextCostume.bool = true;
+                                        }
+                                        substack = target.blocks[substack].next;
                                     }
                                 }
 
@@ -4240,53 +5027,6 @@ module.exports = class {
                     }
                 }
                 allCostumes += target.costumes.length;
-
-                // Static analysis code
-                this.info.sprites++; 
-                //iterating through each of the sprite's scripts that start with an event block
-                for (var script of target.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) { 
-                    // search through each block and execute the given callback function
-                    // that determines what to look for and what to do (through side effects) for each block
-                    script.traverseBlocks((block, level) => {
-                        var opcode = block.opcode;
-
-                        if (opcode in this.info.blockTypes) {
-                            // do nothing
-                        } else {
-                            this.info.blockTypes.add(opcode);
-                            this.info.blocks++;
-                        }
-
-                        if (opcode.includes('say')) {
-                            let string = block.inputs.MESSAGE[1][1].toLowerCase();
-                            this.info.strings.push(string);
-                            if (!this.info.guidingUser) {
-                                for (let keyword of ['press', 'click']) {
-                                    if (string.includes(keyword)) {
-                                        this.info.guidingUser = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        
-                    });
-
-                    var event = script.blocks[0];
-                    // adds to list of unique events and scripts
-                    if (!events.includes(event.opcode)) {
-                        events.push(event.opcode);
-                        if (script.blocks.length > 1) {
-                            validScripts++;
-                        }
-                    }
-                    if (validScripts >=2) {
-                        this.info.spritesWith2Scripts++;
-                    } else if (validScripts >= 1) {
-                        this.info.spritesWith1Script++;
-                    }
-                }
-
             }
         }
         if(sprites.includes(objectTouching)) {
@@ -4295,27 +5035,26 @@ module.exports = class {
        
         if (allCostumes > 12) {
             this.extensions.addCostume.bool = true;
-        }       
+        }
+        
+        
+       
         
         if (numRepeat > 1) {
             this.extensions.repeatBlock.bool = true;
         }
         
         if (project.sprites.length > 2) {
-            if ((objectTouching !== 'Sign') || (objectTouching !== 'Stop')) {
+            if (objectTouching !== 'Sign') {
                 this.extensions.touchingNewSprite.bool = true;
             }
         }
-
-        // Static analysis code
-        delete this.info.strings;
-        this.info.score = Object.values(this.requirements).reduce((sum, r) => sum + (r.bool? 1 : 0), 0);
     }
 }
 
                 
   
-},{"../grading-scripts-s3/scratch3":27}],17:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":31}],21:[function(require,module,exports){
 (function (global){
 /// Info layer template
 global.Context = class {
@@ -4350,7 +5089,7 @@ global.Context = class {
     }
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],18:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 /* General/All-Strand Decomposition By Sequence L1 Autograder
  * Scratch 3 (original) version: Anna Zipp, Summer 2019
  */
@@ -4833,7 +5572,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":27,"./templates/decomp-L1-gaming.json":34,"./templates/decomp-L1-multicultural.json":35,"./templates/decomp-L1-youthculture.json":36}],19:[function(require,module,exports){
+},{"./scratch3":31,"./templates/decomp-L1-gaming.json":38,"./templates/decomp-L1-multicultural.json":39,"./templates/decomp-L1-youthculture.json":40}],23:[function(require,module,exports){
 /* Decomposition by Sequence L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -5077,7 +5816,7 @@ module.exports = class {
     }
 }
 
-},{"./scratch3":27}],20:[function(require,module,exports){
+},{"./scratch3":31}],24:[function(require,module,exports){
 require('./scratch3');
 
 module.exports = class GradeEventsL1 {
@@ -5285,7 +6024,7 @@ module.exports = class GradeEventsL1 {
     }
 }
 
-},{"./scratch3":27,"./templates/events-L1-gaming":37,"./templates/events-L1-multicultural":38,"./templates/events-L1-youth-culture":39}],21:[function(require,module,exports){
+},{"./scratch3":31,"./templates/events-L1-gaming":41,"./templates/events-L1-multicultural":42,"./templates/events-L1-youth-culture":43}],25:[function(require,module,exports){
 /* Events L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and bug fixes: Marco Anaya, Summer 2019
@@ -5466,7 +6205,7 @@ module.exports = class {
         
     }
 } 
-},{"./scratch3":27}],22:[function(require,module,exports){
+},{"./scratch3":31}],26:[function(require,module,exports){
 (function (global){
 require('./scratch3');
 
@@ -5563,7 +6302,7 @@ global.Grader = class {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./scratch3":27}],23:[function(require,module,exports){
+},{"./scratch3":31}],27:[function(require,module,exports){
 /* One Way Sync L1 Autograder
  * Marco Anaya, Summer 2019
  */
@@ -5722,7 +6461,7 @@ module.exports = class {
 		return reqs;
 	}
 }
-},{"./scratch3":27}],24:[function(require,module,exports){
+},{"./scratch3":31}],28:[function(require,module,exports){
 /* One Way Sync L2 Autograder
  * Marco Anaya, Summer 2019
  */
@@ -5834,7 +6573,7 @@ module.exports = class {
 	}
 }
 
-},{"./scratch3":27}],25:[function(require,module,exports){
+},{"./scratch3":31}],29:[function(require,module,exports){
 /* Scratch Basics L1 Autograder
 Updated Version: Saranya Turimella, Summer 2019
 */
@@ -5872,14 +6611,18 @@ module.exports = class {
    
 
     grade(fileObj, user) {
+
         var project = new Project(fileObj, null);
         // call function that takes in the project, decides what strand it is in, that function returns a string
 
+
         let projBackdrops = [];
         for (let target of project.targets) {
+
             for (let costume of target.costumes) {
                 projBackdrops.push(costume.assetId);
             }
+
         }
 
         var templates = {
@@ -5888,27 +6631,36 @@ module.exports = class {
             gaming: require('./templates/scratch-basics-L1-gaming')
         };
         
+
         let strand = detectStrand(project, templates);
 
-        let sayBlocks = ['looks_say', 'looks_sayforsecs'];
 
         // gaming strand 
         if (strand === 'gaming') {
+
             this.initReqsGaming();
+            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
             let sayCarl = false;
+
             let sayBlocksGaming = 0;
 
             for (let target of project.targets) {
                 if (target.isStage) { continue; }
                 else {
+
+
                     for (let script of target.scripts) {
                         for (let i = 0; i < script.blocks.length; i++) {
+
+
                             // makes sure that the script starts with an event block
                             if (script.blocks[0].opcode.includes('event_')) {
-                                if (script.blocks[i].opcode.includes('looks_say')) {
+                                if (script.blocks[i].opcode === 'looks_sayforsecs') {
+
                                     // finds the block with specified message
                                     if (script.blocks[i].inputs.MESSAGE[1][1] === 'Click the Space Bar to see Helen the Amazing Color Changing Hedgehog.') {
                                         let next = i + 1;
+
                                         // checks the next block to make sure it is not undefined, if it is not, checks to see if it is a say block
                                         if (script.blocks[next] !== undefined) {
                                             if (sayBlocks.includes(script.blocks[next].opcode)) {
@@ -5918,13 +6670,17 @@ module.exports = class {
                                         }
                                     }
                                 }
+
                                 // checks to see if there is any block that moves 10 steps
                                 if (script.blocks[i].opcode === 'motion_movesteps') {
+
+
                                     if (script.blocks[i].inputs.STEPS[1][1] === '10') {
                                         this.extensions.carlMoves.bool = true;
                                     }
                                 }
-                                if (sayBlocks.includes(script.blocks[i].opcode) && target.name.includes('elen')) {
+
+                                if (sayBlocks.includes(script.blocks[i].opcode)) {
                                     sayBlocksGaming++;
                                 }
                             }
@@ -5933,22 +6689,22 @@ module.exports = class {
                 }
             }
             // requirement not fulfilled
-            // if (sayCarl === false) {
-            //     if (sayBlocksGaming > 4) {
-            //         this.extensions.helenSpeaks.bool = true;
-            //     }
-            // } else {
-            //     if (sayBlocksGaming > 5) {
-            //         this.extensions.helenSpeaks.bool = true;
-            //     }   
-            // }
-            if (sayBlocksGaming > 1) {
+            if (sayCarl === false) {
+                if (sayBlocksGaming > 4) {
+                    this.extensions.helenSpeaks.bool = true;
+                }
+            }
+
+            if (sayBlocksGaming > 5) {
                 this.extensions.helenSpeaks.bool = true;
             }
+            
         }
+
 
         if (strand === 'multicultural') {
             this.initReqsMulticultural();
+            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
             let sayBlocksMulticultural = 0;
             let sayNeha = false;
 
@@ -5956,13 +6712,18 @@ module.exports = class {
                 if (target.isStage) { continue; }
                 else {
                     for (let script of target.scripts) {
+
                         for (let i = 0; i < script.blocks.length; i++) {
+
                             // makes sure that the script starts with an event block
                             if (script.blocks[0].opcode.includes('event_')) {
-                                if (script.blocks[i].opcode.includes('looks_say')) {
+                                if (script.blocks[i].opcode === 'looks_say') {
+
+
                                     // finds the block with the specified message
                                     if (script.blocks[i].inputs.MESSAGE[1][1] === 'Happy Holi!') {
                                         let next = i + 1;
+
                                         // checks the next block to make sure it is not undefined, if it not, checks to see if it is a say block
                                         if (script.blocks[next] !== undefined) {
                                             if (sayBlocks.includes(script.blocks[next].opcode)) {
@@ -5972,14 +6733,16 @@ module.exports = class {
                                         }
                                     }
                                 }
+
                                 // checks to see if there is a block that moves 10 steps
                                 if (script.blocks[i].opcode === 'motion_movesteps') {
                                     if (script.blocks[i].inputs.STEPS[1][1] === '10') {
                                         this.extensions.nehaMoves.bool = true;
                                     }
                                 }
+
                                 // if there is a say block in the sprite that is brad and the message is different from what he says
-                                if (sayBlocks.includes(script.blocks[i].opcode) && target.name.includes('rad')) {
+                                if (sayBlocks.includes(script.blocks[i].opcode)) {
                                     sayBlocksMulticultural++;
                                 }
                             }
@@ -5987,22 +6750,20 @@ module.exports = class {
                     }
                 }
             }
-            // if (sayNeha === false) {
-            //     if (sayBlocksMulticultural > 14) {
-            //         this.extensions.bradSpeaks.bool = true;
-            //     }
-            // }
-            // // checks to see if there is one more than the original say block count, exlcuding the say block needed for the requirement
-            // if (sayBlocksMulticultural > 15) {
-            //     this.extensions.bradSpeaks.bool = true;
-            // }
-            if (sayBlocksMulticultural > 2) {
-                console.log('SayblocksMulti count is:' + sayBlocksMulticultural);
+            if (sayNeha === false) {
+                if (sayBlocksMulticultural > 14) {
+                    this.extensions.bradSpeaks.bool = true;
+                }
+            }
+            // checks to see if there is one more than the original say block count, exlcuding the say block needed for the requirement
+            if (sayBlocksMulticultural > 15) {
                 this.extensions.bradSpeaks.bool = true;
             }
         }
 
+
         if (strand === 'youthCulture') {
+
             // make an array of the original costumes from the original project
             this.initReqsYouthCulture();
             let origCostumes = [];
@@ -6024,6 +6785,7 @@ module.exports = class {
                 }
             }
 
+
             if (origCostumes.length !== newCostumes.length) {
                 this.extensions.changeCostumeEasel.bool = true;
             } else {
@@ -6035,20 +6797,28 @@ module.exports = class {
                 }
             }
 
+
+            let sayBlocks = ['looks_say', 'looks_sayforsecs'];
+            
             let sayBlocksYouthCulture = 0;
             let sayIndia = false;
 
             for (let target of project.targets) {
                 if (target.isStage) { continue; }
                 else {
+
+
                     for (let script of target.scripts) {
                         for (let i = 0; i < script.blocks.length; i++) {
+
                             //makes sure that the script starts with an event block
                             if (script.blocks[0].opcode.includes('event_')) {
-                                if (script.blocks[i].opcode.includes('looks_say')) {
+                                if (script.blocks[i].opcode === 'looks_sayforsecs') {
+
                                     // find the block with the specified message
                                     if (script.blocks[i].inputs.MESSAGE[1][1] === 'Click the Space Bar to see some of the things I like.') {
                                         let next = i + 1;
+
                                         // checks the next block to make sure it is not undefined, if it is not, checks to see that the block after that is a say block
                                         if (script.blocks[next] !== undefined) {
                                             if (sayBlocks.includes(script.blocks[next].opcode)) {
@@ -6068,29 +6838,31 @@ module.exports = class {
                             }
 
                             // counts the number of say blocks
-                            if (sayBlocks.includes(script.blocks[i].opcode) && target.name.includes('asel')) {
+                            if (sayBlocks.includes(script.blocks[i].opcode)) {
                                 sayBlocksYouthCulture++;
                             }
+
                         }
                     }
+
+
                 }
             }
             
-            // if (sayIndia === false) {
-            //     if (sayBlocksYouthCulture > 4) {
-            //         this.extensions.easelSaysSomethingElse.bool = true;
-            //     }
-            // }
-            // if (sayBlocksYouthCulture > 5) {
-            //     this.extensions.easelSaysSomethingElse.bool = true;
-            // }  
-            if (sayBlocksYouthCulture > 1) {
+            if (sayIndia === false) {
+                if (sayBlocksYouthCulture > 4) {
+                    this.extensions.easelSaysSomethingElse.bool = true;
+                }
+            }
+
+            if (sayBlocksYouthCulture > 5) {
                 this.extensions.easelSaysSomethingElse.bool = true;
             }
+             
         }
     }
 }
-},{"../grading-scripts-s3/scratch3":27,"../grading-scripts-s3/youthOriginal":47,"./templates/scratch-basics-L1-gaming":40,"./templates/scratch-basics-L1-multicultural":41,"./templates/scratch-basics-L1-youthculture":42}],26:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":31,"../grading-scripts-s3/youthOriginal":51,"./templates/scratch-basics-L1-gaming":44,"./templates/scratch-basics-L1-multicultural":45,"./templates/scratch-basics-L1-youthculture":46}],30:[function(require,module,exports){
 /* Scratch Basics L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -6289,7 +7061,7 @@ module.exports = class {
         
     }
 }
-},{"./scratch3":27}],27:[function(require,module,exports){
+},{"./scratch3":31}],31:[function(require,module,exports){
 (function (global){
 /// Scratch 3 helper functions
 require('./context');
@@ -6616,19 +7388,19 @@ global.opcodeLists = {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./context":17}],28:[function(require,module,exports){
+},{"./context":21}],32:[function(require,module,exports){
 module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"c371efaccecb338cfbf99e3a526a8b42","name":"Racetrack","bitmapResolution":1,"md5ext":"c371efaccecb338cfbf99e3a526a8b42.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Bee","variables":{},"lists":{},"broadcasts":{},"blocks":{"_L+5lb=xE}1*|GpP}mAI":{"opcode":"event_whenflagclicked","next":"A=y9Z+^Mr6h6M~3h-o6%","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"A=y9Z+^Mr6h6M~3h-o6%":{"opcode":"motion_gotoxy","next":"4).rhTF;UVKCM]d8rD.F","parent":"_L+5lb=xE}1*|GpP}mAI","inputs":{"X":[1,[4,-174]],"Y":[1,[4,-10]]},"fields":{},"shadow":false,"topLevel":false},"4).rhTF;UVKCM]d8rD.F":{"opcode":"looks_switchcostumeto","next":null,"parent":"A=y9Z+^Mr6h6M~3h-o6%","inputs":{"COSTUME":[1,"iun}SZ7i%MY).{G{[c_,"]},"fields":{},"shadow":false,"topLevel":false},"iun}SZ7i%MY).{G{[c_,":{"opcode":"looks_costume","next":null,"parent":"4).rhTF;UVKCM]d8rD.F","inputs":{},"fields":{"COSTUME":["bumblebee1"]},"shadow":true,"topLevel":false},"[1EB1ggj@?fkz+qox^e0":{"opcode":"event_whenkeypressed","next":"PU-1R8}:x1|Xn%sBZ0NR","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":68,"y":267},"PU-1R8}:x1|Xn%sBZ0NR":{"opcode":"control_repeat","next":null,"parent":"[1EB1ggj@?fkz+qox^e0","inputs":{"TIMES":[1,[6,"16"]],"SUBSTACK":[2,",.@BOSQ2(?9IjIQ}S^QB"]},"fields":{},"shadow":false,"topLevel":false},",.@BOSQ2(?9IjIQ}S^QB":{"opcode":"control_wait","next":"dilrm{0V=Q9kge;PNPcm","parent":"PU-1R8}:x1|Xn%sBZ0NR","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},"dilrm{0V=Q9kge;PNPcm":{"opcode":"looks_nextcostume","next":"0]7B3.!ySNfSxa!_RaBQ","parent":",.@BOSQ2(?9IjIQ}S^QB","inputs":{},"fields":{},"shadow":false,"topLevel":false},"0]7B3.!ySNfSxa!_RaBQ":{"opcode":"motion_movesteps","next":null,"parent":"dilrm{0V=Q9kge;PNPcm","inputs":{"STEPS":[1,[4,"10"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"?iY(@IzAm~D[`rt4~ljS":{"blockId":null,"x":399.96296296296293,"y":694.8518518518518,"width":241,"height":299,"minimized":false,"text":"Build one script here. It should have the Bee flap its wings, while it stays in one location, when the down arrow key is pressed. Look at the script on the Monkey sprite."},"DuZTdlVF?Fg`(DmygOj,":{"blockId":null,"x":407.4074074074074,"y":281.5185185185186,"width":241.5,"height":297,"minimized":false,"text":"This script should have the Bee flap its wings and move across the stage to the finish line when the space key is pressed. Modify it to fix it, so it does that correctly. Look at the script on the Snake sprite."}},"currentCostume":0,"costumes":[{"assetId":"0d3069bd24c5ad7d45c85d7a751e3071","name":"bumblebee1","bitmapResolution":1,"md5ext":"0d3069bd24c5ad7d45c85d7a751e3071.svg","dataFormat":"svg","rotationCenterX":169,"rotationCenterY":90},{"assetId":"d4d66fe1d56f697d6967767e0524c4bd","name":"bumblebee2","bitmapResolution":1,"md5ext":"d4d66fe1d56f697d6967767e0524c4bd.svg","dataFormat":"svg","rotationCenterX":181,"rotationCenterY":72},{"assetId":"e575ce0d29f553050cea2507e476ef1c","name":"bumblebee3","bitmapResolution":1,"md5ext":"e575ce0d29f553050cea2507e476ef1c.svg","dataFormat":"svg","rotationCenterX":181,"rotationCenterY":88},{"assetId":"9a5999064f8028ec122670466bc49f9f","name":"bumblebee4","bitmapResolution":1,"md5ext":"9a5999064f8028ec122670466bc49f9f.svg","dataFormat":"svg","rotationCenterX":232,"rotationCenterY":72}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":146,"y":-10,"size":45.000000000000014,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Snake","variables":{},"lists":{},"broadcasts":{},"blocks":{"84[FWdbziUjC)luCL1Y]":{"opcode":"event_whenflagclicked","next":"bYip[+tH+352-wNYyiLY","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"bYip[+tH+352-wNYyiLY":{"opcode":"motion_gotoxy","next":"A]K(VWrWlD8/(4Yx(Q{;","parent":"84[FWdbziUjC)luCL1Y]","inputs":{"X":[1,[4,-211]],"Y":[1,[4,-133]]},"fields":{},"shadow":false,"topLevel":false},"A]K(VWrWlD8/(4Yx(Q{;":{"opcode":"looks_switchcostumeto","next":"!?Oznz(loP2ZL!tM,x[7","parent":"bYip[+tH+352-wNYyiLY","inputs":{"COSTUME":[1,"a+vc/w%OiJz+B+!8SH@@"]},"fields":{},"shadow":false,"topLevel":false},"a+vc/w%OiJz+B+!8SH@@":{"opcode":"looks_costume","next":null,"parent":"A]K(VWrWlD8/(4Yx(Q{;","inputs":{},"fields":{"COSTUME":["snake1"]},"shadow":true,"topLevel":false},"!?Oznz(loP2ZL!tM,x[7":{"opcode":"looks_sayforsecs","next":null,"parent":"A]K(VWrWlD8/(4Yx(Q{;","inputs":{"MESSAGE":[1,[10,"Hsss..."]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"|lKC;U3+J9Xb,Ip75%B+":{"opcode":"event_whenkeypressed","next":"Z-n76N9kiz}(b3Kxi}_T","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow"]},"shadow":false,"topLevel":true,"x":22,"y":360},"Z-n76N9kiz}(b3Kxi}_T":{"opcode":"control_wait","next":"9,|Bj?*t}Oo:G1uG=J^W","parent":"|lKC;U3+J9Xb,Ip75%B+","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},"9,|Bj?*t}Oo:G1uG=J^W":{"opcode":"looks_switchcostumeto","next":"Q*cRSp^MT+{87D1uhHV!","parent":"Z-n76N9kiz}(b3Kxi}_T","inputs":{"COSTUME":[1,"lK%my9X4{4ogMM|^.^fQ"]},"fields":{},"shadow":false,"topLevel":false},"lK%my9X4{4ogMM|^.^fQ":{"opcode":"looks_costume","next":null,"parent":"9,|Bj?*t}Oo:G1uG=J^W","inputs":{},"fields":{"COSTUME":["snake2"]},"shadow":true,"topLevel":false},"Q*cRSp^MT+{87D1uhHV!":{"opcode":"control_wait","next":"JdO}Gxnlp0S0QF[=r6%;","parent":"9,|Bj?*t}Oo:G1uG=J^W","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},"JdO}Gxnlp0S0QF[=r6%;":{"opcode":"looks_switchcostumeto","next":"rX+~p5H/,%^cr8~YMp.b","parent":"Q*cRSp^MT+{87D1uhHV!","inputs":{"COSTUME":[1,"fL*KUW)npuDtWARYc)bo"]},"fields":{},"shadow":false,"topLevel":false},"fL*KUW)npuDtWARYc)bo":{"opcode":"looks_costume","next":null,"parent":"JdO}Gxnlp0S0QF[=r6%;","inputs":{},"fields":{"COSTUME":["snake3"]},"shadow":true,"topLevel":false},"rX+~p5H/,%^cr8~YMp.b":{"opcode":"control_wait","next":"Pc4vS7,-R+A!zHDGSb?`","parent":"JdO}Gxnlp0S0QF[=r6%;","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},"Pc4vS7,-R+A!zHDGSb?`":{"opcode":"looks_switchcostumeto","next":".LNyz,=q-|3U2KYUyNG9","parent":"rX+~p5H/,%^cr8~YMp.b","inputs":{"COSTUME":[1,")]T}mdED3iq+8C=-%=e{"]},"fields":{},"shadow":false,"topLevel":false},")]T}mdED3iq+8C=-%=e{":{"opcode":"looks_costume","next":null,"parent":"Pc4vS7,-R+A!zHDGSb?`","inputs":{},"fields":{"COSTUME":["snake4"]},"shadow":true,"topLevel":false},".LNyz,=q-|3U2KYUyNG9":{"opcode":"control_wait","next":null,"parent":"Pc4vS7,-R+A!zHDGSb?`","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},"[1EB1ggj@?fkz+qox^e0":{"opcode":"event_whenkeypressed","next":"PU-1R8}:x1|Xn%sBZ0NR","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":24,"y":836},"PU-1R8}:x1|Xn%sBZ0NR":{"opcode":"control_repeat","next":null,"parent":"[1EB1ggj@?fkz+qox^e0","inputs":{"TIMES":[1,[6,"36"]],"SUBSTACK":[2,",.@BOSQ2(?9IjIQ}S^QB"]},"fields":{},"shadow":false,"topLevel":false},",.@BOSQ2(?9IjIQ}S^QB":{"opcode":"control_wait","next":"dilrm{0V=Q9kge;PNPcm","parent":"PU-1R8}:x1|Xn%sBZ0NR","inputs":{"DURATION":[1,[5,"0.2"]]},"fields":{},"shadow":false,"topLevel":false},"dilrm{0V=Q9kge;PNPcm":{"opcode":"looks_nextcostume","next":"0]7B3.!ySNfSxa!_RaBQ","parent":",.@BOSQ2(?9IjIQ}S^QB","inputs":{},"fields":{},"shadow":false,"topLevel":false},"0]7B3.!ySNfSxa!_RaBQ":{"opcode":"motion_movesteps","next":null,"parent":"dilrm{0V=Q9kge;PNPcm","inputs":{"STEPS":[1,[4,"10"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":3,"costumes":[{"assetId":"c068cd85966ad9721f4204d2726e38de","name":"snake1","bitmapResolution":1,"md5ext":"c068cd85966ad9721f4204d2726e38de.svg","dataFormat":"svg","rotationCenterX":117,"rotationCenterY":50},{"assetId":"a6457d860f2c98e5b34cb1b586579921","name":"snake2","bitmapResolution":1,"md5ext":"a6457d860f2c98e5b34cb1b586579921.svg","dataFormat":"svg","rotationCenterX":146,"rotationCenterY":58},{"assetId":"78d3c4f23c7062cf6d3bb4734de91e36","name":"snake3","bitmapResolution":1,"md5ext":"78d3c4f23c7062cf6d3bb4734de91e36.svg","dataFormat":"svg","rotationCenterX":171,"rotationCenterY":61},{"assetId":"a386b7d046bcc19fa6a45961f9eb474c","name":"snake4","bitmapResolution":1,"md5ext":"a386b7d046bcc19fa6a45961f9eb474c.svg","dataFormat":"svg","rotationCenterX":156,"rotationCenterY":57}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":149,"y":-133,"size":85,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Monkey ","variables":{},"lists":{},"broadcasts":{},"blocks":{"?K4D^S*bY*ym?y|lOQ(]":{"opcode":"event_whenflagclicked","next":"uB:@HVlzJ5]pau%QfhSs","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":38,"y":33},"uB:@HVlzJ5]pau%QfhSs":{"opcode":"looks_switchcostumeto","next":"Rf(SqwLDLJ2`eIA(id#0","parent":"?K4D^S*bY*ym?y|lOQ(]","inputs":{"COSTUME":[1,"Kh*oWNN+TaOEk@YQ[!S^"]},"fields":{},"shadow":false,"topLevel":false},"Kh*oWNN+TaOEk@YQ[!S^":{"opcode":"looks_costume","next":null,"parent":"uB:@HVlzJ5]pau%QfhSs","inputs":{},"fields":{"COSTUME":["monkey top right"]},"shadow":true,"topLevel":false},"Rf(SqwLDLJ2`eIA(id#0":{"opcode":"motion_gotoxy","next":"RFT7OOdOGndf|Q;PqI!a","parent":"uB:@HVlzJ5]pau%QfhSs","inputs":{"X":[1,[4,-12]],"Y":[1,[4,83]]},"fields":{},"shadow":false,"topLevel":false},"RFT7OOdOGndf|Q;PqI!a":{"opcode":"looks_sayforsecs","next":"Y5y.Oo7tq%RxTOhgd_kJ","parent":"Rf(SqwLDLJ2`eIA(id#0","inputs":{"MESSAGE":[1,[10,"We're having a race today!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"Y5y.Oo7tq%RxTOhgd_kJ":{"opcode":"looks_sayforsecs","next":"Fl80G8,nR:w6dt2qM1,z","parent":"RFT7OOdOGndf|Q;PqI!a","inputs":{"MESSAGE":[1,[10,"Press the down arrow to watch me wave my flag."]],"SECS":[1,[4,4]]},"fields":{},"shadow":false,"topLevel":false},"Fl80G8,nR:w6dt2qM1,z":{"opcode":"looks_sayforsecs","next":null,"parent":"Y5y.Oo7tq%RxTOhgd_kJ","inputs":{"MESSAGE":[1,[10,"Then, press the spacebar to start the race!"]],"SECS":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"vJogFI|*a1Oe*QbYto[o":{"opcode":"event_whenkeypressed","next":"uv+9+@dt=B:2@;OT5-ci","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow"]},"shadow":false,"topLevel":true,"x":41,"y":414},"uv+9+@dt=B:2@;OT5-ci":{"opcode":"control_wait","next":";]h6RB)y0d7Jk-`6%hbJ","parent":"vJogFI|*a1Oe*QbYto[o","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},";]h6RB)y0d7Jk-`6%hbJ":{"opcode":"looks_switchcostumeto","next":"_0F}rJd)Ax2=UgxOU5nr","parent":"uv+9+@dt=B:2@;OT5-ci","inputs":{"COSTUME":[1,"nv9guutkNs7%9Y?As8N["]},"fields":{},"shadow":false,"topLevel":false},"nv9guutkNs7%9Y?As8N[":{"opcode":"looks_costume","next":null,"parent":";]h6RB)y0d7Jk-`6%hbJ","inputs":{},"fields":{"COSTUME":["monkey bottom right"]},"shadow":true,"topLevel":false},"_0F}rJd)Ax2=UgxOU5nr":{"opcode":"control_wait","next":"XB1[V6^cgIX/)pg;N5F}","parent":";]h6RB)y0d7Jk-`6%hbJ","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},"XB1[V6^cgIX/)pg;N5F}":{"opcode":"looks_switchcostumeto","next":"o7lPH##L;6P(Jq^-QfaJ","parent":"_0F}rJd)Ax2=UgxOU5nr","inputs":{"COSTUME":[1,"_YEH?jyur|4S8#W1x9dK"]},"fields":{},"shadow":false,"topLevel":false},"_YEH?jyur|4S8#W1x9dK":{"opcode":"looks_costume","next":null,"parent":"XB1[V6^cgIX/)pg;N5F}","inputs":{},"fields":{"COSTUME":["monkey bottom left"]},"shadow":true,"topLevel":false},"o7lPH##L;6P(Jq^-QfaJ":{"opcode":"control_wait","next":"oD9^XbKY*`]WB;|.JP8c","parent":"XB1[V6^cgIX/)pg;N5F}","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},"oD9^XbKY*`]WB;|.JP8c":{"opcode":"looks_switchcostumeto","next":"e5%5@H#gkZb?g_LlZxBE","parent":"o7lPH##L;6P(Jq^-QfaJ","inputs":{"COSTUME":[1,"htYDR#q=j%MlVXxEUpr-"]},"fields":{},"shadow":false,"topLevel":false},"htYDR#q=j%MlVXxEUpr-":{"opcode":"looks_costume","next":null,"parent":"oD9^XbKY*`]WB;|.JP8c","inputs":{},"fields":{"COSTUME":["monkey top left"]},"shadow":true,"topLevel":false},"e5%5@H#gkZb?g_LlZxBE":{"opcode":"control_wait","next":"m=b^FuAAI-bbRY{*z-Pg","parent":"oD9^XbKY*`]WB;|.JP8c","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},"m=b^FuAAI-bbRY{*z-Pg":{"opcode":"looks_switchcostumeto","next":null,"parent":"e5%5@H#gkZb?g_LlZxBE","inputs":{"COSTUME":[1,"HSP.2[-f,|V`S,KlBB0o"]},"fields":{},"shadow":false,"topLevel":false},"HSP.2[-f,|V`S,KlBB0o":{"opcode":"looks_costume","next":null,"parent":"m=b^FuAAI-bbRY{*z-Pg","inputs":{},"fields":{"COSTUME":["monkey top right"]},"shadow":true,"topLevel":false},"}vG;i*1dT#_OS@YU:=aD":{"opcode":"event_whenkeypressed","next":"G{X7710sg5@1Sd1y@G[o","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":45,"y":937},"G{X7710sg5@1Sd1y@G[o":{"opcode":"looks_sayforsecs","next":";Od2fUM[Pm4OZ}+13:Ab","parent":"}vG;i*1dT#_OS@YU:=aD","inputs":{"MESSAGE":[1,[10,"Go!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},";Od2fUM[Pm4OZ}+13:Ab":{"opcode":"control_repeat","next":"k_R1*AYxT)5ixNyk/Mjy","parent":"G{X7710sg5@1Sd1y@G[o","inputs":{"TIMES":[1,[6,36]],"SUBSTACK":[2,"K#]My7K1F`{7fO|]yv4Y"]},"fields":{},"shadow":false,"topLevel":false},"K#]My7K1F`{7fO|]yv4Y":{"opcode":"control_wait","next":"/5y3J._OxlEW6!^_GdJ[","parent":";Od2fUM[Pm4OZ}+13:Ab","inputs":{"DURATION":[1,[5,0.2]]},"fields":{},"shadow":false,"topLevel":false},"/5y3J._OxlEW6!^_GdJ[":{"opcode":"looks_nextcostume","next":null,"parent":"K#]My7K1F`{7fO|]yv4Y","inputs":{},"fields":{},"shadow":false,"topLevel":false},"k_R1*AYxT)5ixNyk/Mjy":{"opcode":"looks_sayforsecs","next":null,"parent":";Od2fUM[Pm4OZ}+13:Ab","inputs":{"MESSAGE":[1,[10,"Yay!!!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"107d47ecc7377b5b3192d8ba832ef2ef","name":"monkey top right","bitmapResolution":1,"md5ext":"107d47ecc7377b5b3192d8ba832ef2ef.svg","dataFormat":"svg","rotationCenterX":139,"rotationCenterY":130},{"assetId":"c759fe2dfc5a76191f8b70bbc852337c","name":"monkey bottom right","bitmapResolution":2,"md5ext":"c759fe2dfc5a76191f8b70bbc852337c.png","dataFormat":"png","rotationCenterX":285,"rotationCenterY":248},{"assetId":"3d705748231f2e1351f78397b486a472","name":"monkey bottom left","bitmapResolution":2,"md5ext":"3d705748231f2e1351f78397b486a472.png","dataFormat":"png","rotationCenterX":275,"rotationCenterY":255},{"assetId":"1fc6c2c6386367da5a2e94a29310dd4a","name":"monkey top left","bitmapResolution":2,"md5ext":"1fc6c2c6386367da5a2e94a29310dd4a.png","dataFormat":"png","rotationCenterX":376,"rotationCenterY":276}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-12,"y":83,"size":35.000000000000014,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Kangaroo","variables":{},"lists":{},"broadcasts":{},"blocks":{"5EUiK3P1Whz.zi1RK-4S":{"opcode":"event_whenflagclicked","next":"6WDN|[yq[!y.o=*Z)y%x","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":23,"y":62},"6WDN|[yq[!y.o=*Z)y%x":{"opcode":"motion_gotoxy","next":"lj~`f0h*5^!Lf.VC[DN[","parent":"5EUiK3P1Whz.zi1RK-4S","inputs":{"X":[1,[4,-205]],"Y":[1,[4,72]]},"fields":{},"shadow":false,"topLevel":false},"lj~`f0h*5^!Lf.VC[DN[":{"opcode":"looks_switchcostumeto","next":null,"parent":"6WDN|[yq[!y.o=*Z)y%x","inputs":{"COSTUME":[1,"K%:i2?Ak*WiQvh]~p(d@"]},"fields":{},"shadow":false,"topLevel":false},"K%:i2?Ak*WiQvh]~p(d@":{"opcode":"looks_costume","next":null,"parent":"lj~`f0h*5^!Lf.VC[DN[","inputs":{},"fields":{"COSTUME":["kangaroo crouching"]},"shadow":true,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"1a3d749ac7648e42aa4a188defadd7e5","name":"kangaroo crouching","bitmapResolution":1,"md5ext":"1a3d749ac7648e42aa4a188defadd7e5.svg","dataFormat":"svg","rotationCenterX":83,"rotationCenterY":100},{"assetId":"b302b866bc09cc452e4afd9bf02b3889","name":"kangaroo half jump","bitmapResolution":1,"md5ext":"b302b866bc09cc452e4afd9bf02b3889.svg","dataFormat":"svg","rotationCenterX":83,"rotationCenterY":113},{"assetId":"59b44f7b77f8dca039e2c5ab5b25ec6e","name":"kangaroo jump","bitmapResolution":1,"md5ext":"59b44f7b77f8dca039e2c5ab5b25ec6e.svg","dataFormat":"svg","rotationCenterX":61,"rotationCenterY":92},{"assetId":"b302b866bc09cc452e4afd9bf02b3889","name":"kangaroo half jump2","bitmapResolution":1,"md5ext":"b302b866bc09cc452e4afd9bf02b3889.svg","dataFormat":"svg","rotationCenterX":83,"rotationCenterY":113}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":false,"x":-205,"y":72,"size":60,"direction":90,"draggable":false,"rotationStyle":"left-right"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190822194548","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"}}
-},{}],29:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":1,"costumes":[{"assetId":"4953b97814c20b8a3dab049695d509c7","name":"073018DragonBoat_bg","bitmapResolution":2,"md5ext":"4953b97814c20b8a3dab049695d509c7.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"b9c928707e817780fe6e373ab7251e2b","name":"081018DragonBoat_bg","bitmapResolution":2,"md5ext":"b9c928707e817780fe6e373ab7251e2b.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"blue dragon boat","variables":{},"lists":{},"broadcasts":{},"blocks":{"FFR95}}V~GN]}7X5j;9K":{"opcode":"event_whenkeypressed","next":".O#5Xx[CR_kMrHY[i|Dx","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-935,"y":-1220},".O#5Xx[CR_kMrHY[i|Dx":{"opcode":"control_repeat","next":null,"parent":"FFR95}}V~GN]}7X5j;9K","inputs":{"TIMES":[1,[6,"35"]],"SUBSTACK":[2,"jNFbKFq}IuK(c[9(`oWr"]},"fields":{},"shadow":false,"topLevel":false},"jNFbKFq}IuK(c[9(`oWr":{"opcode":"looks_switchcostumeto","next":"XEW(Z076Z#9yHvZ|ZDL5","parent":".O#5Xx[CR_kMrHY[i|Dx","inputs":{"COSTUME":[1,"TP!8h)[T(:vpYEJo+3~v"]},"fields":{},"shadow":false,"topLevel":false},"TP!8h)[T(:vpYEJo+3~v":{"opcode":"looks_costume","next":null,"parent":"jNFbKFq}IuK(c[9(`oWr","inputs":{},"fields":{"COSTUME":["down_blue",null]},"shadow":true,"topLevel":false},"XEW(Z076Z#9yHvZ|ZDL5":{"opcode":"control_wait","next":"l:C@C=2n]Y;]QJPkGpGY","parent":"jNFbKFq}IuK(c[9(`oWr","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},"l:C@C=2n]Y;]QJPkGpGY":{"opcode":"motion_movesteps","next":"Gz6/Hi}oZ.0Kz[B(I[N@","parent":"XEW(Z076Z#9yHvZ|ZDL5","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"Gz6/Hi}oZ.0Kz[B(I[N@":{"opcode":"looks_nextcostume","next":"Tm(ekBMU.|y#[:tiuIxX","parent":"l:C@C=2n]Y;]QJPkGpGY","inputs":{},"fields":{},"shadow":false,"topLevel":false},"Tm(ekBMU.|y#[:tiuIxX":{"opcode":"control_wait","next":"/1p=po};l=p2wBFg.+KX","parent":"Gz6/Hi}oZ.0Kz[B(I[N@","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},"/1p=po};l=p2wBFg.+KX":{"opcode":"motion_movesteps","next":"%xgSU|a%n6?6B^:p#79W","parent":"Tm(ekBMU.|y#[:tiuIxX","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"%xgSU|a%n6?6B^:p#79W":{"opcode":"looks_nextcostume","next":"SxL%_l}47U7X-A1Gf#xQ","parent":"/1p=po};l=p2wBFg.+KX","inputs":{},"fields":{},"shadow":false,"topLevel":false},"SxL%_l}47U7X-A1Gf#xQ":{"opcode":"control_wait","next":".O92:D-$N=O;#2Jb2%TU","parent":"%xgSU|a%n6?6B^:p#79W","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},".O92:D-$N=O;#2Jb2%TU":{"opcode":"motion_movesteps","next":"++}8Ln3qt-1T4|DOUy,r","parent":"SxL%_l}47U7X-A1Gf#xQ","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"++}8Ln3qt-1T4|DOUy,r":{"opcode":"looks_nextcostume","next":null,"parent":".O92:D-$N=O;#2Jb2%TU","inputs":{},"fields":{},"shadow":false,"topLevel":false},"c+:6O#=EJUR.aX!#*%.M":{"opcode":"event_whenflagclicked","next":"{5ZSJ=*@5/!=NTcWjXa(","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1265,"y":-1517},"{5ZSJ=*@5/!=NTcWjXa(":{"opcode":"motion_gotoxy","next":"tik2?JnJviBGw^rjm`1]","parent":"c+:6O#=EJUR.aX!#*%.M","inputs":{"X":[1,[4,"-22"]],"Y":[1,[4,"123"]]},"fields":{},"shadow":false,"topLevel":false},"tik2?JnJviBGw^rjm`1]":{"opcode":"looks_switchcostumeto","next":null,"parent":"{5ZSJ=*@5/!=NTcWjXa(","inputs":{"COSTUME":[1,"c;;U)E!O()YxY;tE]I8L"]},"fields":{},"shadow":false,"topLevel":false},"c;;U)E!O()YxY;tE]I8L":{"opcode":"looks_costume","next":null,"parent":"tik2?JnJviBGw^rjm`1]","inputs":{},"fields":{"COSTUME":["down_blue",null]},"shadow":true,"topLevel":false},"m4d,Ry=}Y^jA%8TKE#d{":{"opcode":"event_whenkeypressed","next":"c=qhD{:.l#[]rRuA{Jh%","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow",null]},"shadow":false,"topLevel":true,"x":-607,"y":-1201},"c=qhD{:.l#[]rRuA{Jh%":{"opcode":"looks_switchcostumeto","next":"keG~!evr$UsJ}hvFIznM","parent":"m4d,Ry=}Y^jA%8TKE#d{","inputs":{"COSTUME":[1,";rROHx/$=g5D:aq4/;G|"]},"fields":{},"shadow":false,"topLevel":false},";rROHx/$=g5D:aq4/;G|":{"opcode":"looks_costume","next":null,"parent":"c=qhD{:.l#[]rRuA{Jh%","inputs":{},"fields":{"COSTUME":["cheer1_blue",null]},"shadow":true,"topLevel":false},"keG~!evr$UsJ}hvFIznM":{"opcode":"control_repeat","next":"+Hh%#l`Z[Qu1mLfh-H*`","parent":"c=qhD{:.l#[]rRuA{Jh%","inputs":{"TIMES":[1,[6,"2"]],"SUBSTACK":[2,"4*Iefk1%;[oeL@hQ.=ex"]},"fields":{},"shadow":false,"topLevel":false},"4*Iefk1%;[oeL@hQ.=ex":{"opcode":"control_wait","next":"=JY(;_7IgkC{d^kL+8oJ","parent":"keG~!evr$UsJ}hvFIznM","inputs":{"DURATION":[1,[5,".5"]]},"fields":{},"shadow":false,"topLevel":false},"=JY(;_7IgkC{d^kL+8oJ":{"opcode":"looks_nextcostume","next":null,"parent":"4*Iefk1%;[oeL@hQ.=ex","inputs":{},"fields":{},"shadow":false,"topLevel":false},"+Hh%#l`Z[Qu1mLfh-H*`":{"opcode":"looks_sayforsecs","next":null,"parent":"keG~!evr$UsJ}hvFIznM","inputs":{"MESSAGE":[1,[10,"Yay!"]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"0S:gt:l:0NN+W@{MR@Wm":{"opcode":"event_whenthisspriteclicked","next":"}oR.w?fGtTlORUz04YEe","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-841,"y":-1518},"}oR.w?fGtTlORUz04YEe":{"opcode":"looks_sayforsecs","next":"j/Q/{X@F3rCo{@kcyUBY","parent":"0S:gt:l:0NN+W@{MR@Wm","inputs":{"MESSAGE":[1,[10,"Press the down arrow key to see a cheer."]],"SECS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"j/Q/{X@F3rCo{@kcyUBY":{"opcode":"looks_sayforsecs","next":null,"parent":"}oR.w?fGtTlORUz04YEe","inputs":{"MESSAGE":[1,[10,"Click on the space bar to see us race!"]],"SECS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":3,"costumes":[{"assetId":"4159218d9f72e802fca2e93e61aee2c8","name":"down_blue","bitmapResolution":2,"md5ext":"4159218d9f72e802fca2e93e61aee2c8.png","dataFormat":"png","rotationCenterX":454,"rotationCenterY":50},{"assetId":"18c6aa8bb365e84a338ee0edc16e7bd0","name":"middle_blue","bitmapResolution":2,"md5ext":"18c6aa8bb365e84a338ee0edc16e7bd0.png","dataFormat":"png","rotationCenterX":452,"rotationCenterY":50},{"assetId":"47db3f356c44fe4e0e0733ac250f295e","name":"up_blue","bitmapResolution":2,"md5ext":"47db3f356c44fe4e0e0733ac250f295e.png","dataFormat":"png","rotationCenterX":457,"rotationCenterY":51},{"assetId":"f380430253f8e8da013d4b6777d55786","name":"cheer1_blue","bitmapResolution":2,"md5ext":"f380430253f8e8da013d4b6777d55786.png","dataFormat":"png","rotationCenterX":453,"rotationCenterY":51},{"assetId":"174eff4f9464966cbc03baef7b87f397","name":"cheer2_blue","bitmapResolution":2,"md5ext":"174eff4f9464966cbc03baef7b87f397.png","dataFormat":"png","rotationCenterX":453,"rotationCenterY":51}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":453,"y":123,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"red dragon boat2","variables":{},"lists":{},"broadcasts":{},"blocks":{"6}O]aJN^jh=FRZ4B%_Ck":{"opcode":"event_whenflagclicked","next":"mdXB=)t5:KSqG_Jbnm7I","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1431,"y":-995},"mdXB=)t5:KSqG_Jbnm7I":{"opcode":"motion_gotoxy","next":"Y.?XbYRER/KJ~F[QBP54","parent":"6}O]aJN^jh=FRZ4B%_Ck","inputs":{"X":[1,[4,"-22"]],"Y":[1,[4,"-43"]]},"fields":{},"shadow":false,"topLevel":false},"Y.?XbYRER/KJ~F[QBP54":{"opcode":"looks_switchcostumeto","next":"7=(OQT~_tljhP^Pc~Cgi","parent":"mdXB=)t5:KSqG_Jbnm7I","inputs":{"COSTUME":[1,"]EUK-sDeGZ.CN9)5}Vkl"]},"fields":{},"shadow":false,"topLevel":false},"]EUK-sDeGZ.CN9)5}Vkl":{"opcode":"looks_costume","next":null,"parent":"Y.?XbYRER/KJ~F[QBP54","inputs":{},"fields":{"COSTUME":["down",null]},"shadow":true,"topLevel":false},"7=(OQT~_tljhP^Pc~Cgi":{"opcode":"looks_sayforsecs","next":"H@ytYjcf=bI;xcsnM1gW","parent":"Y.?XbYRER/KJ~F[QBP54","inputs":{"MESSAGE":[1,[10,"We are dragon boat racing!"]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false},"H@ytYjcf=bI;xcsnM1gW":{"opcode":"looks_sayforsecs","next":"o9y-gE8P!s6PTuL!.h=/","parent":"7=(OQT~_tljhP^Pc~Cgi","inputs":{"MESSAGE":[1,[10,"This is a tradition that originated in China."]],"SECS":[1,[4,"7"]]},"fields":{},"shadow":false,"topLevel":false},"o9y-gE8P!s6PTuL!.h=/":{"opcode":"looks_sayforsecs","next":"IF~s%DYs(N!f-$H@!0Sy","parent":"H@ytYjcf=bI;xcsnM1gW","inputs":{"MESSAGE":[1,[10,"But now, it is celebrated all around the world!"]],"SECS":[1,[4,"7"]]},"fields":{},"shadow":false,"topLevel":false},"IF~s%DYs(N!f-$H@!0Sy":{"opcode":"looks_sayforsecs","next":null,"parent":"o9y-gE8P!s6PTuL!.h=/","inputs":{"MESSAGE":[1,[10,"Click on the Blue Dragon Boat to learn how to race!"]],"SECS":[1,[4,"8"]]},"fields":{},"shadow":false,"topLevel":false},"~vzV,)k9Smog*S=2Vxnl":{"opcode":"event_whenkeypressed","next":"wC/mHJR,(y))HXD?`r]Y","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-1439,"y":-586},"wC/mHJR,(y))HXD?`r]Y":{"opcode":"control_repeat","next":null,"parent":"~vzV,)k9Smog*S=2Vxnl","inputs":{"TIMES":[1,[6,"7"]],"SUBSTACK":[2,"RO$%71YtoH;`U(5Ow0sr"]},"fields":{},"shadow":false,"topLevel":false},"RO$%71YtoH;`U(5Ow0sr":{"opcode":"looks_switchcostumeto","next":"}Q`=g?o=6yi?Jz]/|4g{","parent":"wC/mHJR,(y))HXD?`r]Y","inputs":{"COSTUME":[1,"^yq!VUNAkeHHvfe$xbmQ"]},"fields":{},"shadow":false,"topLevel":false},"^yq!VUNAkeHHvfe$xbmQ":{"opcode":"looks_costume","next":null,"parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{},"fields":{"COSTUME":["down",null]},"shadow":true,"topLevel":false},"}Q`=g?o=6yi?Jz]/|4g{":{"opcode":"control_wait","next":"|NWa,`~hMAAZse]zo}Kq","parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{"DURATION":[1,[5,".6"]]},"fields":{},"shadow":false,"topLevel":false},"|NWa,`~hMAAZse]zo}Kq":{"opcode":"motion_movesteps","next":"x#U4xVOG?)DPyx)7Y~(r","parent":"}Q`=g?o=6yi?Jz]/|4g{","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"x#U4xVOG?)DPyx)7Y~(r":{"opcode":"looks_nextcostume","next":";QpVzrsk@Zk_{d}4I[kW","parent":"|NWa,`~hMAAZse]zo}Kq","inputs":{},"fields":{},"shadow":false,"topLevel":false},";QpVzrsk@Zk_{d}4I[kW":{"opcode":"control_wait","next":"h#G`QEI1CVFPW6iP*oo?","parent":"x#U4xVOG?)DPyx)7Y~(r","inputs":{"DURATION":[1,[5,".6"]]},"fields":{},"shadow":false,"topLevel":false},"h#G`QEI1CVFPW6iP*oo?":{"opcode":"motion_movesteps","next":"zCHOB*;ri@)7UZm6:^+T","parent":";QpVzrsk@Zk_{d}4I[kW","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"zCHOB*;ri@)7UZm6:^+T":{"opcode":"looks_nextcostume","next":"YPD_9gC5TvEmog2hb{Dv","parent":"h#G`QEI1CVFPW6iP*oo?","inputs":{},"fields":{},"shadow":false,"topLevel":false},"YPD_9gC5TvEmog2hb{Dv":{"opcode":"control_wait","next":"oYoK@Tr+-o=t[rnocZ*Q","parent":"zCHOB*;ri@)7UZm6:^+T","inputs":{"DURATION":[1,[5,".6"]]},"fields":{},"shadow":false,"topLevel":false},"oYoK@Tr+-o=t[rnocZ*Q":{"opcode":"motion_movesteps","next":null,"parent":"YPD_9gC5TvEmog2hb{Dv","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":2,"costumes":[{"assetId":"8fb24626392ea7d7ea291be86e455a87","name":"down","bitmapResolution":2,"md5ext":"8fb24626392ea7d7ea291be86e455a87.png","dataFormat":"png","rotationCenterX":470,"rotationCenterY":38},{"assetId":"5ef07742224cb206714eacc0b1a6f4a1","name":"middle","bitmapResolution":2,"md5ext":"5ef07742224cb206714eacc0b1a6f4a1.png","dataFormat":"png","rotationCenterX":470,"rotationCenterY":38},{"assetId":"416a83dcf33fab5c6a199d166738a97f","name":"up","bitmapResolution":2,"md5ext":"416a83dcf33fab5c6a199d166738a97f.png","dataFormat":"png","rotationCenterX":474,"rotationCenterY":38},{"assetId":"0379a7ff77676213e2e5b04adbf112ee","name":"cheer1","bitmapResolution":2,"md5ext":"0379a7ff77676213e2e5b04adbf112ee.png","dataFormat":"png","rotationCenterX":471,"rotationCenterY":38},{"assetId":"0fe20e56960b05a3000acb870655556d","name":"cheer2","bitmapResolution":2,"md5ext":"0fe20e56960b05a3000acb870655556d.png","dataFormat":"png","rotationCenterX":470,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":104,"y":-43,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"flags","variables":{},"lists":{},"broadcasts":{},"blocks":{"Sc~32M@N)m;,^#R_`aSK":{"opcode":"event_whenflagclicked","next":"5qphS/+N)swh5kuR}ii1","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1064,"y":-2361},"5qphS/+N)swh5kuR}ii1":{"opcode":"motion_gotoxy","next":"/8WJ}hHpXETjsV2A*[|G","parent":"Sc~32M@N)m;,^#R_`aSK","inputs":{"X":[1,[4,-2]],"Y":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"/8WJ}hHpXETjsV2A*[|G":{"opcode":"looks_switchcostumeto","next":"F~NIU+f.7qr*x~eQ+PpZ","parent":"5qphS/+N)swh5kuR}ii1","inputs":{"COSTUME":[1,"TP//JCgrUD]8R-M0Rdm-"]},"fields":{},"shadow":false,"topLevel":false},"TP//JCgrUD]8R-M0Rdm-":{"opcode":"looks_costume","next":null,"parent":"/8WJ}hHpXETjsV2A*[|G","inputs":{},"fields":{"COSTUME":["center"]},"shadow":true,"topLevel":false},"F~NIU+f.7qr*x~eQ+PpZ":{"opcode":"control_forever","next":null,"parent":"/8WJ}hHpXETjsV2A*[|G","inputs":{"SUBSTACK":[2,"J5Wbr[%[%YMJAgoO2BN-"]},"fields":{},"shadow":false,"topLevel":false},"J5Wbr[%[%YMJAgoO2BN-":{"opcode":"looks_nextcostume","next":"LQRSAf.0d2mv:eYbuaC)","parent":"F~NIU+f.7qr*x~eQ+PpZ","inputs":{},"fields":{},"shadow":false,"topLevel":false},"LQRSAf.0d2mv:eYbuaC)":{"opcode":"control_wait","next":null,"parent":"J5Wbr[%[%YMJAgoO2BN-","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":2,"costumes":[{"assetId":"b1b2a43f5f87da9f5adf53eda1c886ba","name":"left","bitmapResolution":2,"md5ext":"b1b2a43f5f87da9f5adf53eda1c886ba.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"97de43aed81c81e3f3df1a4bcf21ff64","name":"center","bitmapResolution":2,"md5ext":"97de43aed81c81e3f3df1a4bcf21ff64.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"1c3bc9cc59d4178b7cde5e064d2557d6","name":"right","bitmapResolution":2,"md5ext":"1c3bc9cc59d4178b7cde5e064d2557d6.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"97de43aed81c81e3f3df1a4bcf21ff64","name":"center2","bitmapResolution":2,"md5ext":"97de43aed81c81e3f3df1a4bcf21ff64.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":-2,"y":3,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Fish","variables":{},"lists":{},"broadcasts":{},"blocks":{"ez!h95irNu^6pqSdAR;[":{"opcode":"event_whenflagclicked","next":"@_5[:En|ymE[nBlD$2p:","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-953,"y":-1170},"@_5[:En|ymE[nBlD$2p:":{"opcode":"motion_gotoxy","next":"^8DsG#kGCoEFy0ilnK[l","parent":"ez!h95irNu^6pqSdAR;[","inputs":{"X":[1,[4,"149"]],"Y":[1,[4,"-45"]]},"fields":{},"shadow":false,"topLevel":false},"^8DsG#kGCoEFy0ilnK[l":{"opcode":"looks_switchcostumeto","next":null,"parent":"@_5[:En|ymE[nBlD$2p:","inputs":{"COSTUME":[1,"UcfBrOE?mW,]0_Ljhy0g"]},"fields":{},"shadow":false,"topLevel":false},"UcfBrOE?mW,]0_Ljhy0g":{"opcode":"looks_costume","next":null,"parent":"^8DsG#kGCoEFy0ilnK[l","inputs":{},"fields":{"COSTUME":["fish1",null]},"shadow":true,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"0109d8d6c0f4f14efd79b91923bab2fa","name":"fish1","bitmapResolution":2,"md5ext":"0109d8d6c0f4f14efd79b91923bab2fa.png","dataFormat":"png","rotationCenterX":278,"rotationCenterY":330},{"assetId":"56c27e51403099cfab2aeb7f33ebcc9a","name":"fish2","bitmapResolution":2,"md5ext":"56c27e51403099cfab2aeb7f33ebcc9a.png","dataFormat":"png","rotationCenterX":357,"rotationCenterY":347},{"assetId":"a58a5ab92ed526cf6379ce86dfec4af9","name":"fish3","bitmapResolution":2,"md5ext":"a58a5ab92ed526cf6379ce86dfec4af9.png","dataFormat":"png","rotationCenterX":328,"rotationCenterY":309},{"assetId":"7bb9688c3518ddb08c0048266b1bfd2d","name":"fish4","bitmapResolution":2,"md5ext":"7bb9688c3518ddb08c0048266b1bfd2d.png","dataFormat":"png","rotationCenterX":278,"rotationCenterY":257}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":false,"x":149,"y":-45,"size":30,"direction":92.35553230387865,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"}}
-},{}],30:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":4,"costumes":[{"assetId":"4953b97814c20b8a3dab049695d509c7","name":"073018DragonBoat_bg","bitmapResolution":2,"md5ext":"4953b97814c20b8a3dab049695d509c7.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"b9c928707e817780fe6e373ab7251e2b","name":"081018DragonBoat_bg","bitmapResolution":2,"md5ext":"b9c928707e817780fe6e373ab7251e2b.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"b3892fe075aa7a88b2c7e3aba4d4b790","name":"backdrop1","bitmapResolution":1,"md5ext":"b3892fe075aa7a88b2c7e3aba4d4b790.svg","dataFormat":"svg","rotationCenterX":255.964835,"rotationCenterY":146.36328125},{"assetId":"1d75c9a6202e2415391335f5fb495c99","name":"e79fd28fe8789ff55fd9b6220037ecf5_royalty-free-gym-floor-clip-art-vector-images-illustrations-_612-612","bitmapResolution":2,"md5ext":"1d75c9a6202e2415391335f5fb495c99.png","dataFormat":"png","rotationCenterX":306,"rotationCenterY":306},{"assetId":"6e3ef0083d5bce20e2c964363514c826","name":"Basketball 1","bitmapResolution":1,"md5ext":"6e3ef0083d5bce20e2c964363514c826.svg","dataFormat":"svg","rotationCenterX":364,"rotationCenterY":212}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Andie","variables":{},"lists":{},"broadcasts":{},"blocks":{"6}O]aJN^jh=FRZ4B%_Ck":{"opcode":"event_whenflagclicked","next":"S%{DxI8Q7NR(J:EQBX~q","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1400,"y":-705},":pQz?p*Z/HkU!m^@k?b.":{"opcode":"looks_switchcostumeto","next":"N|+K}Y@sie[^.VR,-]]f","parent":"S%{DxI8Q7NR(J:EQBX~q","inputs":{"COSTUME":[1,"5geX;Qg:+ztVfv~/6TOR"]},"fields":{},"shadow":false,"topLevel":false},"5geX;Qg:+ztVfv~/6TOR":{"opcode":"looks_costume","next":null,"parent":":pQz?p*Z/HkU!m^@k?b.","inputs":{},"fields":{"COSTUME":["Andie1",null]},"shadow":true,"topLevel":false},"~vzV,)k9Smog*S=2Vxnl":{"opcode":"event_whenkeypressed","next":"RO$%71YtoH;`U(5Ow0sr","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow",null]},"shadow":false,"topLevel":true,"x":-1394,"y":-381},"RO$%71YtoH;`U(5Ow0sr":{"opcode":"looks_switchcostumeto","next":"wC/mHJR,(y))HXD?`r]Y","parent":"~vzV,)k9Smog*S=2Vxnl","inputs":{"COSTUME":[1,"^yq!VUNAkeHHvfe$xbmQ"]},"fields":{},"shadow":false,"topLevel":false},"^yq!VUNAkeHHvfe$xbmQ":{"opcode":"looks_costume","next":null,"parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{},"fields":{"COSTUME":["Andie1",null]},"shadow":true,"topLevel":false},"wC/mHJR,(y))HXD?`r]Y":{"opcode":"control_repeat","next":null,"parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{"TIMES":[1,[6,"20"]],"SUBSTACK":[2,"}Q`=g?o=6yi?Jz]/|4g{"]},"fields":{},"shadow":false,"topLevel":false},"}Q`=g?o=6yi?Jz]/|4g{":{"opcode":"control_wait","next":"x#U4xVOG?)DPyx)7Y~(r","parent":"wC/mHJR,(y))HXD?`r]Y","inputs":{"DURATION":[1,[5,".3"]]},"fields":{},"shadow":false,"topLevel":false},"x#U4xVOG?)DPyx)7Y~(r":{"opcode":"looks_nextcostume","next":null,"parent":"}Q`=g?o=6yi?Jz]/|4g{","inputs":{},"fields":{},"shadow":false,"topLevel":false},"{`iq@=gYKl2;GBWAK/*]":{"opcode":"looks_sayforsecs","next":null,"parent":"N|+K}Y@sie[^.VR,-]]f","inputs":{"MESSAGE":[1,[10,"Press the down arrow key to see us dribble."]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"N|+K}Y@sie[^.VR,-]]f":{"opcode":"looks_gotofrontback","next":"{`iq@=gYKl2;GBWAK/*]","parent":":pQz?p*Z/HkU!m^@k?b.","inputs":{},"fields":{"FRONT_BACK":["back",null]},"shadow":false,"topLevel":false},"S%{DxI8Q7NR(J:EQBX~q":{"opcode":"motion_gotoxy","next":":pQz?p*Z/HkU!m^@k?b.","parent":"6}O]aJN^jh=FRZ4B%_Ck","inputs":{"X":[1,[4,"131"]],"Y":[1,[4,"30"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"428d26cd7db0965f3cdc695f4bf7c187","name":"Andie1","bitmapResolution":1,"md5ext":"428d26cd7db0965f3cdc695f4bf7c187.svg","dataFormat":"svg","rotationCenterX":88.15144525307196,"rotationCenterY":81.55357252089803},{"assetId":"2c987528236f67bf8df4cefe21da0bd2","name":"Andie2","bitmapResolution":1,"md5ext":"2c987528236f67bf8df4cefe21da0bd2.svg","dataFormat":"svg","rotationCenterX":89.43607148025549,"rotationCenterY":64.15005150322513},{"assetId":"35297645747defb06da8fc1b43dd4366","name":"Andie3","bitmapResolution":1,"md5ext":"35297645747defb06da8fc1b43dd4366.svg","dataFormat":"svg","rotationCenterX":85.49156767224497,"rotationCenterY":64.15005493877038},{"assetId":"656df76d07ad799eb115dd96091005e0","name":"Andie4","bitmapResolution":1,"md5ext":"656df76d07ad799eb115dd96091005e0.svg","dataFormat":"svg","rotationCenterX":89.43607148025549,"rotationCenterY":64.15005150322513}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":131,"y":30,"size":80,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Jordyn","variables":{},"lists":{},"broadcasts":{},"blocks":{"FFR95}}V~GN]}7X5j;9K":{"opcode":"event_whenkeypressed","next":"RN6(fwI%ap{?|dYR4@sK","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-1559,"y":-989},"RN6(fwI%ap{?|dYR4@sK":{"opcode":"control_repeat","next":"V-V:T9r%tgtP,,9F]Lb|","parent":"FFR95}}V~GN]}7X5j;9K","inputs":{"TIMES":[1,[6,"22"]],"SUBSTACK":[2,"y3A-jV0d+}7Ka#dor(mr"]},"fields":{},"shadow":false,"topLevel":false},"y3A-jV0d+}7Ka#dor(mr":{"opcode":"control_wait","next":"Mulix|]{S}[c)MYzRS[{","parent":"RN6(fwI%ap{?|dYR4@sK","inputs":{"DURATION":[1,[5,".15"]]},"fields":{},"shadow":false,"topLevel":false},"Mulix|]{S}[c)MYzRS[{":{"opcode":"looks_nextcostume","next":"FkBPY%cvJx6;4x%Nmzj)","parent":"y3A-jV0d+}7Ka#dor(mr","inputs":{},"fields":{},"shadow":false,"topLevel":false},"FkBPY%cvJx6;4x%Nmzj)":{"opcode":"motion_movesteps","next":null,"parent":"Mulix|]{S}[c)MYzRS[{","inputs":{"STEPS":[1,[4,"20"]]},"fields":{},"shadow":false,"topLevel":false},"V-V:T9r%tgtP,,9F]Lb|":{"opcode":"looks_switchcostumeto","next":null,"parent":"RN6(fwI%ap{?|dYR4@sK","inputs":{"COSTUME":[1,"GU@U^b|Z!g*swSK+:ZM%"]},"fields":{},"shadow":false,"topLevel":false},"GU@U^b|Z!g*swSK+:ZM%":{"opcode":"looks_costume","next":null,"parent":"V-V:T9r%tgtP,,9F]Lb|","inputs":{},"fields":{"COSTUME":["Jordyn1",null]},"shadow":true,"topLevel":false},"c+:6O#=EJUR.aX!#*%.M":{"opcode":"event_whenflagclicked","next":"{5ZSJ=*@5/!=NTcWjXa(","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1579,"y":-1243},"{5ZSJ=*@5/!=NTcWjXa(":{"opcode":"motion_gotoxy","next":"tik2?JnJviBGw^rjm`1]","parent":"c+:6O#=EJUR.aX!#*%.M","inputs":{"X":[1,[4,"-200"]],"Y":[1,[4,"-40"]]},"fields":{},"shadow":false,"topLevel":false},"tik2?JnJviBGw^rjm`1]":{"opcode":"looks_switchcostumeto","next":null,"parent":"{5ZSJ=*@5/!=NTcWjXa(","inputs":{"COSTUME":[1,"c;;U)E!O()YxY;tE]I8L"]},"fields":{},"shadow":false,"topLevel":false},"c;;U)E!O()YxY;tE]I8L":{"opcode":"looks_costume","next":null,"parent":"tik2?JnJviBGw^rjm`1]","inputs":{},"fields":{"COSTUME":["Jordyn1",null]},"shadow":true,"topLevel":false},"?s;CncrOM,T4}DtB=vst":{"opcode":"event_whenkeypressed","next":"Z6Ks5#h9lz(7Qb_,-[-f","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow",null]},"shadow":false,"topLevel":true,"x":-1207,"y":-1233},"Z6Ks5#h9lz(7Qb_,-[-f":{"opcode":"control_repeat","next":"FcANosyL39HlORt?O8eS","parent":"?s;CncrOM,T4}DtB=vst","inputs":{"TIMES":[1,[6,"12"]],"SUBSTACK":[2,"f!pt@]c$J^U1[CS:C|e,"]},"fields":{},"shadow":false,"topLevel":false},"f!pt@]c$J^U1[CS:C|e,":{"opcode":"control_wait","next":"{OtG{Yv)zo!ia%}n]H95","parent":"Z6Ks5#h9lz(7Qb_,-[-f","inputs":{"DURATION":[1,[5,".3"]]},"fields":{},"shadow":false,"topLevel":false},"{OtG{Yv)zo!ia%}n]H95":{"opcode":"looks_nextcostume","next":null,"parent":"f!pt@]c$J^U1[CS:C|e,","inputs":{},"fields":{},"shadow":false,"topLevel":false},"FcANosyL39HlORt?O8eS":{"opcode":"looks_sayforsecs","next":null,"parent":"Z6Ks5#h9lz(7Qb_,-[-f","inputs":{"MESSAGE":[1,[10,"Press the space bar to watch Miguel and me dribble across the court!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"?g,x?Jb[1{AQl75%XcjG":{"blockId":".O#5Xx[CR_kMrHY[i|Dx","x":178,"y":-1048,"width":200,"height":200,"minimized":false,"text":"This longer code would prevent the standing dribble animation to overlap with the run/dribble animation"}},"currentCostume":0,"costumes":[{"assetId":"ec0c260d2321b33a7bcbffb93f1970d2","name":"Jordyn1","bitmapResolution":1,"md5ext":"ec0c260d2321b33a7bcbffb93f1970d2.svg","dataFormat":"svg","rotationCenterX":33.74546494910098,"rotationCenterY":62.69436263827484},{"assetId":"1b5edf25437124002136418e99d02dfe","name":"Jordyn2","bitmapResolution":1,"md5ext":"1b5edf25437124002136418e99d02dfe.svg","dataFormat":"svg","rotationCenterX":48.9517821174727,"rotationCenterY":62.694377914824486},{"assetId":"bf13eddeef9d2da3c0cfce155869eb88","name":"Jordyn3","bitmapResolution":1,"md5ext":"bf13eddeef9d2da3c0cfce155869eb88.svg","dataFormat":"svg","rotationCenterX":33.74546986498308,"rotationCenterY":62.69436527654966},{"assetId":"d710e71614edaf1d86e5f8c741fe3d1e","name":"Jordyn4","bitmapResolution":1,"md5ext":"d710e71614edaf1d86e5f8c741fe3d1e.svg","dataFormat":"svg","rotationCenterX":51.145432069474,"rotationCenterY":62.69435447870612}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":-200,"y":-40,"size":90,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Miguel","variables":{},"lists":{},"broadcasts":{},"blocks":{"4Z3i{QKZROpJnOe,b_DN":{"opcode":"event_whenflagclicked","next":"CWto!?+oXxrv`e~-;le[","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-2342,"y":-1454},"CWto!?+oXxrv`e~-;le[":{"opcode":"motion_gotoxy","next":"%q@JG_HRK|QtS~v/L0%h","parent":"4Z3i{QKZROpJnOe,b_DN","inputs":{"X":[1,[4,"-203"]],"Y":[1,[4,"-110"]]},"fields":{},"shadow":false,"topLevel":false},"%q@JG_HRK|QtS~v/L0%h":{"opcode":"looks_switchcostumeto","next":null,"parent":"CWto!?+oXxrv`e~-;le[","inputs":{"COSTUME":[1,"9cKXdQ14:c7[Ye~!`1/~"]},"fields":{},"shadow":false,"topLevel":false},"9cKXdQ14:c7[Ye~!`1/~":{"opcode":"looks_costume","next":null,"parent":"%q@JG_HRK|QtS~v/L0%h","inputs":{},"fields":{"COSTUME":["Miguel1",null]},"shadow":true,"topLevel":false},"[GqfrGN]^`tQ4q:Q3#JJ":{"opcode":"event_whenkeypressed","next":"QHe#Vkys)Rh+@UXqxB2{","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-2347,"y":-1175},"QHe#Vkys)Rh+@UXqxB2{":{"opcode":"control_repeat","next":null,"parent":"[GqfrGN]^`tQ4q:Q3#JJ","inputs":{"TIMES":[1,[6,"8"]],"SUBSTACK":[2,"6tV]3_1VT=^NmAx%q!g4"]},"fields":{},"shadow":false,"topLevel":false},"6tV]3_1VT=^NmAx%q!g4":{"opcode":"control_wait","next":"Qk/o|;QFt+F4$=UuayAJ","parent":"QHe#Vkys)Rh+@UXqxB2{","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},"Qk/o|;QFt+F4$=UuayAJ":{"opcode":"looks_nextcostume","next":".DjF9o3KoHe=8Yd(7:LW","parent":"6tV]3_1VT=^NmAx%q!g4","inputs":{},"fields":{},"shadow":false,"topLevel":false},".DjF9o3KoHe=8Yd(7:LW":{"opcode":"motion_movesteps","next":null,"parent":"Qk/o|;QFt+F4$=UuayAJ","inputs":{"STEPS":[1,[4,"20"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"K_1eCG@}Jr2SIUQs-r#h":{"blockId":null,"x":-1948.7407407407406,"y":-1317.9259259259259,"width":200,"height":200,"minimized":false,"text":"Build 1 script and modify a script..."},"6JV9Goq|XG$}U$mDQsYS":{"blockId":null,"x":-1952.481323521161,"y":-1102.7219852817411,"width":200,"height":200,"minimized":false,"text":"One will have Miguel dribble in place, when the down arrow key is pressed. Look at the script for Jordyn."},"w)]!x]e.9?/[4GH|+[O:":{"blockId":null,"x":-1957.481323521161,"y":-879.3301575353256,"width":200,"height":200,"minimized":false,"text":"The other will have Miguel dribble ALL the way across the basketball court when the space key is pressed. Look at Jordyn's script"}},"currentCostume":0,"costumes":[{"assetId":"8a00295a8d657ea087cc88010c3a844c","name":"Miguel1","bitmapResolution":1,"md5ext":"8a00295a8d657ea087cc88010c3a844c.svg","dataFormat":"svg","rotationCenterX":26.37499494910105,"rotationCenterY":62.69436185272684},{"assetId":"80e8002553b2cac9c3e4887a7583a65c","name":"Miguel2","bitmapResolution":1,"md5ext":"80e8002553b2cac9c3e4887a7583a65c.svg","dataFormat":"svg","rotationCenterX":49.74051742656934,"rotationCenterY":62.69436162506062},{"assetId":"5dba01afa32235f7f91a4132f3d448cd","name":"Miguel3","bitmapResolution":1,"md5ext":"5dba01afa32235f7f91a4132f3d448cd.svg","dataFormat":"svg","rotationCenterX":26.374997377707814,"rotationCenterY":62.69436159568707},{"assetId":"14904cc6bbad4a87b6f924707730dd0f","name":"Miguel4","bitmapResolution":1,"md5ext":"14904cc6bbad4a87b6f924707730dd0f.svg","dataFormat":"svg","rotationCenterX":50.926268599392586,"rotationCenterY":62.69436185272684}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-203,"y":-110,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Referee","variables":{},"lists":{},"broadcasts":{},"blocks":{"Uw:zXlolx).J/|3Vv}.(":{"opcode":"event_whenflagclicked","next":"2`:.Ap!-R]l#bQyC^ho2","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":71,"y":55},"2`:.Ap!-R]l#bQyC^ho2":{"opcode":"motion_gotoxy","next":null,"parent":"Uw:zXlolx).J/|3Vv}.(","inputs":{"X":[1,[4,"-131"]],"Y":[1,[4,"44"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":3,"costumes":[{"assetId":"7eeca5313c2e7d455482badff3079f64","name":"referee-b","bitmapResolution":1,"md5ext":"7eeca5313c2e7d455482badff3079f64.svg","dataFormat":"svg","rotationCenterX":44,"rotationCenterY":63},{"assetId":"1cd641a48499db84636d983916b62a83","name":"referee-d","bitmapResolution":1,"md5ext":"1cd641a48499db84636d983916b62a83.svg","dataFormat":"svg","rotationCenterX":50,"rotationCenterY":63},{"assetId":"5948c4160089fcc0975a867221ff2256","name":"referee-c","bitmapResolution":1,"md5ext":"5948c4160089fcc0975a867221ff2256.svg","dataFormat":"svg","rotationCenterX":55,"rotationCenterY":62},{"assetId":"46dde2baba61a7e48463ae8e58441470","name":"referee-a","bitmapResolution":1,"md5ext":"46dde2baba61a7e48463ae8e58441470.svg","dataFormat":"svg","rotationCenterX":44,"rotationCenterY":63}],"sounds":[{"assetId":"8468b9b3f11a665ee4d215afd8463b97","name":"referee whistle","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":14225,"md5ext":"8468b9b3f11a665ee4d215afd8463b97.wav"}],"volume":100,"layerOrder":2,"visible":false,"x":-131.00000000000003,"y":44,"size":80,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190822194548","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"}}
-},{}],31:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{"`jEk@4|i[#Fk?(8x)AV.-my variable":["my variable",0]},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"6579c565f60733c4d4b6bfa84dcb2ffa","name":"backdrop3","bitmapResolution":2,"md5ext":"6579c565f60733c4d4b6bfa84dcb2ffa.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"on","textToSpeechLanguage":null},{"isStage":false,"name":"Ninja Cat","variables":{},"lists":{},"broadcasts":{},"blocks":{"|etjt+q79~RJiBzX6}^e":{"opcode":"event_whenflagclicked","next":"tE;G95v,1|}a4mmB7}A)","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":7,"y":205},"tE;G95v,1|}a4mmB7}A)":{"opcode":"motion_gotoxy","next":"0og]NcATQdOy/U@IY^E*","parent":"|etjt+q79~RJiBzX6}^e","inputs":{"X":[1,[4,"-189"]],"Y":[1,[4,"-43"]]},"fields":{},"shadow":false,"topLevel":false},"0og]NcATQdOy/U@IY^E*":{"opcode":"looks_sayforsecs","next":"(q!*oSyO?PG-bfs5=;BM","parent":"tE;G95v,1|}a4mmB7}A)","inputs":{"MESSAGE":[1,[10,"Help me reach the gem!"]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false},"(q!*oSyO?PG-bfs5=;BM":{"opcode":"control_repeat_until","next":null,"parent":"0og]NcATQdOy/U@IY^E*","inputs":{"CONDITION":[2,"o.iU%bahu);Xt,2%/G%|"],"SUBSTACK":[2,"cxWFIP6b~(|7UneIBU7b"]},"fields":{},"shadow":false,"topLevel":false},"-fiMoRkw6qWeIhleb:KF":{"opcode":"sensing_touchingcolor","next":null,"parent":null,"inputs":{"COLOR":[1,[9,"#337f6e"]]},"fields":{},"shadow":false,"topLevel":true,"x":455,"y":427},"cxWFIP6b~(|7UneIBU7b":{"opcode":"motion_movesteps","next":"06`-+_|52.|#S{D`ry^s","parent":"(q!*oSyO?PG-bfs5=;BM","inputs":{"STEPS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false},"06`-+_|52.|#S{D`ry^s":{"opcode":"looks_nextcostume","next":"LCdrJz0P~{cA~)_bv4ix","parent":"cxWFIP6b~(|7UneIBU7b","inputs":{},"fields":{},"shadow":false,"topLevel":false},"LCdrJz0P~{cA~)_bv4ix":{"opcode":"control_wait","next":null,"parent":"06`-+_|52.|#S{D`ry^s","inputs":{"DURATION":[1,[5,".1"]]},"fields":{},"shadow":false,"topLevel":false},"YwhEuJhA+!.A`{Gg`/[Y":{"opcode":"sensing_touchingobject","next":null,"parent":null,"inputs":{"TOUCHINGOBJECTMENU":[1,"L}|yA:ge@8N3I;V]@bNi"]},"fields":{},"shadow":false,"topLevel":true,"x":457,"y":341},"L}|yA:ge@8N3I;V]@bNi":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"YwhEuJhA+!.A`{Gg`/[Y","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Gem",null]},"shadow":true,"topLevel":false},"o.iU%bahu);Xt,2%/G%|":{"opcode":"sensing_touchingobject","next":null,"parent":"(q!*oSyO?PG-bfs5=;BM","inputs":{"TOUCHINGOBJECTMENU":[1,"{:X)27L[p8uEpJO(-%MI"]},"fields":{},"shadow":false,"topLevel":false},"{:X)27L[p8uEpJO(-%MI":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"o.iU%bahu);Xt,2%/G%|","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Bee",null]},"shadow":true,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"d96aa54542a76f2a0dab1f974257faec","name":"costume2","bitmapResolution":1,"md5ext":"d96aa54542a76f2a0dab1f974257faec.svg","dataFormat":"svg","rotationCenterX":42.399999999999864,"rotationCenterY":55.375},{"assetId":"ad0bfbf4f9c7f4c41220044e058f4fde","name":"costume1","bitmapResolution":1,"md5ext":"ad0bfbf4f9c7f4c41220044e058f4fde.svg","dataFormat":"svg","rotationCenterX":41.863566856754716,"rotationCenterY":54.46991940038589}],"sounds":[{"assetId":"83c36d806dc92327b9e7049a565c6bff","name":"Meow","dataFormat":"wav","format":"","rate":44100,"sampleCount":37376,"md5ext":"83c36d806dc92327b9e7049a565c6bff.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":-19.024425943795386,"y":-45.881705096581854,"size":100,"direction":90.97127910616189,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Gem","variables":{},"lists":{},"broadcasts":{},"blocks":{"1BtqzcG0(#T0/$Pb0n5I":{"opcode":"event_whenflagclicked","next":"al[eLo~-(_2GmOMw*(2T","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-13,"y":177},"al[eLo~-(_2GmOMw*(2T":{"opcode":"motion_gotoxy","next":null,"parent":"1BtqzcG0(#T0/$Pb0n5I","inputs":{"X":[1,[4,"185"]],"Y":[1,[4,"-40"]]},"fields":{},"shadow":false,"topLevel":false},"!-R!cTxqq#1SsX}H76)V":{"opcode":"event_whenkeypressed","next":"|dI~VFgaZ_-B}Er{-=D:","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":427,"y":202},"|dI~VFgaZ_-B}Er{-=D:":{"opcode":"motion_movesteps","next":null,"parent":"!-R!cTxqq#1SsX}H76)V","inputs":{"STEPS":[1,[4,"30"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"b411e48862aa61ce892721e258f19240","name":"Gem_Red","bitmapResolution":2,"md5ext":"b411e48862aa61ce892721e258f19240.png","dataFormat":"png","rotationCenterX":53,"rotationCenterY":47}],"sounds":[],"volume":100,"layerOrder":1,"visible":true,"x":215,"y":-40,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Bee","variables":{},"lists":{},"broadcasts":{},"blocks":{"[SGBumU#}c=?46fEWQUF":{"opcode":"event_whenthisspriteclicked","next":"xbZNiPJHW=N%a#2f}AsS","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":204,"y":163},"xbZNiPJHW=N%a#2f}AsS":{"opcode":"looks_sayforsecs","next":null,"parent":"[SGBumU#}c=?46fEWQUF","inputs":{"MESSAGE":[1,[10,"Hello!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"7955018306bb03b5444bed8306569041","name":"bee","bitmapResolution":2,"md5ext":"7955018306bb03b5444bed8306569041.png","dataFormat":"png","rotationCenterX":48,"rotationCenterY":34}],"sounds":[],"volume":100,"layerOrder":2,"visible":true,"x":13.999999999999993,"y":-10.000000000000014,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190904154449","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
-},{}],32:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"bd72cb5f3bded42480516a718001b528","name":"Sambadrome","bitmapResolution":1,"md5ext":"bd72cb5f3bded42480516a718001b528.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Butterfly","variables":{},"lists":{},"broadcasts":{},"blocks":{"?3Zl.6nOK{[BWe^7a5{B":{"opcode":"event_whenflagclicked","next":"+Cfb89be^mtRZV7]^7*?","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-483,"y":-531},"+Cfb89be^mtRZV7]^7*?":{"opcode":"motion_gotoxy","next":"oUQPz4^X*Pf3SaNm.|%o","parent":"?3Zl.6nOK{[BWe^7a5{B","inputs":{"X":[1,[4,"-325"]],"Y":[1,[4,-65]]},"fields":{},"shadow":false,"topLevel":false},"/(%U[W6DY.cdTnp,78:O":{"opcode":"control_repeat_until","next":null,"parent":"oUQPz4^X*Pf3SaNm.|%o","inputs":{"CONDITION":[2,"N^bw~_OboaqS;e/oA5;["],"SUBSTACK":[2,"ZY6yg~jw,+5zy^(_?Cqw"]},"fields":{},"shadow":false,"topLevel":false},"N^bw~_OboaqS;e/oA5;[":{"opcode":"sensing_touchingobject","next":null,"parent":"/(%U[W6DY.cdTnp,78:O","inputs":{"TOUCHINGOBJECTMENU":[1,"bVZa^Cr6s}-L+{PzN;D?"]},"fields":{},"shadow":false,"topLevel":false},"bVZa^Cr6s}-L+{PzN;D?":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"N^bw~_OboaqS;e/oA5;[","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["King Momo"]},"shadow":true,"topLevel":false},"ZY6yg~jw,+5zy^(_?Cqw":{"opcode":"motion_movesteps","next":",T!=6NSo1Z.0]:-+dZNR","parent":"/(%U[W6DY.cdTnp,78:O","inputs":{"STEPS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"~(EB0p9Iqeo{}{;fTUW:":{"opcode":"sensing_touchingcolor","next":null,"parent":null,"inputs":{"COLOR":[1,[9,"#e64e3e"]]},"fields":{},"shadow":false,"topLevel":true,"x":-140,"y":-508,"comment":"k)L~z*+b|rNaAP57;rUd"},"oUQPz4^X*Pf3SaNm.|%o":{"opcode":"control_wait","next":"/(%U[W6DY.cdTnp,78:O","parent":"+Cfb89be^mtRZV7]^7*?","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},",T!=6NSo1Z.0]:-+dZNR":{"opcode":"control_wait","next":null,"parent":"ZY6yg~jw,+5zy^(_?Cqw","inputs":{"DURATION":[1,[5,".1"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"k)L~z*+b|rNaAP57;rUd":{"blockId":"~(EB0p9Iqeo{}{;fTUW:","x":236.70706958089977,"y":-558.9639699541087,"width":200,"height":200,"minimized":false,"text":"Use this block instead of the touching \"King Momo\" or \"Stop Sign\" block to have the float stop at one of the color lines on the street."}},"currentCostume":0,"costumes":[{"assetId":"15a80dcb99ac6bef9a4fd2934aa78d8c","name":"Butterfly Float","bitmapResolution":1,"md5ext":"15a80dcb99ac6bef9a4fd2934aa78d8c.svg","dataFormat":"svg","rotationCenterX":65,"rotationCenterY":100},{"assetId":"024464c850fe008b3e5396d88551643c","name":"Foosball Float","bitmapResolution":1,"md5ext":"024464c850fe008b3e5396d88551643c.svg","dataFormat":"svg","rotationCenterX":127.06507873535156,"rotationCenterY":53.921165466308594},{"assetId":"13a3c3af1928ac189e0d0110ea53f23d","name":"Eagle Float","bitmapResolution":1,"md5ext":"13a3c3af1928ac189e0d0110ea53f23d.svg","dataFormat":"svg","rotationCenterX":65,"rotationCenterY":97.91893005371094},{"assetId":"e45952b060ab2f647e22b9aea178e517","name":"Rio de Janeiro Float","bitmapResolution":1,"md5ext":"e45952b060ab2f647e22b9aea178e517.svg","dataFormat":"svg","rotationCenterX":85.998291015625,"rotationCenterY":89.5671157836914}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":118,"y":-65,"size":100,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Toucan","variables":{},"lists":{},"broadcasts":{},"blocks":{"H:Xg0b8eLJGUFImS2XEz":{"opcode":"event_whenflagclicked","next":"{[+Bm@*U6u34j+LAHBaJ","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-452,"y":-524},"{[+Bm@*U6u34j+LAHBaJ":{"opcode":"motion_gotoxy","next":"N8=B3J]u%dz!tW,W9p?~","parent":"H:Xg0b8eLJGUFImS2XEz","inputs":{"X":[1,[4,"-300"]],"Y":[1,[4,-100]]},"fields":{},"shadow":false,"topLevel":false},"j:^NE1OmeFqVs0D3m,u@":{"opcode":"control_repeat_until","next":null,"parent":"N8=B3J]u%dz!tW,W9p?~","inputs":{"CONDITION":[2,"NhrN2N2B+q9P4VwsFrdN"],"SUBSTACK":[2,"_TwkKO(Og;|o1$X)fL9o"]},"fields":{},"shadow":false,"topLevel":false},"NhrN2N2B+q9P4VwsFrdN":{"opcode":"sensing_touchingcolor","next":null,"parent":"j:^NE1OmeFqVs0D3m,u@","inputs":{"COLOR":[1,[9,"#e64e3e"]]},"fields":{},"shadow":false,"topLevel":false},"_TwkKO(Og;|o1$X)fL9o":{"opcode":"motion_movesteps","next":"CF]M}%#3Adrz#EBd5;jW","parent":"j:^NE1OmeFqVs0D3m,u@","inputs":{"STEPS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"N8=B3J]u%dz!tW,W9p?~":{"opcode":"control_wait","next":"j:^NE1OmeFqVs0D3m,u@","parent":"{[+Bm@*U6u34j+LAHBaJ","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"CF]M}%#3Adrz#EBd5;jW":{"opcode":"control_wait","next":null,"parent":"_TwkKO(Og;|o1$X)fL9o","inputs":{"DURATION":[1,[5,".1"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"358389ede568bd95a5d6fcd80eb2119e","name":"Toucan Float","bitmapResolution":1,"md5ext":"358389ede568bd95a5d6fcd80eb2119e.svg","dataFormat":"svg","rotationCenterX":135,"rotationCenterY":65}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-96,"y":-100,"size":100,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"King Momo","variables":{},"lists":{},"broadcasts":{},"blocks":{"`J;(Yr!NHe]WM]r[Kj*z":{"opcode":"event_whenthisspriteclicked","next":"l*zItNS.eFtvx|R@:pP-","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":10,"y":-486},"l*zItNS.eFtvx|R@:pP-":{"opcode":"looks_sayforsecs","next":"h4=*nG}?2Pc(kgBJWJ(-","parent":"`J;(Yr!NHe]WM]r[Kj*z","inputs":{"MESSAGE":[1,[10,"Welcome to Rio de Janeiro! Welcome to Carnival!"]],"SECS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"h4=*nG}?2Pc(kgBJWJ(-":{"opcode":"looks_sayforsecs","next":"/R}YB*tU*u6mQ1eBRJ/x","parent":"l*zItNS.eFtvx|R@:pP-","inputs":{"MESSAGE":[1,[10,"For a few days of each year, Carnival transforms the streets of Rio into a festival of music and parades."]],"SECS":[1,[4,"10"]]},"fields":{},"shadow":false,"topLevel":false},"/R}YB*tU*u6mQ1eBRJ/x":{"opcode":"looks_sayforsecs","next":"~@FQV3dKt?uB(t#xrYS`","parent":"h4=*nG}?2Pc(kgBJWJ(-","inputs":{"MESSAGE":[1,[10,"I am this year's King Momo, the leader of the celebrations!"]],"SECS":[1,[4,"8"]]},"fields":{},"shadow":false,"topLevel":false},"~@FQV3dKt?uB(t#xrYS`":{"opcode":"looks_sayforsecs","next":"HP##IfnbgaQ9V0|BCKCy","parent":"/R}YB*tU*u6mQ1eBRJ/x","inputs":{"MESSAGE":[1,[10,"Every year, a different Momo is chosen to get the parades and dances of Carnival started."]],"SECS":[1,[4,"8"]]},"fields":{},"shadow":false,"topLevel":false},"HP##IfnbgaQ9V0|BCKCy":{"opcode":"looks_sayforsecs","next":"5wPxwkyx-{){MN^Xk9OX","parent":"~@FQV3dKt?uB(t#xrYS`","inputs":{"MESSAGE":[1,[10,"Right now, we're lining up the parade floats in the right order for our big entrance."]],"SECS":[1,[4,"8"]]},"fields":{},"shadow":false,"topLevel":false},"5wPxwkyx-{){MN^Xk9OX":{"opcode":"looks_sayforsecs","next":null,"parent":"HP##IfnbgaQ9V0|BCKCy","inputs":{"MESSAGE":[1,[10,"Now let the celebrations begin!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"c6f00b3573465cc1f2a9bf9aad924709","name":"King Momo","bitmapResolution":1,"md5ext":"c6f00b3573465cc1f2a9bf9aad924709.svg","dataFormat":"svg","rotationCenterX":30,"rotationCenterY":35}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":204,"y":-130,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Stop Sign","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"21d9b38330c08514704103d67968951e","name":"Stop Sign","bitmapResolution":1,"md5ext":"21d9b38330c08514704103d67968951e.svg","dataFormat":"svg","rotationCenterX":25,"rotationCenterY":50}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":217,"y":-74,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190904154449","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
 },{}],33:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"234e03560170e77d1cc9e8aa40eb80d7","name":"Lincoln Park Zoo","bitmapResolution":2,"md5ext":"234e03560170e77d1cc9e8aa40eb80d7.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Car","variables":{},"lists":{},"broadcasts":{},"blocks":{",b,MB{-tz,CPMdx6uPSI":{"opcode":"event_whenflagclicked","next":"PjfkJWvwcXuiXl4iYCYe","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":21,"y":30},"PjfkJWvwcXuiXl4iYCYe":{"opcode":"motion_gotoxy","next":"G#U%Yd+G]Rnzbke8IBq,","parent":",b,MB{-tz,CPMdx6uPSI","inputs":{"X":[1,[4,-304]],"Y":[1,[4,-118]]},"fields":{},"shadow":false,"topLevel":false},"G#U%Yd+G]Rnzbke8IBq,":{"opcode":"control_repeat_until","next":null,"parent":"PjfkJWvwcXuiXl4iYCYe","inputs":{"CONDITION":[2,"7!dxCwjGz5XkG%.T^7uR"],"SUBSTACK":[2,"{t,HO=FEj-72!S_B1kj8"]},"fields":{},"shadow":false,"topLevel":false},"7!dxCwjGz5XkG%.T^7uR":{"opcode":"sensing_touchingobject","next":null,"parent":"G#U%Yd+G]Rnzbke8IBq,","inputs":{"TOUCHINGOBJECTMENU":[1,"zs9|Qt-p|v-Vfk{3/|}}"]},"fields":{},"shadow":false,"topLevel":false},"zs9|Qt-p|v-Vfk{3/|}}":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"7!dxCwjGz5XkG%.T^7uR","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Stop"]},"shadow":true,"topLevel":false},"{t,HO=FEj-72!S_B1kj8":{"opcode":"motion_movesteps","next":"A87.jAop_(6WuREWEFaR","parent":"G#U%Yd+G]Rnzbke8IBq,","inputs":{"STEPS":[1,[4,10]]},"fields":{},"shadow":false,"topLevel":false},"A87.jAop_(6WuREWEFaR":{"opcode":"control_wait","next":null,"parent":"{t,HO=FEj-72!S_B1kj8","inputs":{"DURATION":[1,[5,0.1]]},"fields":{},"shadow":false,"topLevel":false},"p.DF;UyeX~O?;Fa3lY8t":{"opcode":"sensing_touchingcolor","next":null,"parent":null,"inputs":{"COLOR":[1,[9,"#a42cff"]]},"fields":{},"shadow":false,"topLevel":true,"x":379,"y":143}},"comments":{"7T?P)4;Rd*r`ZA]E-#Cd":{"blockId":null,"x":597,"y":204.60000000000002,"width":231,"height":233.20000000000002,"minimized":false,"text":"Use this block, instead of the touching stop block, to have the car stop at one of the lines on the street."}},"currentCostume":2,"costumes":[{"assetId":"411a94a9e26a243dcde0022835361f8e","name":"SUV","bitmapResolution":1,"md5ext":"411a94a9e26a243dcde0022835361f8e.svg","dataFormat":"svg","rotationCenterX":225,"rotationCenterY":106},{"assetId":"ce4f296c7b3d84fb9856b53594d5b142","name":"Cooper","bitmapResolution":1,"md5ext":"ce4f296c7b3d84fb9856b53594d5b142.svg","dataFormat":"svg","rotationCenterX":222,"rotationCenterY":120},{"assetId":"fd4ccc5303ec2fe6c48656639bddc2c5","name":"Sedan","bitmapResolution":1,"md5ext":"fd4ccc5303ec2fe6c48656639bddc2c5.svg","dataFormat":"svg","rotationCenterX":223,"rotationCenterY":75},{"assetId":"4571b4541799b45c93282a7c6ff397cb","name":"Bug","bitmapResolution":1,"md5ext":"4571b4541799b45c93282a7c6ff397cb.svg","dataFormat":"svg","rotationCenterX":221,"rotationCenterY":83}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":46,"y":-118,"size":75,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Stop","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"fdc509ac5555a3290d253f03e9fa2e32","name":"Stop Sign","bitmapResolution":1,"md5ext":"fdc509ac5555a3290d253f03e9fa2e32.svg","dataFormat":"svg","rotationCenterX":-39,"rotationCenterY":5}],"sounds":[],"volume":100,"layerOrder":3,"visible":true,"x":134,"y":4,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Darian","variables":{},"lists":{},"broadcasts":{},"blocks":{"eczJ*.rhXdIlS29#1ozS":{"opcode":"event_whenflagclicked","next":"26oEd1S]izX-dGAQ9WfC","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":38,"y":44},"26oEd1S]izX-dGAQ9WfC":{"opcode":"motion_gotoxy","next":null,"parent":"eczJ*.rhXdIlS29#1ozS","inputs":{"X":[1,[4,-105]],"Y":[1,[4,-86]]},"fields":{},"shadow":false,"topLevel":false},"*1Lq8[3RB-Gj)C]3cpt7":{"opcode":"event_whenkeypressed","next":"L|!P#V6xL|HSXnO%B,(A","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":45,"y":266},"L|!P#V6xL|HSXnO%B,(A":{"opcode":"motion_movesteps","next":null,"parent":"*1Lq8[3RB-Gj)C]3cpt7","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"810e9e425ba07fa15b1e4536de573b4c","name":"dm stance","bitmapResolution":1,"md5ext":"810e9e425ba07fa15b1e4536de573b4c.svg","dataFormat":"svg","rotationCenterX":55,"rotationCenterY":119},{"assetId":"cbf035d39d0a0bb070d2eb998cebd60d","name":"dm top stand","bitmapResolution":2,"md5ext":"cbf035d39d0a0bb070d2eb998cebd60d.png","dataFormat":"png","rotationCenterX":82,"rotationCenterY":244},{"assetId":"fcb8c2b6cf9b7e6ce9df521b2486deb3","name":"dm top R leg","bitmapResolution":2,"md5ext":"fcb8c2b6cf9b7e6ce9df521b2486deb3.png","dataFormat":"png","rotationCenterX":218,"rotationCenterY":232},{"assetId":"fd8bb9665fe078d2d95dbc35bccf4046","name":"dm top L leg","bitmapResolution":2,"md5ext":"fd8bb9665fe078d2d95dbc35bccf4046.png","dataFormat":"png","rotationCenterX":230,"rotationCenterY":240},{"assetId":"31e687f186b19ea120cd5cfc9dea2a3f","name":"dm freeze","bitmapResolution":2,"md5ext":"31e687f186b19ea120cd5cfc9dea2a3f.png","dataFormat":"png","rotationCenterX":220,"rotationCenterY":234},{"assetId":"0b2fb609d6d10decfdd5a1c3b58369b4","name":"dm pop front","bitmapResolution":2,"md5ext":"0b2fb609d6d10decfdd5a1c3b58369b4.png","dataFormat":"png","rotationCenterX":92,"rotationCenterY":234},{"assetId":"3b65ce3551f9c111794f7f1fb8f325be","name":"dm pop down","bitmapResolution":2,"md5ext":"3b65ce3551f9c111794f7f1fb8f325be.png","dataFormat":"png","rotationCenterX":64,"rotationCenterY":74},{"assetId":"f636510e8ef231d7c0e72a572ce91c99","name":"dm pop left","bitmapResolution":2,"md5ext":"f636510e8ef231d7c0e72a572ce91c99.png","dataFormat":"png","rotationCenterX":204,"rotationCenterY":250},{"assetId":"36b32430e45e071071052ef33c637f48","name":"dm pop right","bitmapResolution":2,"md5ext":"36b32430e45e071071052ef33c637f48.png","dataFormat":"png","rotationCenterX":78,"rotationCenterY":238},{"assetId":"426e1520efc34fef45be0596fd5f7120","name":"dm pop L arm","bitmapResolution":2,"md5ext":"426e1520efc34fef45be0596fd5f7120.png","dataFormat":"png","rotationCenterX":90,"rotationCenterY":238},{"assetId":"370cc57b40f1f1d6e52d6330b73d207f","name":"dm pop stand","bitmapResolution":2,"md5ext":"370cc57b40f1f1d6e52d6330b73d207f.png","dataFormat":"png","rotationCenterX":100,"rotationCenterY":244},{"assetId":"56fe91d2cf3ecb9d1b94006aee9eff79","name":"dm pop R arm","bitmapResolution":2,"md5ext":"56fe91d2cf3ecb9d1b94006aee9eff79.png","dataFormat":"png","rotationCenterX":80,"rotationCenterY":240},{"assetId":"fcb8c2b6cf9b7e6ce9df521b2486deb3","name":"dm top R leg2","bitmapResolution":2,"md5ext":"fcb8c2b6cf9b7e6ce9df521b2486deb3.png","dataFormat":"png","rotationCenterX":218,"rotationCenterY":232}],"sounds":[{"assetId":"0edb8fb88af19e6e17d0f8cf64c1d136","name":"dance celebrate","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":176785,"md5ext":"0edb8fb88af19e6e17d0f8cf64c1d136.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-105,"y":-86,"size":40.000000000000014,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Libby","variables":{},"lists":{},"broadcasts":{},"blocks":{"a1O~Zmdj}W!Z91feosSZ":{"opcode":"event_whenthisspriteclicked","next":"[{Ip)|.l@A@MmymOVnkn","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":62,"y":90},"[{Ip)|.l@A@MmymOVnkn":{"opcode":"looks_sayforsecs","next":null,"parent":"a1O~Zmdj}W!Z91feosSZ","inputs":{"MESSAGE":[1,[10,"Oh, hi!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"008b80a80c4188acc72f7893fb10ac75","name":"lb stance","bitmapResolution":2,"md5ext":"008b80a80c4188acc72f7893fb10ac75.png","dataFormat":"png","rotationCenterX":54,"rotationCenterY":244},{"assetId":"dfe3628ddf46a67dcc21c63be65a8e40","name":"lb top stand","bitmapResolution":2,"md5ext":"dfe3628ddf46a67dcc21c63be65a8e40.png","dataFormat":"png","rotationCenterX":70,"rotationCenterY":248},{"assetId":"e824768a109691b5a3c577d3506ed70c","name":"lb top R leg","bitmapResolution":2,"md5ext":"e824768a109691b5a3c577d3506ed70c.png","dataFormat":"png","rotationCenterX":244,"rotationCenterY":250},{"assetId":"350472368e2310efe6fa734b79f0ff41","name":"lb top L leg","bitmapResolution":2,"md5ext":"350472368e2310efe6fa734b79f0ff41.png","dataFormat":"png","rotationCenterX":234,"rotationCenterY":286},{"assetId":"5a151c4d4e2e2f870d9096d5fce6ed48","name":"lb top L cross","bitmapResolution":2,"md5ext":"5a151c4d4e2e2f870d9096d5fce6ed48.png","dataFormat":"png","rotationCenterX":148,"rotationCenterY":258},{"assetId":"99acf468000c6fcbaf344e4531725efc","name":"lb top R cross","bitmapResolution":2,"md5ext":"99acf468000c6fcbaf344e4531725efc.png","dataFormat":"png","rotationCenterX":174,"rotationCenterY":256},{"assetId":"e34a166807a3ffbf8d147b12aa49dd19","name":"lb pop front","bitmapResolution":2,"md5ext":"e34a166807a3ffbf8d147b12aa49dd19.png","dataFormat":"png","rotationCenterX":66,"rotationCenterY":272},{"assetId":"8e41de92cb932a6898782a39a0d7d300","name":"lb pop down","bitmapResolution":2,"md5ext":"8e41de92cb932a6898782a39a0d7d300.png","dataFormat":"png","rotationCenterX":56,"rotationCenterY":90},{"assetId":"ff1b96d1047d4be459a4614ce7c7c94c","name":"lb pop left","bitmapResolution":2,"md5ext":"ff1b96d1047d4be459a4614ce7c7c94c.png","dataFormat":"png","rotationCenterX":198,"rotationCenterY":266},{"assetId":"d6d5534c628ac5d5fe3cbf1b76b71252","name":"lb pop right","bitmapResolution":2,"md5ext":"d6d5534c628ac5d5fe3cbf1b76b71252.png","dataFormat":"png","rotationCenterX":76,"rotationCenterY":264},{"assetId":"c1fd31607619b8c98a286a650f248511","name":"lb pop L arm","bitmapResolution":2,"md5ext":"c1fd31607619b8c98a286a650f248511.png","dataFormat":"png","rotationCenterX":100,"rotationCenterY":262},{"assetId":"51fe5962fe4d2af7f6fad7abaa692069","name":"lb pop stand","bitmapResolution":2,"md5ext":"51fe5962fe4d2af7f6fad7abaa692069.png","dataFormat":"png","rotationCenterX":66,"rotationCenterY":268},{"assetId":"aa57575fde5ff8b13041e3a7b1499fe0","name":"lb pop R arm","bitmapResolution":2,"md5ext":"aa57575fde5ff8b13041e3a7b1499fe0.png","dataFormat":"png","rotationCenterX":78,"rotationCenterY":258}],"sounds":[{"assetId":"0edb8fb88af19e6e17d0f8cf64c1d136","name":"dance celebrate","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":176785,"md5ext":"0edb8fb88af19e6e17d0f8cf64c1d136.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":100,"y":-87,"size":40.000000000000014,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190904154449","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":1,"costumes":[{"assetId":"4953b97814c20b8a3dab049695d509c7","name":"073018DragonBoat_bg","bitmapResolution":2,"md5ext":"4953b97814c20b8a3dab049695d509c7.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"b9c928707e817780fe6e373ab7251e2b","name":"081018DragonBoat_bg","bitmapResolution":2,"md5ext":"b9c928707e817780fe6e373ab7251e2b.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"blue dragon boat","variables":{},"lists":{},"broadcasts":{},"blocks":{"FFR95}}V~GN]}7X5j;9K":{"opcode":"event_whenkeypressed","next":".O#5Xx[CR_kMrHY[i|Dx","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-935,"y":-1220},".O#5Xx[CR_kMrHY[i|Dx":{"opcode":"control_repeat","next":null,"parent":"FFR95}}V~GN]}7X5j;9K","inputs":{"TIMES":[1,[6,"35"]],"SUBSTACK":[2,"jNFbKFq}IuK(c[9(`oWr"]},"fields":{},"shadow":false,"topLevel":false},"jNFbKFq}IuK(c[9(`oWr":{"opcode":"looks_switchcostumeto","next":"XEW(Z076Z#9yHvZ|ZDL5","parent":".O#5Xx[CR_kMrHY[i|Dx","inputs":{"COSTUME":[1,"TP!8h)[T(:vpYEJo+3~v"]},"fields":{},"shadow":false,"topLevel":false},"TP!8h)[T(:vpYEJo+3~v":{"opcode":"looks_costume","next":null,"parent":"jNFbKFq}IuK(c[9(`oWr","inputs":{},"fields":{"COSTUME":["down_blue",null]},"shadow":true,"topLevel":false},"XEW(Z076Z#9yHvZ|ZDL5":{"opcode":"control_wait","next":"l:C@C=2n]Y;]QJPkGpGY","parent":"jNFbKFq}IuK(c[9(`oWr","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},"l:C@C=2n]Y;]QJPkGpGY":{"opcode":"motion_movesteps","next":"Gz6/Hi}oZ.0Kz[B(I[N@","parent":"XEW(Z076Z#9yHvZ|ZDL5","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"Gz6/Hi}oZ.0Kz[B(I[N@":{"opcode":"looks_nextcostume","next":"Tm(ekBMU.|y#[:tiuIxX","parent":"l:C@C=2n]Y;]QJPkGpGY","inputs":{},"fields":{},"shadow":false,"topLevel":false},"Tm(ekBMU.|y#[:tiuIxX":{"opcode":"control_wait","next":"/1p=po};l=p2wBFg.+KX","parent":"Gz6/Hi}oZ.0Kz[B(I[N@","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},"/1p=po};l=p2wBFg.+KX":{"opcode":"motion_movesteps","next":"%xgSU|a%n6?6B^:p#79W","parent":"Tm(ekBMU.|y#[:tiuIxX","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"%xgSU|a%n6?6B^:p#79W":{"opcode":"looks_nextcostume","next":"SxL%_l}47U7X-A1Gf#xQ","parent":"/1p=po};l=p2wBFg.+KX","inputs":{},"fields":{},"shadow":false,"topLevel":false},"SxL%_l}47U7X-A1Gf#xQ":{"opcode":"control_wait","next":".O92:D-$N=O;#2Jb2%TU","parent":"%xgSU|a%n6?6B^:p#79W","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},".O92:D-$N=O;#2Jb2%TU":{"opcode":"motion_movesteps","next":"++}8Ln3qt-1T4|DOUy,r","parent":"SxL%_l}47U7X-A1Gf#xQ","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"++}8Ln3qt-1T4|DOUy,r":{"opcode":"looks_nextcostume","next":null,"parent":".O92:D-$N=O;#2Jb2%TU","inputs":{},"fields":{},"shadow":false,"topLevel":false},"c+:6O#=EJUR.aX!#*%.M":{"opcode":"event_whenflagclicked","next":"{5ZSJ=*@5/!=NTcWjXa(","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1265,"y":-1517},"{5ZSJ=*@5/!=NTcWjXa(":{"opcode":"motion_gotoxy","next":"tik2?JnJviBGw^rjm`1]","parent":"c+:6O#=EJUR.aX!#*%.M","inputs":{"X":[1,[4,"-22"]],"Y":[1,[4,"123"]]},"fields":{},"shadow":false,"topLevel":false},"tik2?JnJviBGw^rjm`1]":{"opcode":"looks_switchcostumeto","next":null,"parent":"{5ZSJ=*@5/!=NTcWjXa(","inputs":{"COSTUME":[1,"c;;U)E!O()YxY;tE]I8L"]},"fields":{},"shadow":false,"topLevel":false},"c;;U)E!O()YxY;tE]I8L":{"opcode":"looks_costume","next":null,"parent":"tik2?JnJviBGw^rjm`1]","inputs":{},"fields":{"COSTUME":["down_blue",null]},"shadow":true,"topLevel":false},"m4d,Ry=}Y^jA%8TKE#d{":{"opcode":"event_whenkeypressed","next":"c=qhD{:.l#[]rRuA{Jh%","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow",null]},"shadow":false,"topLevel":true,"x":-607,"y":-1201},"c=qhD{:.l#[]rRuA{Jh%":{"opcode":"looks_switchcostumeto","next":"keG~!evr$UsJ}hvFIznM","parent":"m4d,Ry=}Y^jA%8TKE#d{","inputs":{"COSTUME":[1,";rROHx/$=g5D:aq4/;G|"]},"fields":{},"shadow":false,"topLevel":false},";rROHx/$=g5D:aq4/;G|":{"opcode":"looks_costume","next":null,"parent":"c=qhD{:.l#[]rRuA{Jh%","inputs":{},"fields":{"COSTUME":["cheer1_blue",null]},"shadow":true,"topLevel":false},"keG~!evr$UsJ}hvFIznM":{"opcode":"control_repeat","next":"+Hh%#l`Z[Qu1mLfh-H*`","parent":"c=qhD{:.l#[]rRuA{Jh%","inputs":{"TIMES":[1,[6,"2"]],"SUBSTACK":[2,"4*Iefk1%;[oeL@hQ.=ex"]},"fields":{},"shadow":false,"topLevel":false},"4*Iefk1%;[oeL@hQ.=ex":{"opcode":"control_wait","next":"=JY(;_7IgkC{d^kL+8oJ","parent":"keG~!evr$UsJ}hvFIznM","inputs":{"DURATION":[1,[5,".5"]]},"fields":{},"shadow":false,"topLevel":false},"=JY(;_7IgkC{d^kL+8oJ":{"opcode":"looks_nextcostume","next":null,"parent":"4*Iefk1%;[oeL@hQ.=ex","inputs":{},"fields":{},"shadow":false,"topLevel":false},"+Hh%#l`Z[Qu1mLfh-H*`":{"opcode":"looks_sayforsecs","next":null,"parent":"keG~!evr$UsJ}hvFIznM","inputs":{"MESSAGE":[1,[10,"Yay!"]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"0S:gt:l:0NN+W@{MR@Wm":{"opcode":"event_whenthisspriteclicked","next":"}oR.w?fGtTlORUz04YEe","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-841,"y":-1518},"}oR.w?fGtTlORUz04YEe":{"opcode":"looks_sayforsecs","next":"j/Q/{X@F3rCo{@kcyUBY","parent":"0S:gt:l:0NN+W@{MR@Wm","inputs":{"MESSAGE":[1,[10,"Press the down arrow key to see a cheer."]],"SECS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"j/Q/{X@F3rCo{@kcyUBY":{"opcode":"looks_sayforsecs","next":null,"parent":"}oR.w?fGtTlORUz04YEe","inputs":{"MESSAGE":[1,[10,"Click on the space bar to see us race!"]],"SECS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":3,"costumes":[{"assetId":"4159218d9f72e802fca2e93e61aee2c8","name":"down_blue","bitmapResolution":2,"md5ext":"4159218d9f72e802fca2e93e61aee2c8.png","dataFormat":"png","rotationCenterX":454,"rotationCenterY":50},{"assetId":"18c6aa8bb365e84a338ee0edc16e7bd0","name":"middle_blue","bitmapResolution":2,"md5ext":"18c6aa8bb365e84a338ee0edc16e7bd0.png","dataFormat":"png","rotationCenterX":452,"rotationCenterY":50},{"assetId":"47db3f356c44fe4e0e0733ac250f295e","name":"up_blue","bitmapResolution":2,"md5ext":"47db3f356c44fe4e0e0733ac250f295e.png","dataFormat":"png","rotationCenterX":457,"rotationCenterY":51},{"assetId":"f380430253f8e8da013d4b6777d55786","name":"cheer1_blue","bitmapResolution":2,"md5ext":"f380430253f8e8da013d4b6777d55786.png","dataFormat":"png","rotationCenterX":453,"rotationCenterY":51},{"assetId":"174eff4f9464966cbc03baef7b87f397","name":"cheer2_blue","bitmapResolution":2,"md5ext":"174eff4f9464966cbc03baef7b87f397.png","dataFormat":"png","rotationCenterX":453,"rotationCenterY":51}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":453,"y":123,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"red dragon boat2","variables":{},"lists":{},"broadcasts":{},"blocks":{"6}O]aJN^jh=FRZ4B%_Ck":{"opcode":"event_whenflagclicked","next":"mdXB=)t5:KSqG_Jbnm7I","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1431,"y":-995},"mdXB=)t5:KSqG_Jbnm7I":{"opcode":"motion_gotoxy","next":"Y.?XbYRER/KJ~F[QBP54","parent":"6}O]aJN^jh=FRZ4B%_Ck","inputs":{"X":[1,[4,"-22"]],"Y":[1,[4,"-43"]]},"fields":{},"shadow":false,"topLevel":false},"Y.?XbYRER/KJ~F[QBP54":{"opcode":"looks_switchcostumeto","next":"7=(OQT~_tljhP^Pc~Cgi","parent":"mdXB=)t5:KSqG_Jbnm7I","inputs":{"COSTUME":[1,"]EUK-sDeGZ.CN9)5}Vkl"]},"fields":{},"shadow":false,"topLevel":false},"]EUK-sDeGZ.CN9)5}Vkl":{"opcode":"looks_costume","next":null,"parent":"Y.?XbYRER/KJ~F[QBP54","inputs":{},"fields":{"COSTUME":["down",null]},"shadow":true,"topLevel":false},"7=(OQT~_tljhP^Pc~Cgi":{"opcode":"looks_sayforsecs","next":"H@ytYjcf=bI;xcsnM1gW","parent":"Y.?XbYRER/KJ~F[QBP54","inputs":{"MESSAGE":[1,[10,"We are dragon boat racing!"]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false},"H@ytYjcf=bI;xcsnM1gW":{"opcode":"looks_sayforsecs","next":"o9y-gE8P!s6PTuL!.h=/","parent":"7=(OQT~_tljhP^Pc~Cgi","inputs":{"MESSAGE":[1,[10,"This is a tradition that originated in China."]],"SECS":[1,[4,"7"]]},"fields":{},"shadow":false,"topLevel":false},"o9y-gE8P!s6PTuL!.h=/":{"opcode":"looks_sayforsecs","next":"IF~s%DYs(N!f-$H@!0Sy","parent":"H@ytYjcf=bI;xcsnM1gW","inputs":{"MESSAGE":[1,[10,"But now, it is celebrated all around the world!"]],"SECS":[1,[4,"7"]]},"fields":{},"shadow":false,"topLevel":false},"IF~s%DYs(N!f-$H@!0Sy":{"opcode":"looks_sayforsecs","next":null,"parent":"o9y-gE8P!s6PTuL!.h=/","inputs":{"MESSAGE":[1,[10,"Click on the Blue Dragon Boat to learn how to race!"]],"SECS":[1,[4,"8"]]},"fields":{},"shadow":false,"topLevel":false},"~vzV,)k9Smog*S=2Vxnl":{"opcode":"event_whenkeypressed","next":"wC/mHJR,(y))HXD?`r]Y","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-1439,"y":-586},"wC/mHJR,(y))HXD?`r]Y":{"opcode":"control_repeat","next":null,"parent":"~vzV,)k9Smog*S=2Vxnl","inputs":{"TIMES":[1,[6,"7"]],"SUBSTACK":[2,"RO$%71YtoH;`U(5Ow0sr"]},"fields":{},"shadow":false,"topLevel":false},"RO$%71YtoH;`U(5Ow0sr":{"opcode":"looks_switchcostumeto","next":"}Q`=g?o=6yi?Jz]/|4g{","parent":"wC/mHJR,(y))HXD?`r]Y","inputs":{"COSTUME":[1,"^yq!VUNAkeHHvfe$xbmQ"]},"fields":{},"shadow":false,"topLevel":false},"^yq!VUNAkeHHvfe$xbmQ":{"opcode":"looks_costume","next":null,"parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{},"fields":{"COSTUME":["down",null]},"shadow":true,"topLevel":false},"}Q`=g?o=6yi?Jz]/|4g{":{"opcode":"control_wait","next":"|NWa,`~hMAAZse]zo}Kq","parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{"DURATION":[1,[5,".6"]]},"fields":{},"shadow":false,"topLevel":false},"|NWa,`~hMAAZse]zo}Kq":{"opcode":"motion_movesteps","next":"x#U4xVOG?)DPyx)7Y~(r","parent":"}Q`=g?o=6yi?Jz]/|4g{","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"x#U4xVOG?)DPyx)7Y~(r":{"opcode":"looks_nextcostume","next":";QpVzrsk@Zk_{d}4I[kW","parent":"|NWa,`~hMAAZse]zo}Kq","inputs":{},"fields":{},"shadow":false,"topLevel":false},";QpVzrsk@Zk_{d}4I[kW":{"opcode":"control_wait","next":"h#G`QEI1CVFPW6iP*oo?","parent":"x#U4xVOG?)DPyx)7Y~(r","inputs":{"DURATION":[1,[5,".6"]]},"fields":{},"shadow":false,"topLevel":false},"h#G`QEI1CVFPW6iP*oo?":{"opcode":"motion_movesteps","next":"zCHOB*;ri@)7UZm6:^+T","parent":";QpVzrsk@Zk_{d}4I[kW","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"zCHOB*;ri@)7UZm6:^+T":{"opcode":"looks_nextcostume","next":"YPD_9gC5TvEmog2hb{Dv","parent":"h#G`QEI1CVFPW6iP*oo?","inputs":{},"fields":{},"shadow":false,"topLevel":false},"YPD_9gC5TvEmog2hb{Dv":{"opcode":"control_wait","next":"oYoK@Tr+-o=t[rnocZ*Q","parent":"zCHOB*;ri@)7UZm6:^+T","inputs":{"DURATION":[1,[5,".6"]]},"fields":{},"shadow":false,"topLevel":false},"oYoK@Tr+-o=t[rnocZ*Q":{"opcode":"motion_movesteps","next":null,"parent":"YPD_9gC5TvEmog2hb{Dv","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":2,"costumes":[{"assetId":"8fb24626392ea7d7ea291be86e455a87","name":"down","bitmapResolution":2,"md5ext":"8fb24626392ea7d7ea291be86e455a87.png","dataFormat":"png","rotationCenterX":470,"rotationCenterY":38},{"assetId":"5ef07742224cb206714eacc0b1a6f4a1","name":"middle","bitmapResolution":2,"md5ext":"5ef07742224cb206714eacc0b1a6f4a1.png","dataFormat":"png","rotationCenterX":470,"rotationCenterY":38},{"assetId":"416a83dcf33fab5c6a199d166738a97f","name":"up","bitmapResolution":2,"md5ext":"416a83dcf33fab5c6a199d166738a97f.png","dataFormat":"png","rotationCenterX":474,"rotationCenterY":38},{"assetId":"0379a7ff77676213e2e5b04adbf112ee","name":"cheer1","bitmapResolution":2,"md5ext":"0379a7ff77676213e2e5b04adbf112ee.png","dataFormat":"png","rotationCenterX":471,"rotationCenterY":38},{"assetId":"0fe20e56960b05a3000acb870655556d","name":"cheer2","bitmapResolution":2,"md5ext":"0fe20e56960b05a3000acb870655556d.png","dataFormat":"png","rotationCenterX":470,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":104,"y":-43,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"flags","variables":{},"lists":{},"broadcasts":{},"blocks":{"Sc~32M@N)m;,^#R_`aSK":{"opcode":"event_whenflagclicked","next":"5qphS/+N)swh5kuR}ii1","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1064,"y":-2361},"5qphS/+N)swh5kuR}ii1":{"opcode":"motion_gotoxy","next":"/8WJ}hHpXETjsV2A*[|G","parent":"Sc~32M@N)m;,^#R_`aSK","inputs":{"X":[1,[4,-2]],"Y":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"/8WJ}hHpXETjsV2A*[|G":{"opcode":"looks_switchcostumeto","next":"F~NIU+f.7qr*x~eQ+PpZ","parent":"5qphS/+N)swh5kuR}ii1","inputs":{"COSTUME":[1,"TP//JCgrUD]8R-M0Rdm-"]},"fields":{},"shadow":false,"topLevel":false},"TP//JCgrUD]8R-M0Rdm-":{"opcode":"looks_costume","next":null,"parent":"/8WJ}hHpXETjsV2A*[|G","inputs":{},"fields":{"COSTUME":["center"]},"shadow":true,"topLevel":false},"F~NIU+f.7qr*x~eQ+PpZ":{"opcode":"control_forever","next":null,"parent":"/8WJ}hHpXETjsV2A*[|G","inputs":{"SUBSTACK":[2,"J5Wbr[%[%YMJAgoO2BN-"]},"fields":{},"shadow":false,"topLevel":false},"J5Wbr[%[%YMJAgoO2BN-":{"opcode":"looks_nextcostume","next":"LQRSAf.0d2mv:eYbuaC)","parent":"F~NIU+f.7qr*x~eQ+PpZ","inputs":{},"fields":{},"shadow":false,"topLevel":false},"LQRSAf.0d2mv:eYbuaC)":{"opcode":"control_wait","next":null,"parent":"J5Wbr[%[%YMJAgoO2BN-","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":2,"costumes":[{"assetId":"b1b2a43f5f87da9f5adf53eda1c886ba","name":"left","bitmapResolution":2,"md5ext":"b1b2a43f5f87da9f5adf53eda1c886ba.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"97de43aed81c81e3f3df1a4bcf21ff64","name":"center","bitmapResolution":2,"md5ext":"97de43aed81c81e3f3df1a4bcf21ff64.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"1c3bc9cc59d4178b7cde5e064d2557d6","name":"right","bitmapResolution":2,"md5ext":"1c3bc9cc59d4178b7cde5e064d2557d6.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"97de43aed81c81e3f3df1a4bcf21ff64","name":"center2","bitmapResolution":2,"md5ext":"97de43aed81c81e3f3df1a4bcf21ff64.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":-2,"y":3,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Fish","variables":{},"lists":{},"broadcasts":{},"blocks":{"ez!h95irNu^6pqSdAR;[":{"opcode":"event_whenflagclicked","next":"@_5[:En|ymE[nBlD$2p:","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-953,"y":-1170},"@_5[:En|ymE[nBlD$2p:":{"opcode":"motion_gotoxy","next":"^8DsG#kGCoEFy0ilnK[l","parent":"ez!h95irNu^6pqSdAR;[","inputs":{"X":[1,[4,"149"]],"Y":[1,[4,"-45"]]},"fields":{},"shadow":false,"topLevel":false},"^8DsG#kGCoEFy0ilnK[l":{"opcode":"looks_switchcostumeto","next":null,"parent":"@_5[:En|ymE[nBlD$2p:","inputs":{"COSTUME":[1,"UcfBrOE?mW,]0_Ljhy0g"]},"fields":{},"shadow":false,"topLevel":false},"UcfBrOE?mW,]0_Ljhy0g":{"opcode":"looks_costume","next":null,"parent":"^8DsG#kGCoEFy0ilnK[l","inputs":{},"fields":{"COSTUME":["fish1",null]},"shadow":true,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"0109d8d6c0f4f14efd79b91923bab2fa","name":"fish1","bitmapResolution":2,"md5ext":"0109d8d6c0f4f14efd79b91923bab2fa.png","dataFormat":"png","rotationCenterX":278,"rotationCenterY":330},{"assetId":"56c27e51403099cfab2aeb7f33ebcc9a","name":"fish2","bitmapResolution":2,"md5ext":"56c27e51403099cfab2aeb7f33ebcc9a.png","dataFormat":"png","rotationCenterX":357,"rotationCenterY":347},{"assetId":"a58a5ab92ed526cf6379ce86dfec4af9","name":"fish3","bitmapResolution":2,"md5ext":"a58a5ab92ed526cf6379ce86dfec4af9.png","dataFormat":"png","rotationCenterX":328,"rotationCenterY":309},{"assetId":"7bb9688c3518ddb08c0048266b1bfd2d","name":"fish4","bitmapResolution":2,"md5ext":"7bb9688c3518ddb08c0048266b1bfd2d.png","dataFormat":"png","rotationCenterX":278,"rotationCenterY":257}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":false,"x":149,"y":-45,"size":30,"direction":92.35553230387865,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"}}
 },{}],34:[function(require,module,exports){
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":4,"costumes":[{"assetId":"4953b97814c20b8a3dab049695d509c7","name":"073018DragonBoat_bg","bitmapResolution":2,"md5ext":"4953b97814c20b8a3dab049695d509c7.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"b9c928707e817780fe6e373ab7251e2b","name":"081018DragonBoat_bg","bitmapResolution":2,"md5ext":"b9c928707e817780fe6e373ab7251e2b.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"b3892fe075aa7a88b2c7e3aba4d4b790","name":"backdrop1","bitmapResolution":1,"md5ext":"b3892fe075aa7a88b2c7e3aba4d4b790.svg","dataFormat":"svg","rotationCenterX":255.964835,"rotationCenterY":146.36328125},{"assetId":"1d75c9a6202e2415391335f5fb495c99","name":"e79fd28fe8789ff55fd9b6220037ecf5_royalty-free-gym-floor-clip-art-vector-images-illustrations-_612-612","bitmapResolution":2,"md5ext":"1d75c9a6202e2415391335f5fb495c99.png","dataFormat":"png","rotationCenterX":306,"rotationCenterY":306},{"assetId":"6e3ef0083d5bce20e2c964363514c826","name":"Basketball 1","bitmapResolution":1,"md5ext":"6e3ef0083d5bce20e2c964363514c826.svg","dataFormat":"svg","rotationCenterX":364,"rotationCenterY":212}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Andie","variables":{},"lists":{},"broadcasts":{},"blocks":{"6}O]aJN^jh=FRZ4B%_Ck":{"opcode":"event_whenflagclicked","next":"S%{DxI8Q7NR(J:EQBX~q","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1400,"y":-705},":pQz?p*Z/HkU!m^@k?b.":{"opcode":"looks_switchcostumeto","next":"N|+K}Y@sie[^.VR,-]]f","parent":"S%{DxI8Q7NR(J:EQBX~q","inputs":{"COSTUME":[1,"5geX;Qg:+ztVfv~/6TOR"]},"fields":{},"shadow":false,"topLevel":false},"5geX;Qg:+ztVfv~/6TOR":{"opcode":"looks_costume","next":null,"parent":":pQz?p*Z/HkU!m^@k?b.","inputs":{},"fields":{"COSTUME":["Andie1",null]},"shadow":true,"topLevel":false},"~vzV,)k9Smog*S=2Vxnl":{"opcode":"event_whenkeypressed","next":"RO$%71YtoH;`U(5Ow0sr","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow",null]},"shadow":false,"topLevel":true,"x":-1394,"y":-381},"RO$%71YtoH;`U(5Ow0sr":{"opcode":"looks_switchcostumeto","next":"wC/mHJR,(y))HXD?`r]Y","parent":"~vzV,)k9Smog*S=2Vxnl","inputs":{"COSTUME":[1,"^yq!VUNAkeHHvfe$xbmQ"]},"fields":{},"shadow":false,"topLevel":false},"^yq!VUNAkeHHvfe$xbmQ":{"opcode":"looks_costume","next":null,"parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{},"fields":{"COSTUME":["Andie1",null]},"shadow":true,"topLevel":false},"wC/mHJR,(y))HXD?`r]Y":{"opcode":"control_repeat","next":null,"parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{"TIMES":[1,[6,"20"]],"SUBSTACK":[2,"}Q`=g?o=6yi?Jz]/|4g{"]},"fields":{},"shadow":false,"topLevel":false},"}Q`=g?o=6yi?Jz]/|4g{":{"opcode":"control_wait","next":"x#U4xVOG?)DPyx)7Y~(r","parent":"wC/mHJR,(y))HXD?`r]Y","inputs":{"DURATION":[1,[5,".3"]]},"fields":{},"shadow":false,"topLevel":false},"x#U4xVOG?)DPyx)7Y~(r":{"opcode":"looks_nextcostume","next":null,"parent":"}Q`=g?o=6yi?Jz]/|4g{","inputs":{},"fields":{},"shadow":false,"topLevel":false},"{`iq@=gYKl2;GBWAK/*]":{"opcode":"looks_sayforsecs","next":null,"parent":"N|+K}Y@sie[^.VR,-]]f","inputs":{"MESSAGE":[1,[10,"Press the down arrow key to see us dribble."]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"N|+K}Y@sie[^.VR,-]]f":{"opcode":"looks_gotofrontback","next":"{`iq@=gYKl2;GBWAK/*]","parent":":pQz?p*Z/HkU!m^@k?b.","inputs":{},"fields":{"FRONT_BACK":["back",null]},"shadow":false,"topLevel":false},"S%{DxI8Q7NR(J:EQBX~q":{"opcode":"motion_gotoxy","next":":pQz?p*Z/HkU!m^@k?b.","parent":"6}O]aJN^jh=FRZ4B%_Ck","inputs":{"X":[1,[4,"131"]],"Y":[1,[4,"30"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"428d26cd7db0965f3cdc695f4bf7c187","name":"Andie1","bitmapResolution":1,"md5ext":"428d26cd7db0965f3cdc695f4bf7c187.svg","dataFormat":"svg","rotationCenterX":88.15144525307196,"rotationCenterY":81.55357252089803},{"assetId":"2c987528236f67bf8df4cefe21da0bd2","name":"Andie2","bitmapResolution":1,"md5ext":"2c987528236f67bf8df4cefe21da0bd2.svg","dataFormat":"svg","rotationCenterX":89.43607148025549,"rotationCenterY":64.15005150322513},{"assetId":"35297645747defb06da8fc1b43dd4366","name":"Andie3","bitmapResolution":1,"md5ext":"35297645747defb06da8fc1b43dd4366.svg","dataFormat":"svg","rotationCenterX":85.49156767224497,"rotationCenterY":64.15005493877038},{"assetId":"656df76d07ad799eb115dd96091005e0","name":"Andie4","bitmapResolution":1,"md5ext":"656df76d07ad799eb115dd96091005e0.svg","dataFormat":"svg","rotationCenterX":89.43607148025549,"rotationCenterY":64.15005150322513}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":131,"y":30,"size":80,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Jordyn","variables":{},"lists":{},"broadcasts":{},"blocks":{"FFR95}}V~GN]}7X5j;9K":{"opcode":"event_whenkeypressed","next":"RN6(fwI%ap{?|dYR4@sK","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-1559,"y":-989},"RN6(fwI%ap{?|dYR4@sK":{"opcode":"control_repeat","next":"V-V:T9r%tgtP,,9F]Lb|","parent":"FFR95}}V~GN]}7X5j;9K","inputs":{"TIMES":[1,[6,"22"]],"SUBSTACK":[2,"y3A-jV0d+}7Ka#dor(mr"]},"fields":{},"shadow":false,"topLevel":false},"y3A-jV0d+}7Ka#dor(mr":{"opcode":"control_wait","next":"Mulix|]{S}[c)MYzRS[{","parent":"RN6(fwI%ap{?|dYR4@sK","inputs":{"DURATION":[1,[5,".15"]]},"fields":{},"shadow":false,"topLevel":false},"Mulix|]{S}[c)MYzRS[{":{"opcode":"looks_nextcostume","next":"FkBPY%cvJx6;4x%Nmzj)","parent":"y3A-jV0d+}7Ka#dor(mr","inputs":{},"fields":{},"shadow":false,"topLevel":false},"FkBPY%cvJx6;4x%Nmzj)":{"opcode":"motion_movesteps","next":null,"parent":"Mulix|]{S}[c)MYzRS[{","inputs":{"STEPS":[1,[4,"20"]]},"fields":{},"shadow":false,"topLevel":false},"V-V:T9r%tgtP,,9F]Lb|":{"opcode":"looks_switchcostumeto","next":null,"parent":"RN6(fwI%ap{?|dYR4@sK","inputs":{"COSTUME":[1,"GU@U^b|Z!g*swSK+:ZM%"]},"fields":{},"shadow":false,"topLevel":false},"GU@U^b|Z!g*swSK+:ZM%":{"opcode":"looks_costume","next":null,"parent":"V-V:T9r%tgtP,,9F]Lb|","inputs":{},"fields":{"COSTUME":["Jordyn1",null]},"shadow":true,"topLevel":false},"c+:6O#=EJUR.aX!#*%.M":{"opcode":"event_whenflagclicked","next":"{5ZSJ=*@5/!=NTcWjXa(","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1579,"y":-1243},"{5ZSJ=*@5/!=NTcWjXa(":{"opcode":"motion_gotoxy","next":"tik2?JnJviBGw^rjm`1]","parent":"c+:6O#=EJUR.aX!#*%.M","inputs":{"X":[1,[4,"-200"]],"Y":[1,[4,"-40"]]},"fields":{},"shadow":false,"topLevel":false},"tik2?JnJviBGw^rjm`1]":{"opcode":"looks_switchcostumeto","next":null,"parent":"{5ZSJ=*@5/!=NTcWjXa(","inputs":{"COSTUME":[1,"c;;U)E!O()YxY;tE]I8L"]},"fields":{},"shadow":false,"topLevel":false},"c;;U)E!O()YxY;tE]I8L":{"opcode":"looks_costume","next":null,"parent":"tik2?JnJviBGw^rjm`1]","inputs":{},"fields":{"COSTUME":["Jordyn1",null]},"shadow":true,"topLevel":false},"?s;CncrOM,T4}DtB=vst":{"opcode":"event_whenkeypressed","next":"Z6Ks5#h9lz(7Qb_,-[-f","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow",null]},"shadow":false,"topLevel":true,"x":-1207,"y":-1233},"Z6Ks5#h9lz(7Qb_,-[-f":{"opcode":"control_repeat","next":"FcANosyL39HlORt?O8eS","parent":"?s;CncrOM,T4}DtB=vst","inputs":{"TIMES":[1,[6,"12"]],"SUBSTACK":[2,"f!pt@]c$J^U1[CS:C|e,"]},"fields":{},"shadow":false,"topLevel":false},"f!pt@]c$J^U1[CS:C|e,":{"opcode":"control_wait","next":"{OtG{Yv)zo!ia%}n]H95","parent":"Z6Ks5#h9lz(7Qb_,-[-f","inputs":{"DURATION":[1,[5,".3"]]},"fields":{},"shadow":false,"topLevel":false},"{OtG{Yv)zo!ia%}n]H95":{"opcode":"looks_nextcostume","next":null,"parent":"f!pt@]c$J^U1[CS:C|e,","inputs":{},"fields":{},"shadow":false,"topLevel":false},"FcANosyL39HlORt?O8eS":{"opcode":"looks_sayforsecs","next":null,"parent":"Z6Ks5#h9lz(7Qb_,-[-f","inputs":{"MESSAGE":[1,[10,"Press the space bar to watch Miguel and me dribble across the court!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"?g,x?Jb[1{AQl75%XcjG":{"blockId":".O#5Xx[CR_kMrHY[i|Dx","x":178,"y":-1048,"width":200,"height":200,"minimized":false,"text":"This longer code would prevent the standing dribble animation to overlap with the run/dribble animation"}},"currentCostume":0,"costumes":[{"assetId":"ec0c260d2321b33a7bcbffb93f1970d2","name":"Jordyn1","bitmapResolution":1,"md5ext":"ec0c260d2321b33a7bcbffb93f1970d2.svg","dataFormat":"svg","rotationCenterX":33.74546494910098,"rotationCenterY":62.69436263827484},{"assetId":"1b5edf25437124002136418e99d02dfe","name":"Jordyn2","bitmapResolution":1,"md5ext":"1b5edf25437124002136418e99d02dfe.svg","dataFormat":"svg","rotationCenterX":48.9517821174727,"rotationCenterY":62.694377914824486},{"assetId":"bf13eddeef9d2da3c0cfce155869eb88","name":"Jordyn3","bitmapResolution":1,"md5ext":"bf13eddeef9d2da3c0cfce155869eb88.svg","dataFormat":"svg","rotationCenterX":33.74546986498308,"rotationCenterY":62.69436527654966},{"assetId":"d710e71614edaf1d86e5f8c741fe3d1e","name":"Jordyn4","bitmapResolution":1,"md5ext":"d710e71614edaf1d86e5f8c741fe3d1e.svg","dataFormat":"svg","rotationCenterX":51.145432069474,"rotationCenterY":62.69435447870612}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":-200,"y":-40,"size":90,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Miguel","variables":{},"lists":{},"broadcasts":{},"blocks":{"4Z3i{QKZROpJnOe,b_DN":{"opcode":"event_whenflagclicked","next":"CWto!?+oXxrv`e~-;le[","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-2342,"y":-1454},"CWto!?+oXxrv`e~-;le[":{"opcode":"motion_gotoxy","next":"%q@JG_HRK|QtS~v/L0%h","parent":"4Z3i{QKZROpJnOe,b_DN","inputs":{"X":[1,[4,"-203"]],"Y":[1,[4,"-110"]]},"fields":{},"shadow":false,"topLevel":false},"%q@JG_HRK|QtS~v/L0%h":{"opcode":"looks_switchcostumeto","next":null,"parent":"CWto!?+oXxrv`e~-;le[","inputs":{"COSTUME":[1,"9cKXdQ14:c7[Ye~!`1/~"]},"fields":{},"shadow":false,"topLevel":false},"9cKXdQ14:c7[Ye~!`1/~":{"opcode":"looks_costume","next":null,"parent":"%q@JG_HRK|QtS~v/L0%h","inputs":{},"fields":{"COSTUME":["Miguel1",null]},"shadow":true,"topLevel":false},"[GqfrGN]^`tQ4q:Q3#JJ":{"opcode":"event_whenkeypressed","next":"QHe#Vkys)Rh+@UXqxB2{","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-2347,"y":-1175},"QHe#Vkys)Rh+@UXqxB2{":{"opcode":"control_repeat","next":null,"parent":"[GqfrGN]^`tQ4q:Q3#JJ","inputs":{"TIMES":[1,[6,"8"]],"SUBSTACK":[2,"6tV]3_1VT=^NmAx%q!g4"]},"fields":{},"shadow":false,"topLevel":false},"6tV]3_1VT=^NmAx%q!g4":{"opcode":"control_wait","next":"Qk/o|;QFt+F4$=UuayAJ","parent":"QHe#Vkys)Rh+@UXqxB2{","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},"Qk/o|;QFt+F4$=UuayAJ":{"opcode":"looks_nextcostume","next":".DjF9o3KoHe=8Yd(7:LW","parent":"6tV]3_1VT=^NmAx%q!g4","inputs":{},"fields":{},"shadow":false,"topLevel":false},".DjF9o3KoHe=8Yd(7:LW":{"opcode":"motion_movesteps","next":null,"parent":"Qk/o|;QFt+F4$=UuayAJ","inputs":{"STEPS":[1,[4,"20"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"K_1eCG@}Jr2SIUQs-r#h":{"blockId":null,"x":-1948.7407407407406,"y":-1317.9259259259259,"width":200,"height":200,"minimized":false,"text":"Build 1 script and modify a script..."},"6JV9Goq|XG$}U$mDQsYS":{"blockId":null,"x":-1952.481323521161,"y":-1102.7219852817411,"width":200,"height":200,"minimized":false,"text":"One will have Miguel dribble in place, when the down arrow key is pressed. Look at the script for Jordyn."},"w)]!x]e.9?/[4GH|+[O:":{"blockId":null,"x":-1957.481323521161,"y":-879.3301575353256,"width":200,"height":200,"minimized":false,"text":"The other will have Miguel dribble ALL the way across the basketball court when the space key is pressed. Look at Jordyn's script"}},"currentCostume":0,"costumes":[{"assetId":"8a00295a8d657ea087cc88010c3a844c","name":"Miguel1","bitmapResolution":1,"md5ext":"8a00295a8d657ea087cc88010c3a844c.svg","dataFormat":"svg","rotationCenterX":26.37499494910105,"rotationCenterY":62.69436185272684},{"assetId":"80e8002553b2cac9c3e4887a7583a65c","name":"Miguel2","bitmapResolution":1,"md5ext":"80e8002553b2cac9c3e4887a7583a65c.svg","dataFormat":"svg","rotationCenterX":49.74051742656934,"rotationCenterY":62.69436162506062},{"assetId":"5dba01afa32235f7f91a4132f3d448cd","name":"Miguel3","bitmapResolution":1,"md5ext":"5dba01afa32235f7f91a4132f3d448cd.svg","dataFormat":"svg","rotationCenterX":26.374997377707814,"rotationCenterY":62.69436159568707},{"assetId":"14904cc6bbad4a87b6f924707730dd0f","name":"Miguel4","bitmapResolution":1,"md5ext":"14904cc6bbad4a87b6f924707730dd0f.svg","dataFormat":"svg","rotationCenterX":50.926268599392586,"rotationCenterY":62.69436185272684}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-203,"y":-110,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Referee","variables":{},"lists":{},"broadcasts":{},"blocks":{"Uw:zXlolx).J/|3Vv}.(":{"opcode":"event_whenflagclicked","next":"2`:.Ap!-R]l#bQyC^ho2","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":71,"y":55},"2`:.Ap!-R]l#bQyC^ho2":{"opcode":"motion_gotoxy","next":null,"parent":"Uw:zXlolx).J/|3Vv}.(","inputs":{"X":[1,[4,"-131"]],"Y":[1,[4,"44"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":3,"costumes":[{"assetId":"7eeca5313c2e7d455482badff3079f64","name":"referee-b","bitmapResolution":1,"md5ext":"7eeca5313c2e7d455482badff3079f64.svg","dataFormat":"svg","rotationCenterX":44,"rotationCenterY":63},{"assetId":"1cd641a48499db84636d983916b62a83","name":"referee-d","bitmapResolution":1,"md5ext":"1cd641a48499db84636d983916b62a83.svg","dataFormat":"svg","rotationCenterX":50,"rotationCenterY":63},{"assetId":"5948c4160089fcc0975a867221ff2256","name":"referee-c","bitmapResolution":1,"md5ext":"5948c4160089fcc0975a867221ff2256.svg","dataFormat":"svg","rotationCenterX":55,"rotationCenterY":62},{"assetId":"46dde2baba61a7e48463ae8e58441470","name":"referee-a","bitmapResolution":1,"md5ext":"46dde2baba61a7e48463ae8e58441470.svg","dataFormat":"svg","rotationCenterX":44,"rotationCenterY":63}],"sounds":[{"assetId":"8468b9b3f11a665ee4d215afd8463b97","name":"referee whistle","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":14225,"md5ext":"8468b9b3f11a665ee4d215afd8463b97.wav"}],"volume":100,"layerOrder":2,"visible":false,"x":-131.00000000000003,"y":44,"size":80,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190822194548","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"}}
+},{}],35:[function(require,module,exports){
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{"`jEk@4|i[#Fk?(8x)AV.-my variable":["my variable",0]},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"6579c565f60733c4d4b6bfa84dcb2ffa","name":"backdrop3","bitmapResolution":2,"md5ext":"6579c565f60733c4d4b6bfa84dcb2ffa.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"on","textToSpeechLanguage":null},{"isStage":false,"name":"Ninja Cat","variables":{},"lists":{},"broadcasts":{},"blocks":{"|etjt+q79~RJiBzX6}^e":{"opcode":"event_whenflagclicked","next":"tE;G95v,1|}a4mmB7}A)","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":7,"y":205},"tE;G95v,1|}a4mmB7}A)":{"opcode":"motion_gotoxy","next":"0og]NcATQdOy/U@IY^E*","parent":"|etjt+q79~RJiBzX6}^e","inputs":{"X":[1,[4,"-189"]],"Y":[1,[4,"-43"]]},"fields":{},"shadow":false,"topLevel":false},"0og]NcATQdOy/U@IY^E*":{"opcode":"looks_sayforsecs","next":"(q!*oSyO?PG-bfs5=;BM","parent":"tE;G95v,1|}a4mmB7}A)","inputs":{"MESSAGE":[1,[10,"Help me reach the gem!"]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false},"(q!*oSyO?PG-bfs5=;BM":{"opcode":"control_repeat_until","next":null,"parent":"0og]NcATQdOy/U@IY^E*","inputs":{"CONDITION":[2,"o.iU%bahu);Xt,2%/G%|"],"SUBSTACK":[2,"cxWFIP6b~(|7UneIBU7b"]},"fields":{},"shadow":false,"topLevel":false},"-fiMoRkw6qWeIhleb:KF":{"opcode":"sensing_touchingcolor","next":null,"parent":null,"inputs":{"COLOR":[1,[9,"#337f6e"]]},"fields":{},"shadow":false,"topLevel":true,"x":455,"y":427},"cxWFIP6b~(|7UneIBU7b":{"opcode":"motion_movesteps","next":"06`-+_|52.|#S{D`ry^s","parent":"(q!*oSyO?PG-bfs5=;BM","inputs":{"STEPS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false},"06`-+_|52.|#S{D`ry^s":{"opcode":"looks_nextcostume","next":"LCdrJz0P~{cA~)_bv4ix","parent":"cxWFIP6b~(|7UneIBU7b","inputs":{},"fields":{},"shadow":false,"topLevel":false},"LCdrJz0P~{cA~)_bv4ix":{"opcode":"control_wait","next":null,"parent":"06`-+_|52.|#S{D`ry^s","inputs":{"DURATION":[1,[5,".1"]]},"fields":{},"shadow":false,"topLevel":false},"YwhEuJhA+!.A`{Gg`/[Y":{"opcode":"sensing_touchingobject","next":null,"parent":null,"inputs":{"TOUCHINGOBJECTMENU":[1,"L}|yA:ge@8N3I;V]@bNi"]},"fields":{},"shadow":false,"topLevel":true,"x":457,"y":341},"L}|yA:ge@8N3I;V]@bNi":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"YwhEuJhA+!.A`{Gg`/[Y","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Gem",null]},"shadow":true,"topLevel":false},"o.iU%bahu);Xt,2%/G%|":{"opcode":"sensing_touchingobject","next":null,"parent":"(q!*oSyO?PG-bfs5=;BM","inputs":{"TOUCHINGOBJECTMENU":[1,"{:X)27L[p8uEpJO(-%MI"]},"fields":{},"shadow":false,"topLevel":false},"{:X)27L[p8uEpJO(-%MI":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"o.iU%bahu);Xt,2%/G%|","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Bee",null]},"shadow":true,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"d96aa54542a76f2a0dab1f974257faec","name":"costume2","bitmapResolution":1,"md5ext":"d96aa54542a76f2a0dab1f974257faec.svg","dataFormat":"svg","rotationCenterX":42.399999999999864,"rotationCenterY":55.375},{"assetId":"ad0bfbf4f9c7f4c41220044e058f4fde","name":"costume1","bitmapResolution":1,"md5ext":"ad0bfbf4f9c7f4c41220044e058f4fde.svg","dataFormat":"svg","rotationCenterX":41.863566856754716,"rotationCenterY":54.46991940038589}],"sounds":[{"assetId":"83c36d806dc92327b9e7049a565c6bff","name":"Meow","dataFormat":"wav","format":"","rate":44100,"sampleCount":37376,"md5ext":"83c36d806dc92327b9e7049a565c6bff.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":-19.024425943795386,"y":-45.881705096581854,"size":100,"direction":90.97127910616189,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Gem","variables":{},"lists":{},"broadcasts":{},"blocks":{"1BtqzcG0(#T0/$Pb0n5I":{"opcode":"event_whenflagclicked","next":"al[eLo~-(_2GmOMw*(2T","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-13,"y":177},"al[eLo~-(_2GmOMw*(2T":{"opcode":"motion_gotoxy","next":null,"parent":"1BtqzcG0(#T0/$Pb0n5I","inputs":{"X":[1,[4,"185"]],"Y":[1,[4,"-40"]]},"fields":{},"shadow":false,"topLevel":false},"!-R!cTxqq#1SsX}H76)V":{"opcode":"event_whenkeypressed","next":"|dI~VFgaZ_-B}Er{-=D:","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":427,"y":202},"|dI~VFgaZ_-B}Er{-=D:":{"opcode":"motion_movesteps","next":null,"parent":"!-R!cTxqq#1SsX}H76)V","inputs":{"STEPS":[1,[4,"30"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"b411e48862aa61ce892721e258f19240","name":"Gem_Red","bitmapResolution":2,"md5ext":"b411e48862aa61ce892721e258f19240.png","dataFormat":"png","rotationCenterX":53,"rotationCenterY":47}],"sounds":[],"volume":100,"layerOrder":1,"visible":true,"x":215,"y":-40,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Bee","variables":{},"lists":{},"broadcasts":{},"blocks":{"[SGBumU#}c=?46fEWQUF":{"opcode":"event_whenthisspriteclicked","next":"xbZNiPJHW=N%a#2f}AsS","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":204,"y":163},"xbZNiPJHW=N%a#2f}AsS":{"opcode":"looks_sayforsecs","next":null,"parent":"[SGBumU#}c=?46fEWQUF","inputs":{"MESSAGE":[1,[10,"Hello!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"7955018306bb03b5444bed8306569041","name":"bee","bitmapResolution":2,"md5ext":"7955018306bb03b5444bed8306569041.png","dataFormat":"png","rotationCenterX":48,"rotationCenterY":34}],"sounds":[],"volume":100,"layerOrder":2,"visible":true,"x":13.999999999999993,"y":-10.000000000000014,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190904154449","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
+},{}],36:[function(require,module,exports){
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"bd72cb5f3bded42480516a718001b528","name":"Sambadrome","bitmapResolution":1,"md5ext":"bd72cb5f3bded42480516a718001b528.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Butterfly","variables":{},"lists":{},"broadcasts":{},"blocks":{"?3Zl.6nOK{[BWe^7a5{B":{"opcode":"event_whenflagclicked","next":"+Cfb89be^mtRZV7]^7*?","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-483,"y":-531},"+Cfb89be^mtRZV7]^7*?":{"opcode":"motion_gotoxy","next":"oUQPz4^X*Pf3SaNm.|%o","parent":"?3Zl.6nOK{[BWe^7a5{B","inputs":{"X":[1,[4,"-325"]],"Y":[1,[4,-65]]},"fields":{},"shadow":false,"topLevel":false},"/(%U[W6DY.cdTnp,78:O":{"opcode":"control_repeat_until","next":null,"parent":"oUQPz4^X*Pf3SaNm.|%o","inputs":{"CONDITION":[2,"N^bw~_OboaqS;e/oA5;["],"SUBSTACK":[2,"ZY6yg~jw,+5zy^(_?Cqw"]},"fields":{},"shadow":false,"topLevel":false},"N^bw~_OboaqS;e/oA5;[":{"opcode":"sensing_touchingobject","next":null,"parent":"/(%U[W6DY.cdTnp,78:O","inputs":{"TOUCHINGOBJECTMENU":[1,"bVZa^Cr6s}-L+{PzN;D?"]},"fields":{},"shadow":false,"topLevel":false},"bVZa^Cr6s}-L+{PzN;D?":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"N^bw~_OboaqS;e/oA5;[","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["King Momo"]},"shadow":true,"topLevel":false},"ZY6yg~jw,+5zy^(_?Cqw":{"opcode":"motion_movesteps","next":",T!=6NSo1Z.0]:-+dZNR","parent":"/(%U[W6DY.cdTnp,78:O","inputs":{"STEPS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"~(EB0p9Iqeo{}{;fTUW:":{"opcode":"sensing_touchingcolor","next":null,"parent":null,"inputs":{"COLOR":[1,[9,"#e64e3e"]]},"fields":{},"shadow":false,"topLevel":true,"x":-140,"y":-508,"comment":"k)L~z*+b|rNaAP57;rUd"},"oUQPz4^X*Pf3SaNm.|%o":{"opcode":"control_wait","next":"/(%U[W6DY.cdTnp,78:O","parent":"+Cfb89be^mtRZV7]^7*?","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},",T!=6NSo1Z.0]:-+dZNR":{"opcode":"control_wait","next":null,"parent":"ZY6yg~jw,+5zy^(_?Cqw","inputs":{"DURATION":[1,[5,".1"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"k)L~z*+b|rNaAP57;rUd":{"blockId":"~(EB0p9Iqeo{}{;fTUW:","x":236.70706958089977,"y":-558.9639699541087,"width":200,"height":200,"minimized":false,"text":"Use this block instead of the touching \"King Momo\" or \"Stop Sign\" block to have the float stop at one of the color lines on the street."}},"currentCostume":0,"costumes":[{"assetId":"15a80dcb99ac6bef9a4fd2934aa78d8c","name":"Butterfly Float","bitmapResolution":1,"md5ext":"15a80dcb99ac6bef9a4fd2934aa78d8c.svg","dataFormat":"svg","rotationCenterX":65,"rotationCenterY":100},{"assetId":"024464c850fe008b3e5396d88551643c","name":"Foosball Float","bitmapResolution":1,"md5ext":"024464c850fe008b3e5396d88551643c.svg","dataFormat":"svg","rotationCenterX":127.06507873535156,"rotationCenterY":53.921165466308594},{"assetId":"13a3c3af1928ac189e0d0110ea53f23d","name":"Eagle Float","bitmapResolution":1,"md5ext":"13a3c3af1928ac189e0d0110ea53f23d.svg","dataFormat":"svg","rotationCenterX":65,"rotationCenterY":97.91893005371094},{"assetId":"e45952b060ab2f647e22b9aea178e517","name":"Rio de Janeiro Float","bitmapResolution":1,"md5ext":"e45952b060ab2f647e22b9aea178e517.svg","dataFormat":"svg","rotationCenterX":85.998291015625,"rotationCenterY":89.5671157836914}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":118,"y":-65,"size":100,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Toucan","variables":{},"lists":{},"broadcasts":{},"blocks":{"H:Xg0b8eLJGUFImS2XEz":{"opcode":"event_whenflagclicked","next":"{[+Bm@*U6u34j+LAHBaJ","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-452,"y":-524},"{[+Bm@*U6u34j+LAHBaJ":{"opcode":"motion_gotoxy","next":"N8=B3J]u%dz!tW,W9p?~","parent":"H:Xg0b8eLJGUFImS2XEz","inputs":{"X":[1,[4,"-300"]],"Y":[1,[4,-100]]},"fields":{},"shadow":false,"topLevel":false},"j:^NE1OmeFqVs0D3m,u@":{"opcode":"control_repeat_until","next":null,"parent":"N8=B3J]u%dz!tW,W9p?~","inputs":{"CONDITION":[2,"NhrN2N2B+q9P4VwsFrdN"],"SUBSTACK":[2,"_TwkKO(Og;|o1$X)fL9o"]},"fields":{},"shadow":false,"topLevel":false},"NhrN2N2B+q9P4VwsFrdN":{"opcode":"sensing_touchingcolor","next":null,"parent":"j:^NE1OmeFqVs0D3m,u@","inputs":{"COLOR":[1,[9,"#e64e3e"]]},"fields":{},"shadow":false,"topLevel":false},"_TwkKO(Og;|o1$X)fL9o":{"opcode":"motion_movesteps","next":"CF]M}%#3Adrz#EBd5;jW","parent":"j:^NE1OmeFqVs0D3m,u@","inputs":{"STEPS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"N8=B3J]u%dz!tW,W9p?~":{"opcode":"control_wait","next":"j:^NE1OmeFqVs0D3m,u@","parent":"{[+Bm@*U6u34j+LAHBaJ","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"CF]M}%#3Adrz#EBd5;jW":{"opcode":"control_wait","next":null,"parent":"_TwkKO(Og;|o1$X)fL9o","inputs":{"DURATION":[1,[5,".1"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"358389ede568bd95a5d6fcd80eb2119e","name":"Toucan Float","bitmapResolution":1,"md5ext":"358389ede568bd95a5d6fcd80eb2119e.svg","dataFormat":"svg","rotationCenterX":135,"rotationCenterY":65}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-96,"y":-100,"size":100,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"King Momo","variables":{},"lists":{},"broadcasts":{},"blocks":{"`J;(Yr!NHe]WM]r[Kj*z":{"opcode":"event_whenthisspriteclicked","next":"l*zItNS.eFtvx|R@:pP-","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":10,"y":-486},"l*zItNS.eFtvx|R@:pP-":{"opcode":"looks_sayforsecs","next":"h4=*nG}?2Pc(kgBJWJ(-","parent":"`J;(Yr!NHe]WM]r[Kj*z","inputs":{"MESSAGE":[1,[10,"Welcome to Rio de Janeiro! Welcome to Carnival!"]],"SECS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"h4=*nG}?2Pc(kgBJWJ(-":{"opcode":"looks_sayforsecs","next":"/R}YB*tU*u6mQ1eBRJ/x","parent":"l*zItNS.eFtvx|R@:pP-","inputs":{"MESSAGE":[1,[10,"For a few days of each year, Carnival transforms the streets of Rio into a festival of music and parades."]],"SECS":[1,[4,"10"]]},"fields":{},"shadow":false,"topLevel":false},"/R}YB*tU*u6mQ1eBRJ/x":{"opcode":"looks_sayforsecs","next":"~@FQV3dKt?uB(t#xrYS`","parent":"h4=*nG}?2Pc(kgBJWJ(-","inputs":{"MESSAGE":[1,[10,"I am this year's King Momo, the leader of the celebrations!"]],"SECS":[1,[4,"8"]]},"fields":{},"shadow":false,"topLevel":false},"~@FQV3dKt?uB(t#xrYS`":{"opcode":"looks_sayforsecs","next":"HP##IfnbgaQ9V0|BCKCy","parent":"/R}YB*tU*u6mQ1eBRJ/x","inputs":{"MESSAGE":[1,[10,"Every year, a different Momo is chosen to get the parades and dances of Carnival started."]],"SECS":[1,[4,"8"]]},"fields":{},"shadow":false,"topLevel":false},"HP##IfnbgaQ9V0|BCKCy":{"opcode":"looks_sayforsecs","next":"5wPxwkyx-{){MN^Xk9OX","parent":"~@FQV3dKt?uB(t#xrYS`","inputs":{"MESSAGE":[1,[10,"Right now, we're lining up the parade floats in the right order for our big entrance."]],"SECS":[1,[4,"8"]]},"fields":{},"shadow":false,"topLevel":false},"5wPxwkyx-{){MN^Xk9OX":{"opcode":"looks_sayforsecs","next":null,"parent":"HP##IfnbgaQ9V0|BCKCy","inputs":{"MESSAGE":[1,[10,"Now let the celebrations begin!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"c6f00b3573465cc1f2a9bf9aad924709","name":"King Momo","bitmapResolution":1,"md5ext":"c6f00b3573465cc1f2a9bf9aad924709.svg","dataFormat":"svg","rotationCenterX":30,"rotationCenterY":35}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":204,"y":-130,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Stop Sign","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"21d9b38330c08514704103d67968951e","name":"Stop Sign","bitmapResolution":1,"md5ext":"21d9b38330c08514704103d67968951e.svg","dataFormat":"svg","rotationCenterX":25,"rotationCenterY":50}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":217,"y":-74,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190904154449","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
+},{}],37:[function(require,module,exports){
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"234e03560170e77d1cc9e8aa40eb80d7","name":"Lincoln Park Zoo","bitmapResolution":2,"md5ext":"234e03560170e77d1cc9e8aa40eb80d7.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Car","variables":{},"lists":{},"broadcasts":{},"blocks":{",b,MB{-tz,CPMdx6uPSI":{"opcode":"event_whenflagclicked","next":"PjfkJWvwcXuiXl4iYCYe","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":21,"y":30},"PjfkJWvwcXuiXl4iYCYe":{"opcode":"motion_gotoxy","next":"G#U%Yd+G]Rnzbke8IBq,","parent":",b,MB{-tz,CPMdx6uPSI","inputs":{"X":[1,[4,-304]],"Y":[1,[4,-118]]},"fields":{},"shadow":false,"topLevel":false},"G#U%Yd+G]Rnzbke8IBq,":{"opcode":"control_repeat_until","next":null,"parent":"PjfkJWvwcXuiXl4iYCYe","inputs":{"CONDITION":[2,"7!dxCwjGz5XkG%.T^7uR"],"SUBSTACK":[2,"{t,HO=FEj-72!S_B1kj8"]},"fields":{},"shadow":false,"topLevel":false},"7!dxCwjGz5XkG%.T^7uR":{"opcode":"sensing_touchingobject","next":null,"parent":"G#U%Yd+G]Rnzbke8IBq,","inputs":{"TOUCHINGOBJECTMENU":[1,"zs9|Qt-p|v-Vfk{3/|}}"]},"fields":{},"shadow":false,"topLevel":false},"zs9|Qt-p|v-Vfk{3/|}}":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"7!dxCwjGz5XkG%.T^7uR","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Stop"]},"shadow":true,"topLevel":false},"{t,HO=FEj-72!S_B1kj8":{"opcode":"motion_movesteps","next":"A87.jAop_(6WuREWEFaR","parent":"G#U%Yd+G]Rnzbke8IBq,","inputs":{"STEPS":[1,[4,10]]},"fields":{},"shadow":false,"topLevel":false},"A87.jAop_(6WuREWEFaR":{"opcode":"control_wait","next":null,"parent":"{t,HO=FEj-72!S_B1kj8","inputs":{"DURATION":[1,[5,0.1]]},"fields":{},"shadow":false,"topLevel":false},"p.DF;UyeX~O?;Fa3lY8t":{"opcode":"sensing_touchingcolor","next":null,"parent":null,"inputs":{"COLOR":[1,[9,"#a42cff"]]},"fields":{},"shadow":false,"topLevel":true,"x":379,"y":143}},"comments":{"7T?P)4;Rd*r`ZA]E-#Cd":{"blockId":null,"x":597,"y":204.60000000000002,"width":231,"height":233.20000000000002,"minimized":false,"text":"Use this block, instead of the touching stop block, to have the car stop at one of the lines on the street."}},"currentCostume":2,"costumes":[{"assetId":"411a94a9e26a243dcde0022835361f8e","name":"SUV","bitmapResolution":1,"md5ext":"411a94a9e26a243dcde0022835361f8e.svg","dataFormat":"svg","rotationCenterX":225,"rotationCenterY":106},{"assetId":"ce4f296c7b3d84fb9856b53594d5b142","name":"Cooper","bitmapResolution":1,"md5ext":"ce4f296c7b3d84fb9856b53594d5b142.svg","dataFormat":"svg","rotationCenterX":222,"rotationCenterY":120},{"assetId":"fd4ccc5303ec2fe6c48656639bddc2c5","name":"Sedan","bitmapResolution":1,"md5ext":"fd4ccc5303ec2fe6c48656639bddc2c5.svg","dataFormat":"svg","rotationCenterX":223,"rotationCenterY":75},{"assetId":"4571b4541799b45c93282a7c6ff397cb","name":"Bug","bitmapResolution":1,"md5ext":"4571b4541799b45c93282a7c6ff397cb.svg","dataFormat":"svg","rotationCenterX":221,"rotationCenterY":83}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":46,"y":-118,"size":75,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Stop","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"fdc509ac5555a3290d253f03e9fa2e32","name":"Stop Sign","bitmapResolution":1,"md5ext":"fdc509ac5555a3290d253f03e9fa2e32.svg","dataFormat":"svg","rotationCenterX":-39,"rotationCenterY":5}],"sounds":[],"volume":100,"layerOrder":3,"visible":true,"x":134,"y":4,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Darian","variables":{},"lists":{},"broadcasts":{},"blocks":{"eczJ*.rhXdIlS29#1ozS":{"opcode":"event_whenflagclicked","next":"26oEd1S]izX-dGAQ9WfC","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":38,"y":44},"26oEd1S]izX-dGAQ9WfC":{"opcode":"motion_gotoxy","next":null,"parent":"eczJ*.rhXdIlS29#1ozS","inputs":{"X":[1,[4,-105]],"Y":[1,[4,-86]]},"fields":{},"shadow":false,"topLevel":false},"*1Lq8[3RB-Gj)C]3cpt7":{"opcode":"event_whenkeypressed","next":"L|!P#V6xL|HSXnO%B,(A","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":45,"y":266},"L|!P#V6xL|HSXnO%B,(A":{"opcode":"motion_movesteps","next":null,"parent":"*1Lq8[3RB-Gj)C]3cpt7","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"810e9e425ba07fa15b1e4536de573b4c","name":"dm stance","bitmapResolution":1,"md5ext":"810e9e425ba07fa15b1e4536de573b4c.svg","dataFormat":"svg","rotationCenterX":55,"rotationCenterY":119},{"assetId":"cbf035d39d0a0bb070d2eb998cebd60d","name":"dm top stand","bitmapResolution":2,"md5ext":"cbf035d39d0a0bb070d2eb998cebd60d.png","dataFormat":"png","rotationCenterX":82,"rotationCenterY":244},{"assetId":"fcb8c2b6cf9b7e6ce9df521b2486deb3","name":"dm top R leg","bitmapResolution":2,"md5ext":"fcb8c2b6cf9b7e6ce9df521b2486deb3.png","dataFormat":"png","rotationCenterX":218,"rotationCenterY":232},{"assetId":"fd8bb9665fe078d2d95dbc35bccf4046","name":"dm top L leg","bitmapResolution":2,"md5ext":"fd8bb9665fe078d2d95dbc35bccf4046.png","dataFormat":"png","rotationCenterX":230,"rotationCenterY":240},{"assetId":"31e687f186b19ea120cd5cfc9dea2a3f","name":"dm freeze","bitmapResolution":2,"md5ext":"31e687f186b19ea120cd5cfc9dea2a3f.png","dataFormat":"png","rotationCenterX":220,"rotationCenterY":234},{"assetId":"0b2fb609d6d10decfdd5a1c3b58369b4","name":"dm pop front","bitmapResolution":2,"md5ext":"0b2fb609d6d10decfdd5a1c3b58369b4.png","dataFormat":"png","rotationCenterX":92,"rotationCenterY":234},{"assetId":"3b65ce3551f9c111794f7f1fb8f325be","name":"dm pop down","bitmapResolution":2,"md5ext":"3b65ce3551f9c111794f7f1fb8f325be.png","dataFormat":"png","rotationCenterX":64,"rotationCenterY":74},{"assetId":"f636510e8ef231d7c0e72a572ce91c99","name":"dm pop left","bitmapResolution":2,"md5ext":"f636510e8ef231d7c0e72a572ce91c99.png","dataFormat":"png","rotationCenterX":204,"rotationCenterY":250},{"assetId":"36b32430e45e071071052ef33c637f48","name":"dm pop right","bitmapResolution":2,"md5ext":"36b32430e45e071071052ef33c637f48.png","dataFormat":"png","rotationCenterX":78,"rotationCenterY":238},{"assetId":"426e1520efc34fef45be0596fd5f7120","name":"dm pop L arm","bitmapResolution":2,"md5ext":"426e1520efc34fef45be0596fd5f7120.png","dataFormat":"png","rotationCenterX":90,"rotationCenterY":238},{"assetId":"370cc57b40f1f1d6e52d6330b73d207f","name":"dm pop stand","bitmapResolution":2,"md5ext":"370cc57b40f1f1d6e52d6330b73d207f.png","dataFormat":"png","rotationCenterX":100,"rotationCenterY":244},{"assetId":"56fe91d2cf3ecb9d1b94006aee9eff79","name":"dm pop R arm","bitmapResolution":2,"md5ext":"56fe91d2cf3ecb9d1b94006aee9eff79.png","dataFormat":"png","rotationCenterX":80,"rotationCenterY":240},{"assetId":"fcb8c2b6cf9b7e6ce9df521b2486deb3","name":"dm top R leg2","bitmapResolution":2,"md5ext":"fcb8c2b6cf9b7e6ce9df521b2486deb3.png","dataFormat":"png","rotationCenterX":218,"rotationCenterY":232}],"sounds":[{"assetId":"0edb8fb88af19e6e17d0f8cf64c1d136","name":"dance celebrate","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":176785,"md5ext":"0edb8fb88af19e6e17d0f8cf64c1d136.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-105,"y":-86,"size":40.000000000000014,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Libby","variables":{},"lists":{},"broadcasts":{},"blocks":{"a1O~Zmdj}W!Z91feosSZ":{"opcode":"event_whenthisspriteclicked","next":"[{Ip)|.l@A@MmymOVnkn","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":62,"y":90},"[{Ip)|.l@A@MmymOVnkn":{"opcode":"looks_sayforsecs","next":null,"parent":"a1O~Zmdj}W!Z91feosSZ","inputs":{"MESSAGE":[1,[10,"Oh, hi!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"008b80a80c4188acc72f7893fb10ac75","name":"lb stance","bitmapResolution":2,"md5ext":"008b80a80c4188acc72f7893fb10ac75.png","dataFormat":"png","rotationCenterX":54,"rotationCenterY":244},{"assetId":"dfe3628ddf46a67dcc21c63be65a8e40","name":"lb top stand","bitmapResolution":2,"md5ext":"dfe3628ddf46a67dcc21c63be65a8e40.png","dataFormat":"png","rotationCenterX":70,"rotationCenterY":248},{"assetId":"e824768a109691b5a3c577d3506ed70c","name":"lb top R leg","bitmapResolution":2,"md5ext":"e824768a109691b5a3c577d3506ed70c.png","dataFormat":"png","rotationCenterX":244,"rotationCenterY":250},{"assetId":"350472368e2310efe6fa734b79f0ff41","name":"lb top L leg","bitmapResolution":2,"md5ext":"350472368e2310efe6fa734b79f0ff41.png","dataFormat":"png","rotationCenterX":234,"rotationCenterY":286},{"assetId":"5a151c4d4e2e2f870d9096d5fce6ed48","name":"lb top L cross","bitmapResolution":2,"md5ext":"5a151c4d4e2e2f870d9096d5fce6ed48.png","dataFormat":"png","rotationCenterX":148,"rotationCenterY":258},{"assetId":"99acf468000c6fcbaf344e4531725efc","name":"lb top R cross","bitmapResolution":2,"md5ext":"99acf468000c6fcbaf344e4531725efc.png","dataFormat":"png","rotationCenterX":174,"rotationCenterY":256},{"assetId":"e34a166807a3ffbf8d147b12aa49dd19","name":"lb pop front","bitmapResolution":2,"md5ext":"e34a166807a3ffbf8d147b12aa49dd19.png","dataFormat":"png","rotationCenterX":66,"rotationCenterY":272},{"assetId":"8e41de92cb932a6898782a39a0d7d300","name":"lb pop down","bitmapResolution":2,"md5ext":"8e41de92cb932a6898782a39a0d7d300.png","dataFormat":"png","rotationCenterX":56,"rotationCenterY":90},{"assetId":"ff1b96d1047d4be459a4614ce7c7c94c","name":"lb pop left","bitmapResolution":2,"md5ext":"ff1b96d1047d4be459a4614ce7c7c94c.png","dataFormat":"png","rotationCenterX":198,"rotationCenterY":266},{"assetId":"d6d5534c628ac5d5fe3cbf1b76b71252","name":"lb pop right","bitmapResolution":2,"md5ext":"d6d5534c628ac5d5fe3cbf1b76b71252.png","dataFormat":"png","rotationCenterX":76,"rotationCenterY":264},{"assetId":"c1fd31607619b8c98a286a650f248511","name":"lb pop L arm","bitmapResolution":2,"md5ext":"c1fd31607619b8c98a286a650f248511.png","dataFormat":"png","rotationCenterX":100,"rotationCenterY":262},{"assetId":"51fe5962fe4d2af7f6fad7abaa692069","name":"lb pop stand","bitmapResolution":2,"md5ext":"51fe5962fe4d2af7f6fad7abaa692069.png","dataFormat":"png","rotationCenterX":66,"rotationCenterY":268},{"assetId":"aa57575fde5ff8b13041e3a7b1499fe0","name":"lb pop R arm","bitmapResolution":2,"md5ext":"aa57575fde5ff8b13041e3a7b1499fe0.png","dataFormat":"png","rotationCenterX":78,"rotationCenterY":258}],"sounds":[{"assetId":"0edb8fb88af19e6e17d0f8cf64c1d136","name":"dance celebrate","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":176785,"md5ext":"0edb8fb88af19e6e17d0f8cf64c1d136.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":100,"y":-87,"size":40.000000000000014,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190904154449","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
+},{}],38:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -7027,7 +7799,7 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Safari/605.1.15"
     }
 }
-},{}],35:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -7398,7 +8170,7 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Safari/605.1.15"
     }
 }
-},{}],36:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -7859,7 +8631,7 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Safari/605.1.15"
     }
 }
-},{}],37:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -8647,7 +9419,7 @@ module.exports={
     }
 }
 
-},{}],38:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -9494,7 +10266,7 @@ module.exports={
     }
 }
 
-},{}],39:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -10160,7 +10932,7 @@ module.exports={
     }
 }
 
-},{}],40:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -10642,919 +11414,9 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
     }
 }
-},{}],41:[function(require,module,exports){
-module.exports={
-    "targets": [
-        {
-            "isStage": true,
-            "name": "Stage",
-            "variables": {},
-            "lists": {},
-            "broadcasts": {},
-            "blocks": {},
-            "comments": {},
-            "currentCostume": 0,
-            "costumes": [
-                {
-                    "assetId": "e6bf56f64eb4e7e6c97ec6c97e90d023",
-                    "name": "Holi Background",
-                    "bitmapResolution": 1,
-                    "md5ext": "e6bf56f64eb4e7e6c97ec6c97e90d023.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 240,
-                    "rotationCenterY": 180
-                }
-            ],
-            "sounds": [
-                {
-                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
-                    "name": "pop",
-                    "dataFormat": "wav",
-                    "format": "",
-                    "rate": 44100,
-                    "sampleCount": 1032,
-                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
-                }
-            ],
-            "volume": 100,
-            "layerOrder": 0,
-            "tempo": 60,
-            "videoTransparency": 50,
-            "videoState": "off",
-            "textToSpeechLanguage": null
-        },
-        {
-            "isStage": false,
-            "name": "Neha",
-            "variables": {},
-            "lists": {},
-            "broadcasts": {},
-            "blocks": {
-                "6*c`Xv=UPZ2te:JB2+U*": {
-                    "opcode": "event_whenflagclicked",
-                    "next": "1,sGaB#:WD/!fp4ecgw=",
-                    "parent": null,
-                    "inputs": {},
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": true,
-                    "x": -67,
-                    "y": -587
-                },
-                "1,sGaB#:WD/!fp4ecgw=": {
-                    "opcode": "motion_gotoxy",
-                    "next": "0*gfG!}+dNBRamr1EdBt",
-                    "parent": "6*c`Xv=UPZ2te:JB2+U*",
-                    "inputs": {
-                        "X": [
-                            1,
-                            [
-                                4,
-                                "28"
-                            ]
-                        ],
-                        "Y": [
-                            1,
-                            [
-                                4,
-                                "-51"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "0*gfG!}+dNBRamr1EdBt": {
-                    "opcode": "looks_switchcostumeto",
-                    "next": "y;SD_2:1H=d-=o]rf3Nq",
-                    "parent": "1,sGaB#:WD/!fp4ecgw=",
-                    "inputs": {
-                        "COSTUME": [
-                            1,
-                            "-XUo5ONrDRD76UyvwKL?"
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "-XUo5ONrDRD76UyvwKL?": {
-                    "opcode": "looks_costume",
-                    "next": null,
-                    "parent": "0*gfG!}+dNBRamr1EdBt",
-                    "inputs": {},
-                    "fields": {
-                        "COSTUME": [
-                            "Neha1",
-                            null
-                        ]
-                    },
-                    "shadow": true,
-                    "topLevel": false
-                },
-                "y;SD_2:1H=d-=o]rf3Nq": {
-                    "opcode": "control_wait",
-                    "next": "#;GgQ}*l)tV4E{1NPadV",
-                    "parent": "0*gfG!}+dNBRamr1EdBt",
-                    "inputs": {
-                        "DURATION": [
-                            1,
-                            [
-                                5,
-                                "1"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "#;GgQ}*l)tV4E{1NPadV": {
-                    "opcode": "looks_sayforsecs",
-                    "next": "GBVU3I7+QD=TSfHx]bhU",
-                    "parent": "y;SD_2:1H=d-=o]rf3Nq",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Hi, I'm Neha!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                "2"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "GBVU3I7+QD=TSfHx]bhU": {
-                    "opcode": "looks_sayforsecs",
-                    "next": "lTPM~|:Xs,_if#cv*}5O",
-                    "parent": "#;GgQ}*l)tV4E{1NPadV",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "We are celebrating Holi, a traditional Hindu festival from India!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                "4"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "lTPM~|:Xs,_if#cv*}5O": {
-                    "opcode": "looks_sayforsecs",
-                    "next": "n%]__?|Z8]rI5Nb?gViq",
-                    "parent": "GBVU3I7+QD=TSfHx]bhU",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "We use colorful powders and pastes to celebrate the beginning of Spring!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                "4"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "n%]__?|Z8]rI5Nb?gViq": {
-                    "opcode": "looks_sayforsecs",
-                    "next": ",M3195%JsXVXc(d1Zg:L",
-                    "parent": "lTPM~|:Xs,_if#cv*}5O",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "I'm holding some gulal!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                "3"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                ",M3195%JsXVXc(d1Zg:L": {
-                    "opcode": "looks_sayforsecs",
-                    "next": null,
-                    "parent": "n%]__?|Z8]rI5Nb?gViq",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Press the space bar to meet my friends!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                "3"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "|0_-JyE+)[h*:1fdtiA4": {
-                    "opcode": "event_whenthisspriteclicked",
-                    "next": "^oA(iul1kHd(0wr^6Bw{",
-                    "parent": null,
-                    "inputs": {},
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": true,
-                    "x": -69,
-                    "y": -82
-                },
-                "^oA(iul1kHd(0wr^6Bw{": {
-                    "opcode": "looks_switchcostumeto",
-                    "next": "|7PoJdXk{ra2Uw|t`GbT",
-                    "parent": "|0_-JyE+)[h*:1fdtiA4",
-                    "inputs": {
-                        "COSTUME": [
-                            1,
-                            "N9bZPF:pJOq6u.zxph*s"
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "N9bZPF:pJOq6u.zxph*s": {
-                    "opcode": "looks_costume",
-                    "next": null,
-                    "parent": "^oA(iul1kHd(0wr^6Bw{",
-                    "inputs": {},
-                    "fields": {
-                        "COSTUME": [
-                            "Neha1",
-                            null
-                        ]
-                    },
-                    "shadow": true,
-                    "topLevel": false
-                },
-                "|7PoJdXk{ra2Uw|t`GbT": {
-                    "opcode": "looks_sayforsecs",
-                    "next": "Om]!9q+lw!s+4zF:/CG!",
-                    "parent": "^oA(iul1kHd(0wr^6Bw{",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "3..."
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                "1"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "Om]!9q+lw!s+4zF:/CG!": {
-                    "opcode": "looks_sayforsecs",
-                    "next": "J6bm|w{z^q-RA%hf)afc",
-                    "parent": "|7PoJdXk{ra2Uw|t`GbT",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "2..."
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                "1"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "J6bm|w{z^q-RA%hf)afc": {
-                    "opcode": "looks_sayforsecs",
-                    "next": "dBNdJtA%:m:n8TAUuL^K",
-                    "parent": "Om]!9q+lw!s+4zF:/CG!",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "1!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                "1"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "dBNdJtA%:m:n8TAUuL^K": {
-                    "opcode": "control_repeat",
-                    "next": "GV:wKN`D#AUVaKS?5jmD",
-                    "parent": "J6bm|w{z^q-RA%hf)afc",
-                    "inputs": {
-                        "TIMES": [
-                            1,
-                            [
-                                6,
-                                "4"
-                            ]
-                        ],
-                        "SUBSTACK": [
-                            2,
-                            "x@m(|CWR`%*`#b~;!2OT"
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "x@m(|CWR`%*`#b~;!2OT": {
-                    "opcode": "control_wait",
-                    "next": ".Z=GpTw~p|F,B38JSn^t",
-                    "parent": "dBNdJtA%:m:n8TAUuL^K",
-                    "inputs": {
-                        "DURATION": [
-                            1,
-                            [
-                                5,
-                                "0.7"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                ".Z=GpTw~p|F,B38JSn^t": {
-                    "opcode": "looks_nextcostume",
-                    "next": null,
-                    "parent": "x@m(|CWR`%*`#b~;!2OT",
-                    "inputs": {},
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "GV:wKN`D#AUVaKS?5jmD": {
-                    "opcode": "looks_say",
-                    "next": null,
-                    "parent": "dBNdJtA%:m:n8TAUuL^K",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Happy Holi!"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                }
-            },
-            "comments": {},
-            "currentCostume": 0,
-            "costumes": [
-                {
-                    "assetId": "588e1905e5323f75328276def2ac0116",
-                    "name": "Neha1",
-                    "bitmapResolution": 1,
-                    "md5ext": "588e1905e5323f75328276def2ac0116.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 45.99999113010236,
-                    "rotationCenterY": 87
-                },
-                {
-                    "assetId": "8a174573e7d4a7885954acd2afad19ea",
-                    "name": "Neha2",
-                    "bitmapResolution": 1,
-                    "md5ext": "8a174573e7d4a7885954acd2afad19ea.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 123.41460248739168,
-                    "rotationCenterY": 114.40293820688679
-                },
-                {
-                    "assetId": "500b791f9f077dd2377bc56033912b9a",
-                    "name": "Neha3",
-                    "bitmapResolution": 1,
-                    "md5ext": "500b791f9f077dd2377bc56033912b9a.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 133.59915850034727,
-                    "rotationCenterY": 174.0481588381853
-                },
-                {
-                    "assetId": "c53eeb50bcdf509cb1522d378c9e380b",
-                    "name": "Neha4",
-                    "bitmapResolution": 1,
-                    "md5ext": "c53eeb50bcdf509cb1522d378c9e380b.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 128.6803772733968,
-                    "rotationCenterY": 116.40943091603478
-                },
-                {
-                    "assetId": "9d660677a26fe0b657bc3e43da838c8e",
-                    "name": "Neha5",
-                    "bitmapResolution": 1,
-                    "md5ext": "9d660677a26fe0b657bc3e43da838c8e.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 90.9947,
-                    "rotationCenterY": 85.4763088644717
-                }
-            ],
-            "sounds": [
-                {
-                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
-                    "name": "pop",
-                    "dataFormat": "wav",
-                    "format": "",
-                    "rate": 44100,
-                    "sampleCount": 1032,
-                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
-                }
-            ],
-            "volume": 100,
-            "layerOrder": 3,
-            "visible": true,
-            "x": 28,
-            "y": -51,
-            "size": 139.99999999999997,
-            "direction": 90,
-            "draggable": false,
-            "rotationStyle": "all around"
-        },
-        {
-            "isStage": false,
-            "name": "Brad",
-            "variables": {},
-            "lists": {},
-            "broadcasts": {},
-            "blocks": {
-                "CBEwU.S^!3v*m}+l(2:*": {
-                    "opcode": "event_whenflagclicked",
-                    "next": "R|3)LWe?;VLJtzxlX@8}",
-                    "parent": null,
-                    "inputs": {},
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": true,
-                    "x": 15,
-                    "y": 22
-                },
-                "R|3)LWe?;VLJtzxlX@8}": {
-                    "opcode": "motion_gotoxy",
-                    "next": "9sO:y?e(89=wDBQEX*84",
-                    "parent": "CBEwU.S^!3v*m}+l(2:*",
-                    "inputs": {
-                        "X": [
-                            1,
-                            [
-                                4,
-                                220
-                            ]
-                        ],
-                        "Y": [
-                            1,
-                            [
-                                4,
-                                -13
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "9sO:y?e(89=wDBQEX*84": {
-                    "opcode": "looks_switchcostumeto",
-                    "next": null,
-                    "parent": "R|3)LWe?;VLJtzxlX@8}",
-                    "inputs": {
-                        "COSTUME": [
-                            1,
-                            "4!H7s8i9Lh.C(?SHMT_O"
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "4!H7s8i9Lh.C(?SHMT_O": {
-                    "opcode": "looks_costume",
-                    "next": null,
-                    "parent": "9sO:y?e(89=wDBQEX*84",
-                    "inputs": {},
-                    "fields": {
-                        "COSTUME": [
-                            "Brad1"
-                        ]
-                    },
-                    "shadow": true,
-                    "topLevel": false
-                },
-                "7rU;-waLK?7n!U94pB].": {
-                    "opcode": "event_whenkeypressed",
-                    "next": "BYyQeX2S2e2l[UHn#0bq",
-                    "parent": null,
-                    "inputs": {},
-                    "fields": {
-                        "KEY_OPTION": [
-                            "space"
-                        ]
-                    },
-                    "shadow": false,
-                    "topLevel": true,
-                    "x": 32,
-                    "y": 304
-                },
-                "BYyQeX2S2e2l[UHn#0bq": {
-                    "opcode": "motion_movesteps",
-                    "next": "SpljqntHJxfGDV;.4%#M",
-                    "parent": "7rU;-waLK?7n!U94pB].",
-                    "inputs": {
-                        "STEPS": [
-                            1,
-                            [
-                                4,
-                                -64
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "SpljqntHJxfGDV;.4%#M": {
-                    "opcode": "looks_sayforsecs",
-                    "next": "m+[^4mRsSN%SjOXJ}+_t",
-                    "parent": "BYyQeX2S2e2l[UHn#0bq",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Hello, I'm Brad!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                3
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "m+[^4mRsSN%SjOXJ}+_t": {
-                    "opcode": "looks_sayforsecs",
-                    "next": null,
-                    "parent": "SpljqntHJxfGDV;.4%#M",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "I'm holding a pichkari, a water squirter filled with colored water!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                6
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                }
-            },
-            "comments": {},
-            "currentCostume": 0,
-            "costumes": [
-                {
-                    "assetId": "dae278db1e4c65e9b70d966aa9a40429",
-                    "name": "Brad1",
-                    "bitmapResolution": 1,
-                    "md5ext": "dae278db1e4c65e9b70d966aa9a40429.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 37.99999373388661,
-                    "rotationCenterY": 86.99998370205938
-                }
-            ],
-            "sounds": [
-                {
-                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
-                    "name": "pop",
-                    "dataFormat": "wav",
-                    "format": "",
-                    "rate": 44100,
-                    "sampleCount": 1032,
-                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
-                }
-            ],
-            "volume": 100,
-            "layerOrder": 1,
-            "visible": true,
-            "x": 220,
-            "y": -13,
-            "size": 135.00000000000003,
-            "direction": 90,
-            "draggable": false,
-            "rotationStyle": "all around"
-        },
-        {
-            "isStage": false,
-            "name": "Kristen",
-            "variables": {},
-            "lists": {},
-            "broadcasts": {},
-            "blocks": {
-                "[M~hMK`q/NYs#*-;ZiuH": {
-                    "opcode": "event_whenflagclicked",
-                    "next": "H~_UJ8~bO+^zXvT^^^le",
-                    "parent": null,
-                    "inputs": {},
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": true,
-                    "x": 15,
-                    "y": 22
-                },
-                "H~_UJ8~bO+^zXvT^^^le": {
-                    "opcode": "motion_gotoxy",
-                    "next": "@DsqwPSbeqW_?Pi{uYT]",
-                    "parent": "[M~hMK`q/NYs#*-;ZiuH",
-                    "inputs": {
-                        "X": [
-                            1,
-                            [
-                                4,
-                                -215
-                            ]
-                        ],
-                        "Y": [
-                            1,
-                            [
-                                4,
-                                -13
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "@DsqwPSbeqW_?Pi{uYT]": {
-                    "opcode": "looks_switchcostumeto",
-                    "next": null,
-                    "parent": "H~_UJ8~bO+^zXvT^^^le",
-                    "inputs": {
-                        "COSTUME": [
-                            1,
-                            "?+RpBU3RL5~YKwsi/rIw"
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "?+RpBU3RL5~YKwsi/rIw": {
-                    "opcode": "looks_costume",
-                    "next": null,
-                    "parent": "@DsqwPSbeqW_?Pi{uYT]",
-                    "inputs": {},
-                    "fields": {
-                        "COSTUME": [
-                            "Kristen1"
-                        ]
-                    },
-                    "shadow": true,
-                    "topLevel": false
-                },
-                "Jf4;4?`|e1udP=94]ErE": {
-                    "opcode": "event_whenkeypressed",
-                    "next": "9aY%RY8/M5ayiAqP@a7U",
-                    "parent": null,
-                    "inputs": {},
-                    "fields": {
-                        "KEY_OPTION": [
-                            "space"
-                        ]
-                    },
-                    "shadow": false,
-                    "topLevel": true,
-                    "x": 27,
-                    "y": 261
-                },
-                "9aY%RY8/M5ayiAqP@a7U": {
-                    "opcode": "control_wait",
-                    "next": "Pz:xDRpqyDJNLlR5?;,0",
-                    "parent": "Jf4;4?`|e1udP=94]ErE",
-                    "inputs": {
-                        "DURATION": [
-                            1,
-                            [
-                                5,
-                                "10"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "Pz:xDRpqyDJNLlR5?;,0": {
-                    "opcode": "motion_movesteps",
-                    "next": "-n-db;lg-!(lyaGFo;AQ",
-                    "parent": "9aY%RY8/M5ayiAqP@a7U",
-                    "inputs": {
-                        "STEPS": [
-                            1,
-                            [
-                                4,
-                                64
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "-n-db;lg-!(lyaGFo;AQ": {
-                    "opcode": "looks_sayforsecs",
-                    "next": "4*Ly{a-GE~GGb~khP7#P",
-                    "parent": "Pz:xDRpqyDJNLlR5?;,0",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Hi, I'm Kristen!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                3
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "4*Ly{a-GE~GGb~khP7#P": {
-                    "opcode": "looks_sayforsecs",
-                    "next": "(P/J:UdY/Q,8|p4}V!P=",
-                    "parent": "-n-db;lg-!(lyaGFo;AQ",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "I'm using squeeze bottles."
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                4
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "(P/J:UdY/Q,8|p4}V!P=": {
-                    "opcode": "looks_sayforsecs",
-                    "next": null,
-                    "parent": "4*Ly{a-GE~GGb~khP7#P",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Click on Neha to see her celebrate!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                "4"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                }
-            },
-            "comments": {},
-            "currentCostume": 0,
-            "costumes": [
-                {
-                    "assetId": "5c740972a1f49202719b50e896bd0cf6",
-                    "name": "Kristen1",
-                    "bitmapResolution": 1,
-                    "md5ext": "5c740972a1f49202719b50e896bd0cf6.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 62.000001871426775,
-                    "rotationCenterY": 87.08308115522249
-                }
-            ],
-            "sounds": [
-                {
-                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
-                    "name": "pop",
-                    "dataFormat": "wav",
-                    "format": "",
-                    "rate": 44100,
-                    "sampleCount": 1032,
-                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
-                }
-            ],
-            "volume": 100,
-            "layerOrder": 2,
-            "visible": true,
-            "x": -215,
-            "y": -13,
-            "size": 135.00000000000003,
-            "direction": 90,
-            "draggable": false,
-            "rotationStyle": "all around"
-        }
-    ],
-    "monitors": [],
-    "extensions": [],
-    "meta": {
-        "semver": "3.0.0",
-        "vm": "0.2.0-prerelease.20190813192748",
-        "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
-    }
-}
-},{}],42:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"e6bf56f64eb4e7e6c97ec6c97e90d023","name":"Holi Background","bitmapResolution":1,"md5ext":"e6bf56f64eb4e7e6c97ec6c97e90d023.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Neha","variables":{},"lists":{},"broadcasts":{},"blocks":{"6*c`Xv=UPZ2te:JB2+U*":{"opcode":"event_whenflagclicked","next":"1,sGaB#:WD/!fp4ecgw=","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-67,"y":-587},"1,sGaB#:WD/!fp4ecgw=":{"opcode":"motion_gotoxy","next":"0*gfG!}+dNBRamr1EdBt","parent":"6*c`Xv=UPZ2te:JB2+U*","inputs":{"X":[1,[4,"28"]],"Y":[1,[4,"-51"]]},"fields":{},"shadow":false,"topLevel":false},"0*gfG!}+dNBRamr1EdBt":{"opcode":"looks_switchcostumeto","next":"y;SD_2:1H=d-=o]rf3Nq","parent":"1,sGaB#:WD/!fp4ecgw=","inputs":{"COSTUME":[1,"-XUo5ONrDRD76UyvwKL?"]},"fields":{},"shadow":false,"topLevel":false},"-XUo5ONrDRD76UyvwKL?":{"opcode":"looks_costume","next":null,"parent":"0*gfG!}+dNBRamr1EdBt","inputs":{},"fields":{"COSTUME":["Neha1",null]},"shadow":true,"topLevel":false},"y;SD_2:1H=d-=o]rf3Nq":{"opcode":"control_wait","next":"#;GgQ}*l)tV4E{1NPadV","parent":"0*gfG!}+dNBRamr1EdBt","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"#;GgQ}*l)tV4E{1NPadV":{"opcode":"looks_sayforsecs","next":"GBVU3I7+QD=TSfHx]bhU","parent":"y;SD_2:1H=d-=o]rf3Nq","inputs":{"MESSAGE":[1,[10,"Hi, I'm Neha!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"GBVU3I7+QD=TSfHx]bhU":{"opcode":"looks_sayforsecs","next":"lTPM~|:Xs,_if#cv*}5O","parent":"#;GgQ}*l)tV4E{1NPadV","inputs":{"MESSAGE":[1,[10,"We are celebrating Holi, a traditional Hindu festival from India!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false},"lTPM~|:Xs,_if#cv*}5O":{"opcode":"looks_sayforsecs","next":"n%]__?|Z8]rI5Nb?gViq","parent":"GBVU3I7+QD=TSfHx]bhU","inputs":{"MESSAGE":[1,[10,"We use colorful powders and pastes to celebrate the beginning of Spring!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false},"n%]__?|Z8]rI5Nb?gViq":{"opcode":"looks_sayforsecs","next":",M3195%JsXVXc(d1Zg:L","parent":"lTPM~|:Xs,_if#cv*}5O","inputs":{"MESSAGE":[1,[10,"I'm holding some gulal!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},",M3195%JsXVXc(d1Zg:L":{"opcode":"looks_sayforsecs","next":null,"parent":"n%]__?|Z8]rI5Nb?gViq","inputs":{"MESSAGE":[1,[10,"Press the space bar to meet my friends!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},"|0_-JyE+)[h*:1fdtiA4":{"opcode":"event_whenthisspriteclicked","next":"^oA(iul1kHd(0wr^6Bw{","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-69,"y":-82},"^oA(iul1kHd(0wr^6Bw{":{"opcode":"looks_switchcostumeto","next":"|7PoJdXk{ra2Uw|t`GbT","parent":"|0_-JyE+)[h*:1fdtiA4","inputs":{"COSTUME":[1,"N9bZPF:pJOq6u.zxph*s"]},"fields":{},"shadow":false,"topLevel":false},"N9bZPF:pJOq6u.zxph*s":{"opcode":"looks_costume","next":null,"parent":"^oA(iul1kHd(0wr^6Bw{","inputs":{},"fields":{"COSTUME":["Neha1",null]},"shadow":true,"topLevel":false},"|7PoJdXk{ra2Uw|t`GbT":{"opcode":"looks_sayforsecs","next":"Om]!9q+lw!s+4zF:/CG!","parent":"^oA(iul1kHd(0wr^6Bw{","inputs":{"MESSAGE":[1,[10,"3..."]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"Om]!9q+lw!s+4zF:/CG!":{"opcode":"looks_sayforsecs","next":"J6bm|w{z^q-RA%hf)afc","parent":"|7PoJdXk{ra2Uw|t`GbT","inputs":{"MESSAGE":[1,[10,"2..."]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"J6bm|w{z^q-RA%hf)afc":{"opcode":"looks_sayforsecs","next":"dBNdJtA%:m:n8TAUuL^K","parent":"Om]!9q+lw!s+4zF:/CG!","inputs":{"MESSAGE":[1,[10,"1!"]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"dBNdJtA%:m:n8TAUuL^K":{"opcode":"control_repeat","next":"GV:wKN`D#AUVaKS?5jmD","parent":"J6bm|w{z^q-RA%hf)afc","inputs":{"TIMES":[1,[6,"4"]],"SUBSTACK":[2,"x@m(|CWR`%*`#b~;!2OT"]},"fields":{},"shadow":false,"topLevel":false},"x@m(|CWR`%*`#b~;!2OT":{"opcode":"control_wait","next":".Z=GpTw~p|F,B38JSn^t","parent":"dBNdJtA%:m:n8TAUuL^K","inputs":{"DURATION":[1,[5,"0.7"]]},"fields":{},"shadow":false,"topLevel":false},".Z=GpTw~p|F,B38JSn^t":{"opcode":"looks_nextcostume","next":null,"parent":"x@m(|CWR`%*`#b~;!2OT","inputs":{},"fields":{},"shadow":false,"topLevel":false},"GV:wKN`D#AUVaKS?5jmD":{"opcode":"looks_say","next":null,"parent":"dBNdJtA%:m:n8TAUuL^K","inputs":{"MESSAGE":[1,[10,"Happy Holi!"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"588e1905e5323f75328276def2ac0116","name":"Neha1","bitmapResolution":1,"md5ext":"588e1905e5323f75328276def2ac0116.svg","dataFormat":"svg","rotationCenterX":45.99999113010236,"rotationCenterY":87},{"assetId":"8a174573e7d4a7885954acd2afad19ea","name":"Neha2","bitmapResolution":1,"md5ext":"8a174573e7d4a7885954acd2afad19ea.svg","dataFormat":"svg","rotationCenterX":123.41460248739168,"rotationCenterY":114.40293820688679},{"assetId":"500b791f9f077dd2377bc56033912b9a","name":"Neha3","bitmapResolution":1,"md5ext":"500b791f9f077dd2377bc56033912b9a.svg","dataFormat":"svg","rotationCenterX":133.59915850034727,"rotationCenterY":174.0481588381853},{"assetId":"c53eeb50bcdf509cb1522d378c9e380b","name":"Neha4","bitmapResolution":1,"md5ext":"c53eeb50bcdf509cb1522d378c9e380b.svg","dataFormat":"svg","rotationCenterX":128.6803772733968,"rotationCenterY":116.40943091603478},{"assetId":"9d660677a26fe0b657bc3e43da838c8e","name":"Neha5","bitmapResolution":1,"md5ext":"9d660677a26fe0b657bc3e43da838c8e.svg","dataFormat":"svg","rotationCenterX":90.9947,"rotationCenterY":85.4763088644717}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":28,"y":-51,"size":139.99999999999997,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Brad","variables":{},"lists":{},"broadcasts":{},"blocks":{"CBEwU.S^!3v*m}+l(2:*":{"opcode":"event_whenflagclicked","next":"R|3)LWe?;VLJtzxlX@8}","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"R|3)LWe?;VLJtzxlX@8}":{"opcode":"motion_gotoxy","next":"9sO:y?e(89=wDBQEX*84","parent":"CBEwU.S^!3v*m}+l(2:*","inputs":{"X":[1,[4,220]],"Y":[1,[4,-13]]},"fields":{},"shadow":false,"topLevel":false},"9sO:y?e(89=wDBQEX*84":{"opcode":"looks_switchcostumeto","next":null,"parent":"R|3)LWe?;VLJtzxlX@8}","inputs":{"COSTUME":[1,"4!H7s8i9Lh.C(?SHMT_O"]},"fields":{},"shadow":false,"topLevel":false},"4!H7s8i9Lh.C(?SHMT_O":{"opcode":"looks_costume","next":null,"parent":"9sO:y?e(89=wDBQEX*84","inputs":{},"fields":{"COSTUME":["Brad1"]},"shadow":true,"topLevel":false},"7rU;-waLK?7n!U94pB].":{"opcode":"event_whenkeypressed","next":"BYyQeX2S2e2l[UHn#0bq","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":32,"y":304},"BYyQeX2S2e2l[UHn#0bq":{"opcode":"motion_movesteps","next":"SpljqntHJxfGDV;.4%#M","parent":"7rU;-waLK?7n!U94pB].","inputs":{"STEPS":[1,[4,-64]]},"fields":{},"shadow":false,"topLevel":false},"SpljqntHJxfGDV;.4%#M":{"opcode":"looks_sayforsecs","next":"m+[^4mRsSN%SjOXJ}+_t","parent":"BYyQeX2S2e2l[UHn#0bq","inputs":{"MESSAGE":[1,[10,"Hello, I'm Brad!"]],"SECS":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"m+[^4mRsSN%SjOXJ}+_t":{"opcode":"looks_sayforsecs","next":null,"parent":"SpljqntHJxfGDV;.4%#M","inputs":{"MESSAGE":[1,[10,"I'm holding a pichkari, a water squirter filled with colored water!"]],"SECS":[1,[4,6]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"dae278db1e4c65e9b70d966aa9a40429","name":"Brad1","bitmapResolution":1,"md5ext":"dae278db1e4c65e9b70d966aa9a40429.svg","dataFormat":"svg","rotationCenterX":37.99999373388661,"rotationCenterY":86.99998370205938}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":220,"y":-13,"size":135.00000000000003,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Kristen","variables":{},"lists":{},"broadcasts":{},"blocks":{"[M~hMK`q/NYs#*-;ZiuH":{"opcode":"event_whenflagclicked","next":"H~_UJ8~bO+^zXvT^^^le","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"H~_UJ8~bO+^zXvT^^^le":{"opcode":"motion_gotoxy","next":"@DsqwPSbeqW_?Pi{uYT]","parent":"[M~hMK`q/NYs#*-;ZiuH","inputs":{"X":[1,[4,-215]],"Y":[1,[4,-13]]},"fields":{},"shadow":false,"topLevel":false},"@DsqwPSbeqW_?Pi{uYT]":{"opcode":"looks_switchcostumeto","next":null,"parent":"H~_UJ8~bO+^zXvT^^^le","inputs":{"COSTUME":[1,"?+RpBU3RL5~YKwsi/rIw"]},"fields":{},"shadow":false,"topLevel":false},"?+RpBU3RL5~YKwsi/rIw":{"opcode":"looks_costume","next":null,"parent":"@DsqwPSbeqW_?Pi{uYT]","inputs":{},"fields":{"COSTUME":["Kristen1"]},"shadow":true,"topLevel":false},"Jf4;4?`|e1udP=94]ErE":{"opcode":"event_whenkeypressed","next":"9aY%RY8/M5ayiAqP@a7U","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":27,"y":261},"9aY%RY8/M5ayiAqP@a7U":{"opcode":"control_wait","next":"Pz:xDRpqyDJNLlR5?;,0","parent":"Jf4;4?`|e1udP=94]ErE","inputs":{"DURATION":[1,[5,"10"]]},"fields":{},"shadow":false,"topLevel":false},"Pz:xDRpqyDJNLlR5?;,0":{"opcode":"motion_movesteps","next":"-n-db;lg-!(lyaGFo;AQ","parent":"9aY%RY8/M5ayiAqP@a7U","inputs":{"STEPS":[1,[4,64]]},"fields":{},"shadow":false,"topLevel":false},"-n-db;lg-!(lyaGFo;AQ":{"opcode":"looks_sayforsecs","next":"4*Ly{a-GE~GGb~khP7#P","parent":"Pz:xDRpqyDJNLlR5?;,0","inputs":{"MESSAGE":[1,[10,"Hi, I'm Kristen!"]],"SECS":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"4*Ly{a-GE~GGb~khP7#P":{"opcode":"looks_sayforsecs","next":"(P/J:UdY/Q,8|p4}V!P=","parent":"-n-db;lg-!(lyaGFo;AQ","inputs":{"MESSAGE":[1,[10,"I'm using squeeze bottles."]],"SECS":[1,[4,4]]},"fields":{},"shadow":false,"topLevel":false},"(P/J:UdY/Q,8|p4}V!P=":{"opcode":"looks_sayforsecs","next":null,"parent":"4*Ly{a-GE~GGb~khP7#P","inputs":{"MESSAGE":[1,[10,"Click on Neha to see her celebrate!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"5c740972a1f49202719b50e896bd0cf6","name":"Kristen1","bitmapResolution":1,"md5ext":"5c740972a1f49202719b50e896bd0cf6.svg","dataFormat":"svg","rotationCenterX":62.000001871426775,"rotationCenterY":87.08308115522249}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-215,"y":-13,"size":135.00000000000003,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
+},{}],46:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -12061,13 +11923,13 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
     }
 }
-},{}],43:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"7b59e3c3cd3ec7a9ff1499ae7ad0f79a","name":"hand in hallway iphone w: name","bitmapResolution":2,"md5ext":"7b59e3c3cd3ec7a9ff1499ae7ad0f79a.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Basketball","variables":{},"lists":{},"broadcasts":{},"blocks":{"Xv-Endey!BbY..-VD:)]":{"opcode":"event_whenflagclicked","next":"FG(H`DtDM]NB}C!M}x:j","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"FG(H`DtDM]NB}C!M}x:j":{"opcode":"sound_play","next":"I1KeKKubTFU?QWq7}Myu","parent":"Xv-Endey!BbY..-VD:)]","inputs":{"SOUND_MENU":[1,"`V#`75q{.O)!E0x*eNge"]},"fields":{},"shadow":false,"topLevel":false},"`V#`75q{.O)!E0x*eNge":{"opcode":"sound_sounds_menu","next":null,"parent":"FG(H`DtDM]NB}C!M}x:j","inputs":{},"fields":{"SOUND_MENU":["boing"]},"shadow":true,"topLevel":false},"I1KeKKubTFU?QWq7}Myu":{"opcode":"looks_thinkforsecs","next":"IfHnM9X)N2O%SYxhh?+r","parent":"FG(H`DtDM]NB}C!M}x:j","inputs":{"MESSAGE":[1,[10,"Hey!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"IfHnM9X)N2O%SYxhh?+r":{"opcode":"control_wait","next":null,"parent":"I1KeKKubTFU?QWq7}Myu","inputs":{"DURATION":[1,[5,2]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"gV6Y}?gnF~}viknGKJxZ":{"blockId":null,"x":444,"y":39.6,"width":261,"height":325.6,"minimized":false,"text":"Add two more lines of text to the conversation - one for each sprite. \r\rBe sure to use wait blocks to synchronize the conversation! "}},"currentCostume":0,"costumes":[{"assetId":"c5e41b7b0c37fa47d850e58e13f2c2c6","name":"basketball","bitmapResolution":1,"md5ext":"c5e41b7b0c37fa47d850e58e13f2c2c6.svg","dataFormat":"svg","rotationCenterX":36,"rotationCenterY":-17}],"sounds":[{"assetId":"53a3c2e27d1fb5fdb14aaf0cb41e7889","name":"boing","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":7113,"md5ext":"53a3c2e27d1fb5fdb14aaf0cb41e7889.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":16,"y":55,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Rainbow","variables":{},"lists":{},"broadcasts":{},"blocks":{"h%]_u4BasZFDtgMhl5UB":{"opcode":"event_whenflagclicked","next":"+;%OI3%-II/qzQh8QC8T","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"+;%OI3%-II/qzQh8QC8T":{"opcode":"control_wait","next":"slNuul3C|C,sDMI2jvR?","parent":"h%]_u4BasZFDtgMhl5UB","inputs":{"DURATION":[1,[5,2]]},"fields":{},"shadow":false,"topLevel":false},"slNuul3C|C,sDMI2jvR?":{"opcode":"sound_play","next":"Zu0dPVz+a,tNFA.pGF0E","parent":"+;%OI3%-II/qzQh8QC8T","inputs":{"SOUND_MENU":[1,"{:pWe[3-+.foJQ_Uy|5D"]},"fields":{},"shadow":false,"topLevel":false},"{:pWe[3-+.foJQ_Uy|5D":{"opcode":"sound_sounds_menu","next":null,"parent":"slNuul3C|C,sDMI2jvR?","inputs":{},"fields":{"SOUND_MENU":["pop"]},"shadow":true,"topLevel":false},"Zu0dPVz+a,tNFA.pGF0E":{"opcode":"looks_thinkforsecs","next":null,"parent":"slNuul3C|C,sDMI2jvR?","inputs":{"MESSAGE":[1,[10,"How r u?"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"4b5e631517784303a68b1be661a25e5d","name":"rainbow","bitmapResolution":1,"md5ext":"4b5e631517784303a68b1be661a25e5d.svg","dataFormat":"svg","rotationCenterX":72,"rotationCenterY":-24}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":52,"y":-51,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190918022946","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36"}}
-},{}],44:[function(require,module,exports){
-arguments[4][43][0].apply(exports,arguments)
-},{"dup":43}],45:[function(require,module,exports){
-arguments[4][43][0].apply(exports,arguments)
-},{"dup":43}],46:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
+arguments[4][47][0].apply(exports,arguments)
+},{"dup":47}],49:[function(require,module,exports){
+arguments[4][47][0].apply(exports,arguments)
+},{"dup":47}],50:[function(require,module,exports){
 require('./grader');
 require('./scratch3');
 
@@ -12162,19 +12024,19 @@ module.exports = class GradeTwoWaySyncL1 extends Grader {
     }
 }
 
-},{"./grader":22,"./scratch3":27,"./templates/two-way-sync-L1-gaming":43,"./templates/two-way-sync-L1-multicultural":44,"./templates/two-way-sync-L1-youth-culture":45}],47:[function(require,module,exports){
+},{"./grader":26,"./scratch3":31,"./templates/two-way-sync-L1-gaming":47,"./templates/two-way-sync-L1-multicultural":48,"./templates/two-way-sync-L1-youth-culture":49}],51:[function(require,module,exports){
 module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":3,"costumes":[{"assetId":"2b0bddaf727e6bb95131290ae2549ac4","name":"background3","bitmapResolution":2,"md5ext":"2b0bddaf727e6bb95131290ae2549ac4.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"a81668321aa3dcc0fc185d3e36ae76f6","name":"Room 1","bitmapResolution":2,"md5ext":"a81668321aa3dcc0fc185d3e36ae76f6.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"e5f794c8756ca0cead5cb7e7fe354c41","name":"Playground","bitmapResolution":2,"md5ext":"e5f794c8756ca0cead5cb7e7fe354c41.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"38be88e8026768d4606fe1932b05d258","name":"backdrop","bitmapResolution":2,"md5ext":"38be88e8026768d4606fe1932b05d258.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"India","variables":{},"lists":{},"broadcasts":{},"blocks":{"{?%H[3PODtzIOzw3NUAD":{"opcode":"event_whenflagclicked","next":"X9F`sK3d.L!x-cTWVaGz","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":0,"y":0},"X9F`sK3d.L!x-cTWVaGz":{"opcode":"motion_gotoxy","next":"kBZo|n~NnzgG!crdI1E;","parent":"{?%H[3PODtzIOzw3NUAD","inputs":{"X":[1,[4,"-215"]],"Y":[1,[4,"-145"]]},"fields":{},"shadow":false,"topLevel":false},"kBZo|n~NnzgG!crdI1E;":{"opcode":"motion_movesteps","next":"u=@^[0kNfQx.2*Xvk0TX","parent":"X9F`sK3d.L!x-cTWVaGz","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"u=@^[0kNfQx.2*Xvk0TX":{"opcode":"looks_sayforsecs","next":"C;QZb9TtC1(Ov9vkC+$f","parent":"kBZo|n~NnzgG!crdI1E;","inputs":{"MESSAGE":[1,[10,"Hello! My name is India."]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},"C;QZb9TtC1(Ov9vkC+$f":{"opcode":"motion_movesteps","next":"=6=T6QR$yee::D$b8~s{","parent":"u=@^[0kNfQx.2*Xvk0TX","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"=6=T6QR$yee::D$b8~s{":{"opcode":"looks_sayforsecs","next":",`%kTB=!2Lz#4m!W2OpL","parent":"C;QZb9TtC1(Ov9vkC+$f","inputs":{"MESSAGE":[1,[10,"Welcome to Scratch!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},",`%kTB=!2Lz#4m!W2OpL":{"opcode":"motion_movesteps","next":"{Ipink+*Ul#QILZqGvdF","parent":"=6=T6QR$yee::D$b8~s{","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"{Ipink+*Ul#QILZqGvdF":{"opcode":"looks_sayforsecs","next":null,"parent":",`%kTB=!2Lz#4m!W2OpL","inputs":{"MESSAGE":[1,[10,"Click the Space Bar to see some of the things I like."]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"fec9549b732165ec6d09991de08b69cd","name":"character (1)","bitmapResolution":1,"md5ext":"fec9549b732165ec6d09991de08b69cd.svg","dataFormat":"svg","rotationCenterX":78.87000274658203,"rotationCenterY":165.80999755859375}],"sounds":[],"volume":100,"layerOrder":2,"visible":true,"x":-165,"y":-145,"size":162.8369844855632,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"easel","variables":{},"lists":{},"broadcasts":{},"blocks":{"XYmoOsQpwwb~bRU[WtDb":{"opcode":"event_whenkeypressed","next":"NX*(%@1qK}o{lJ)1dp(L","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":56,"y":66},"NX*(%@1qK}o{lJ)1dp(L":{"opcode":"looks_switchcostumeto","next":"A*?(6=CMw!5NQvy3GoJz","parent":"XYmoOsQpwwb~bRU[WtDb","inputs":{"COSTUME":[1,"uxs{_T(3Fk%RETANj%^X"]},"fields":{},"shadow":false,"topLevel":false},"uxs{_T(3Fk%RETANj%^X":{"opcode":"looks_costume","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{},"fields":{"COSTUME":["easel-music",null]},"shadow":true,"topLevel":false},"A*?(6=CMw!5NQvy3GoJz":{"opcode":"control_repeat","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{"TIMES":[1,[6,"7"]],"SUBSTACK":[2,"MkZ9YIg7M,WuN@FR]l:o"]},"fields":{},"shadow":false,"topLevel":false},"MkZ9YIg7M,WuN@FR]l:o":{"opcode":"looks_nextcostume","next":"*i@~ROBKeTP[#l_7v/_-","parent":"A*?(6=CMw!5NQvy3GoJz","inputs":{},"fields":{},"shadow":false,"topLevel":false},"*i@~ROBKeTP[#l_7v/_-":{"opcode":"control_wait","next":null,"parent":"MkZ9YIg7M,WuN@FR]l:o","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"3?,1QT}D[0#@^jvT!J*^":{"opcode":"event_whenthisspriteclicked","next":"gPD.*ilWONI2U7F-SE[}","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":51,"y":455},"gPD.*ilWONI2U7F-SE[}":{"opcode":"looks_sayforsecs","next":null,"parent":"3?,1QT}D[0#@^jvT!J*^","inputs":{"MESSAGE":[1,[10,"Tada!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":7,"costumes":[{"assetId":"47a257ec82df9b221a9c8a0da1174652","name":"easel","bitmapResolution":1,"md5ext":"47a257ec82df9b221a9c8a0da1174652.svg","dataFormat":"svg","rotationCenterX":72,"rotationCenterY":100.5},{"assetId":"f80c9c273a7542f28fc0a0aa16f80532","name":"easel-sports","bitmapResolution":1,"md5ext":"f80c9c273a7542f28fc0a0aa16f80532.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"25fc936818594e0f67f48ffd39ee06b2","name":"easel-animals","bitmapResolution":1,"md5ext":"25fc936818594e0f67f48ffd39ee06b2.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"6a904db737d12cc410bd18e0e3837f1a","name":"easel-music","bitmapResolution":1,"md5ext":"6a904db737d12cc410bd18e0e3837f1a.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"eb955b9d6d17d5358e1c66ca5dbc4648","name":"easel-neighborhood","bitmapResolution":1,"md5ext":"eb955b9d6d17d5358e1c66ca5dbc4648.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"4c0e56f2cc17d497d76070033ab08654","name":"easel-travel","bitmapResolution":1,"md5ext":"4c0e56f2cc17d497d76070033ab08654.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"ba4d4b1af1eafdda9b882c0f51ced3ff","name":"easel-astronomy","bitmapResolution":1,"md5ext":"ba4d4b1af1eafdda9b882c0f51ced3ff.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"b0841fa4e9ea101a530022a9b4758d14","name":"easel-video-games","bitmapResolution":1,"md5ext":"b0841fa4e9ea101a530022a9b4758d14.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422}],"sounds":[],"volume":100,"layerOrder":1,"visible":true,"x":144,"y":-52,"size":150,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[{"id":"undefined_costumenumbername_number","mode":"default","opcode":"looks_costumenumbername","params":{"NUMBER_NAME":"number"},"spriteName":"Helen","value":"","width":0,"height":0,"x":5,"y":5,"visible":false,"sliderMin":0,"sliderMax":100,"isDiscrete":true}],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
-},{}],48:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 /// Provides necessary scripts for index.html.
 
 /// Requirements (scripts)
 var graders = {
     scratchBasicsL1: { name: 'Scratch Basics L2', file: require('./grading-scripts-s3/scratch-basics-L1') },
     scratchBasicsL2_create: { name: 'Scratch Basics L3', file: require('./grading-scripts-s3/scratch-basics-L2') },
-    animationL1: { name: 'Animation L1', file: require('./grading-scripts-s3/animation-L1') },
-    animationL2_create: { name: 'Animation L2', file: require('./grading-scripts-s3/animation-L2') },
     eventsL1: { name: 'Events L1', file: require('./grading-scripts-s3/events-L1-syn') },
     eventsL2_create: { name: 'Events L2', file: require('./grading-scripts-s3/events-L2') },
+    animationL1: { name: 'Animation L1', file: require('./grading-scripts-s3/animation-L1') },
+    animationL2_create: { name: 'Animation L2', file: require('./grading-scripts-s3/animation-L2') },
     condLoopsL1: { name: 'Conditional Loops L1', file: require('./grading-scripts-s3/cond-loops-L1-syn') },
     condLoopsL2_create: { name: 'Conditional Loops L2', file: require('./grading-scripts-s3/cond-loops-L2') },
     decompL1: { name: 'Decomp. by Sequence L1', file: require('./grading-scripts-s3/decomp-L1') },
@@ -12628,812 +12490,4 @@ function noError() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-},{"./act1-grading-scripts/aboutMe":1,"./act1-grading-scripts/animal-parade":2,"./act1-grading-scripts/dance-party":3,"./act1-grading-scripts/final-project":4,"./act1-grading-scripts/knockKnock":5,"./act1-grading-scripts/name-poem":7,"./act1-grading-scripts/ofrenda":8,"./act1-grading-scripts/onTheFarm":9,"./act1-grading-scripts/scavengerHunt":11,"./grading-scripts-s3/animation-L1":12,"./grading-scripts-s3/animation-L2":13,"./grading-scripts-s3/complex-conditionals-L1":14,"./grading-scripts-s3/cond-loops-L1-syn":15,"./grading-scripts-s3/cond-loops-L2":16,"./grading-scripts-s3/decomp-L1":18,"./grading-scripts-s3/decomp-L2":19,"./grading-scripts-s3/events-L1-syn":20,"./grading-scripts-s3/events-L2":21,"./grading-scripts-s3/one-way-sync-L1":23,"./grading-scripts-s3/one-way-sync-L2":24,"./grading-scripts-s3/scratch-basics-L1":25,"./grading-scripts-s3/scratch-basics-L2":26,"./grading-scripts-s3/two-way-sync-L1":46}],49:[function(require,module,exports){
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-},{}],50:[function(require,module,exports){
-if (typeof Object.create === 'function') {
-  // implementation from standard node.js 'util' module
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-  };
-} else {
-  // old school shim for old browsers
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
-  }
-}
-
-},{}],51:[function(require,module,exports){
-module.exports = function isBuffer(arg) {
-  return arg && typeof arg === 'object'
-    && typeof arg.copy === 'function'
-    && typeof arg.fill === 'function'
-    && typeof arg.readUInt8 === 'function';
-}
-},{}],52:[function(require,module,exports){
-(function (process,global){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-var formatRegExp = /%[sdj%]/g;
-exports.format = function(f) {
-  if (!isString(f)) {
-    var objects = [];
-    for (var i = 0; i < arguments.length; i++) {
-      objects.push(inspect(arguments[i]));
-    }
-    return objects.join(' ');
-  }
-
-  var i = 1;
-  var args = arguments;
-  var len = args.length;
-  var str = String(f).replace(formatRegExp, function(x) {
-    if (x === '%%') return '%';
-    if (i >= len) return x;
-    switch (x) {
-      case '%s': return String(args[i++]);
-      case '%d': return Number(args[i++]);
-      case '%j':
-        try {
-          return JSON.stringify(args[i++]);
-        } catch (_) {
-          return '[Circular]';
-        }
-      default:
-        return x;
-    }
-  });
-  for (var x = args[i]; i < len; x = args[++i]) {
-    if (isNull(x) || !isObject(x)) {
-      str += ' ' + x;
-    } else {
-      str += ' ' + inspect(x);
-    }
-  }
-  return str;
-};
-
-
-// Mark that a method should not be used.
-// Returns a modified function which warns once by default.
-// If --no-deprecation is set, then it is a no-op.
-exports.deprecate = function(fn, msg) {
-  // Allow for deprecating things in the process of starting up.
-  if (isUndefined(global.process)) {
-    return function() {
-      return exports.deprecate(fn, msg).apply(this, arguments);
-    };
-  }
-
-  if (process.noDeprecation === true) {
-    return fn;
-  }
-
-  var warned = false;
-  function deprecated() {
-    if (!warned) {
-      if (process.throwDeprecation) {
-        throw new Error(msg);
-      } else if (process.traceDeprecation) {
-        console.trace(msg);
-      } else {
-        console.error(msg);
-      }
-      warned = true;
-    }
-    return fn.apply(this, arguments);
-  }
-
-  return deprecated;
-};
-
-
-var debugs = {};
-var debugEnviron;
-exports.debuglog = function(set) {
-  if (isUndefined(debugEnviron))
-    debugEnviron = process.env.NODE_DEBUG || '';
-  set = set.toUpperCase();
-  if (!debugs[set]) {
-    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
-      var pid = process.pid;
-      debugs[set] = function() {
-        var msg = exports.format.apply(exports, arguments);
-        console.error('%s %d: %s', set, pid, msg);
-      };
-    } else {
-      debugs[set] = function() {};
-    }
-  }
-  return debugs[set];
-};
-
-
-/**
- * Echos the value of a value. Trys to print the value out
- * in the best way possible given the different types.
- *
- * @param {Object} obj The object to print out.
- * @param {Object} opts Optional options object that alters the output.
- */
-/* legacy: obj, showHidden, depth, colors*/
-function inspect(obj, opts) {
-  // default options
-  var ctx = {
-    seen: [],
-    stylize: stylizeNoColor
-  };
-  // legacy...
-  if (arguments.length >= 3) ctx.depth = arguments[2];
-  if (arguments.length >= 4) ctx.colors = arguments[3];
-  if (isBoolean(opts)) {
-    // legacy...
-    ctx.showHidden = opts;
-  } else if (opts) {
-    // got an "options" object
-    exports._extend(ctx, opts);
-  }
-  // set default options
-  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
-  if (isUndefined(ctx.depth)) ctx.depth = 2;
-  if (isUndefined(ctx.colors)) ctx.colors = false;
-  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
-  if (ctx.colors) ctx.stylize = stylizeWithColor;
-  return formatValue(ctx, obj, ctx.depth);
-}
-exports.inspect = inspect;
-
-
-// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-inspect.colors = {
-  'bold' : [1, 22],
-  'italic' : [3, 23],
-  'underline' : [4, 24],
-  'inverse' : [7, 27],
-  'white' : [37, 39],
-  'grey' : [90, 39],
-  'black' : [30, 39],
-  'blue' : [34, 39],
-  'cyan' : [36, 39],
-  'green' : [32, 39],
-  'magenta' : [35, 39],
-  'red' : [31, 39],
-  'yellow' : [33, 39]
-};
-
-// Don't use 'blue' not visible on cmd.exe
-inspect.styles = {
-  'special': 'cyan',
-  'number': 'yellow',
-  'boolean': 'yellow',
-  'undefined': 'grey',
-  'null': 'bold',
-  'string': 'green',
-  'date': 'magenta',
-  // "name": intentionally not styling
-  'regexp': 'red'
-};
-
-
-function stylizeWithColor(str, styleType) {
-  var style = inspect.styles[styleType];
-
-  if (style) {
-    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
-           '\u001b[' + inspect.colors[style][1] + 'm';
-  } else {
-    return str;
-  }
-}
-
-
-function stylizeNoColor(str, styleType) {
-  return str;
-}
-
-
-function arrayToHash(array) {
-  var hash = {};
-
-  array.forEach(function(val, idx) {
-    hash[val] = true;
-  });
-
-  return hash;
-}
-
-
-function formatValue(ctx, value, recurseTimes) {
-  // Provide a hook for user-specified inspect functions.
-  // Check that value is an object with an inspect function on it
-  if (ctx.customInspect &&
-      value &&
-      isFunction(value.inspect) &&
-      // Filter out the util module, it's inspect function is special
-      value.inspect !== exports.inspect &&
-      // Also filter out any prototype objects using the circular check.
-      !(value.constructor && value.constructor.prototype === value)) {
-    var ret = value.inspect(recurseTimes, ctx);
-    if (!isString(ret)) {
-      ret = formatValue(ctx, ret, recurseTimes);
-    }
-    return ret;
-  }
-
-  // Primitive types cannot have properties
-  var primitive = formatPrimitive(ctx, value);
-  if (primitive) {
-    return primitive;
-  }
-
-  // Look up the keys of the object.
-  var keys = Object.keys(value);
-  var visibleKeys = arrayToHash(keys);
-
-  if (ctx.showHidden) {
-    keys = Object.getOwnPropertyNames(value);
-  }
-
-  // IE doesn't make error fields non-enumerable
-  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
-  if (isError(value)
-      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
-    return formatError(value);
-  }
-
-  // Some type of object without properties can be shortcutted.
-  if (keys.length === 0) {
-    if (isFunction(value)) {
-      var name = value.name ? ': ' + value.name : '';
-      return ctx.stylize('[Function' + name + ']', 'special');
-    }
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    }
-    if (isDate(value)) {
-      return ctx.stylize(Date.prototype.toString.call(value), 'date');
-    }
-    if (isError(value)) {
-      return formatError(value);
-    }
-  }
-
-  var base = '', array = false, braces = ['{', '}'];
-
-  // Make Array say that they are Array
-  if (isArray(value)) {
-    array = true;
-    braces = ['[', ']'];
-  }
-
-  // Make functions say that they are functions
-  if (isFunction(value)) {
-    var n = value.name ? ': ' + value.name : '';
-    base = ' [Function' + n + ']';
-  }
-
-  // Make RegExps say that they are RegExps
-  if (isRegExp(value)) {
-    base = ' ' + RegExp.prototype.toString.call(value);
-  }
-
-  // Make dates with properties first say the date
-  if (isDate(value)) {
-    base = ' ' + Date.prototype.toUTCString.call(value);
-  }
-
-  // Make error with message first say the error
-  if (isError(value)) {
-    base = ' ' + formatError(value);
-  }
-
-  if (keys.length === 0 && (!array || value.length == 0)) {
-    return braces[0] + base + braces[1];
-  }
-
-  if (recurseTimes < 0) {
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    } else {
-      return ctx.stylize('[Object]', 'special');
-    }
-  }
-
-  ctx.seen.push(value);
-
-  var output;
-  if (array) {
-    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
-  } else {
-    output = keys.map(function(key) {
-      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
-    });
-  }
-
-  ctx.seen.pop();
-
-  return reduceToSingleString(output, base, braces);
-}
-
-
-function formatPrimitive(ctx, value) {
-  if (isUndefined(value))
-    return ctx.stylize('undefined', 'undefined');
-  if (isString(value)) {
-    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
-                                             .replace(/'/g, "\\'")
-                                             .replace(/\\"/g, '"') + '\'';
-    return ctx.stylize(simple, 'string');
-  }
-  if (isNumber(value))
-    return ctx.stylize('' + value, 'number');
-  if (isBoolean(value))
-    return ctx.stylize('' + value, 'boolean');
-  // For some reason typeof null is "object", so special case here.
-  if (isNull(value))
-    return ctx.stylize('null', 'null');
-}
-
-
-function formatError(value) {
-  return '[' + Error.prototype.toString.call(value) + ']';
-}
-
-
-function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
-  var output = [];
-  for (var i = 0, l = value.length; i < l; ++i) {
-    if (hasOwnProperty(value, String(i))) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          String(i), true));
-    } else {
-      output.push('');
-    }
-  }
-  keys.forEach(function(key) {
-    if (!key.match(/^\d+$/)) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          key, true));
-    }
-  });
-  return output;
-}
-
-
-function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
-  var name, str, desc;
-  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
-  if (desc.get) {
-    if (desc.set) {
-      str = ctx.stylize('[Getter/Setter]', 'special');
-    } else {
-      str = ctx.stylize('[Getter]', 'special');
-    }
-  } else {
-    if (desc.set) {
-      str = ctx.stylize('[Setter]', 'special');
-    }
-  }
-  if (!hasOwnProperty(visibleKeys, key)) {
-    name = '[' + key + ']';
-  }
-  if (!str) {
-    if (ctx.seen.indexOf(desc.value) < 0) {
-      if (isNull(recurseTimes)) {
-        str = formatValue(ctx, desc.value, null);
-      } else {
-        str = formatValue(ctx, desc.value, recurseTimes - 1);
-      }
-      if (str.indexOf('\n') > -1) {
-        if (array) {
-          str = str.split('\n').map(function(line) {
-            return '  ' + line;
-          }).join('\n').substr(2);
-        } else {
-          str = '\n' + str.split('\n').map(function(line) {
-            return '   ' + line;
-          }).join('\n');
-        }
-      }
-    } else {
-      str = ctx.stylize('[Circular]', 'special');
-    }
-  }
-  if (isUndefined(name)) {
-    if (array && key.match(/^\d+$/)) {
-      return str;
-    }
-    name = JSON.stringify('' + key);
-    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
-      name = name.substr(1, name.length - 2);
-      name = ctx.stylize(name, 'name');
-    } else {
-      name = name.replace(/'/g, "\\'")
-                 .replace(/\\"/g, '"')
-                 .replace(/(^"|"$)/g, "'");
-      name = ctx.stylize(name, 'string');
-    }
-  }
-
-  return name + ': ' + str;
-}
-
-
-function reduceToSingleString(output, base, braces) {
-  var numLinesEst = 0;
-  var length = output.reduce(function(prev, cur) {
-    numLinesEst++;
-    if (cur.indexOf('\n') >= 0) numLinesEst++;
-    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
-  }, 0);
-
-  if (length > 60) {
-    return braces[0] +
-           (base === '' ? '' : base + '\n ') +
-           ' ' +
-           output.join(',\n  ') +
-           ' ' +
-           braces[1];
-  }
-
-  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
-}
-
-
-// NOTE: These type checking functions intentionally don't use `instanceof`
-// because it is fragile and can be easily faked with `Object.create()`.
-function isArray(ar) {
-  return Array.isArray(ar);
-}
-exports.isArray = isArray;
-
-function isBoolean(arg) {
-  return typeof arg === 'boolean';
-}
-exports.isBoolean = isBoolean;
-
-function isNull(arg) {
-  return arg === null;
-}
-exports.isNull = isNull;
-
-function isNullOrUndefined(arg) {
-  return arg == null;
-}
-exports.isNullOrUndefined = isNullOrUndefined;
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-exports.isNumber = isNumber;
-
-function isString(arg) {
-  return typeof arg === 'string';
-}
-exports.isString = isString;
-
-function isSymbol(arg) {
-  return typeof arg === 'symbol';
-}
-exports.isSymbol = isSymbol;
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-exports.isUndefined = isUndefined;
-
-function isRegExp(re) {
-  return isObject(re) && objectToString(re) === '[object RegExp]';
-}
-exports.isRegExp = isRegExp;
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-exports.isObject = isObject;
-
-function isDate(d) {
-  return isObject(d) && objectToString(d) === '[object Date]';
-}
-exports.isDate = isDate;
-
-function isError(e) {
-  return isObject(e) &&
-      (objectToString(e) === '[object Error]' || e instanceof Error);
-}
-exports.isError = isError;
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-exports.isFunction = isFunction;
-
-function isPrimitive(arg) {
-  return arg === null ||
-         typeof arg === 'boolean' ||
-         typeof arg === 'number' ||
-         typeof arg === 'string' ||
-         typeof arg === 'symbol' ||  // ES6 symbol
-         typeof arg === 'undefined';
-}
-exports.isPrimitive = isPrimitive;
-
-exports.isBuffer = require('./support/isBuffer');
-
-function objectToString(o) {
-  return Object.prototype.toString.call(o);
-}
-
-
-function pad(n) {
-  return n < 10 ? '0' + n.toString(10) : n.toString(10);
-}
-
-
-var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
-              'Oct', 'Nov', 'Dec'];
-
-// 26 Feb 16:19:34
-function timestamp() {
-  var d = new Date();
-  var time = [pad(d.getHours()),
-              pad(d.getMinutes()),
-              pad(d.getSeconds())].join(':');
-  return [d.getDate(), months[d.getMonth()], time].join(' ');
-}
-
-
-// log is just a thin wrapper to console.log that prepends a timestamp
-exports.log = function() {
-  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
-};
-
-
-/**
- * Inherit the prototype methods from one constructor into another.
- *
- * The Function.prototype.inherits from lang.js rewritten as a standalone
- * function (not on Function.prototype). NOTE: If this file is to be loaded
- * during bootstrapping this function needs to be rewritten using some native
- * functions as prototype setup using normal JavaScript does not work as
- * expected during bootstrapping (see mirror.js in r114903).
- *
- * @param {function} ctor Constructor function which needs to inherit the
- *     prototype.
- * @param {function} superCtor Constructor function to inherit prototype from.
- */
-exports.inherits = require('inherits');
-
-exports._extend = function(origin, add) {
-  // Don't do anything if add isn't an object
-  if (!add || !isObject(add)) return origin;
-
-  var keys = Object.keys(add);
-  var i = keys.length;
-  while (i--) {
-    origin[keys[i]] = add[keys[i]];
-  }
-  return origin;
-};
-
-function hasOwnProperty(obj, prop) {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
-}
-
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":51,"_process":49,"inherits":50}]},{},[48]);
+},{"./act1-grading-scripts/aboutMe":5,"./act1-grading-scripts/animal-parade":6,"./act1-grading-scripts/dance-party":7,"./act1-grading-scripts/final-project":8,"./act1-grading-scripts/knockKnock":9,"./act1-grading-scripts/name-poem":11,"./act1-grading-scripts/ofrenda":12,"./act1-grading-scripts/onTheFarm":13,"./act1-grading-scripts/scavengerHunt":15,"./grading-scripts-s3/animation-L1":16,"./grading-scripts-s3/animation-L2":17,"./grading-scripts-s3/complex-conditionals-L1":18,"./grading-scripts-s3/cond-loops-L1-syn":19,"./grading-scripts-s3/cond-loops-L2":20,"./grading-scripts-s3/decomp-L1":22,"./grading-scripts-s3/decomp-L2":23,"./grading-scripts-s3/events-L1-syn":24,"./grading-scripts-s3/events-L2":25,"./grading-scripts-s3/one-way-sync-L1":27,"./grading-scripts-s3/one-way-sync-L2":28,"./grading-scripts-s3/scratch-basics-L1":29,"./grading-scripts-s3/scratch-basics-L2":30,"./grading-scripts-s3/two-way-sync-L1":50}]},{},[52]);
