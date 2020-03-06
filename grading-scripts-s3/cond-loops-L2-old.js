@@ -274,7 +274,7 @@ class GradeCondLoops2{
             arrange:
                 {bool: false, str: 'Arranged Vehicle and Stop sprites on stage; they are not in their original locations.'},
             move:
-                {bool: false, str: 'Vehicle sprite moves across stage when green flag is clicked'},
+                {bool: false, str: 'Hi sprite moves across stage when green flag is clicked'},
             stop:
                 {bool: false, str: 'Vehicle sprite stops when touching another sprite or another color'},
             speak:
