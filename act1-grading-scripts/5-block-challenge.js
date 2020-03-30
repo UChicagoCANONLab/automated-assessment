@@ -5,6 +5,7 @@ module.exports = class {
         this.requirements = {};
         this.extensions = {};
         this.avgScriptLength = 0;
+        this.stats = {};
         this.eventOpcodes = ['event_whenflagclicked', 'event_whenthisspriteclicked'];
         this.otherOpcodes = ['motion_glidesecstoxy', 'looks_sayforsecs', 'control_wait'];
         this.blocksUsed = 0;
@@ -25,6 +26,8 @@ module.exports = class {
         this.extensions.four = { bool: false, str: 'Average script length is at least four' };
         this.extensions.five = { bool: false, str: 'Average script length is at least five' };
         this.avgScriptLength = 0;
+        this.stats.avgScriptLength = {float: 0.0, str: 'Average script length'};
+        this.stats.maxScriptLength = {float: 0.0, str: 'Maximum script length'};
     }
 
     grade(fileObj, user) {
@@ -133,6 +136,9 @@ module.exports = class {
         }
         // console.log('Longest Script Length (including event block):');
         // console.log(longestLength);
+
+        this.stats.avgScriptLength.float = this.avgScriptLength;
+        this.stats.maxScriptLength.float = (longestLength === undefined) ? (0) : (longestLength);
 
         //counts how many of the five specified blocks are used and sets requirements accordingly
         let blocksUsed = usesFlagClicked + usesGlide + usesSays + usesSpriteClicked + usesWait;
