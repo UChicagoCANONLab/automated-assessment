@@ -13,13 +13,17 @@ module.exports = class {
     }
 
     initReqs() {
-        this.requirements.stop = { bool: false, str: 'Vehicle sprite stops when touching another sprite or another color' }; // done
-        this.requirements.speak = { bool: false, str: 'Vehicle sprite says something or makes a sound when it stops' }; // done
-        this.requirements.moves = { bool: false, str: 'Vehicle sprite moves across the stage in a looping fashion' }; // done
-        this.extensions.addCostume = { bool: false, str: 'Another costume is added to the current mode of transportation' }; // done
-        this.extensions.nextCostume = { bool: false, str: 'The sprite is animated with a "next costume" block' }; // done
+        this.requirements.stop = { bool: false, str: 'Sprite stops when touching another sprite or another color' }; // done
+        this.requirements.speak = { bool: false, str: 'Sprite says something or makes a sound when it stops' }; // done
+        this.requirements.moves = { bool: false, str: 'Sprite moves across the stage in a looping fashion' }; // done
         this.extensions.touchingNewSprite = { bool: false, str: 'The sprite stops when it touches a new sprite added from the sprite library' };
         this.extensions.repeatBlock = { bool: false, str: 'Repeat blocks added to animate another sprite' }; // done
+
+/*
+//        this.extensions.addCostume = { bool: false, str: 'Another costume is added to the current mode of transportation' }; // done
+//       this.extensions.nextCostume = { bool: false, str: 'The sprite is animated with a "next costume" block' }; // done
+*/
+
     
         this.info = {
             blocks: 0,
@@ -86,6 +90,8 @@ module.exports = class {
                                         if (target.blocks[condition].opcode === 'sensing_touchingobject') {
                                             touching = target.blocks[condition].inputs.TOUCHINGOBJECTMENU[1];
                                             objectTouching = target.blocks[touching].fields.TOUCHINGOBJECTMENU[0];
+						// Diana added this, which disables another check.
+                                            this.requirements.stop.bool = true;
                                 
                                         }
                                         // checks that it stops when touching a color
@@ -112,9 +118,11 @@ module.exports = class {
                                                 
                                                 this.requirements.moves.bool = true;
                                             }
+/*
                                             if ((target.blocks[substack].opcode === 'looks_switchcostumeto') || (target.blocks[substack].opcode === 'looks_nextcostume')) {
                                                 this.extensions.nextCostume.bool = true;
                                             }
+*/
                                             substack = target.blocks[substack].next;
                                         }
                                     }
@@ -180,9 +188,11 @@ module.exports = class {
             this.requirements.stop.bool = true;
         }
        
+/*
         if (allCostumes > 12) {
             this.extensions.addCostume.bool = true;
         }       
+*/
         
         if (numRepeat > 1) {
             this.extensions.repeatBlock.bool = true;
