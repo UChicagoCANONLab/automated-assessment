@@ -167,7 +167,7 @@ $(document).ready(function () {
 window.drop_handler = function (graderKey) {
     gradeObj = new allGraders[graderKey].file;
     console.log("Selected " + allGraders[graderKey].name);
-    document.getElementById("selectedUnit").innerHTML = 'Grading  ' + allGraders[graderKey].name;
+    document.getElementById("selectedUnit").innerHTML = 'Checking  ' + allGraders[graderKey].name;
 }
 
 window.onclick = function (event) {
@@ -253,6 +253,8 @@ async function gradeProject(projectID) {
                     document.getElementById('wait_time').innerHTML =
                     'Project ' + projectID + ' could not be found. Did you enter a valid Scratch project URL?';
                     IS_LOADING = false;
+                    hideColorKey();
+                    
                 }
             }
              /// Getting the project file itself
@@ -359,7 +361,7 @@ function showProgressBar() {
     document.getElementById('myProgress').style.visibility = "visible";
     console.log("reqs: ",complete_reqs,total_reqs);
     setProgress(document.getElementById('greenbar'), complete_reqs, total_reqs, 0);
-    // setProgress(document.getElementById('yellowbar'), 0, 0, 1);
+    setProgress(document.getElementById('yellowbar'), 0, 1, 1);
     setProgress(document.getElementById('redbar'), total_reqs - complete_reqs, total_reqs, 2);
 }
 
@@ -375,6 +377,12 @@ function printColorKey() {
     processObj.innerHTML = "results:";
 }
 
+function hideColorKey() {
+    var processObj = document.getElementById('process_status');
+    processObj.style.visibility = 'hidden';
+
+}
+
 /* Update progress bar segment to new proportion. */ 
 function setProgress(bar, reqs, total_reqs, color) {
     var width_percent = ((reqs / total_reqs) * 100);
@@ -382,19 +390,19 @@ function setProgress(bar, reqs, total_reqs, color) {
     bar.style.width = width_percent + '%';
     if (reqs && color === 0) {
         bar.innerHTML = reqs;
-        if (width_percent >= 15) {
-            if (width_percent == 100) bar.innerHTML = "All done!";
-            else bar.innerHTML += ' done';
+        if (width_percent >= 25) {
+            if (width_percent == 100) bar.innerHTML = "All tasks done!";
+            else bar.innerHTML += reqs == 1 ? ' task done' : ' tasks done';
         }
 
     }
-    else if (reqs && color === 1) {
-        bar.innerHTML = reqs;
-        if (width_percent >= 15) bar.innerHTML += '';
-    }
+    // else if (reqs && color === 1) {
+    //     bar.innerHTML = reqs;
+    //     if (width_percent >= 15) bar.innerHTML += '';
+    // }
     else if (reqs && color === 2) {
         bar.innerHTML = reqs;
-        if (width_percent >= 15) bar.innerHTML += ' not done';
+        if (width_percent >= 25) bar.innerHTML += reqs == 1 ? ' task not done' : ' tasks not done';
     }
 }
 
@@ -410,13 +418,15 @@ function report(projectID, requirements, extensions) {
     /* Makes a string list of grading results. */
     ret_list.push('Project ID: <a href="https://scratch.mit.edu/projects/' + projectID + '">' + projectID + '</a>');
     //ret_list.push('Creator: <a href="https://scratch.mit.edu/users/' + projectAuthor + '">' + projectAuthor + '</a>');
-    ret_list.push('Requirements:');
+    ret_list.push('\n');
+    ret_list.push('Tasks:');
     for (var x in requirements) {
         if (requirements[x].bool) complete_reqs++;
         ret_list.push(checkbox(requirements[x].bool) + ' - ' + requirements[x].str);
     }
     if (extensions) {
-        ret_list.push('Extensions:')
+        ret_list.push('\n');
+        ret_list.push('If you are done early:');
         for (var x in extensions) {
             if (extensions[x].bool) complete_exts++;
             ret_list.push(checkbox(extensions[x].bool) + ' - ' + extensions[x].str);
