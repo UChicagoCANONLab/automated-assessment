@@ -1,6 +1,6 @@
-# Automated Assessment Web App
+# Automated Assessment Web Apps
 
-Grades a studio of Scratch projects by Scratch Encore module standards.
+Grades a studio of Scratch projects or a single project by Scratch Encore module standards.
 
 ## Files
 
@@ -9,10 +9,19 @@ Grades a studio of Scratch projects by Scratch Encore module standards.
 * Run `browserify main.js -o bundle.js` to update bundle.js after making changes in main.js or its dependencies, so that they show up in the browser.
 * First run 'npm install -g browserify' to install this command if needed
 
+### bundle_project.js
+* Bundle file for project checker
+* Run `browserify main_project.js -o bundle_project.js` to update bundle_project.js after making changes in main_project.js or its dependencies, so that they show up in the browser.
+* First run 'npm install -g browserify' to install this command if needed
+
 ### index.html
 
 * HTML body and elements.
 * jQuery code to prevent accidental reload and to map enter key to the grade button.
+
+### projects.html
+
+* Contains HTML for the project checker
 
 ### main.js
 
@@ -21,13 +30,21 @@ Grades a studio of Scratch projects by Scratch Encore module standards.
 * Functions for printing grade summaries.
 * Functions for retrieving JSONs.
 
+### main_project.js
+
+* Same function as main.js but for the project checker
+
 ### favicon.png
 
 * Favicon image.
 
 ### grader.css
 
-* CSS code for website.
+* CSS code for studio grader website.
+
+### grader.css
+
+* CSS code for project checker website.
 
 ### pictures
 
@@ -47,6 +64,9 @@ Ashley Wang
 
 Max White
 mnwhite@uchicago.edu
+
+Zack Crenshaw
+zcrenshaw@uchicago.edu
 
 ## Acknowledgments
 
