@@ -1,0 +1,226 @@
+html {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  background: #ebf7ff;
+  font-weight: lighter;
+  color: black;
+}
+
+body {
+  width: 720px;
+  margin: 30px auto;
+  display:block;
+  z-index: 2;
+
+  font-family: 'Comfortaa', Helvetica, Arial, sans-serif;
+}
+
+hr {
+  border: 1px solid black;
+}
+
+h1 {
+  font-size: 40px;
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  padding: 10px 20px 10px 20px;
+  font-weight: lighter;
+
+  color: black;
+  display: block;
+  border-bottom: 2px solid black;
+}
+
+.unit_name {
+  display: inline-block;
+  text-align: left;
+  vertical-align: 300%;
+  padding: 5px;
+  width: 150px;
+  height: 50px;
+  font-size: 20px;
+}
+
+.unit_container {
+  display: inline-block;
+  width: 100%;
+  text-align: center;
+  border: 2px solid black;
+}
+
+.unit_container p {
+  text-align: left;
+  display: inline-block;
+  padding: 1px;
+  font-weight: normal;
+  color: black;
+  font-size: 18px;
+}
+
+.units {
+  display: block;
+  width: 100%;
+  padding: 5px;
+  box-sizing:border-box;
+}
+
+.unitlabel {
+  display: inline-block;
+  width: 100px;
+  height: 100px;
+  padding: 5px;
+  box-sizing:border-box;
+
+  text-align: center;
+  font-size: 14px;
+  vertical-align: center;
+  color: black;
+}
+
+.unitlabel img{ /* IMAGE STYLES */
+  width: 100%;
+  margin-bottom: 8px;
+  opacity: 0.5;
+  border: 2px solid #00000000;
+}
+
+.unitlabel img:hover {
+  opacity: 0.8;
+  cursor: pointer;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.25);
+  border: 2px solid black;
+}
+
+.hidden{
+  visibility:hidden;
+  position:absolute;
+}
+
+.selected img{
+  border: 2px solid black;
+  opacity: 1.0 !important;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5) !important;
+}
+
+.dynamic {
+  font-family: Helvetica, Arial, sans-serif;
+  padding: 15px;
+}
+
+form {
+  margin-top: 20px;
+}
+
+form p {
+  text-align: left;
+  text-transform: lowercase;
+  display: block;
+  font-weight: bold;
+  color: black;
+  font-size: 18px;
+  padding: 1px;
+  margin-bottom: 10px;
+}
+
+/*format input fields*/
+#inches_input {
+    /*add padding and margins*/
+    padding:10px;
+    /*extend across entire fieldset*/
+    width: 75%;
+    box-sizing:border-box;
+    font-size:13px;
+    line-height:1.5;
+    display:inline-block;
+    color: black;
+    margin-right: 5px;
+}
+
+.btn {
+    display: inline-block;
+    font-size: 13px;
+    line-height: 1.5;
+    width: calc(25% - 10px);
+    padding: 12px;
+    color: white;
+    background-color: black;
+    border: 0px;
+}
+
+.btn:hover, .btn:focus {
+    background-color: #AB3B61;
+}
+
+.btn:hover {
+  cursor: pointer;
+}
+
+.error {
+    display:block;
+    text-align:left;
+}
+
+.wait_time {
+  display: block;
+  text-align: left;
+}
+
+.status {
+    text-align: left;
+    text-transform: lowercase;
+    display: block;
+    font-weight: bold;
+    color: black;
+    font-size: 18px;
+    padding: 1px;
+    margin-bottom: 10px;
+}
+
+.link {
+    font-size: 1rem;
+}
+
+.results {
+  display: inline-block;
+}
+
+.show {display: block;}
+
+#myProgress {
+    width: 100%;
+    margin-bottom:-20px;
+}
+
+.progress_bar {
+    width: 33%;
+    white-space: nowrap;
+    overflow: hidden;
+    float:left;
+    text-overflow: ellipsis;
+    text-align: center; /* To center it horizontally (if you want) */
+    font-size: 1rem;
+    line-height: 45px; /* To center it vertically */
+    color: white;
+}
+
+#greenbar {
+    background-color: #239B56;
+}
+#yellowbar {
+    background-color: #F1C40F;
+}
+#redbar {
+    background-color: #C0392B;
+}
+#myProgress {
+    visibility: hidden;
+    padding-bottom: 25px;
+}
+
+#report {
+  align-self: left;
+  background-color:#ccffcc;
+  margin: 0px;
+  width: 100%;
+}
