@@ -100,9 +100,17 @@ module.exports = class {
             score: 0,
         }
 
+        let pointDir;
+
         // iterate through each of the sprite's scripts that start with 'When Green Flag Clicked'
         for (let script of sprite.scripts.filter(s => s.blocks[0].opcode === "event_whenflagclicked")) {
             script.traverseBlocks((block, level) => {
+
+                if (block.opcode === "motion_pointindirection") {
+                    if (block.inputs.DIRECTION[1][1] === "90") pointDir = "right";
+                    if (block.inputs.DIRECTION[1][1] === "-90") pointDir = "left";
+                }
+
                 // check for movement to the right
                 if (["motion_movesteps", "motion_changexby"].includes(block.opcode)) {
                     let stepNumber;
@@ -199,7 +207,7 @@ module.exports = class {
                         }
                     }
                     // check for negative steps/movement to the left, inside a repeat until touching block (for "Bounce" extension)
-                    if (stepNumber < 0) {
+                    if (stepNumber < 0 || pointDir == "left") {
                         report.movesLeft = true;
                         // check if the move block is within a loop
                         let potentialLoop = block.isWithin();
@@ -460,7 +468,6 @@ module.exports = class {
                         numWaitsForA++;
                     }
                 }
-
                 let numBounces = 0;
                     for (let j = 0; j < spriteB.movesTo.length; j++) {
                         if (spriteB.movesTo[j] === spriteC.name) {
