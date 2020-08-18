@@ -73,33 +73,25 @@ module.exports = class {
                                 //checks to see if a sound is is made once the loop is over
                                 let nextBlock = script.blocks[i].next;
                                
-                                // if there is no next block continue
-                                if (nextBlock === null) {
-                                    continue;
-                                }
-                                // if the next block is a sound block, set the requirement
-                                else if (soundOptions.includes(target.blocks[nextBlock].opcode)) {
-                                    this.requirements.speak.bool = true;
-                                }
-                                
-                                
                                 let condition = (script.blocks[i]).conditionBlock;
                                 if (condition != undefined) {
-                                    let condBlock = target.blocks[condition];
-                                    if (condBlock) {
-                                        if (target.blocks[condition].opcode === 'sensing_touchingobject') {
-                                            touching = target.blocks[condition].inputs.TOUCHINGOBJECTMENU[1];
+                                        if (condition.opcode === 'sensing_touchingobject') {
+                                            touching = condition.inputs.TOUCHINGOBJECTMENU[1];
                                             objectTouching = target.blocks[touching].fields.TOUCHINGOBJECTMENU[0];
-						// Diana added this, which disables another check.
+                        // Diana added this, which disables another check.
                                             this.requirements.stop.bool = true;
                                 
                                         }
                                         // checks that it stops when touching a color
-                                        else if ((target.blocks[condition].opcode === 'sensing_touchingcolor') ||
-                                            (target.blocks[condition].opcode === 'sensing_coloristouchingcolor')) {
+                                        else if ((condition.opcode === 'sensing_touchingcolor') ||
+                                            (condition.opcode === 'sensing_coloristouchingcolor')) {
                                             this.requirements.stop.bool = true;
                                         }   
-                                    }
+                                }
+                                
+                                // if the next block is a sound block, set the requirement
+                                if (nextBlock != null && soundOptions.includes(target.blocks[nextBlock].opcode)) {
+                                    this.requirements.speak.bool = true;
                                 }
 
                                 let substack = script.blocks[i].inputs.SUBSTACK[1];
@@ -184,6 +176,7 @@ module.exports = class {
 
             }
         }
+
         if(sprites.includes(objectTouching)) {
             this.requirements.stop.bool = true;
         }
@@ -209,6 +202,3 @@ module.exports = class {
         this.info.score = Object.values(this.requirements).reduce((sum, r) => sum + (r.bool? 1 : 0), 0);
     }
 }
-
-                
-  
