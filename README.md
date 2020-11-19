@@ -63,7 +63,7 @@ Ashley Wang
 
 
 Max White
-mnwhite@uchicago.edu
+
 
 Zack Crenshaw
 zcrenshaw@uchicago.edu
