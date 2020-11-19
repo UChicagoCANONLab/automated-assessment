@@ -382,7 +382,7 @@ function setProgress(bar, projects, total_projects, color) {
 
 /* Returns pass/fail symbol. */
 function checkbox(bool) {
-    return (bool) ? ('✔️') : ('❌');
+    return (bool) ? ('✅') : ('❗');
 }
 
 /* Adds results to reports_list and prints. */
