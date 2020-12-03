@@ -14434,68 +14434,84 @@ module.exports = class GradeTwoWaySyncL1 extends Grader {
 },{"./grader":42,"./scratch3":47,"./templates/two-way-sync-L1-gaming":63,"./templates/two-way-sync-L1-multicultural":64,"./templates/two-way-sync-L1-youth-culture":65}],67:[function(require,module,exports){
 module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":3,"costumes":[{"assetId":"2b0bddaf727e6bb95131290ae2549ac4","name":"background3","bitmapResolution":2,"md5ext":"2b0bddaf727e6bb95131290ae2549ac4.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"a81668321aa3dcc0fc185d3e36ae76f6","name":"Room 1","bitmapResolution":2,"md5ext":"a81668321aa3dcc0fc185d3e36ae76f6.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"e5f794c8756ca0cead5cb7e7fe354c41","name":"Playground","bitmapResolution":2,"md5ext":"e5f794c8756ca0cead5cb7e7fe354c41.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"38be88e8026768d4606fe1932b05d258","name":"backdrop","bitmapResolution":2,"md5ext":"38be88e8026768d4606fe1932b05d258.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"India","variables":{},"lists":{},"broadcasts":{},"blocks":{"{?%H[3PODtzIOzw3NUAD":{"opcode":"event_whenflagclicked","next":"X9F`sK3d.L!x-cTWVaGz","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":0,"y":0},"X9F`sK3d.L!x-cTWVaGz":{"opcode":"motion_gotoxy","next":"kBZo|n~NnzgG!crdI1E;","parent":"{?%H[3PODtzIOzw3NUAD","inputs":{"X":[1,[4,"-215"]],"Y":[1,[4,"-145"]]},"fields":{},"shadow":false,"topLevel":false},"kBZo|n~NnzgG!crdI1E;":{"opcode":"motion_movesteps","next":"u=@^[0kNfQx.2*Xvk0TX","parent":"X9F`sK3d.L!x-cTWVaGz","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"u=@^[0kNfQx.2*Xvk0TX":{"opcode":"looks_sayforsecs","next":"C;QZb9TtC1(Ov9vkC+$f","parent":"kBZo|n~NnzgG!crdI1E;","inputs":{"MESSAGE":[1,[10,"Hello! My name is India."]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},"C;QZb9TtC1(Ov9vkC+$f":{"opcode":"motion_movesteps","next":"=6=T6QR$yee::D$b8~s{","parent":"u=@^[0kNfQx.2*Xvk0TX","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"=6=T6QR$yee::D$b8~s{":{"opcode":"looks_sayforsecs","next":",`%kTB=!2Lz#4m!W2OpL","parent":"C;QZb9TtC1(Ov9vkC+$f","inputs":{"MESSAGE":[1,[10,"Welcome to Scratch!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},",`%kTB=!2Lz#4m!W2OpL":{"opcode":"motion_movesteps","next":"{Ipink+*Ul#QILZqGvdF","parent":"=6=T6QR$yee::D$b8~s{","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"{Ipink+*Ul#QILZqGvdF":{"opcode":"looks_sayforsecs","next":null,"parent":",`%kTB=!2Lz#4m!W2OpL","inputs":{"MESSAGE":[1,[10,"Click the Space Bar to see some of the things I like."]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"fec9549b732165ec6d09991de08b69cd","name":"character (1)","bitmapResolution":1,"md5ext":"fec9549b732165ec6d09991de08b69cd.svg","dataFormat":"svg","rotationCenterX":78.87000274658203,"rotationCenterY":165.80999755859375}],"sounds":[],"volume":100,"layerOrder":2,"visible":true,"x":-165,"y":-145,"size":162.8369844855632,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"easel","variables":{},"lists":{},"broadcasts":{},"blocks":{"XYmoOsQpwwb~bRU[WtDb":{"opcode":"event_whenkeypressed","next":"NX*(%@1qK}o{lJ)1dp(L","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":56,"y":66},"NX*(%@1qK}o{lJ)1dp(L":{"opcode":"looks_switchcostumeto","next":"A*?(6=CMw!5NQvy3GoJz","parent":"XYmoOsQpwwb~bRU[WtDb","inputs":{"COSTUME":[1,"uxs{_T(3Fk%RETANj%^X"]},"fields":{},"shadow":false,"topLevel":false},"uxs{_T(3Fk%RETANj%^X":{"opcode":"looks_costume","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{},"fields":{"COSTUME":["easel-music",null]},"shadow":true,"topLevel":false},"A*?(6=CMw!5NQvy3GoJz":{"opcode":"control_repeat","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{"TIMES":[1,[6,"7"]],"SUBSTACK":[2,"MkZ9YIg7M,WuN@FR]l:o"]},"fields":{},"shadow":false,"topLevel":false},"MkZ9YIg7M,WuN@FR]l:o":{"opcode":"looks_nextcostume","next":"*i@~ROBKeTP[#l_7v/_-","parent":"A*?(6=CMw!5NQvy3GoJz","inputs":{},"fields":{},"shadow":false,"topLevel":false},"*i@~ROBKeTP[#l_7v/_-":{"opcode":"control_wait","next":null,"parent":"MkZ9YIg7M,WuN@FR]l:o","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"3?,1QT}D[0#@^jvT!J*^":{"opcode":"event_whenthisspriteclicked","next":"gPD.*ilWONI2U7F-SE[}","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":51,"y":455},"gPD.*ilWONI2U7F-SE[}":{"opcode":"looks_sayforsecs","next":null,"parent":"3?,1QT}D[0#@^jvT!J*^","inputs":{"MESSAGE":[1,[10,"Tada!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":7,"costumes":[{"assetId":"47a257ec82df9b221a9c8a0da1174652","name":"easel","bitmapResolution":1,"md5ext":"47a257ec82df9b221a9c8a0da1174652.svg","dataFormat":"svg","rotationCenterX":72,"rotationCenterY":100.5},{"assetId":"f80c9c273a7542f28fc0a0aa16f80532","name":"easel-sports","bitmapResolution":1,"md5ext":"f80c9c273a7542f28fc0a0aa16f80532.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"25fc936818594e0f67f48ffd39ee06b2","name":"easel-animals","bitmapResolution":1,"md5ext":"25fc936818594e0f67f48ffd39ee06b2.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"6a904db737d12cc410bd18e0e3837f1a","name":"easel-music","bitmapResolution":1,"md5ext":"6a904db737d12cc410bd18e0e3837f1a.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"eb955b9d6d17d5358e1c66ca5dbc4648","name":"easel-neighborhood","bitmapResolution":1,"md5ext":"eb955b9d6d17d5358e1c66ca5dbc4648.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"4c0e56f2cc17d497d76070033ab08654","name":"easel-travel","bitmapResolution":1,"md5ext":"4c0e56f2cc17d497d76070033ab08654.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"ba4d4b1af1eafdda9b882c0f51ced3ff","name":"easel-astronomy","bitmapResolution":1,"md5ext":"ba4d4b1af1eafdda9b882c0f51ced3ff.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"b0841fa4e9ea101a530022a9b4758d14","name":"easel-video-games","bitmapResolution":1,"md5ext":"b0841fa4e9ea101a530022a9b4758d14.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422}],"sounds":[],"volume":100,"layerOrder":1,"visible":true,"x":144,"y":-52,"size":150,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[{"id":"undefined_costumenumbername_number","mode":"default","opcode":"looks_costumenumbername","params":{"NUMBER_NAME":"number"},"spriteName":"Helen","value":"","width":0,"height":0,"x":5,"y":5,"visible":false,"sliderMin":0,"sliderMax":100,"isDiscrete":true}],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
 },{}],68:[function(require,module,exports){
-/// Provides necessary scripts for index.html.
+/// Provides necessary scripts for HTML indices.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Requirements (scripts)
-var graders = {
-    scratchBasicsL1: { name: 'M1 - Scratch Basics L2', file: require('./grading-scripts-s3/scratch-basics-L1') },
-    scratchBasicsL2_create: { name: 'M1 - Scratch Basics L3', file: require('./grading-scripts-s3/scratch-basics-L2') },
-    eventsL1: { name: 'M2 - Events L1', file: require('./grading-scripts-s3/events-L1-syn') },
-    eventsL2_create: { name: 'M2 - Events L2', file: require('./grading-scripts-s3/events-L2') },
-    animationL1: { name: 'M3 - Animation L1', file: require('./grading-scripts-s3/animation-L1') },
-    animationL2_create: { name: 'M3 - Animation L2', file: require('./grading-scripts-s3/animation-L2') },
-    condLoopsL1: { name: 'M4 - Conditional Loops L1', file: require('./grading-scripts-s3/cond-loops-L1-syn') },
-    condLoopsL2_create: { name: 'M4 - Conditional Loops L2', file: require('./grading-scripts-s3/cond-loops-L2') },
-    decompL1: { name: 'M5 - Decomp. by Sequence L1', file: require('./grading-scripts-s3/decomp-L1') },
-    decompL2_create: { name: 'M5 - Decomp. by Sequence L2', file: require('./grading-scripts-s3/decomp-L2') },
-    oneWaySyncL1: { name: 'M6 - One-Way Sync L1', file: require('./grading-scripts-s3/one-way-sync-L1') },
-    oneWaySyncL2_create: { name: 'M6 - One-Way Sync L2', file: require('./grading-scripts-s3/one-way-sync-L2') },
-    twoWaySyncL1: { name: 'M7 - Two-Way Sync L1', file: require('./grading-scripts-s3/two-way-sync-L1') },
-    complexConditionalsL1: { name: 'M8 - Complex Conditionals L1', file: require('./grading-scripts-s3/complex-conditionals-L1') },
+let graders = {
+    scratchBasicsL1:        { name: 'M1 - Scratch Basics L2',       file: require('./grading-scripts-s3/scratch-basics-L1') },
+    scratchBasicsL2_create: { name: 'M1 - Scratch Basics L3',       file: require('./grading-scripts-s3/scratch-basics-L2') },
+    eventsL1:               { name: 'M2 - Events L1',               file: require('./grading-scripts-s3/events-L1-syn') },
+    eventsL2_create:        { name: 'M2 - Events L2',               file: require('./grading-scripts-s3/events-L2') },
+    animationL1:            { name: 'M3 - Animation L1',            file: require('./grading-scripts-s3/animation-L1') },
+    animationL2_create:     { name: 'M3 - Animation L2',            file: require('./grading-scripts-s3/animation-L2') },
+    condLoopsL1:            { name: 'M4 - Conditional Loops L1',    file: require('./grading-scripts-s3/cond-loops-L1-syn') },
+    condLoopsL2_create:     { name: 'M4 - Conditional Loops L2',    file: require('./grading-scripts-s3/cond-loops-L2') },
+    decompL1:               { name: 'M5 - Decomp. by Sequence L1',  file: require('./grading-scripts-s3/decomp-L1') },
+    decompL2_create:        { name: 'M5 - Decomp. by Sequence L2',  file: require('./grading-scripts-s3/decomp-L2') },
+    oneWaySyncL1:           { name: 'M6 - One-Way Sync L1',         file: require('./grading-scripts-s3/one-way-sync-L1') },
+    oneWaySyncL2_create:    { name: 'M6 - One-Way Sync L2',         file: require('./grading-scripts-s3/one-way-sync-L2') },
+    twoWaySyncL1:           { name: 'M7 - Two-Way Sync L1',         file: require('./grading-scripts-s3/two-way-sync-L1') },
+    complexConditionalsL1:  { name: 'M8 - Complex Conditionals L1', file: require('./grading-scripts-s3/complex-conditionals-L1') },
 };
 
 // act 1 graders
-var actOneGraders = {
-    scavengerHunt: { name: 'M1 - Scavenger Hunt', file: require('./act1-grading-scripts/scavengerHunt') },
-    onTheFarm: { name: 'M2 - On the Farm', file: require('./act1-grading-scripts/onTheFarm') },
-    namePoem: { name: 'M3 - Name Poem', file: require('./act1-grading-scripts/name-poem') },
-    ofrenda: { name: 'M4 - Ofrenda', file: require('./act1-grading-scripts/ofrenda') },
-    aboutMe: { name: 'M5 - About Me', file: require('./act1-grading-scripts/aboutMe') },
-    animalParade: { name: 'M6 - Animal Parade', file: require('./act1-grading-scripts/animal-parade') },
-    danceParty: { name: 'M7 - Dance Party', file: require('./act1-grading-scripts/dance-party') },
-    knockKnock: { name: 'M8 - Knock Knock', file: require('./act1-grading-scripts/knockKnock') },
-    finalProject: { name: 'M9 - Interactive Story', file: require('./act1-grading-scripts/final-project') },
+let actOneGraders = {
+    scavengerHunt: { name: 'M1 - Scavenger Hunt',    file: require('./act1-grading-scripts/scavengerHunt') },
+    onTheFarm:     { name: 'M2 - On the Farm',       file: require('./act1-grading-scripts/onTheFarm') },
+    namePoem:      { name: 'M3 - Name Poem',         file: require('./act1-grading-scripts/name-poem') },
+    ofrenda:       { name: 'M4 - Ofrenda',           file: require('./act1-grading-scripts/ofrenda') },
+    aboutMe:       { name: 'M5 - About Me',          file: require('./act1-grading-scripts/aboutMe') },
+    animalParade:  { name: 'M6 - Animal Parade',     file: require('./act1-grading-scripts/animal-parade') },
+    danceParty:    { name: 'M7 - Dance Party',       file: require('./act1-grading-scripts/dance-party') },
+    knockKnock:    { name: 'M8 - Knock Knock',       file: require('./act1-grading-scripts/knockKnock') },
+    finalProject:  { name: 'M9 - Interactive Story', file: require('./act1-grading-scripts/final-project') },
 };
 
-var allGraders = {};
-for (var graderKeyList of [graders, actOneGraders]) {
-    for (var graderKey in graderKeyList) {
+let allGraders = {};
+for (let graderKeyList of [graders, actOneGraders]) {
+    for (let graderKey in graderKeyList) {
         allGraders[graderKey] = graderKeyList[graderKey];
     }
 }
 
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Globals
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* MAKE SURE OBJ'S AUTO INITIALIZE AT GRADE */
 
-/* Stores the grade reports. */
-var reports_list = [];
-/* Number of projects scanned so far. */
-var project_count = 0;
-/* Number of projects that meet requirements. */
-var passing_projects = 0;
-/* Number of projects that meet requirements and extensions */
-var complete_projects = 0;
-/* Grading object. */
-var gradeObj = null;
+let projectMode = 0;
+window.useProjectMode = function() {
+    projectMode = 1;
+}
 
-var IS_LOADING = false;
+/* Stores the grade reports. */
+let reports_list = [];
+/* Number of projects scanned so far. */
+let project_count = 0;
+    /* Number of requirements of single project. */
+    let total_reqs = 0;
+    /* Number of completed requirements of single project. */
+    let complete_reqs = 0;
+    /* Number of extensions of single project. */
+    let total_exts = 0;
+    /* Number of completed extensions of single project. */
+    let complete_exts = 0;
+/* Number of projects that meet requirements. */
+let passing_projects = 0;
+/* Number of projects that meet requirements and extensions */
+let complete_projects = 0;
+/* Grading object. */
+let gradeObj = null;
+
+let IS_LOADING = false;
 
 /* Experimental feature */
 let downloadEnabled = false;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// HTML helpers
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -14509,9 +14525,9 @@ window.formHelper = function () {
 };
 
 /// Populates the unit selector from a built-in list.
-window.fillUnitsHTML = function () {
-    var HTMLString = '';
-    for (var graderKey in graders) {
+window.fillUnitsHTML = function() {
+    let HTMLString = '';
+    for (let graderKey in graders) {
         let graderName = graders[graderKey].name;
         let isCreate = graderKey.includes('create');
         if (!isCreate) {
@@ -14539,9 +14555,9 @@ window.fillUnitsHTML = function () {
 }
 
 /////////////// grader function for act 1 ////////////////////
-window.fillUnitsHTMLAct1 = function () {
-    var HTMLString = '';
-    for (var graderKey in actOneGraders) {
+window.fillUnitsHTMLAct1 = function() {
+    let HTMLString = '';
+    for (let graderKey in actOneGraders) {
         HTMLString += '<a onclick="drop_handler(\'' + graderKey + '\')" class = unitselector>'
         HTMLString += '<label class = "unitlabel">';
         HTMLString += '<img src="pictures/' + graderKey + '.png">';
@@ -14552,8 +14568,6 @@ window.fillUnitsHTMLAct1 = function () {
 }
 ////////////// grader function for act 1 ////////////////////
 
-
-
 /* Initializes html and initiates crawler. */
 window.buttonHandler = async function () {
     if (IS_LOADING) return;
@@ -14561,9 +14575,9 @@ window.buttonHandler = async function () {
     init();
     document.getElementById('wait_time').innerHTML = "Loading...";
     IS_LOADING = true;
-    var requestURL = document.getElementById('inches_input').value;
-    var studioID = parseInt(requestURL.match(/\d+/));
-    await crawl(studioID, 0, []);
+    let requestURL = document.getElementById('inches_input').value;
+    let itemID = parseInt(requestURL.match(/\d+/));
+    await crawlOrGrade(itemID);
 }
 
 /* Initializes global variables. */
@@ -14581,6 +14595,10 @@ function init() {
     crawl_finished = false;
     cross_org = true;
     grade_reqs = {};
+    total_reqs = 0;
+    complete_reqs = 0;
+    total_exts = 0;
+    complete_reqs = 0;
     passing_projects = 0;
     complete_projects = 0;
 }
@@ -14611,7 +14629,7 @@ window.onclick = function (event) {
         }, 300);
     }
 
-    var droplinks = document.getElementsByClassName("dropdown_menu");
+    let droplinks = document.getElementsByClassName("dropdown_menu");
     [...droplinks].forEach(function (element) {
         if (element.classList.contains('show')) {
             element.classList.remove('show');
@@ -14634,7 +14652,7 @@ class ProjectIdentifier {
 
 function get(url) {
     return new Promise(function (resolve, reject) {
-        var request = new XMLHttpRequest();
+        let request = new XMLHttpRequest();
         request.open('GET', url);
         request.onload = resolve;
         request.onerror = reject;
@@ -14642,11 +14660,50 @@ function get(url) {
     });
 }
 
+async function gradeOneProject(projectID) {
+
+    console.log('Grading project ' + projectID);
+    /// Getting the project page from Scratch so we can see the teacher-facing usernames
+    get('https://chord.cs.uchicago.edu/scratch/projectinfo/' + projectID)
+        .then(async function (result) {
+            var projectInfo = JSON.parse(result.target.response);
+            if (projectInfo.length === 0 || projectInfo.targets === undefined){
+                if (!project_count) {
+                    document.getElementById('wait_time').innerHTML =
+                    'Project ' + projectID + ' could not be found. Did you enter a valid Scratch project URL?';
+                    IS_LOADING = false;
+                    hideColorKey();
+                    
+                }
+            }
+             /// Getting the project file itself
+            get('https://chord.cs.uchicago.edu/scratch/project/' + projectID)
+            .then(async function (result) {
+                var projectJSON = JSON.parse(result.target.response);
+                if (downloadEnabled) {
+                    downloadProject(projectID, result.target.response);
+                }
+                if (projectJSON.targets === undefined) {
+                    console.log('Project ' + projectID + ' could not be found');
+                    return;
+                }
+                try {
+                    analyze(projectJSON, projectID);
+                }
+                catch (err) {
+                    console.log('Error grading project ' + projectID);
+                    /// console.log(err);
+                }
+                printReportList();
+            });
+        });
+}
+
 async function crawl(studioID, offset, projectIdentifiers) {
     if (!offset) console.log('Grading studio ' + studioID);
     get('https://chord.cs.uchicago.edu/scratch/studio/' + studioID + '/offset/' + offset)
         .then(async function (result) {
-            var studioResponse = JSON.parse(result.target.response);
+            let studioResponse = JSON.parse(result.target.response);
             /// Keep crawling or return?
             if (studioResponse.length === 0) {
                 keepGoing = false;
@@ -14655,14 +14712,14 @@ async function crawl(studioID, offset, projectIdentifiers) {
                         'No Scratch 3.0+ projects found. Did you enter a valid Scratch studio URL?';
                     IS_LOADING = false;
                 }
-                for (var projectIdentifier of projectIdentifiers) {
-                    await gradeProject(projectIdentifier);
+                for (let projectIdentifier of projectIdentifiers) {
+                    await gradeStudioProject(projectIdentifier);
                     if (downloadEnabled) await new Promise((resolve, reject) => setTimeout(resolve, 300));
                 }
                 return;
             }
             else {
-                for (var projectOverview of studioResponse) {
+                for (let projectOverview of studioResponse) {
                     projectIdentifiers.push(new ProjectIdentifier(projectOverview));
                 }
                 await crawl(studioID, offset + 20, projectIdentifiers);
@@ -14670,19 +14727,26 @@ async function crawl(studioID, offset, projectIdentifiers) {
         });
 }
 
-async function gradeProject(projectIdentifier) {
-    var projectID = projectIdentifier.id;
-    var projectAuthor = projectIdentifier.author;
+async function gradeStudioProject(projectIdentifier) {
+    let projectID = projectIdentifier.id;
+    let projectAuthor = projectIdentifier.author;
     console.log('Grading project ' + projectID);
     /// Getting the project page from Scratch so we can see the teacher-facing usernames
     get('https://chord.cs.uchicago.edu/scratch/projectinfo/' + projectID)
         .then(async function (result) {
             let projectInfo = JSON.parse(result.target.response);
+            if (projectInfo.length === 0 || projectInfo.targets === undefined) {
+                if (!project_count) {
+                    document.getElementById('wait_time').innerHTML = `Project ${projectID} could not be found. Did you enter a valid Scratch project URL?`;
+                    IS_LOADING = false;
+                    hideColorKey();
+                }
+            }
             projectAuthor = projectInfo.author.username;
              /// Getting the project file itself
             get('https://chord.cs.uchicago.edu/scratch/project/' + projectID)
             .then(async function (result) {
-                var projectJSON = JSON.parse(result.target.response);
+                let projectJSON = JSON.parse(result.target.response);
                 if (downloadEnabled) {
                     downloadProject(projectID, result.target.response);
                 }
@@ -14728,6 +14792,16 @@ function analyze(fileObj, user, id) {
 
 }
 
+async function crawlOrGrade(itemID) {
+    console.log(projectMode);
+    if (projectMode) {
+        return gradeOneProject(itemID);
+    }
+    else {
+        return crawl(itemID, 0, []);
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Reporting results
@@ -14735,11 +14809,11 @@ function analyze(fileObj, user, id) {
 
 /* Prints a line of grading text. */
 function appendText(string_list) {
-    var tbi = document.createElement("div");
+    let tbi = document.createElement("div");
     tbi.className = "dynamic";
 
-    var HTMLString = '';
-    for (var string of string_list) {
+    let HTMLString = '';
+    for (let string of string_list) {
         HTMLString += '<br>';
         HTMLString += string;
     }
@@ -14750,7 +14824,7 @@ function appendText(string_list) {
     tbi.style.fontWeight = "normal";
     tbi.innerHTML = HTMLString;
 
-    var ai = document.getElementById("report");
+    let ai = document.getElementById("report");
     document.body.insertBefore(tbi, ai);
 }
 
@@ -14760,7 +14834,7 @@ function printReportList() {
     sortReport();
     printColorKey();
     showProgressBar();
-    for (var report of reports_list) {
+    for (let report of reports_list) {
         appendText(report);
     }
     checkIfComplete();
@@ -14768,11 +14842,11 @@ function printReportList() {
 
 /* Clears all project reports from the page. */
 function clearReport() {
-    var removeables = document.getElementsByClassName('dynamic');
+    let removeables = document.getElementsByClassName('dynamic');
     while (removeables[0]) {
         removeables[0].remove();
     }
-    var removeables = document.getElementsByClassName('lines');
+    removeables = document.getElementsByClassName('lines');
     while (removeables[0]) {
         removeables[0].remove();
     }
@@ -14780,10 +14854,26 @@ function clearReport() {
 
 /* Prints progress bar. */
 function showProgressBar() {
+    let green = 0;
+    let yellow = 0;
+    let red = 0;
+    let count = 0;
+    if (projectMode) {
+        green = complete_reqs;
+        yellow = 0;
+        red = total_reqs - complete_reqs;
+        count = total_reqs;
+    }
+    else {
+        green = complete_projects;
+        yellow = passing_projects;
+        red = project_count - (complete_projects + passing_projects);
+        count = project_count;
+    }
     document.getElementById('myProgress').style.visibility = "visible";
-    setProgress(document.getElementById('greenbar'), complete_projects, project_count, 0);
-    setProgress(document.getElementById('yellowbar'), passing_projects, project_count, 1);
-    setProgress(document.getElementById('redbar'), project_count - complete_projects - passing_projects, project_count, 2);
+    setProgress(document.getElementById('greenbar'), green, count, 0);
+    setProgress(document.getElementById('yellowbar'), yellow, count, 1);
+    setProgress(document.getElementById('redbar'), red, count, 2);
 }
 
 /* Hides progress bar. */
@@ -14793,59 +14883,73 @@ function hideProgressBar() {
 
 /* Prints color key.*/
 function printColorKey() {
-    var processObj = document.getElementById('process_status');
+    let processObj = document.getElementById('process_status');
     processObj.style.visibility = 'visible';
     processObj.innerHTML = "results:";
 }
 
+function hideColorKey() {
+    var processObj = document.getElementById('process_status');
+    processObj.style.visibility = 'hidden';
+}
+
 /* Update progress bar segment to new proportion. */
-function setProgress(bar, projects, total_projects, color) {
-    var width_percent = ((projects / total_projects) * 100);
+function setProgress(bar, items, total_items, color) {
+    let width_percent = ((items / total_items) * 100);
     bar.style.width = width_percent + '%';
-    if (projects && color === 0) {
-        bar.innerHTML = projects;
-        if (width_percent >= 15) bar.innerHTML += ' done';
+    if (items && color === 0) {
+        bar.innerHTML = items;
+        if (width_percent === 100) bar.innerHTML += projectMode ? 'All tasks done!' : ' done';
+        else if (width_percent >= 15) bar.innerHTML += projectMode ? 
+            items === 1 ?
+                ' task done' : ' tasks done' 
+            : ' done';
     }
-    else if (projects && color === 1) {
-        bar.innerHTML = projects;
-        if (width_percent >= 15) bar.innerHTML += ' almost done';
+    else if (items && color === 1) {
+        bar.innerHTML = items;
+        if (width_percent >= 15) bar.innerHTML += projectMode ? '' : ' almost done';
     }
-    else if (projects && color === 2) {
-        bar.innerHTML = projects;
-        if (width_percent >= 15) bar.innerHTML += ' need time or help';
+    else if (items && color === 2) {
+        bar.innerHTML = items;
+        if (width_percent >= 15) bar.innerHTML += projectMode ?
+            items === 1 ?
+                ' task not done' : ' tasks not done' 
+            : ' need time or help';
     }
 }
 
 /* Returns pass/fail symbol. */
 function checkbox(bool) {
-    return (bool) ? ('✅') : ('❗');
+    return (bool) ? ('✔️') : ('⬜️');
 }
 
 /* Adds results to reports_list and prints. */
 function report(projectID, requirements, extensions, projectAuthor) {
-    var ret_list = [];
-    var project_complete = true;
-    var passed_reqs_count = 0;
+    let ret_list = [];
+    let project_complete = true;
+    let passed_reqs_count = 0;
 
     /* Makes a string list of grading results. */
     ret_list.push('Project ID: <a href="https://scratch.mit.edu/projects/' + projectID + '">' + projectID + '</a>');
     ret_list.push('Creator: <a href="https://scratch.mit.edu/users/' + projectAuthor + '">' + projectAuthor + '</a>');
-    ret_list.push('Requirements:');
-    for (var x in requirements) {
+    ret_list.push(projectMode ? '\nTasks' : 'Requirements:');
+    for (let x in requirements) {
         if (!requirements[x].bool) project_complete = false;
         else passed_reqs_count++;
         ret_list.push(checkbox(requirements[x].bool) + ' - ' + requirements[x].str);
     }
     if (extensions) {
-        ret_list.push('Extensions:')
-        for (var x in extensions) {
+        ret_list.push(projectMode ? '\nIf you are done early:' : 'Extensions:')
+        for (let x in extensions) {
+            if (extensions[x].bool) complete_exts++;
             ret_list.push(checkbox(extensions[x].bool) + ' - ' + extensions[x].str);
         }
     }
     ret_list.push('');
     reports_list.push(ret_list);
 
-    /* Adjusts class progress globals. */
+    /* Adjusts progress globals. */
+    total_reqs = Object.keys(requirements).length;
     if (project_complete) complete_projects++;
     else if (passed_reqs_count >= (Object.keys(requirements).length / 2)) passing_projects++;
 }
@@ -14853,19 +14957,17 @@ function report(projectID, requirements, extensions, projectAuthor) {
 /* Checks if process is done.  */
 function checkIfComplete() {
     if (project_count) document.getElementById('wait_time').innerHTML = '';
-    else document.getElementById('wait_time').innerHTML = 'No Scratch 3.0+ projects found. Did you enter a valid Scratch studio URL?';
+    else document.getElementById('wait_time').innerHTML = `No Scratch 3.0+ projects found. Did you enter a valid Scratch ${projectMode ? 'project' : 'studio'} URL?`;
     IS_LOADING = false;
     console.log("Done.");
 }
 
-/* Sorts the reports in reports_list alphabetically
- username. */
+/* Sorts the reports in reports_list alphabetically by username. */
 function sortReport() {
     reports_list.sort(function (a, b) {
         return a[0].localeCompare(b[0]);
     })
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -14874,7 +14976,7 @@ function sortReport() {
 
 function linkError() {
     document.getElementById('myProgress').style.visibility = "hidden";
-    var processObj = document.getElementById('process_error');
+    let processObj = document.getElementById('process_error');
     processObj.style.visibility = 'visible';
     processObj.style.color = "red";
     processObj.innerHTML = "error: invalid link.";
@@ -14883,7 +14985,7 @@ function linkError() {
 }
 
 function unitError() {
-    var processObj = document.getElementById('process_error');
+    let processObj = document.getElementById('process_error');
     processObj.style.visibility = 'visible';
     processObj.style.color = "red";
     processObj.innerHTML = "Please select a unit.";

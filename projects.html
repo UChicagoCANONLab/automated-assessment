@@ -1,14 +1,12 @@
 <html>
-
 <head>
 	<meta charset="utf-8" />
 	<link href="checker.css" rel="stylesheet">
 	<link href="favicon.png" rel="shortcut icon" type="image/png">
 	<link href="https://fonts.googleapis.com/css?family=Comfortaa&display=swap" rel="stylesheet">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"> </script>
-	<script src="bundle_project.js"> </script>
+	<script src="bundle.js"> </script>
 </head>
-
 <body>
 	<div style="text-align:center;">
 		<!-- Title -->
@@ -21,7 +19,7 @@
 				<p id="unitsHTML"> </p>
 			</div>
 		</div>
-		<script> window.fillUnitsHTML() </script>
+		<script> window.useProjectMode(); window.fillUnitsHTML(1); </script>
 		<div>
 			<p id = "selectedUnit"> No unit selected </p>
 		</div>
@@ -51,5 +49,4 @@
 	<br> <br>
 	<div id="report"> </div>
 </body>
-
 </html>

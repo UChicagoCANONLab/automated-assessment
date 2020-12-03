@@ -185,7 +185,9 @@ form p {
   display: inline-block;
 }
 
-.show {display: block;}
+.show {
+  display: block;
+}
 
 #myProgress {
     width: 100%;
