@@ -130,7 +130,7 @@ global.Block = class {
         return scriptArray;
     }
 
-    /// Checks if the
+    /// Checks if the block is a subblock of another block
     isWithin(compareBlock=(block => true)) {
         var outerBlock = this.within;
         while(outerBlock) {
@@ -150,6 +150,15 @@ global.Block = class {
         }
         return 0;
     }
+
+    textInput(name) {
+        var input = this.inputs[name];
+        if (input && input[1] && input[1][1]) {
+            return input[1][1];
+        }
+        return null;
+    }
+
 }
 
 /// Container class for Scratch scripts.
@@ -185,6 +194,13 @@ global.Script = class {
         }
         return allSubscripts;
     }
+
+    allBlocks() {
+        let allBlocks = [];
+        this.traverseBlocks(block => allBlocks.push(block));
+        return allBlocks;
+    }
+    
     /// Recursively visits each block in a scrip and its subscripts,
     ///  noting at which level of nestedness it is in within control blocks of ones choosing.
     traverseBlocks(func, targetBlocks=null) {

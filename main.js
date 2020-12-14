@@ -1,7 +1,7 @@
 /// Provides necessary scripts for HTML indices.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Requirements (scripts)
+/// Scratch Encore graders
 let graders = {
     scratchBasicsL1:        { name: 'M1 - Scratch Basics L2',       file: require('./grading-scripts-s3/scratch-basics-L1') },
     scratchBasicsL2_create: { name: 'M1 - Scratch Basics L3',       file: require('./grading-scripts-s3/scratch-basics-L2') },
@@ -19,7 +19,7 @@ let graders = {
     complexConditionalsL1:  { name: 'M8 - Complex Conditionals L1', file: require('./grading-scripts-s3/complex-conditionals-L1') },
 };
 
-// act 1 graders
+/// Act 1 graders
 let actOneGraders = {
     scavengerHunt: { name: 'M1 - Scavenger Hunt',    file: require('./act1-grading-scripts/scavengerHunt') },
     onTheFarm:     { name: 'M2 - On the Farm',       file: require('./act1-grading-scripts/onTheFarm') },
