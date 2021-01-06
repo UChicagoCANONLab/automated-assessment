@@ -179,7 +179,7 @@ $(document).ready(function () {
 window.drop_handler = function (graderKey) {
     gradeObj = new allGraders[graderKey].file;
     console.log("Selected " + allGraders[graderKey].name);
-    document.getElementById("selectedUnit").innerHTML = 'Grading  ' + allGraders[graderKey].name;
+    document.getElementById("selectedUnit").innerHTML = 'Grading ' + allGraders[graderKey].name;
 }
 
 window.onclick = function (event) {
@@ -236,8 +236,7 @@ async function gradeOneProject(projectID) {
                     document.getElementById('wait_time').innerHTML =
                     'Project ' + projectID + ' could not be found. Did you enter a valid Scratch project URL?';
                     IS_LOADING = false;
-                    hideColorKey();
-                    
+                    hideColorKey();                    
                 }
             }
              /// Getting the project file itself
@@ -252,7 +251,7 @@ async function gradeOneProject(projectID) {
                     return;
                 }
                 try {
-                    analyze(projectJSON, projectID);
+                    analyze(projectJSON, projectInfo.author.username, projectID);
                 }
                 catch (err) {
                     console.log('Error grading project ' + projectID);
