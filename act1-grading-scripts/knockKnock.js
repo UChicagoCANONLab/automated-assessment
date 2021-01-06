@@ -13,7 +13,7 @@ module.exports = class {
 
     initReqs() {
         this.requirements.sheepLaughs = { bool: false, str: 'The sheep laughs after the cow says "Moooooooo"' };
-        this.requirements.anotherKnockKnock = { bool: false, str: 'Another knock knock joke is told, starting with then the space bar is pressed' };
+        this.requirements.anotherKnockKnock = { bool: false, str: 'Another knock knock joke is told, starting when the space bar is pressed' };
     }
 
     grade(fileObj, user) {
@@ -21,7 +21,6 @@ module.exports = class {
         if (!is(fileObj)) {
             return;
         }
-
 
         var project = new Project(fileObj, null);
         
@@ -56,25 +55,19 @@ module.exports = class {
                                             }
                                         }
                                     }
-
                                 }
-
                             }
-
                         }
-
 
                         // collects all the blocks that are in the script when space key pressed for sheep
                         if (script.blocks[0].opcode === 'event_whenkeypressed') {
                             if (script.blocks[0].fields.KEY_OPTION[0] === 'space') {
                                 for (let i = 0; i < script.blocks.length; i++) {
                                     sheepJoke.push(script.blocks[i].opcode);
-
                                 }
                             }
                         }
                     }
-
                 }
                 // collects all the blocks that are in the script when space key pressed for cow
                 if (target.name === 'Cow') {
@@ -83,18 +76,12 @@ module.exports = class {
                             if (script.blocks[0].fields.KEY_OPTION[0] === 'space') {
                                 for (let i = 0; i < script.blocks.length; i++) {
                                     cowJoke.push(script.blocks[i].opcode);
-
                                 }
                             }
-
                         }
                     }
                 }
-
             }
-
-
-
         }
 
         var util = require('util');
@@ -109,6 +96,5 @@ module.exports = class {
         if (cowOrig === cowUtil && sheepOrig === sheepUtil) {
             this.requirements.anotherKnockKnock.bool = true;
         }
-
     }
 }

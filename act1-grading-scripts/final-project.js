@@ -11,7 +11,7 @@ module.exports = class {
         this.extensions = {};
     }
 
-    initReqs(){
+    initReqs() {
         //requirements for classroom use
         this.requirements.event = {bool: false, str: 'Project uses at least one event block'};
         this.requirements.loop = {bool: false, str: 'Project has a functional loop'};
@@ -38,7 +38,7 @@ module.exports = class {
         /////
     }
 
-    grade(fileObj,user){
+    grade(fileObj, user) {
         var project = new Project(fileObj,null);
         this.initReqs();
         if (!is(fileObj)) return;
@@ -53,8 +53,7 @@ module.exports = class {
                 if (target.costumes.length>=3){
                     this.extensions.threeBackdrops.bool=true;
                 }
-            }  
-
+            }
 
             //counts how many unique blocks are used
             for (let script in target.scripts) {
@@ -90,7 +89,7 @@ module.exports = class {
                 //checks if sound or dialogue is added
                 let opc = target.blocks[block].opcode;
                 if ((opc==='sound_playuntildone')
-                ||(opc==='sound_play')
+                || (opc==='sound_play')
                 || (opc==='looks_say')
                 || (opc==='looks_sayforsecs')){
                     this.extensions.sound.bool=true;
@@ -104,12 +103,10 @@ module.exports = class {
                 //     this.extensions.showHide.bool=true;
                 // }
 
-
                 //checks if project has at least one sprite
                 if (!target.isStage){
                     this.requirements.sprite.bool=true;
                 }
-
             }
         }
 
@@ -125,5 +122,4 @@ module.exports = class {
         // if (uniqueBlocks>=10) this.requirements.ten.bool=true;
 
     }
-
 }

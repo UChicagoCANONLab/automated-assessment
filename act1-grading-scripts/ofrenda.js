@@ -21,6 +21,7 @@ module.exports = class {
         this.requirements.speakingMiddle = { bool: false, str: 'Middle sprite has a script with a say block in it' }; // done
 
         // done
+        /*
         this.requirements.speaking1 = { bool: false, str: '1 sprite uses the say block' };
         this.requirements.speaking2 = {bool: false, str: '2 sprites use the say block'};
         this.requirements.speaking3 = {bool: false, str: '3 sprites use the say block'};
@@ -29,6 +30,7 @@ module.exports = class {
         this.requirements.costume1 = {bool: false, str: '1 sprite has a new costume'};
         this.requirements.costume2 = {bool: false, str: '2 sprites have a new costume'};
         this.requirements.costume3 = {bool: false, str: '3 sprites have a new costume'};
+        */
         
        
         // // extensions
@@ -108,7 +110,6 @@ module.exports = class {
                         } else {
                             leftDialogue = target.blocks[block].inputs.MESSAGE[1][1];
                         }
-
                     }
                 }
                 if (leftDialogue !== origLeftDialogue && leftDialogue !== '') {
@@ -118,8 +119,7 @@ module.exports = class {
                     left = true;
                     this.requirements.leftCostume.bool = true;
                 }
-            }
-            
+            }          
 
             if (target.name === 'Middle') {
                 let cost2 = target.currentCostume;
@@ -240,9 +240,9 @@ module.exports = class {
                                 continue;
                             }
                             else {
-                                    // sets speaks boolean to true
-                                    speaks = true;
-                                }
+                                // sets speaks boolean to true
+                                speaks = true;
+                            }
                         }
 
                         // checks for an interactive sprite that is used in instances that are NOT from the original
@@ -255,10 +255,9 @@ module.exports = class {
                             }  else if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
                                 continue;
                             }
-                            else {
-                                   
-                                    interactive = true;
-                                }
+                            else {                             
+                                interactive = true;
+                            }
                         }
 
                         // looks for certain blocks and makes sure that they are in a script
@@ -293,15 +292,14 @@ module.exports = class {
                     numSpeaking ++;
                 }
                 
-                
                 if (interactive === true) {
                     numInteractive ++;
                 }
-                
             }
         }
        
        // counts the number of sprites that fulfill each requirement
+       /*
         if (numSpeaking >= 1) {
             this.requirements.speaking1.bool = true;
         }
@@ -325,7 +323,6 @@ module.exports = class {
         if (left == true) {
             numCostumes ++;
         }
-        
         if (middle == true) {
             numCostumes++;
         }
@@ -340,5 +337,6 @@ module.exports = class {
         else if (numCostumes === 3) {
             this.requirements.costume3.bool = true;
         }
+        */
     }
 } 

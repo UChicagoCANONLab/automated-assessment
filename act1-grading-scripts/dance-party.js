@@ -31,7 +31,7 @@ module.exports = class {
     }
 
     //checks if gotoxy block is used to reset sprite every time the green flag is clicked
-    checkXY(target){
+    checkXY(target) {
         for (let script of target.scripts){
             if (script.blocks[0].opcode === 'event_whenflagclicked'){
                 for (let block of script.blocks){
@@ -44,7 +44,7 @@ module.exports = class {
     }
 
     //helper method dealing with loops
-    checkLoop(target){
+    checkLoop(target) {
         for (let script of target.scripts){
             if (script.blocks[0].opcode.includes('event_')){
                 for (let block of script.blocks){
@@ -71,7 +71,7 @@ module.exports = class {
     
     //checks the scripts in each sprite
     //returns true if the sprite has one "when flag clicked" event block and one other event block that hasn't already been used
-    checkScripts(target){
+    checkScripts(target) {
         let greenFlag = false;
         let otherEvent = false;
         let move = false;

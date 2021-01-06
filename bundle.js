@@ -2236,7 +2236,7 @@ module.exports = class {
     }
 
     //checks if gotoxy block is used to reset sprite every time the green flag is clicked
-    checkXY(target){
+    checkXY(target) {
         for (let script of target.scripts){
             if (script.blocks[0].opcode === 'event_whenflagclicked'){
                 for (let block of script.blocks){
@@ -2249,7 +2249,7 @@ module.exports = class {
     }
 
     //helper method dealing with loops
-    checkLoop(target){
+    checkLoop(target) {
         for (let script of target.scripts){
             if (script.blocks[0].opcode.includes('event_')){
                 for (let block of script.blocks){
@@ -2276,7 +2276,7 @@ module.exports = class {
     
     //checks the scripts in each sprite
     //returns true if the sprite has one "when flag clicked" event block and one other event block that hasn't already been used
-    checkScripts(target){
+    checkScripts(target) {
         let greenFlag = false;
         let otherEvent = false;
         let move = false;
@@ -2358,7 +2358,7 @@ module.exports = class {
         this.extensions = {};
     }
 
-    initReqs(){
+    initReqs() {
         //requirements for classroom use
         this.requirements.event = {bool: false, str: 'Project uses at least one event block'};
         this.requirements.loop = {bool: false, str: 'Project has a functional loop'};
@@ -2385,7 +2385,7 @@ module.exports = class {
         /////
     }
 
-    grade(fileObj,user){
+    grade(fileObj, user) {
         var project = new Project(fileObj,null);
         this.initReqs();
         if (!is(fileObj)) return;
@@ -2400,8 +2400,7 @@ module.exports = class {
                 if (target.costumes.length>=3){
                     this.extensions.threeBackdrops.bool=true;
                 }
-            }  
-
+            }
 
             //counts how many unique blocks are used
             for (let script in target.scripts) {
@@ -2437,7 +2436,7 @@ module.exports = class {
                 //checks if sound or dialogue is added
                 let opc = target.blocks[block].opcode;
                 if ((opc==='sound_playuntildone')
-                ||(opc==='sound_play')
+                || (opc==='sound_play')
                 || (opc==='looks_say')
                 || (opc==='looks_sayforsecs')){
                     this.extensions.sound.bool=true;
@@ -2451,12 +2450,10 @@ module.exports = class {
                 //     this.extensions.showHide.bool=true;
                 // }
 
-
                 //checks if project has at least one sprite
                 if (!target.isStage){
                     this.requirements.sprite.bool=true;
                 }
-
             }
         }
 
@@ -2472,7 +2469,6 @@ module.exports = class {
         // if (uniqueBlocks>=10) this.requirements.ten.bool=true;
 
     }
-
 }
 },{"../grading-scripts-s3/scratch3":47}],25:[function(require,module,exports){
 /*
@@ -2490,7 +2486,7 @@ module.exports = class {
 
     initReqs() {
         this.requirements.sheepLaughs = { bool: false, str: 'The sheep laughs after the cow says "Moooooooo"' };
-        this.requirements.anotherKnockKnock = { bool: false, str: 'Another knock knock joke is told, starting with then the space bar is pressed' };
+        this.requirements.anotherKnockKnock = { bool: false, str: 'Another knock knock joke is told, starting when the space bar is pressed' };
     }
 
     grade(fileObj, user) {
@@ -2498,7 +2494,6 @@ module.exports = class {
         if (!is(fileObj)) {
             return;
         }
-
 
         var project = new Project(fileObj, null);
         
@@ -2533,25 +2528,19 @@ module.exports = class {
                                             }
                                         }
                                     }
-
                                 }
-
                             }
-
                         }
-
 
                         // collects all the blocks that are in the script when space key pressed for sheep
                         if (script.blocks[0].opcode === 'event_whenkeypressed') {
                             if (script.blocks[0].fields.KEY_OPTION[0] === 'space') {
                                 for (let i = 0; i < script.blocks.length; i++) {
                                     sheepJoke.push(script.blocks[i].opcode);
-
                                 }
                             }
                         }
                     }
-
                 }
                 // collects all the blocks that are in the script when space key pressed for cow
                 if (target.name === 'Cow') {
@@ -2560,18 +2549,12 @@ module.exports = class {
                             if (script.blocks[0].fields.KEY_OPTION[0] === 'space') {
                                 for (let i = 0; i < script.blocks.length; i++) {
                                     cowJoke.push(script.blocks[i].opcode);
-
                                 }
                             }
-
                         }
                     }
                 }
-
             }
-
-
-
         }
 
         var util = require('util');
@@ -2586,7 +2569,6 @@ module.exports = class {
         if (cowOrig === cowUtil && sheepOrig === sheepUtil) {
             this.requirements.anotherKnockKnock.bool = true;
         }
-
     }
 }
 },{"../grading-scripts-s3/scratch3":47,"util":19}],26:[function(require,module,exports){
@@ -3824,6 +3806,7 @@ module.exports = class {
         this.requirements.speakingMiddle = { bool: false, str: 'Middle sprite has a script with a say block in it' }; // done
 
         // done
+        /*
         this.requirements.speaking1 = { bool: false, str: '1 sprite uses the say block' };
         this.requirements.speaking2 = {bool: false, str: '2 sprites use the say block'};
         this.requirements.speaking3 = {bool: false, str: '3 sprites use the say block'};
@@ -3832,6 +3815,7 @@ module.exports = class {
         this.requirements.costume1 = {bool: false, str: '1 sprite has a new costume'};
         this.requirements.costume2 = {bool: false, str: '2 sprites have a new costume'};
         this.requirements.costume3 = {bool: false, str: '3 sprites have a new costume'};
+        */
         
        
         // // extensions
@@ -3911,7 +3895,6 @@ module.exports = class {
                         } else {
                             leftDialogue = target.blocks[block].inputs.MESSAGE[1][1];
                         }
-
                     }
                 }
                 if (leftDialogue !== origLeftDialogue && leftDialogue !== '') {
@@ -3921,8 +3904,7 @@ module.exports = class {
                     left = true;
                     this.requirements.leftCostume.bool = true;
                 }
-            }
-            
+            }          
 
             if (target.name === 'Middle') {
                 let cost2 = target.currentCostume;
@@ -4043,9 +4025,9 @@ module.exports = class {
                                 continue;
                             }
                             else {
-                                    // sets speaks boolean to true
-                                    speaks = true;
-                                }
+                                // sets speaks boolean to true
+                                speaks = true;
+                            }
                         }
 
                         // checks for an interactive sprite that is used in instances that are NOT from the original
@@ -4058,10 +4040,9 @@ module.exports = class {
                             }  else if (target.scripts[script].blocks[block].next === null && target.scripts[script].blocks[block].parent === null) {
                                 continue;
                             }
-                            else {
-                                   
-                                    interactive = true;
-                                }
+                            else {                             
+                                interactive = true;
+                            }
                         }
 
                         // looks for certain blocks and makes sure that they are in a script
@@ -4096,15 +4077,14 @@ module.exports = class {
                     numSpeaking ++;
                 }
                 
-                
                 if (interactive === true) {
                     numInteractive ++;
                 }
-                
             }
         }
        
        // counts the number of sprites that fulfill each requirement
+       /*
         if (numSpeaking >= 1) {
             this.requirements.speaking1.bool = true;
         }
@@ -4128,7 +4108,6 @@ module.exports = class {
         if (left == true) {
             numCostumes ++;
         }
-        
         if (middle == true) {
             numCostumes++;
         }
@@ -4143,6 +4122,7 @@ module.exports = class {
         else if (numCostumes === 3) {
             this.requirements.costume3.bool = true;
         }
+        */
     }
 } 
 },{"../act1-grading-scripts/originalOfrenda-test":30,"../grading-scripts-s3/scratch3":47}],29:[function(require,module,exports){
