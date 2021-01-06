@@ -14856,10 +14856,13 @@ function showProgressBar() {
     let red = 0;
     let count = 0;
     if (projectMode) {
+        console.log('pm');
         green = complete_reqs;
         yellow = 0;
         red = total_reqs - complete_reqs;
+        console.log(red);
         count = total_reqs;
+        console.log(count);
     }
     else {
         green = complete_projects;
@@ -14895,7 +14898,7 @@ function setProgress(bar, items, total_items, color) {
     let width_percent = ((items / total_items) * 100);
     bar.style.width = width_percent + '%';
     if (items && color === 0) {
-        bar.innerHTML = items;
+        if (items !== total_items) bar.innerHTML = items;
         if (width_percent === 100) bar.innerHTML += projectMode ? 'All tasks done!' : ' done';
         else if (width_percent >= 15) bar.innerHTML += projectMode ? 
             items === 1 ?
@@ -14949,6 +14952,7 @@ function report(projectID, requirements, extensions, projectAuthor) {
     total_reqs = Object.keys(requirements).length;
     if (project_complete) complete_projects++;
     else if (passed_reqs_count >= (Object.keys(requirements).length / 2)) passing_projects++;
+    complete_reqs = passed_reqs_count;
 }
 
 /* Checks if process is done.  */
