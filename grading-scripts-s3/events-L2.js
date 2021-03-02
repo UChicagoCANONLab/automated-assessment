@@ -43,6 +43,7 @@ module.exports = class {
             sprites: 0,
             spritesWith1Script: 0,
             spritesWith2Scripts: 0,
+            spritesWith2Events: 0,
             holiday: null,
             guidingUser: false,
             family: false,
@@ -58,7 +59,7 @@ module.exports = class {
         var validScripts = 0;    
 
         this.info.sprites++;
-        for (var script of sprite.scripts.filter(s => s.blocks[0].opcode.includes('event_when'))){
+        for (var script of sprite.scripts.filter(s => is(s.blocks[0].opcode) && s.blocks[0].opcode.includes('event_when'))){
             
             //look for extension requirements throughout each block
             var blink = {hide: false, wait: false, show: false};
@@ -137,6 +138,7 @@ module.exports = class {
         } 
 
         // check off how many sprites have met the requirements
+        /*
         if (reqEvents.length >= 2 || validScripts >= 2) {
             for (var n of [1, 2, 3]) {
                 if (this.requirements['spriteHasTwoEvents' + n].bool && this.requirements['spriteHasTwoScripts' + n].bool) 
@@ -150,8 +152,10 @@ module.exports = class {
                 break;
             }
         }
+        */
         if (validScripts >=2) this.info.spritesWith2Scripts++
         else if (validScripts >= 1) this.info.spritesWith1Script++;
+        if (reqEvents.length >= 2) this.info.spritesWith2Events++;
         return reqEvents;
     }
 
@@ -170,8 +174,15 @@ module.exports = class {
             // calls the sprite grader while aggregating the total required events used
             reqEvents = [...new Set([...reqEvents, ...this.gradeSprite(target)])];
         }
-        this.requirements.usesTheThreeEvents.bool = (reqEvents.length === 3);
-        this.requirements.hasThreeSprites.bool = (project.targets.length - 1 >= 3);
+        
+        this.requirements.hasThreeSprites.bool = (project.targets.length >= 3);
+        this.requirements.spriteHasTwoEvents1.bool = this.info.spritesWith2Events >= 1;
+        this.requirements.spriteHasTwoEvents2.bool = this.info.spritesWith2Events >= 2;
+        this.requirements.spriteHasTwoEvents3.bool = this.info.spritesWith2Events >= 3;
+        this.requirements.spriteHasTwoScripts1.bool = this.info.spritesWith2Scripts >= 1;
+        this.requirements.spriteHasTwoScripts2.bool = this.info.spritesWith2Scripts >= 2;
+        this.requirements.spriteHasTwoScripts3.bool = this.info.spritesWith2Scripts >= 3;
+        this.requirements.usesTheThreeEvents.bool = (reqEvents.length >= 3);
         
         delete this.info.strings;
         this.info.score = Object.values(this.requirements).reduce((sum, r) => sum + (r.bool? 1 : 0), 0);

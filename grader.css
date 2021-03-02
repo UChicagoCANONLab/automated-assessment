@@ -7,13 +7,17 @@ html {
   color: black;
 }
 
+#projectChecker {
+  background: #ebf7ff;
+}
+
 body {
   width: 720px;
   margin: 30px auto;
   display:block;
   z-index: 2;
 
-  font-family: 'Comfortaa', Helvetica, Arial, sans-serif;
+  font-family: Helvetica, Arial, sans-serif;
 }
 
 hr {
@@ -185,7 +189,9 @@ form p {
   display: inline-block;
 }
 
-.show {display: block;}
+.show {
+  display: block;
+}
 
 #myProgress {
     width: 100%;
