@@ -7296,6 +7296,7 @@ module.exports = class {
     gradeSprite(sprite) {
         var reqEvents = [];
         var events = [];
+        let keysPressed = [];
         var validScripts = 0;    
 
         this.info.sprites++;
@@ -7362,20 +7363,22 @@ module.exports = class {
             if (['event_whenflagclicked', 'event_whenthisspriteclicked', 'event_whenkeypressed'].includes(event.opcode) && !reqEvents.includes(event.opcode))
                 reqEvents.push(event.opcode);
             // differentiates event key presses that use different keys
-            if (event.opcode == "event_whenkeypressed") 
-                event.opcode += event.fields.KEY_OPTION[0];
+            if (event.opcode === "event_whenkeypressed" && !keysPressed.includes(event.fields.KEY_OPTION[0]) && script.blocks.length > 1) {
+                keysPressed.push(event.fields.KEY_OPTION[0]);
+                console.log(keysPressed)
+            }
             // adds to list of unique events and scripts
             if (!events.includes(event.opcode)) {
                 events.push(event.opcode);
-                if (script.blocks.length > 1) 
+                if (script.blocks.length > 1) {
                     validScripts++;
+                }
             }
             // checks if scripts outside of the required were used (only the first key pressed event is counted as required)
-            if (!(['event_whenflagclicked', 'event_whenthisspriteclicked'].includes(event.opcode) || event.opcode.includes('event_whenkeypressed')) ||
-                    (event.opcode.includes('event_whenkeypressed') && !events.includes(event.opcode))) {
+            if (!(['event_whenflagclicked', 'event_whenthisspriteclicked'].includes(event.opcode) || event.opcode.includes('event_whenkeypressed')) || (keysPressed.length > 1)) {
                 this.extensions.moreScripts.bool = true;
             }
-        } 
+        }
 
         // check off how many sprites have met the requirements
         /*
