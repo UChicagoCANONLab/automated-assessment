@@ -14657,7 +14657,7 @@ window.onclick = function (event) {
 class ProjectIdentifier {
     constructor(projectOverview) {
         this.id = projectOverview.id;
-        this.author = projectOverview.author.id;
+        this.author = projectOverview.author;
         this.username = 'Scratcher ' + this.author;
     }
 }
