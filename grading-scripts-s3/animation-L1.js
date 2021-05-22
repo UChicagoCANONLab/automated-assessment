@@ -59,7 +59,7 @@ module.exports = class {
         this.requirements.bugFixed.bool = finishers >= 2;
 
         // Check how many sprites are animated
-        let animatedSprites = reports.filter(r => r.isAnimated && r.visible).length;
+        let animatedSprites = reports.filter(r => r.isAnimated).length;
         this.extensions.showFourthSprite.bool = animatedSprites >= 4;
         this.extensions.animateNewSprite.bool = animatedSprites >= 5;
 
