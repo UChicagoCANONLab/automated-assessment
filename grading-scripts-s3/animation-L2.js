@@ -47,16 +47,19 @@ module.exports = class {
             } else {
                 let report = this.gradeSprite(target);
                 sprites ++;
-                spritesAnimatedInPlace += (report.isAnimated && !report.isMoving);
-                spritesAnimatedInMotion += (report.isAnimated && report.isMoving);
+                if(report.isAnimated) {
+                    if(report.isMoving) {
+                        spritesAnimatedInMotion += 1;
+                    } else {
+                        spritesAnimatedInPlace += 1
+                    }
+                }
             }
         }
-        if (spritesAnimatedInMotion >= 1) {
-            this.requirements.animatedInMotion.bool = true;
-            spritesAnimatedInMotion--;
-        }
-        this.requirements.animatedInPlace1.bool = (spritesAnimatedInMotion + spritesAnimatedInPlace) >= 1;
-        this.requirements.animatedInPlace2.bool = (spritesAnimatedInMotion + spritesAnimatedInPlace) >= 2;
+
+        this.requirements.animatedInMotion.bool = spritesAnimatedInMotion >= 1
+        this.requirements.animatedInPlace1.bool = spritesAnimatedInPlace >= 1;
+        this.requirements.animatedInPlace2.bool = spritesAnimatedInPlace >= 2;
         this.requirements.atLeastThreeSprites.bool = sprites >= 3;
 
         this.extensions.moreAnimations.bool = spritesAnimatedInMotion > 1 || spritesAnimatedInPlace > 2;
