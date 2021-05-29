@@ -1,36 +1,92 @@
 /* One Way Sync L1 Autograder
  * Marco Anaya, Summer 2019
  */
-require('./scratch3');
+ require('./scratch3');
 
-module.exports = class {
+ module.exports = class {
 
-	init() { //initialize all metrics to false
+	init(project) { //initialize all metrics to false
+
+
+		let strandTemplates = {
+			multicultural: require('./templates/one-way-sync-L1-multicultural'),
+			youthCulture:  require('./templates/one-way-sync-L1-youth-culture'),
+			gaming:        require('./templates/one-way-sync-L1-gaming')
+		};
+		this.strand = detectStrand(project, strandTemplates, 'youthCulture');
+
+		let source;
+		let target;
+		let broadcaster;
+		let sourceAction;
+		let targetAction;
+		this.extraSayRequirements = 1;
+
+		switch(this.strand) {
+			case "multicultural":
+			source = "Djembe";
+			target = "Mali child";
+			sourceAction = "plays music";
+			targetAction = "dances";
+			broadcaster = "Start button";
+			break;
+			case "gaming":
+			source = "Casey";
+			target = "yellow car";
+			broadcaster = "Wizard";
+			sourceAction = "says something";
+			targetAction = "moves to pink ramp";
+			broadcaster = "Wizard";
+			this.extraSayRequirements = 2;
+			break;
+
+			case "youthCulture":
+			source = "Rectangle play button";
+			target = "cat video";
+			broadcaster = "Wizard";
+			sourceAction = "changes costume";
+			targetAction = "";
+			broadcaster = "Wizard";
+
+
+		}
 		this.requirements = {
-			oneToOne: {bool:false, str:'Djembe passes unique message to Mali child'},
-			djembePlays: {bool: false, str: 'When Djembe is clicked, Djembe plays music'},
-			djembeToChild: {bool: false, str: 'When Djembe is clicked, Mali child dances'},
+			oneToOne: {bool:false, str:`${source} passes unique message to ${target}`},
+			sourceAction: {bool: false, str: `When ${source} is clicked, ${source} ${sourceAction}`},
+			sourceSound: {bool: false, str: `When ${source} is clicked, ${source} plays a sound`},
+			targetAction: {bool: false, str: `When ${source} is clicked, ${target} ${targetAction}`},
 			startButton: {bool: false, str: 'Start button sprite created'},
-			oneToMany: {bool: false, str: 'Start button passes the same message to all other sprites'},
-			startToSprite1: {bool: false, str: 'A sprite plays or dances when the start button is clicked'},
-			startToSprite2:	{bool: false, str: 'Another sprite plays or dances when the start button is clicked'},
-			startToSprite3:	{bool: false, str: 'A third sprite plays or dances when the start button is clicked'},
-			startToSprite4:	{bool: false, str: 'A fourth sprite plays or dances when the start button is clicked'}
+			oneToMany: {bool: false, str: `${broadcaster} passes the same message to all other sprites`},
+			broadcastToSprite1: {bool: false, str: `A sprite plays or dances when the ${broadcaster} is clicked`},
+			broadcastToSprite2:	{bool: false, str: `Another sprite plays or dances when the ${broadcaster} is clicked`},
+			broadcastToSprite3:	{bool: false, str: `A third sprite plays or dances when the ${broadcaster} is clicked`},
+			broadcastToSprite4:	{bool: false, str: `A fourth sprite plays or dances when the ${broadcaster} is clicked`}
 		};
 		this.extensions = {
 			changeWait: {bool: false, str: 'Changed the duration of a wait block'},
 			sayBlock:	{bool: false, str: 'Added a say block under another event'}
+		};
+		if(this.strand === 'gaming'){
+			delete this.requirements.startButton;
+		}
+		if(!(this.strand === 'youthCulture')){
+			delete this.requirements.sourceSound;
 		}
 	}
 
-	grade(fileObj, user) {
-		this.init();
-		const project = new Project(fileObj)
 
-		let reports = project.sprites.map(sprite => this.gradeSprite(sprite));
+	grade(fileObj, user) {
+		const project = new Project(fileObj)
+		this.init(project);
+
+		let rawReports = project.sprites.map(sprite => this.gradeSprite(sprite));
+		let nSays = rawReports.map(report => report.says).reduce((acc, val) => acc + val);
+		if (nSays >= this.extraSayRequirements) {
+			this.extensions.sayBlock.bool = true;
+		}
 		let messages = {};
 		
-		for (let report of reports) {
+		for (let report of rawReports) {
 			if (report.sent != []) {
 				for (let msg of report.sent) {
 					if (msg in messages) messages[msg].sent = true;
