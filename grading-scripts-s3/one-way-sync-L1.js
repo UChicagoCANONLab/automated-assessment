@@ -33,7 +33,6 @@
 			case "gaming":
 			source = "Casey";
 			target = "yellow car";
-			broadcaster = "Wizard";
 			sourceAction = "says something";
 			targetAction = "moves to pink ramp";
 			broadcaster = "Wizard";
@@ -43,10 +42,9 @@
 			case "youthCulture":
 			source = "Rectangle play button";
 			target = "cat video";
-			broadcaster = "Wizard";
 			sourceAction = "changes costume";
-			targetAction = "";
-			broadcaster = "Wizard";
+			targetAction = "changes costume";
+			broadcaster = "Start button";
 
 
 		}
@@ -127,6 +125,9 @@
 		} else if (this.strand === "gaming") {
 			sentCount = (sender) => 
 			Object.values(sender.sent).reduce((acc, b) => acc + b.length, 0) + !(sender.name.toLowerCase().includes('go') || sender.name.toLowerCase().includes('truck'));
+		} else if (this.strand === "youthCulture"){
+			sentCount = (sender) => 
+			Object.values(sender.sent).reduce((acc, b) => acc + b.length, 0) + !(sender.name.toLowerCase().includes('play'));
 		}
 
 		let senders = reports.filter(r => r.sent).sort((a, b) => {
@@ -187,6 +188,9 @@
 
         if (this.strand === "gaming") {
         	this.requirements.targetAction.bool = rawReports.find(r => r.name === "Rally Car").movesTilPink;
+        } else if (this.strand === "youthCulture"){
+        	console.log(rawReports.find(r => r.name === "Rectangle Play Button"))
+        	this.requirements.sourceSound.bool = rawReports.find(r => r.name === "Rectangle Play Button").soundOnClick
         }
     }
     gradeSprite(sprite) {
@@ -197,14 +201,17 @@
     		received: [],
     		dances: {costume: false, wait: false},
     		movesTilPink : false,
-    		says: 0
+    		says: 0,
+    		soundOnClick: false
     	}
     	let onClickActions;
     	if (this.strand === "multicultural") {
     		onClickActions = ['sound_play', 'sound_playuntildone'];
     	} else if (this.strand === "gaming") {
     		onClickActions = ['looks_say', 'looks_sayforsecs']
-    	}
+    	} else if (this.strand === "youthCulture"){
+            onClickActions = ['looks_switchcostumeto', 'looks_costume', 'looks_nextcostume', 'looks']
+        }
     	for (let script of sprite.scripts.filter(s => s.blocks[0].opcode.includes('event_when'))) {
     		if (script.blocks[0].opcode === 'event_whenthisspriteclicked')
     			script.traverseBlocks((block, level) => {
@@ -212,6 +219,9 @@
     					reqs.plays.onClick = true;
     				else if (['event_broadcast', 'event_broadcastandwait'].includes(block.opcode))
     					reqs.sent.push( block.inputs.BROADCAST_INPUT[1][1])
+    				else if(['sound_play', 'sound_playuntildone'].includes(block.opcode)){
+    					reqs.soundOnClick = true
+    				}
     			});
     		else if (script.blocks[0].opcode === 'event_whenbroadcastreceived') {
     			reqs.received.push(script.blocks[0].fields.BROADCAST_OPTION[0]);
