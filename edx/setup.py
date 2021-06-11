@@ -7,5 +7,5 @@ setup(
     packages=[
         'autograder',
     ],
-    install_requires=open('requirements/reqs.txt', 'rb').readlines()
+    #install_requires=open('requirements/reqs.txt', 'rb').readlines()
 )
