@@ -1,0 +1,15 @@
+{
+    "UChicagoX-Quan12000_1T2021--changemen": {
+        "SERVER": "https://xqueue.edx.org",
+        "CONNECTIONS": 1,
+        "AUTH": ["UChicagoX-Quan12000_1T2021--changeme", "amLt2dKFRUWdVD2wsT--changeme"],
+        "HANDLERS": [
+            {
+                "HANDLER": "autograder.autograder.ScratchGrader",
+                "KWARGS": {
+                  "grader_root": "/home/scratch_encore/automated_assessment/edx/autograder"
+                }
+            }
+        ]
+    }
+}

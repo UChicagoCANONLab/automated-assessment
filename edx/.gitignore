@@ -1,13 +1,3 @@
-node_modules
-static-analysis
-test-projects
-
-### Following added by Zack June 2021
-
-
-.DS_Store
-
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -137,3 +127,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
