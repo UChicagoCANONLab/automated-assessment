@@ -5,7 +5,8 @@ test-projects
 ### Following added by Zack June 2021
 
 
-.DS_Store
+*.DS_Store
+*.Rhistory
 
 
 # Byte-compiled / optimized / DLL files
