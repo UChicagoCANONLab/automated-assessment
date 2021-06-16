@@ -187,10 +187,9 @@
         }
 
         if (this.strand === "gaming") {
-        	this.requirements.targetAction.bool = rawReports.find(r => r.name === "Rally Car").movesTilPink;
+        	this.requirements.targetAction.bool = rawReports.filter(r => r.movesTilPink).length >= 1;
         } else if (this.strand === "youthCulture"){
-        	console.log(rawReports.find(r => r.name === "Rectangle Play Button"))
-        	this.requirements.sourceSound.bool = rawReports.find(r => r.name === "Rectangle Play Button").soundOnClick
+        	this.requirements.targetAction.bool = rawReports.filter(r => r.soundOnClick).length >= 1;
         }
     }
     gradeSprite(sprite) {
