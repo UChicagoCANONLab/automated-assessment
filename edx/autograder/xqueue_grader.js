@@ -144,14 +144,14 @@ function report(projectID, requirements, extensions, projectAuthor, report_dict)
     /* Makes a string list of grading results. */
     ret_list.push('Project ID: <a href="https://scratch.mit.edu/projects/' + projectID + '">' + projectID + '</a>');
     ret_list.push('Creator: <a href="https://scratch.mit.edu/users/' + projectAuthor + '">' + projectAuthor + '</a>');
-    ret_list.push('\nTasks');
+    ret_list.push('\nRequired Tasks:');
     for (let x in requirements) {
         total_reqs_count++;
         if (requirements[x].bool) passed_reqs_count++;
         ret_list.push(checkbox(requirements[x].bool) + ' - ' + requirements[x].str);
     }
     if (extensions) {
-        ret_list.push('\nIf you are done early:');
+        ret_list.push('\nIf you are done early (extensions):');
         total_exts++;
         for (let x in extensions) {
             if (extensions[x].bool) complete_exts++;
