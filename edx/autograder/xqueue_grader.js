@@ -163,7 +163,7 @@ function report(projectID, requirements, extensions, projectAuthor, report_dict)
       console.log(ret_list[x]);
     }
     console.log("report_end");
-    report_dict = showProgressBar(report_dict, passed_reqs_count, total_reqs_count);
+    report_dict = showProgressBar(report_dict, total_reqs_count, passed_reqs_count);
 
 }
 
@@ -213,7 +213,14 @@ function showProgressBar(report_dict, total_reqs, complete_reqs) {
 
 //////SCRIPT
 
-function run(){
+async function operate(){
+  let myPromise = new Promise(function(myResolve, myReject) {
+    run();
+  });
+  return myPromise;
+}
+
+async function run(){
   var myArgs = process.argv.slice(2);
   var this_module = myArgs[0];
   var projectID = myArgs[1];
@@ -222,11 +229,14 @@ function run(){
   report_dict['module'] = this_module;
   report_dict['projectID'] = projectID;
   try {
-    gradeOneProject(projectID, report_dict, gradeObj);
+    await gradeOneProject(projectID, report_dict, gradeObj);
   }
   catch(err){
     console.log(err);
   }
 }
-
-run();
+console.log("start")
+operate().then(async function (result) {
+console.log("end");},
+async function (error) {console.log(err);}
+);

@@ -1,7 +1,8 @@
 from xqueue_watcher.grader import Grader
 import subprocess
 import html
-import JSON
+import json
+import time
 
 def format_errors(errors):
     esc = html.escape
@@ -14,38 +15,26 @@ def format_errors(errors):
     return error_string
 
 class ScratchGrader(Grader):
-    results_template = """
-       <div>
-          <p> {error} </p>
-          <div id="report">
-            {report_contents}
-            </div>
-      </div"""
+    error_template = """<div><p>{error}</p></div>"""
+    results_template = """<div>{report_contents}</div>"""
+
     def grade(self, grader_path, grader_config, student_response):
         problem = grader_config['module']
-        while os.path.exists(current_file):
-          no_ending = current_file.split(".")
-          current_file = no_ending + "-" + str(index) + ".py"
-          index += 1
-        student_id = g
+        student_id = student_response.strip('/').split('/')[-1]
         results = {"correct": False,
                     "score": 0,
                     "msg": ''}
         exec_args = ["node", "/home/scratch_encore/automated_assessment/edx/autograder/xqueue_grader.js", problem, student_id ]
         # 1001 is the groupid and userid for the sandbox account
-        proc = subprocess.Popen(exec_args, preexec_fn=demote(1001, 1001), stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-        try:
-          return_code = proc.wait(timeout=10)
-        except subprocess.TimeoutExpired as e:
-            results["msg"] = "Unable to grade project in 10 seconds. Check your internet connection."
-            return results
+        proc = subprocess.Popen(exec_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        (output, err) = proc.communicate()
         visible = "false"
         error = ""
         score = 0
         in_report = False
         in_grade_script = False
         report_list = []
-        for line in proc.stdout:
+        for line in output.split("\n"):
             if line == "start_grade_script":
                 in_grade_script = True
             elif line == "end_grade_script":
@@ -69,7 +58,7 @@ class ScratchGrader(Grader):
                     continue
 
         if len(report_list) > 0:
-            report_div = "<br>"
+            report_div = ""
             for item in report_list:
                 report_div += item
                 report_div += " <br> "
@@ -79,8 +68,11 @@ class ScratchGrader(Grader):
             report_div = ""
 
         results['score'] = score
-        results['msg'] = self.results_template.format(error=error,
-                                                report_contents=report_div)
+        if len(error) > 0:
+            results['msg'] = error_template.format(error=error)
+        else:
+            results['msg'] = results_template.format(report_contents=report_div)
+
         return results
 
     def render_results(self, results):
