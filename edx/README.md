@@ -37,4 +37,10 @@ Currently being run on a DigitalOcean VPS.
 
 Inquire for more details.
 
+## File Structure:
+
+* autograder/autograder.py: Autograder script
+* autograder/test.py: Local test file. 
+** To run: python autograder/test.py <module> <input (link or project id)> 
+
 

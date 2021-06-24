@@ -55,9 +55,10 @@ Grades a studio of Scratch projects or a single project by Scratch Encore module
 * Scripts to grade a JSON by the module standards.
 
 
-## Access EdX
+## edx
 
-* $ ssh scratch_encore@143.198.170.104
+edX autograder for Scratch Encore PD (created June 2021)
+
 
 ## Authors
 

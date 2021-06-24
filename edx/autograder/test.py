@@ -3,17 +3,18 @@ import subprocess
 import html
 import json
 import time
+import sys
 
 error_template = """<div><p>{error}</p></div>"""
 results_template = """<div>{report_contents}</div>"""
 
-student_response = "https://scratch.mit.edu/projects/"
-
+problem = sys.argv[1]
+student_response = sys.argv[2]
 
 
 problem = "animationL1"
 #problem = grader_config['module']
-student_id = student_response.strip('/').split('/')[-1]
+student_id = student_response.strip("/ \n\t").split('/')[-1]
 results = {"correct": False,
             "score": 0,
             "msg": ''}
