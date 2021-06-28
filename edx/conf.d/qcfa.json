@@ -2,7 +2,7 @@
     "UChicagoX-Quan12000_1T2021--changemen": {
         "SERVER": "https://xqueue.edx.org",
         "CONNECTIONS": 1,
-        "AUTH": ["UChicagoX-Quan12000_1T2021--changeme", "amLt2dKFRUWdVD2wsT--changeme"],
+        "AUTH": ["zcrenshaw", "sccNTLHb7Tg4dMJJCb"],
         "HANDLERS": [
             {
                 "HANDLER": "autograder.autograder.ScratchGrader",
