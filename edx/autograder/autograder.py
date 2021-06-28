@@ -29,6 +29,7 @@ class ScratchGrader(Grader):
         # 1001 is the groupid and userid for the sandbox account
         proc = subprocess.Popen(exec_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         (output, err) = proc.communicate()
+        print("process error: ", err)
         visible = "false"
         error = ""
         score = 0

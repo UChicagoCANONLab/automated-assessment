@@ -29,6 +29,7 @@ score = 0
 in_report = False
 in_grade_script = False
 report_list = []
+print("error: ", err)
 
 for line in output.split("\n"):
     print(line)
