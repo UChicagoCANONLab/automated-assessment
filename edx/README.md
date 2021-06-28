@@ -22,7 +22,10 @@ You will need to have nodeJS installed:
 
 $ sudo apt install nodejs
 
-The install script should take care of the rest.
+And also xhr2:
+
+$ npm install xhr2
+
 
 ### Step 3: Autograder Run
 

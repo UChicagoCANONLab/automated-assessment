@@ -21,6 +21,7 @@ class ScratchGrader(Grader):
     def grade(self, grader_path, grader_config, student_response):
         problem = grader_config['module']
         student_id = student_response.strip('/').split('/')[-1]
+        print("problem", problem)
         results = {"correct": False,
                     "score": 0,
                     "msg": ''}
@@ -34,6 +35,7 @@ class ScratchGrader(Grader):
         in_report = False
         in_grade_script = False
         report_list = []
+        print("Output: ", output, "\nEnd Output")
         for line in output.split("\n"):
             if line == "start_grade_script":
                 in_grade_script = True
@@ -69,10 +71,11 @@ class ScratchGrader(Grader):
 
         results['score'] = score
         if len(error) > 0:
-            results['msg'] = error_template.format(error=error)
+            results['msg'] = self.error_template.format(error=error)
         else:
-            results['msg'] = results_template.format(report_contents=report_div)
+            results['msg'] = self.results_template.format(report_contents=report_div)
 
+        print("Results:\n", results)
         return results
 
     def render_results(self, results):
