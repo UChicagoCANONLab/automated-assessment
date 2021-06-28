@@ -25,8 +25,7 @@ class ScratchGrader(Grader):
         results = {"correct": False,
                     "score": 0,
                     "msg": ''}
-        exec_args = ["node", "/home/scratch_encore/automated_assessment/edx/autograder/xqueue_grader.js", problem, student_id ]
-        # 1001 is the groupid and userid for the sandbox account
+        exec_args = ["node", "/home/scratch_encore/automated-assessment/edx/xqueue_grader.js", problem, student_id ]
         proc = subprocess.Popen(exec_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         (output, err) = proc.communicate()
         print("process error: ", err)
@@ -53,6 +52,7 @@ class ScratchGrader(Grader):
                     error = ""
                 elif line == "report_end":
                     in_report = False
+                    results['correct'] = True
                 elif in_report:
                     report_list.append(line)
                 elif line.startswith("score:"):

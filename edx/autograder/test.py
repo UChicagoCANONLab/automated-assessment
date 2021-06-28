@@ -18,7 +18,7 @@ student_id = student_response.strip("/ \n\t").split('/')[-1]
 results = {"correct": False,
             "score": 0,
             "msg": ''}
-exec_args = ["node", "/Users/zacharycrenshaw/automated-assessment/edx/autograder/xqueue_grader.js", problem, student_id ]
+exec_args = ["node", "/home/scratch_encore/automated-assessment/edx/xqueue_grader.js", problem, student_id ]
 # 1001 is the groupid and userid for the sandbox account
 print(exec_args)
 proc = subprocess.Popen(exec_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
@@ -48,6 +48,7 @@ for line in output.split("\n"):
             error = ""
         elif line == "report_end":
             in_report = False
+            results['correct'] = True
         elif in_report:
             report_list.append(line)
         elif line.startswith("score:"):

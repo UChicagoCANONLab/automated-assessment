@@ -1,33 +1,33 @@
 
 /// Scratch Encore graders
 var graders = {
-    scratchBasicsL1:        { name: 'M1 - Scratch Basics L2',       file: require('../../grading-scripts-s3/scratch-basics-L1') },
-    scratchBasicsL2_create: { name: 'M1 - Scratch Basics L3',       file: require('../../grading-scripts-s3/scratch-basics-L2') },
-    eventsL1:               { name: 'M2 - Events L1',               file: require('../../grading-scripts-s3/events-L1-syn') },
-    eventsL2_create:        { name: 'M2 - Events L2',               file: require('../../grading-scripts-s3/events-L2') },
-    animationL1:            { name: 'M3 - Animation L1',            file: require('../../grading-scripts-s3/animation-L1') },
-    animationL2_create:     { name: 'M3 - Animation L2',            file: require('../../grading-scripts-s3/animation-L2') },
-    condLoopsL1:            { name: 'M4 - Conditional Loops L1',    file: require('../../grading-scripts-s3/cond-loops-L1-syn') },
-    condLoopsL2_create:     { name: 'M4 - Conditional Loops L2',    file: require('../../grading-scripts-s3/cond-loops-L2') },
-    decompL1:               { name: 'M5 - Decomp. by Sequence L1',  file: require('../../grading-scripts-s3/decomp-L1') },
-    decompL2_create:        { name: 'M5 - Decomp. by Sequence L2',  file: require('../../grading-scripts-s3/decomp-L2') },
-    oneWaySyncL1:           { name: 'M6 - One-Way Sync L1',         file: require('../../grading-scripts-s3/one-way-sync-L1') },
-    oneWaySyncL2_create:    { name: 'M6 - One-Way Sync L2',         file: require('../../grading-scripts-s3/one-way-sync-L2') },
-    twoWaySyncL1:           { name: 'M7 - Two-Way Sync L1',         file: require('../../grading-scripts-s3/two-way-sync-L1') },
-    complexConditionalsL1:  { name: 'M8 - Complex Conditionals L1', file: require('../../grading-scripts-s3/complex-conditionals-L1') },
+    scratchBasicsL1:        { name: 'M1 - Scratch Basics L2',       file: require('../grading-scripts-s3/scratch-basics-L1') },
+    scratchBasicsL2_create: { name: 'M1 - Scratch Basics L3',       file: require('../grading-scripts-s3/scratch-basics-L2') },
+    eventsL1:               { name: 'M2 - Events L1',               file: require('../grading-scripts-s3/events-L1-syn') },
+    eventsL2_create:        { name: 'M2 - Events L2',               file: require('../grading-scripts-s3/events-L2') },
+    animationL1:            { name: 'M3 - Animation L1',            file: require('../grading-scripts-s3/animation-L1') },
+    animationL2_create:     { name: 'M3 - Animation L2',            file: require('../grading-scripts-s3/animation-L2') },
+    condLoopsL1:            { name: 'M4 - Conditional Loops L1',    file: require('../grading-scripts-s3/cond-loops-L1-syn') },
+    condLoopsL2_create:     { name: 'M4 - Conditional Loops L2',    file: require('../grading-scripts-s3/cond-loops-L2') },
+    decompL1:               { name: 'M5 - Decomp. by Sequence L1',  file: require('../grading-scripts-s3/decomp-L1') },
+    decompL2_create:        { name: 'M5 - Decomp. by Sequence L2',  file: require('../grading-scripts-s3/decomp-L2') },
+    oneWaySyncL1:           { name: 'M6 - One-Way Sync L1',         file: require('../grading-scripts-s3/one-way-sync-L1') },
+    oneWaySyncL2_create:    { name: 'M6 - One-Way Sync L2',         file: require('../grading-scripts-s3/one-way-sync-L2') },
+    twoWaySyncL1:           { name: 'M7 - Two-Way Sync L1',         file: require('../grading-scripts-s3/two-way-sync-L1') },
+    complexConditionalsL1:  { name: 'M8 - Complex Conditionals L1', file: require('../grading-scripts-s3/complex-conditionals-L1') },
 };
 
 /// Act 1 graders
 var actOneGraders = {
-    scavengerHunt: { name: 'M1 - Scavenger Hunt',    file: require('../../act1-grading-scripts/scavengerHunt') },
-    onTheFarm:     { name: 'M2 - On the Farm',       file: require('../../act1-grading-scripts/onTheFarm') },
-    namePoem:      { name: 'M3 - Name Poem',         file: require('../../act1-grading-scripts/name-poem') },
-    ofrenda:       { name: 'M4 - Ofrenda',           file: require('../../act1-grading-scripts/ofrenda') },
-    aboutMe:       { name: 'M5 - About Me',          file: require('../../act1-grading-scripts/aboutMe') },
-    animalParade:  { name: 'M6 - Animal Parade',     file: require('../../act1-grading-scripts/animal-parade') },
-    danceParty:    { name: 'M7 - Dance Party',       file: require('../../act1-grading-scripts/dance-party') },
-    knockKnock:    { name: 'M8 - Knock Knock',       file: require('../../act1-grading-scripts/knockKnock') },
-    finalProject:  { name: 'M9 - Interactive Story', file: require('../../act1-grading-scripts/final-project') },
+    scavengerHunt: { name: 'M1 - Scavenger Hunt',    file: require('../act1-grading-scripts/scavengerHunt') },
+    onTheFarm:     { name: 'M2 - On the Farm',       file: require('../act1-grading-scripts/onTheFarm') },
+    namePoem:      { name: 'M3 - Name Poem',         file: require('../act1-grading-scripts/name-poem') },
+    ofrenda:       { name: 'M4 - Ofrenda',           file: require('../act1-grading-scripts/ofrenda') },
+    aboutMe:       { name: 'M5 - About Me',          file: require('../act1-grading-scripts/aboutMe') },
+    animalParade:  { name: 'M6 - Animal Parade',     file: require('../act1-grading-scripts/animal-parade') },
+    danceParty:    { name: 'M7 - Dance Party',       file: require('../act1-grading-scripts/dance-party') },
+    knockKnock:    { name: 'M8 - Knock Knock',       file: require('../act1-grading-scripts/knockKnock') },
+    finalProject:  { name: 'M9 - Interactive Story', file: require('../act1-grading-scripts/final-project') },
 };
 
 
@@ -58,31 +58,34 @@ async function gradeOneProject(projectID, report_dict, gradeObj) {
     /// Getting the project page from Scratch so we can see the teacher-facing usernames
     get('https://chord.cs.uchicago.edu/scratch/projectinfo/' + projectID)
         .then(async function (result) {
-            var projectInfo = JSON.parse(result.target.response);
-            if (projectInfo.length === 0 || projectInfo.targets === undefined){
-                    console.log('Error: Project ' + projectID + ' could not be found. Did you enter a valid Scratch project URL?');
-                    report_dict['error'] = true;
-            }
-            else {
-              report_dict['error'] = false;
-            }
+		console.log(result.target.response);
+            	try {
+			var projectInfo = JSON.parse(result.target.response);
+		} catch (error) {
+			console.log("Error: Project not Found. Possible empty ID.");
+			return;
+		}
+		if (projectInfo.length === 0 || projectInfo.targets === undefined){
+                    	console.log('Error: Project ' + projectID + ' could not be found. Did you enter a valid Scratch project URL?');
+                	    report_dict['error'] = true;
+		}	
              /// Getting the project file itself
             get('https://chord.cs.uchicago.edu/scratch/project/' + projectID)
             .then(async function (result) {
                 var projectJSON = JSON.parse(result.target.response);
                 if (projectJSON.targets === undefined) {
-                    console.log('Error: Project ' + projectID + ' could not be found');
-                    report_dict['error'] = true;
-                    return;
-                }
+                   	console.log('Error: Project ' + projectID + ' could not be found');
+                    	report_dict['error'] = true;
+			return;
+		}
                 report_dict['error'] = false;
                 try {
                     analyze(projectJSON, projectInfo.author.username, projectID, report_dict, gradeObj);
                 }
                 catch (err) {
-                    //console.log('Error grading project ' + projectID);
+                    console.log('Error grading project ' + projectID);
                     //report_dict['error'] = err;
-                    //console.log(err);
+                    console.error(err);
                 }
             });
         });
@@ -95,7 +98,6 @@ function analyze(fileObj, user, id, report_dict, gradeObj) {
         console.log("end_grade_script");
     }
     catch (err) {
-        logger.enableLogger();
         console.log('Error grading project ' + id);
         console.log(err);
         report_dict['error'] = err;
