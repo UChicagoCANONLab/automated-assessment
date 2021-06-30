@@ -1,5 +1,5 @@
 {
-    "UChicagoX-CSPD10000_2T2021": {
+    "UChicagoX-Quan12000_1T2021": {
         "SERVER": "https://xqueue.edx.org",
         "CONNECTIONS": 1,
         "AUTH": ["zcrenshaw", "sccNTLHb7Tg4dMJJCb"],
