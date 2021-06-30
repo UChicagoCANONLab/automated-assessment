@@ -12,71 +12,12 @@ module.exports = class {
     }
 
     initReqs() {
-        this.requirements.kangaroo = {bool: false, str: 'Kangaroo script has been changed'};
-        this.requirements.grasshopper = {bool: false, str: 'Grasshopper script has been changed'};
-        this.requirements.bee = {bool: false, str: 'Bee flies in a circle when clicked (using next costume, turn, and move steps)'};
-        this.extensions.changeSize = {bool: false, str: 'Uses "change size by"'};
-        this.extensions.changeEffect = {bool: false, str: 'Uses "change color effect by"'}
-    }
-
-    //helper method to check if kangaroo and grasshopper have new scripts and set requirements accordingly
-    checkScripts(target) {
-        for (let script of target.scripts){
-            if (script.blocks[0].opcode.includes('event_')){
-                switch (target.name){
-                    case 'Kangaroo':
-                        if (script.blocks[0].opcode !== 'event_whenflagclicked'
-                            || !(script.blocks[1].opcode === 'motion_gotoxy'
-                                && script.blocks[1].inputs.X[1][1] == -180
-                                && script.blocks[1].inputs.Y[1][1] == -17)
-                            || !(script.blocks[2].opcode === 'looks_switchcostumeto'
-                                && target.blocks[script.blocks[2].inputs.COSTUME[1]].fields.COSTUME[0] === 'kangaroo crouching')
-                            || script.blocks.length != 3) {
-                                    this.requirements.kangaroo.bool = true;
-                        }
-                        break;
-                    case 'Grasshopper':
-                        if (script.blocks[0].opcode !== 'event_whenflagclicked' 
-                            || !(script.blocks[1].opcode === 'motion_gotoxy'
-                                && script.blocks[1].inputs.X[1][1] == -56
-                                && script.blocks[1].inputs.Y[1][1] == -80)
-                            || !(script.blocks[2].opcode === 'looks_switchcostumeto'
-                                && target.blocks[script.blocks[2].inputs.COSTUME[1]].fields.COSTUME[0] === 'Grasshopper-a')
-                            || script.blocks.length != 3){
-                                    this.requirements.grasshopper.bool = true;
-                                }
-                        break;
-                }
-            }
-        }
-    } 
-
-    //helper method to check if bee flies in a circle and whether the extra suggested blocks are used
-    checkBlocks(target) {
-        for (let script of target.scripts){
-            let costume = false;
-            let turn = false;
-            let move = false;
-            let size = false;
-            let effect = false;
-            if (script.blocks[0].opcode.includes('event_')){
-                for (let block of script.blocks){
-                    switch(block.opcode){
-                        case 'looks_nextcostume': costume = true; break;
-                        case 'motion_turnleft': turn = true; break;
-                        case 'motion_turnright': turn = true; break;
-                        case 'motion_movesteps': move = true; break;
-                        case 'looks_changesizeby': size = true; break;
-                        case 'looks_changeeffectby': effect = true; break;
-                    }
-                }
-            }
-            if (costume && turn && move && (target.name === 'Bee')){
-                this.requirements.bee.bool = true;
-            }
-            if (size) {this.extensions.changeSize.bool=true;}
-            if (effect) {this.extensions.changeEffect.bool=true;}
-        }
+        this.requirements.twoSprites = {bool: false, str: 'Two sprites move across the screen using a loop'};
+        this.requirements.threeSprites = {bool: false, str: 'Three sprites move across the screen using a loop'};
+        this.requirements.fourSprites = {bool: false, str: 'Four sprites move accross the screen using a loop'};
+        this.requirements.sound = {bool: false, str: 'Two sprites make a sound as they move'};
+        this.extensions.newSprite = {bool: false, str: 'Add a new sprite (with more than one costume) and have it move across the screen using a loop'};
+        this.extensions.changeY = {bool: false, str: 'Have a sprite move up and down the screen'}
     }
 
     grade(fileObj,user){
@@ -84,10 +25,28 @@ module.exports = class {
         this.initReqs();
         if (!is(fileObj)) return;
 
-        //runs helper methods
-        for (let target of project.targets){
-            this.checkScripts(target);
-            this.checkBlocks(target);
+        function procSprite(sprite){
+            var out = { movesInLoop : false,
+                        soundInLoop : false,
+                        changesY: false};
+            var validLoops = [].concat.apply([], sprite.scripts.filter(s=> s.blocks[0].opcode.includes("event_")).map(s=>s.blocks.filter(block=> block.opcode.includes("control_forever") || block.opcode.includes("control_repeat"))));
+            out.movesInLoop = validLoops.some(loop=>loop.subscripts.some(s=> s.blocks.some(block=>block.opcode.includes("motion_change") || block.opcode.includes("motion_move"))));
+            out.soundInLoop = validLoops.some(loop=>loop.subscripts.some(s=> s.blocks.some(block=>block.opcode.includes("sound_play"))));
+            out.changesY = validLoops.some(loop=>loop.subscripts.some(s=> s.blocks.some(block=>block.opcode.includes("motion_changeyby"))));
+            return out
         }
+        var results = project.targets.map(procSprite)
+        var numMovingSprites = results.filter(r=>r.movesInLoop).length
+        this.requirements.twoSprites.bool = numMovingSprites > 1;
+        this.requirements.threeSprites.bool = numMovingSprites > 2;
+        this.requirements.fourSprites.bool = numMovingSprites > 3;
+
+        this.requirements.sound.bool = results.filter(r=>r.soundInLoop).length > 1;
+
+        this.extensions.changeY.bool = results.filter(r=> r.changesY).length > 0;
+        this.extensions.newSprite.bool = numMovingSprites > 4;
+
+
+        //runs helper methods
     }
 }
