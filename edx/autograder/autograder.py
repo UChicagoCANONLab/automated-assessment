@@ -80,8 +80,8 @@ class ScratchGrader(Grader):
         else:
             results['msg'] = self.results_template.format(report_contents=report_div)
 
-        print("Results:\n", results)
         return results
 
     def render_results(self, results):
-        return results
+        print("Results",results)
+        return results['msg']
