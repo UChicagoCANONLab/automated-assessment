@@ -35,7 +35,9 @@ module.exports = class {
         let miscSpeed = false;
         let numMoveFred = 0;
         let distanceMoveFred = 0;
-        let numMoveMisc = 0;
+        let distanceMoveMisc = 0;
+
+        let requiredSteps = 150;
 
         for (let target of project.targets) {
             if (target.isStage) { continue; }
@@ -44,7 +46,7 @@ module.exports = class {
                 if (target.name === 'Fred') {
                     for (let script of target.scripts) {
                         for (let block of script.allBlocks()) {
-                            if ((block.opcode === 'looks_say') || (block.opcode === 'looks_sayforsecs')) {
+                            if ((block.opcode === 'looks_sayforsecs')) {
                                 let dialogue = (block.textInput('MESSAGE')).toLowerCase();
                                 let punctuationless = dialogue.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
                                 let finalString = punctuationless.replace(/\s{2,}/g, " ");
@@ -61,7 +63,7 @@ module.exports = class {
                         }
                     }
                     // if a move block is added, the boolean of fred moving is set to true
-                    if (numMoveFred > 3 || distanceMoveFred > 150) {
+                    if (distanceMoveFred > requiredSteps) {
                         fredMoves = true;
                     }
                 }
@@ -84,7 +86,7 @@ module.exports = class {
                             // when helen is clicked, she changes to a different color
                             if (script.blocks[0].opcode === "event_whenthisspriteclicked") {
                                 for (let block of script.blocks) {
-                                    if (['looks_switchcostumeto', 'looks_nextcostume'].includes(block.opcode)) {
+                                    if (['looks_nextcostume'].includes(block.opcode)) {
                                         helenColor = true;
                                     }
                                 }
@@ -95,46 +97,46 @@ module.exports = class {
                 }
                 // deals with the cases if the sprite names are changed from fred and helen
                 else {
-                    for (let block of target.blocks) {
-                        if ((block.opcode === 'looks_say') || (block.opcode === 'looks_sayforsecs')) {
-                            let dialogue1 = block.textInput('MESSAGE').toLowerCase()
-                            let punctuationless1 = dialogue1.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
-                            let finalString1 = punctuationless1.replace(/\s{2,}/g, " ");
-                            finalString1 = finalString1.replace(/\s+/g, '');
-                            // checks that have fun is said
-                            if (finalString1 === 'havefun') {
-                                haveFunMisc = true;
+                    for (let script of target.scripts)
+                    {
+                        for (let block of script.allBlocks()) {
+                            if ((block.opcode === 'looks_sayforsecs')) {
+                                let dialogue1 = block.textInput('MESSAGE').toLowerCase()
+                                let punctuationless1 = dialogue1.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+                                let finalString1 = punctuationless1.replace(/\s{2,}/g, " ");
+                                finalString1 = finalString1.replace(/\s+/g, '');
+                                // checks that have fun is said
+                                if (finalString1 === 'havefun') {
+                                    haveFunMisc = true;
+                                }
                             }
-                        }
 
-                        // motion block is used
-                        if (block.opcode === 'motion_movesteps') {
-                            numMoveMisc++;
-                        }
+                            // motion block is used
+                            if (block.opcode === 'motion_movesteps') {
+                                distanceMoveMisc += block.floatInput('STEPS');
+                            }
 
-                        // speed at which the sprite changes costumes is changed
-                        if (block.opcode === 'control_repeat') {
-                            let subscript = block.subscripts[0];
-                            for (let block of subscript.blocks) {
-                                if (block.opcode === 'control_wait') {
-                                    if (block.floatInput('DURATION') < 1) {
-                                        miscSpeed = true;
+                            // speed at which the sprite changes costumes is changed
+                            if (block.opcode === 'control_repeat') {
+                                let subscript = block.subscripts[0];
+                                for (let block of subscript.blocks) {
+                                    if (block.opcode === 'control_wait') {
+                                        if (block.floatInput('DURATION') < 1) {
+                                            miscSpeed = true;
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        // there is a switch costume block used in a context that is different from the original
-                        if (block.opcode === 'looks_switchcostumeto') {
-                            if (block.next === "ohLm|%[frcYkDCD02Izs" && block.parent === "N_^HGxU/.EOLU(;~p]Hp") {
-                                continue;
-                            } else {
+                            // Guide instructs students to add a next costume block
+                            if (block.opcode === 'looks_nextcostume') {
                                 miscColor = true;
                             }
                         }
+
                     }
                 }
-                if (numMoveMisc > 3) {
+                if (distanceMoveMisc > requiredSteps) {
                     miscMoves = true;
                 }
             }
@@ -151,6 +153,8 @@ module.exports = class {
         if (helenColor || miscColor) {
             this.requirements.helenDifferentColor.bool = true;
         }
+
+
 
         if (helenSpeed || miscSpeed) {
             this.requirements.helenChangesColorFaster.bool = true;

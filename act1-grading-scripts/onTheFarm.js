@@ -12,19 +12,22 @@ module.exports = class {
     }
 
     initReqs() {
-        this.requirements.scriptForBunnyMoves = { bool: false, str: 'Bunny has a script in which it moves' };
-        this.requirements.scriptForBunnySounds = { bool: false, str: 'Bunny has a script in which it makes a sound' };
-        this.requirements.scriptForBunnySaysOrThinks = { bool: false, str: 'Bunny has a script in which it says or thinks something' };
-        this.requirements.scriptInOrderBunny = {bool: false, str: 'Bunny has a script in which the blocks are used in the in the order specified: move, make a sound, say/think something'};
+        this.requirements.scriptForBunnyMoves = { bool: false, str: 'When Bunny is clicked it moves' };
+        this.requirements.scriptForBunnySounds = { bool: false, str: 'When Bunny is clicked it makes a sound' };
+        this.requirements.scriptForBunnySaysOrThinks = { bool: false, str: 'When Bunny is clicked it says or thinks something' };
+        this.requirements.scriptInOrderBunny = {bool: false, str: 'When Bunny is clicked the blocks are used in the in the order specified: move, make a sound, say/think something'};
 
-        this.requirements.scriptForHeddyMoves = { bool: false, str: 'Heddy has a script in which it moves' };
-        this.requirements.scriptForHeddySounds = { bool: false, str: 'Heddy has a script in which it makes a sound' };
-        this.requirements.scriptForHeddySaysOrThinks = { bool: false, str: 'Heddy has a script in which it says or thinks something' };
-        this.requirements.scriptInOrderHeddy = {bool: false, str: 'Heddy has a script in which the blocks are used in the in the order specified: move, make a sound, say/think something'};
+        this.requirements.scriptForHeddyMoves = { bool: false, str: 'When Heddy is clicked it moves' };
+        this.requirements.scriptForHeddySounds = { bool: false, str: 'When Heddy is clicked it makes a sound' };
+        this.requirements.scriptForHeddySaysOrThinks = { bool: false, str: 'When Heddy is clicked it says or thinks something' };
+        this.requirements.scriptInOrderHeddy = {bool: false, str: 'When Heddy is clicked the blocks are used in the in the order specified: move, make a sound, say/think something'};
+        this.requirements.bunnyOrigin = {bool: false, str: 'Set starting place for Bunny'};
+        this.requirements.heddyOrigin = {bool: false, str: 'Set starting place for Heddy'};
 
         this.requirements.rooGlides = { bool: false, str: "Another glide block is added to Roo's script to make it move back to the starting location" };
-        this.extensions.allMove = { bool: false, str: 'All animals move to a different location' };
-        this.extensions.anotherSprite = { bool: false, str: 'Another sprite is added and has a script' };
+        this.extensions.heddyMoves = {bool: false, str: "Make Heddy move to another location"}
+        this.extensions.bunnyMoves = {bool: false, str: "Make Bunny move to another location"}
+        this.extensions.anotherSprite = { bool: false, str: 'Another sprite is added that moves, makes a sound, then does something else when clicked' };
     }
 
     grade(fileObj, user) {
@@ -42,8 +45,24 @@ module.exports = class {
             for (let target of project.targets) {
                 if ((target.name !== 'Bunny') && (target.name!== 'Heddy') && (target.name !== 'Roo')) {
                     for (let script of target.scripts) {
-                        if (script.blocks.length > 1) {
-                            this.extensions.anotherSprite.bool = true;
+                        if (script.blocks[0].opcode === 'event_whenthisspriteclicked') {
+                            let motionSatisfied = false;
+                            let soundSatisfied = false;
+                            for(let block of script.blocks){
+                                if(!motionSatisfied){
+                                    if(block.opcode.includes('motion_')){
+                                        motionSatisfied = true;
+                                    }
+                                    continue;
+                                } else if(!soundSatisfied){
+                                    if(block.opcode.includes('sound_')){
+                                        soundSatisfied = true;
+                                    }
+                                    continue;
+                                } else{
+                                    this.extensions.anotherSprite.bool = true;
+                                }
+                            }
                         }
                     }
                 }
@@ -57,6 +76,8 @@ module.exports = class {
         let soundIndexHeddy = 0;
         let sayIndexHeddy = 0;
 
+        let extraMinBlocks = 1;
+
         for (let target of project.targets) {
             if (target.isStage) { continue; }
             else {
@@ -64,7 +85,7 @@ module.exports = class {
                     for (let script of target.scripts) {
                         // makes sure that it is part of a script that starts with an event block
                         for (let i = 0; i < script.blocks.length; i++) {
-                            if (eventOpcodes.includes(script.blocks[0].opcode)) {
+                            if (script.blocks[0].opcode === 'event_whenthisspriteclicked') {
                                 if (script.blocks[i].opcode === 'motion_movesteps') {
                                     moveIndexBunny = i;
                                     this.requirements.scriptForBunnyMoves.bool = true;
@@ -90,8 +111,12 @@ module.exports = class {
                                             break;
                                         }
                                     }
-
                             }
+                        }
+                        if(script.blocks[0].opcode === 'event_whenflagclicked') {
+                            this.requirements.bunnyOrigin.bool = script.blocks.map(block => block.opcode).includes('motion_gotoxy')
+                        }else if(script.blocks[0].opcode === 'event_whenthisspriteclicked') {
+                            this.extensions.bunnyMoves.bool = script.blocks.filter(block => block.opcode.includes('motion_')).length > extraMinBlocks;
                         }
                     }
                 }
@@ -99,7 +124,7 @@ module.exports = class {
                     for (let script of target.scripts) {
                         // makes sure that it is part of a script that starts with an event block
                         for (let i = 0; i < script.blocks.length; i++) {
-                            if (eventOpcodes.includes(script.blocks[0].opcode)) {
+                            if (script.blocks[0].opcode === 'event_whenthisspriteclicked') {
                                 if (script.blocks[i].opcode === 'motion_movesteps') {
                                     moveIndexHeddy = i;
                                     this.requirements.scriptForHeddyMoves.bool = true;
@@ -127,6 +152,11 @@ module.exports = class {
                                     }
                             }
                         }
+                        if(script.blocks[0].opcode === 'event_whenflagclicked') {
+                            this.requirements.heddyOrigin.bool = script.blocks.map(block => block.opcode).includes('motion_gotoxy')
+                        } else if(script.blocks[0].opcode === 'event_whenthisspriteclicked') {
+                            this.extensions.heddyMoves.bool = script.blocks.filter(block => block.opcode.includes('motion_')).length > extraMinBlocks;
+                        }
                     }
                 }
 
@@ -134,7 +164,7 @@ module.exports = class {
                     for (let script of target.scripts) {
                         // makes sure that it is part of a script that starts with an event block
                         for (let i = 0; i < script.blocks.length; i++) {
-                            if (eventOpcodes.includes(script.blocks[0].opcode)) {
+                            if ("event_whenthisspriteclicked" === script.blocks[0].opcode) {
                                 if (script.blocks[i].opcode === 'motion_glidesecstoxy') {
                                     numGlides++;
                                 }

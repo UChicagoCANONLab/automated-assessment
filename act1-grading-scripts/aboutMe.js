@@ -17,24 +17,23 @@ module.exports = class {
         this.requirements.hasTwoSprites = { bool: false, str: 'Project has at least two sprites' };
         this.requirements.hasThreeSprites = { bool: false, str: 'Project has at least three sprites' };
         // interaction - done
-        this.requirements.hasOneInteractiveSprite = { bool: false, str: 'Project has at least one interactive sprite' };
-        this.requirements.hasTwoInteractiveSprites = { bool: false, str: 'Project has at least two interactive sprites' };
-        this.requirements.hasThreeInteractiveSprites = { bool: false, str: 'Project has at least three interactive sprites' };
+        this.requirements.hasOneSpeakingInteractive = { bool: false, str: 'Project has at least one sprite that says or thinks' };
+        this.requirements.hasTwoSpeakingInteractive = { bool: false, str: 'Project has at least two sprites that says or thinks' };
+        this.requirements.hasThreeSpeakingInteractive = { bool: false, str: 'Project has at least three sprites that says or thinks' };
         // interactive and speaking  - done
-        this.requirements.hasOneSpeakingInteractive = { bool: false, str: 'Project has one interactive sprite that speaks' };
-        this.requirements.hasTwoSpeakingInteractive = { bool: false, str: 'Project has two interactive sprites that speak' };
-        this.requirements.hasThreeSpeakingInteractive = { bool: false, str: 'Project has three interactive sprites that speak' };
+        this.requirements.oneInteractive = { bool: false, str: 'Project has one sprite with at least three actions' };
+        this.requirements.twoInteractive = { bool: false, str: 'Project has two sprites with at least three actions' };
+        this.requirements.threeInteractive = { bool: false, str: 'Project has three sprites with at least three actions' };
         // background - done
         this.requirements.hasBackdrop = { bool: false, str: 'This project has a backdrop' };
         // speaking - done
-        this.requirements.usesSayBlock = {bool: false, str: 'This project uses a say block'};
       
 
         // check for block usage - done 
-        this.extensions.usesThinkBlock = { bool: false, str: 'Project uses the think block' };
-        this.extensions.changeSize = { bool: false, str: 'Project uses change size block' };
-        this.extensions.playSound = { bool: false, str: 'Project uses play sound until done' };
-        this.extensions.moveSteps = { bool: false, str: 'Project uses a move block' };
+        // this.extensions.usesThinkBlock = { bool: false, str: 'Project uses the think block' };
+        // this.extensions.changeSize = { bool: false, str: 'Project uses change size block' };
+        // this.extensions.playSound = { bool: false, str: 'Project uses play sound until done' };
+        // this.extensions.moveSteps = { bool: false, str: 'Project uses a move block' };
         
 
 
@@ -67,39 +66,33 @@ module.exports = class {
                     // finds a script that starts when when the sprite is clicked and then makes sure that there is a script attached
                     // increases the number of interactive sprites
                     if (script.blocks[0].opcode === 'event_whenthisspriteclicked') {
-                        if (script.blocks.length > 1) {
+                        if (script.blocks.length > 4) {
                             numInteractive++;
                         }
                         for (let i = 0; i < script.blocks.length; i++) {
                             // finds the blocks in a script that are a say block, once a block is found
                             // boolean that shows that there is an interactive sprite that speaks is marked as true
-                            if ((script.blocks[i].opcode === 'looks_say') ||
-                                (script.blocks[i].opcode === 'looks_sayforsecs')) {
-                                isInteractiveAndSpeaks = true;
-                            }
+                            var opcode = script.blocks[i].opcode
+                            isInteractiveAndSpeaks = opcode.includes("looks_say") || opcode.includes("looks_think")
                         }
                     }
 
                     // looks for different blocks to mark the extensions are true
-                    for (let i = 0; i < script.blocks.length; i++) {
-                        if (script.blocks[i].opcode === 'looks_thinkforsecs') {
-                            this.extensions.usesThinkBlock.bool = true;
-                        }
-                        if (script.blocks[i].opcode === 'looks_changesizeby') {
-                            this.extensions.changeSize.bool = true;
-                        }
-                        if (script.blocks[i].opcode === 'sound_playuntildone') {
-                            this.extensions.playSound.bool = true;
-                        }
-                        if (script.blocks[i].opcode === 'motion_movesteps') {
-                            this.extensions.moveSteps.bool = true;
-                        }
-                        // plainly makes sure that the sprite uses a say block in a script 
-                        if ((script.blocks[i].opcode === 'looks_say') || (script.blocks[i].opcode === 'looks_sayforsecs')) {
-                            this.requirements.usesSayBlock.bool = true;
-                        }
-                    
-                    }
+                    // for (let i = 0; i < script.blocks.length; i++) {
+                    //     if (script.blocks[i].opcode === 'looks_thinkforsecs') {
+                    //         this.extensions.usesThinkBlock.bool = true;
+                    //     }
+                    //     if (script.blocks[i].opcode === 'looks_changesizeby') {
+                    //         this.extensions.changeSize.bool = true;
+                    //     }
+                    //     if (script.blocks[i].opcode === 'sound_playuntildone') {
+                    //         this.extensions.playSound.bool = true;
+                    //     }
+                    //     if (script.blocks[i].opcode === 'motion_movesteps') {
+                    //         this.extensions.moveSteps.bool = true;
+                    //     }
+                                      
+                    // }
                     // everytime there is a sprite that is interactive and speaks, increase the number of the sprites that fall under
                     // this category
                     if (isInteractiveAndSpeaks) {
@@ -122,13 +115,13 @@ module.exports = class {
 
         // number of interactive sprites
         if (numInteractive >= 1) {
-            this.requirements.hasOneInteractiveSprite.bool = true;
+            this.requirements.oneInteractive.bool = true;
         } 
         if (numInteractive >= 2) {
-            this.requirements.hasTwoInteractiveSprites.bool = true;
+            this.requirements.twoInteractive.bool = true;
         } 
         if (numInteractive >= 3) {
-            this.requirements.hasThreeInteractiveSprites.bool = true;
+            this.requirements.threeInteractive.bool = true;
         }
 
         // number of interactive and speaking sprites
