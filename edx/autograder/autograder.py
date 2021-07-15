@@ -21,7 +21,9 @@ class ScratchGrader(Grader):
     def grade(self, grader_path, grader_config, student_response):
         problem = grader_config['module']
         stripped_response = student_response.strip(" \t\n\r")
-        student_id = stripped_response.split('/')[-1] 
+        student_id = stripped_response.split('/')[-1]
+        if student_id == "editor":
+            student_id = stripped_response.split('/')[-2]
         if len(student_id) < 2 and len(stripped_response.split('/')) > 1:
             student_id = stripped_response.split('/')[-2] 
         print("id", student_id)
