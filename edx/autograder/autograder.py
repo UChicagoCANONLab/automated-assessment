@@ -21,11 +21,12 @@ class ScratchGrader(Grader):
     def grade(self, grader_path, grader_config, student_response):
         problem = grader_config['module']
         stripped_response = student_response.strip(" \t\n\r")
-        student_id = stripped_response.split('/')[-1]
-        if student_id == "editor":
-            student_id = stripped_response.split('/')[-2]
-        if len(student_id) < 2 and len(stripped_response.split('/')) > 1:
-            student_id = stripped_response.split('/')[-2] 
+        split_response = stripped_response.split('/')
+        if "editor" in split_response:
+            split_response.remove("editor")
+        student_id = split_response[-1]
+        if len(student_id) < 2 and len(split_response) > 1:
+            student_id = split_response[-2]
         print("id", student_id)
         print("problem", problem)
         results = {"correct": False,
