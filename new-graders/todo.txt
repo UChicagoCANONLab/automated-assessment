@@ -1,0 +1,22 @@
+Actions to take a look at:
+moving across the screen
+
+module 2:
+gets larger (two possibilities for actions)
+spin (turn -> wait -> turn)
+blink (hide -> wait -> show)
+
+module 3 animations:
+dribble (repeat -> [wait -> next costume])
+jump up and down
+row in place (repeat -> [wait -> next costume])
+row across the screen (repeat -> [switch costume, wait, move, next costume, ...])
+with movement
+without movement
+
+module 4:
+move until touching object (repeat until touching, (move, wait))
+touching object (repeat until touching + dropdown for object)
+
+module 5:
+bounce off

@@ -1,0 +1,680 @@
+{
+  "targets": [
+    {
+      "isStage": true,
+      "name": "Stage",
+      "variables": {},
+      "lists": {},
+      "broadcasts": {},
+      "blocks": {},
+      "comments": {},
+      "currentCostume": 0,
+      "costumes": [
+        {
+          "assetId": "bd72cb5f3bded42480516a718001b528",
+          "name": "Sambadrome",
+          "bitmapResolution": 1,
+          "md5ext": "bd72cb5f3bded42480516a718001b528.svg",
+          "dataFormat": "svg",
+          "rotationCenterX": 240,
+          "rotationCenterY": 180
+        }
+      ],
+      "sounds": [
+        {
+          "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+          "name": "pop",
+          "dataFormat": "wav",
+          "format": "",
+          "rate": 48000,
+          "sampleCount": 1123,
+          "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+        }
+      ],
+      "volume": 100,
+      "layerOrder": 0,
+      "tempo": 60,
+      "videoTransparency": 50,
+      "videoState": "off",
+      "textToSpeechLanguage": null
+    },
+    {
+      "isStage": false,
+      "name": "Butterfly",
+      "variables": {},
+      "lists": {},
+      "broadcasts": {},
+      "blocks": {
+        "?3Zl.6nOK{[BWe^7a5{B": {
+          "opcode": "event_whenflagclicked",
+          "next": "+Cfb89be^mtRZV7]^7*?",
+          "parent": null,
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": true,
+          "x": -483,
+          "y": -531
+        },
+        "+Cfb89be^mtRZV7]^7*?": {
+          "opcode": "motion_gotoxy",
+          "next": "oUQPz4^X*Pf3SaNm.|%o",
+          "parent": "?3Zl.6nOK{[BWe^7a5{B",
+          "inputs": {
+            "X": [
+              1,
+              [
+                4,
+                "-325"
+              ]
+            ],
+            "Y": [
+              1,
+              [
+                4,
+                -65
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "/(%U[W6DY.cdTnp,78:O": {
+          "opcode": "control_repeat_until",
+          "next": null,
+          "parent": "oUQPz4^X*Pf3SaNm.|%o",
+          "inputs": {
+            "CONDITION": [
+              2,
+              "N^bw~_OboaqS;e/oA5;["
+            ],
+            "SUBSTACK": [
+              2,
+              "ZY6yg~jw,+5zy^(_?Cqw"
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "N^bw~_OboaqS;e/oA5;[": {
+          "opcode": "sensing_touchingobject",
+          "next": null,
+          "parent": "/(%U[W6DY.cdTnp,78:O",
+          "inputs": {
+            "TOUCHINGOBJECTMENU": [
+              1,
+              "bVZa^Cr6s}-L+{PzN;D?"
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "bVZa^Cr6s}-L+{PzN;D?": {
+          "opcode": "sensing_touchingobjectmenu",
+          "next": null,
+          "parent": "N^bw~_OboaqS;e/oA5;[",
+          "inputs": {},
+          "fields": {
+            "TOUCHINGOBJECTMENU": [
+              "King Momo"
+            ]
+          },
+          "shadow": true,
+          "topLevel": false
+        },
+        "ZY6yg~jw,+5zy^(_?Cqw": {
+          "opcode": "motion_movesteps",
+          "next": ",T!=6NSo1Z.0]:-+dZNR",
+          "parent": "/(%U[W6DY.cdTnp,78:O",
+          "inputs": {
+            "STEPS": [
+              1,
+              [
+                4,
+                "2"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "~(EB0p9Iqeo{}{;fTUW:": {
+          "opcode": "sensing_touchingcolor",
+          "next": null,
+          "parent": null,
+          "inputs": {
+            "COLOR": [
+              1,
+              [
+                9,
+                "#e64e3e"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": true,
+          "x": -140,
+          "y": -508,
+          "comment": "k)L~z*+b|rNaAP57;rUd"
+        },
+        "oUQPz4^X*Pf3SaNm.|%o": {
+          "opcode": "control_wait",
+          "next": "/(%U[W6DY.cdTnp,78:O",
+          "parent": "+Cfb89be^mtRZV7]^7*?",
+          "inputs": {
+            "DURATION": [
+              1,
+              [
+                5,
+                "1"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        ",T!=6NSo1Z.0]:-+dZNR": {
+          "opcode": "control_wait",
+          "next": null,
+          "parent": "ZY6yg~jw,+5zy^(_?Cqw",
+          "inputs": {
+            "DURATION": [
+              1,
+              [
+                5,
+                ".1"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        }
+      },
+      "comments": {
+        "k)L~z*+b|rNaAP57;rUd": {
+          "blockId": "~(EB0p9Iqeo{}{;fTUW:",
+          "x": 236.70706958089977,
+          "y": -558.9639699541087,
+          "width": 200,
+          "height": 200,
+          "minimized": false,
+          "text": "Use this block instead of the touching \"King Momo\" or \"Stop Sign\" block to have the float stop at one of the color lines on the street."
+        }
+      },
+      "currentCostume": 0,
+      "costumes": [
+        {
+          "assetId": "15a80dcb99ac6bef9a4fd2934aa78d8c",
+          "name": "Butterfly Float",
+          "bitmapResolution": 1,
+          "md5ext": "15a80dcb99ac6bef9a4fd2934aa78d8c.svg",
+          "dataFormat": "svg",
+          "rotationCenterX": 65,
+          "rotationCenterY": 100
+        },
+        {
+          "assetId": "024464c850fe008b3e5396d88551643c",
+          "name": "Foosball Float",
+          "bitmapResolution": 1,
+          "md5ext": "024464c850fe008b3e5396d88551643c.svg",
+          "dataFormat": "svg",
+          "rotationCenterX": 127.06507873535156,
+          "rotationCenterY": 53.921165466308594
+        },
+        {
+          "assetId": "13a3c3af1928ac189e0d0110ea53f23d",
+          "name": "Eagle Float",
+          "bitmapResolution": 1,
+          "md5ext": "13a3c3af1928ac189e0d0110ea53f23d.svg",
+          "dataFormat": "svg",
+          "rotationCenterX": 65,
+          "rotationCenterY": 97.91893005371094
+        },
+        {
+          "assetId": "e45952b060ab2f647e22b9aea178e517",
+          "name": "Rio de Janeiro Float",
+          "bitmapResolution": 1,
+          "md5ext": "e45952b060ab2f647e22b9aea178e517.svg",
+          "dataFormat": "svg",
+          "rotationCenterX": 85.998291015625,
+          "rotationCenterY": 89.5671157836914
+        }
+      ],
+      "sounds": [
+        {
+          "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+          "name": "pop",
+          "dataFormat": "wav",
+          "format": "",
+          "rate": 48000,
+          "sampleCount": 1123,
+          "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+        }
+      ],
+      "volume": 100,
+      "layerOrder": 3,
+      "visible": true,
+      "x": 118,
+      "y": -65,
+      "size": 100,
+      "direction": 90,
+      "draggable": false,
+      "rotationStyle": "left-right"
+    },
+    {
+      "isStage": false,
+      "name": "Toucan",
+      "variables": {},
+      "lists": {},
+      "broadcasts": {},
+      "blocks": {
+        "H:Xg0b8eLJGUFImS2XEz": {
+          "opcode": "event_whenflagclicked",
+          "next": "{[+Bm@*U6u34j+LAHBaJ",
+          "parent": null,
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": true,
+          "x": -452,
+          "y": -524
+        },
+        "{[+Bm@*U6u34j+LAHBaJ": {
+          "opcode": "motion_gotoxy",
+          "next": "N8=B3J]u%dz!tW,W9p?~",
+          "parent": "H:Xg0b8eLJGUFImS2XEz",
+          "inputs": {
+            "X": [
+              1,
+              [
+                4,
+                "-300"
+              ]
+            ],
+            "Y": [
+              1,
+              [
+                4,
+                -100
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "j:^NE1OmeFqVs0D3m,u@": {
+          "opcode": "control_repeat_until",
+          "next": null,
+          "parent": "N8=B3J]u%dz!tW,W9p?~",
+          "inputs": {
+            "CONDITION": [
+              2,
+              "NhrN2N2B+q9P4VwsFrdN"
+            ],
+            "SUBSTACK": [
+              2,
+              "_TwkKO(Og;|o1$X)fL9o"
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "NhrN2N2B+q9P4VwsFrdN": {
+          "opcode": "sensing_touchingcolor",
+          "next": null,
+          "parent": "j:^NE1OmeFqVs0D3m,u@",
+          "inputs": {
+            "COLOR": [
+              1,
+              [
+                9,
+                "#e64e3e"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "_TwkKO(Og;|o1$X)fL9o": {
+          "opcode": "motion_movesteps",
+          "next": "CF]M}%#3Adrz#EBd5;jW",
+          "parent": "j:^NE1OmeFqVs0D3m,u@",
+          "inputs": {
+            "STEPS": [
+              1,
+              [
+                4,
+                "1"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "N8=B3J]u%dz!tW,W9p?~": {
+          "opcode": "control_wait",
+          "next": "j:^NE1OmeFqVs0D3m,u@",
+          "parent": "{[+Bm@*U6u34j+LAHBaJ",
+          "inputs": {
+            "DURATION": [
+              1,
+              [
+                5,
+                "1"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "CF]M}%#3Adrz#EBd5;jW": {
+          "opcode": "control_wait",
+          "next": null,
+          "parent": "_TwkKO(Og;|o1$X)fL9o",
+          "inputs": {
+            "DURATION": [
+              1,
+              [
+                5,
+                ".1"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        }
+      },
+      "comments": {},
+      "currentCostume": 0,
+      "costumes": [
+        {
+          "assetId": "358389ede568bd95a5d6fcd80eb2119e",
+          "name": "Toucan Float",
+          "bitmapResolution": 1,
+          "md5ext": "358389ede568bd95a5d6fcd80eb2119e.svg",
+          "dataFormat": "svg",
+          "rotationCenterX": 135,
+          "rotationCenterY": 65
+        }
+      ],
+      "sounds": [
+        {
+          "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+          "name": "pop",
+          "dataFormat": "wav",
+          "format": "",
+          "rate": 48000,
+          "sampleCount": 1123,
+          "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+        }
+      ],
+      "volume": 100,
+      "layerOrder": 4,
+      "visible": true,
+      "x": -96,
+      "y": -100,
+      "size": 100,
+      "direction": 90,
+      "draggable": false,
+      "rotationStyle": "left-right"
+    },
+    {
+      "isStage": false,
+      "name": "King Momo",
+      "variables": {},
+      "lists": {},
+      "broadcasts": {},
+      "blocks": {
+        "`J;(Yr!NHe]WM]r[Kj*z": {
+          "opcode": "event_whenthisspriteclicked",
+          "next": "l*zItNS.eFtvx|R@:pP-",
+          "parent": null,
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": true,
+          "x": 10,
+          "y": -486
+        },
+        "l*zItNS.eFtvx|R@:pP-": {
+          "opcode": "looks_sayforsecs",
+          "next": "h4=*nG}?2Pc(kgBJWJ(-",
+          "parent": "`J;(Yr!NHe]WM]r[Kj*z",
+          "inputs": {
+            "MESSAGE": [
+              1,
+              [
+                10,
+                "Welcome to Rio de Janeiro! Welcome to Carnival!"
+              ]
+            ],
+            "SECS": [
+              1,
+              [
+                4,
+                "6"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "h4=*nG}?2Pc(kgBJWJ(-": {
+          "opcode": "looks_sayforsecs",
+          "next": "/R}YB*tU*u6mQ1eBRJ/x",
+          "parent": "l*zItNS.eFtvx|R@:pP-",
+          "inputs": {
+            "MESSAGE": [
+              1,
+              [
+                10,
+                "For a few days of each year, Carnival transforms the streets of Rio into a festival of music and parades."
+              ]
+            ],
+            "SECS": [
+              1,
+              [
+                4,
+                "10"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "/R}YB*tU*u6mQ1eBRJ/x": {
+          "opcode": "looks_sayforsecs",
+          "next": "~@FQV3dKt?uB(t#xrYS`",
+          "parent": "h4=*nG}?2Pc(kgBJWJ(-",
+          "inputs": {
+            "MESSAGE": [
+              1,
+              [
+                10,
+                "I am this year's King Momo, the leader of the celebrations!"
+              ]
+            ],
+            "SECS": [
+              1,
+              [
+                4,
+                "8"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "~@FQV3dKt?uB(t#xrYS`": {
+          "opcode": "looks_sayforsecs",
+          "next": "HP##IfnbgaQ9V0|BCKCy",
+          "parent": "/R}YB*tU*u6mQ1eBRJ/x",
+          "inputs": {
+            "MESSAGE": [
+              1,
+              [
+                10,
+                "Every year, a different Momo is chosen to get the parades and dances of Carnival started."
+              ]
+            ],
+            "SECS": [
+              1,
+              [
+                4,
+                "8"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "HP##IfnbgaQ9V0|BCKCy": {
+          "opcode": "looks_sayforsecs",
+          "next": "5wPxwkyx-{){MN^Xk9OX",
+          "parent": "~@FQV3dKt?uB(t#xrYS`",
+          "inputs": {
+            "MESSAGE": [
+              1,
+              [
+                10,
+                "Right now, we're lining up the parade floats in the right order for our big entrance."
+              ]
+            ],
+            "SECS": [
+              1,
+              [
+                4,
+                "8"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "5wPxwkyx-{){MN^Xk9OX": {
+          "opcode": "looks_sayforsecs",
+          "next": null,
+          "parent": "HP##IfnbgaQ9V0|BCKCy",
+          "inputs": {
+            "MESSAGE": [
+              1,
+              [
+                10,
+                "Now let the celebrations begin!"
+              ]
+            ],
+            "SECS": [
+              1,
+              [
+                4,
+                "4"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        }
+      },
+      "comments": {},
+      "currentCostume": 0,
+      "costumes": [
+        {
+          "assetId": "c6f00b3573465cc1f2a9bf9aad924709",
+          "name": "King Momo",
+          "bitmapResolution": 1,
+          "md5ext": "c6f00b3573465cc1f2a9bf9aad924709.svg",
+          "dataFormat": "svg",
+          "rotationCenterX": 30,
+          "rotationCenterY": 35
+        }
+      ],
+      "sounds": [
+        {
+          "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+          "name": "pop",
+          "dataFormat": "wav",
+          "format": "",
+          "rate": 48000,
+          "sampleCount": 1123,
+          "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+        }
+      ],
+      "volume": 100,
+      "layerOrder": 2,
+      "visible": true,
+      "x": 204,
+      "y": -130,
+      "size": 100,
+      "direction": 90,
+      "draggable": false,
+      "rotationStyle": "all around"
+    },
+    {
+      "isStage": false,
+      "name": "Stop Sign",
+      "variables": {},
+      "lists": {},
+      "broadcasts": {},
+      "blocks": {},
+      "comments": {},
+      "currentCostume": 0,
+      "costumes": [
+        {
+          "assetId": "21d9b38330c08514704103d67968951e",
+          "name": "Stop Sign",
+          "bitmapResolution": 1,
+          "md5ext": "21d9b38330c08514704103d67968951e.svg",
+          "dataFormat": "svg",
+          "rotationCenterX": 25,
+          "rotationCenterY": 50
+        }
+      ],
+      "sounds": [
+        {
+          "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+          "name": "pop",
+          "dataFormat": "wav",
+          "format": "",
+          "rate": 48000,
+          "sampleCount": 1123,
+          "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+        }
+      ],
+      "volume": 100,
+      "layerOrder": 1,
+      "visible": true,
+      "x": 217,
+      "y": -74,
+      "size": 100,
+      "direction": 90,
+      "draggable": false,
+      "rotationStyle": "all around"
+    }
+  ],
+  "monitors": [],
+  "extensions": [],
+  "meta": {
+    "semver": "3.0.0",
+    "vm": "0.2.0-prerelease.20190813192748",
+    "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"
+  }
+}
