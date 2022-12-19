@@ -227,8 +227,8 @@ function get(url) {
 async function gradeOneProject(projectID) {
 
     console.log('Grading project ' + projectID);
-    /// Getting the project page from Scratch so we can see the teacher-facing usernames
-    get('https://chord.cs.uchicago.edu/scratch/projectinfo/' + projectID)
+    /// Getting the project info via Scratch API
+    get('https://api.scratch.mit.edu/projects/' + projectID)
         .then(async function (result) {
             var projectInfo = JSON.parse(result.target.response);
             if (projectInfo.length === 0 || projectInfo.targets === undefined){
@@ -239,19 +239,15 @@ async function gradeOneProject(projectID) {
                     hideColorKey();                    
                 }
             }
-             /// Getting the project file itself
-            get('https://chord.cs.uchicago.edu/scratch/project/' + projectID)
+
+            /// Using project ID and token download project JSON file only via Scratch API
+            projectToken = projectInfo.project_token
+            projectAuthor = projectInfo.author.username
+            get('https://projects.scratch.mit.edu/' + projectID + '?token=' + projectToken)
             .then(async function (result) {
                 var projectJSON = JSON.parse(result.target.response);
-                if (downloadEnabled) {
-                    downloadProject(projectID, result.target.response);
-                }
-                if (projectJSON.targets === undefined) {
-                    console.log('Project ' + projectID + ' could not be found');
-                    return;
-                }
                 try {
-                    analyze(projectJSON, projectInfo.author.username, projectID);
+                    analyze(projectJSON, projectAuthor, projectID);
                 }
                 catch (err) {
                     console.log('Error grading project ' + projectID);
@@ -295,7 +291,7 @@ async function gradeStudioProject(projectIdentifier) {
     let projectAuthor = projectIdentifier.author;
     console.log('Grading project ' + projectID);
     /// Getting the project page from Scratch so we can see the teacher-facing usernames
-    get('https://chord.cs.uchicago.edu/scratch/projectinfo/' + projectID)
+    get('https://api.scratch.mit.edu/projects/' + projectID)
         .then(async function (result) {
             let projectInfo = JSON.parse(result.target.response);
             if (projectInfo.length === 0 || projectInfo.targets === undefined) {
@@ -305,18 +301,12 @@ async function gradeStudioProject(projectIdentifier) {
                     hideColorKey();
                 }
             }
-            projectAuthor = projectInfo.author.username;
-             /// Getting the project file itself
-            get('https://chord.cs.uchicago.edu/scratch/project/' + projectID)
+            /// Using project ID and token download project JSON file only via Scratch API
+            projectToken = projectInfo.project_token
+            projectAuthor = projectInfo.author.username
+            get('https://projects.scratch.mit.edu/' + projectID + '?token=' + projectToken)
             .then(async function (result) {
                 let projectJSON = JSON.parse(result.target.response);
-                if (downloadEnabled) {
-                    downloadProject(projectID, result.target.response);
-                }
-                if (projectJSON.targets === undefined) {
-                    console.log('Project ' + projectID + ' could not be found');
-                    return;
-                }
                 try {
                     analyze(projectJSON, projectAuthor, projectID);
                 }
@@ -329,17 +319,17 @@ async function gradeStudioProject(projectIdentifier) {
         });
 }
 
-function downloadProject(projectID, projectJSON) {
-    let hiddenElement = document.createElement('a');
-    hiddenElement.style.display = 'none';
-    hiddenElement.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(projectJSON));
-    hiddenElement.setAttribute('download', projectID);
-    document.body.appendChild(hiddenElement);
-    hiddenElement.click();
-    document.body.removeChild(hiddenElement);
-    console.log('Downloaded ' + projectID);
-    return;
-}
+// function downloadProject(projectID, projectJSON) {
+//     let hiddenElement = document.createElement('a');
+//     hiddenElement.style.display = 'none';
+//     hiddenElement.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(projectJSON));
+//     hiddenElement.setAttribute('download', projectID);
+//     document.body.appendChild(hiddenElement);
+//     hiddenElement.click();
+//     document.body.removeChild(hiddenElement);
+//     console.log('Downloaded ' + projectID);
+//     return;
+// }
 
 function analyze(fileObj, user, id) {
     try {
