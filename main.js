@@ -231,6 +231,7 @@ async function gradeOneProject(projectID) {
     get('https://api.scratch.mit.edu/projects/' + projectID)
         .then(async function (result) {
             var projectInfo = JSON.parse(result.target.response);
+            console.log("token received")
             if (projectInfo.length === 0 || projectInfo.targets === undefined){
                 if (!project_count) {
                     document.getElementById('wait_time').innerHTML =
