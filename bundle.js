@@ -11294,37 +11294,45 @@ function get(url) {
 
 async function gradeOneProject(projectID) {
 
-    console.log('Grading project ' + projectID);
+    console.log('Grading project with aws ' + projectID);
     /// Getting the project info via Scratch API
-    get('https://api.scratch.mit.edu/projects/' + projectID)
-        .then(async function (result) {
-            var projectInfo = JSON.parse(result.target.response);
-            console.log("token received")
-            if (projectInfo.length === 0 || projectInfo.targets === undefined){
-                if (!project_count) {
-                    document.getElementById('wait_time').innerHTML =
-                    'Project ' + projectID + ' could not be found. Did you enter a valid Scratch project URL?';
-                    IS_LOADING = false;
-                    hideColorKey();                    
-                }
-            }
 
-            /// Using project ID and token download project JSON file only via Scratch API
-            projectToken = projectInfo.project_token
-            projectAuthor = projectInfo.author.username
-            get('https://projects.scratch.mit.edu/' + projectID + '?token=' + projectToken)
-            .then(async function (result) {
-                var projectJSON = JSON.parse(result.target.response);
-                try {
-                    analyze(projectJSON, projectAuthor, projectID);
-                }
-                catch (err) {
-                    console.log('Error grading project ' + projectID);
-                    /// console.log(err);
-                }
-                printReportList();
-            });
-        });
+    get('https://backend-quantime.link/get_project?projectID=' + projectID)
+    .then(async function (result) {
+        console.log(result.target)
+        var projectJSON = JSON.parse(result.target.response);
+        analyze(projectJSON, '', projectID);
+        printReportList();
+    });
+    // get('https://api.scratch.mit.edu/projects/' + projectID)
+    //     .then(async function (result) {
+    //         var projectInfo = JSON.parse(result.target.response);
+    //         console.log("token received")
+    //         if (projectInfo.length === 0 || projectInfo.targets === undefined){
+    //             if (!project_count) {
+    //                 document.getElementById('wait_time').innerHTML =
+    //                 'Project ' + projectID + ' could not be found. Did you enter a valid Scratch project URL?';
+    //                 IS_LOADING = false;
+    //                 hideColorKey();                    
+    //             }
+    //         }
+
+    //         /// Using project ID and token download project JSON file only via Scratch API
+    //         projectToken = projectInfo.project_token
+    //         projectAuthor = projectInfo.author.username
+    //         get('https://projects.scratch.mit.edu/' + projectID + '?token=' + projectToken)
+    //         .then(async function (result) {
+    //             var projectJSON = JSON.parse(result.target.response);
+    //             try {
+    //                 analyze(projectJSON, projectAuthor, projectID);
+    //             }
+    //             catch (err) {
+    //                 console.log('Error grading project ' + projectID);
+    //                 /// console.log(err);
+    //             }
+    //             printReportList();
+    //         });
+    //     });
 }
 
 async function crawl(studioID, offset, projectIdentifiers) {
