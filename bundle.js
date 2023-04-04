@@ -11337,29 +11337,16 @@ async function gradeOneProject(projectID) {
 
 async function crawl(studioID, offset, projectIdentifiers) {
     if (!offset) console.log('Grading studio ' + studioID);
-    get('https://chord.cs.uchicago.edu/scratch/studio/' + studioID + '/offset/' + offset)
+    get('https://backend-quantime.link/get_studio?studioID=' + studioID)
         .then(async function (result) {
             let studioResponse = JSON.parse(result.target.response);
-            /// Keep crawling or return?
-            if (studioResponse.length === 0) {
-                keepGoing = false;
-                if (!project_count) {
-                    document.getElementById('wait_time').innerHTML =
-                        'No Scratch 3.0+ projects found. Did you enter a valid Scratch studio URL?';
-                    IS_LOADING = false;
-                }
-                for (let projectIdentifier of projectIdentifiers) {
+            for (let projectIdentifier of studioResponse) {
+                    console.log(projectIdentifier)
                     await gradeStudioProject(projectIdentifier);
                     if (downloadEnabled) await new Promise((resolve, reject) => setTimeout(resolve, 300));
-                }
-                return;
             }
-            else {
-                for (let projectOverview of studioResponse) {
-                    projectIdentifiers.push(new ProjectIdentifier(projectOverview));
-                }
-                await crawl(studioID, offset + 20, projectIdentifiers);
-            }
+            return;
+
         });
 }
 
@@ -11368,20 +11355,7 @@ async function gradeStudioProject(projectIdentifier) {
     let projectAuthor = projectIdentifier.author;
     console.log('Grading project ' + projectID);
     /// Getting the project page from Scratch so we can see the teacher-facing usernames
-    get('https://api.scratch.mit.edu/projects/' + projectID)
-        .then(async function (result) {
-            let projectInfo = JSON.parse(result.target.response);
-            if (projectInfo.length === 0 || projectInfo.targets === undefined) {
-                if (!project_count) {
-                    document.getElementById('wait_time').innerHTML = `Project ${projectID} could not be found. Did you enter a valid Scratch project URL?`;
-                    IS_LOADING = false;
-                    hideColorKey();
-                }
-            }
-            /// Using project ID and token download project JSON file only via Scratch API
-            projectToken = projectInfo.project_token
-            projectAuthor = projectInfo.author.username
-            get('https://projects.scratch.mit.edu/' + projectID + '?token=' + projectToken)
+    get('https://backend-quantime.link/get_project?projectID=' + projectID)
             .then(async function (result) {
                 let projectJSON = JSON.parse(result.target.response);
                 try {
@@ -11393,7 +11367,32 @@ async function gradeStudioProject(projectIdentifier) {
                 }
                 printReportList();
             });
-        });
+    // get('https://api.scratch.mit.edu/projects/' + projectID)
+    //     .then(async function (result) {
+    //         let projectInfo = JSON.parse(result.target.response);
+    //         if (projectInfo.length === 0 || projectInfo.targets === undefined) {
+    //             if (!project_count) {
+    //                 document.getElementById('wait_time').innerHTML = `Project ${projectID} could not be found. Did you enter a valid Scratch project URL?`;
+    //                 IS_LOADING = false;
+    //                 hideColorKey();
+    //             }
+    //         }
+    //         /// Using project ID and token download project JSON file only via Scratch API
+    //         projectToken = projectInfo.project_token
+    //         projectAuthor = projectInfo.author.username
+    //         get('https://projects.scratch.mit.edu/' + projectID + '?token=' + projectToken)
+    //         .then(async function (result) {
+    //             let projectJSON = JSON.parse(result.target.response);
+    //             try {
+    //                 analyze(projectJSON, projectAuthor, projectID);
+    //             }
+    //             catch (err) {
+    //                 console.log('Error grading project ' + projectID);
+    //                 /// console.log(err);
+    //             }
+    //             printReportList();
+    //         });
+    //     });
 }
 
 // function downloadProject(projectID, projectJSON) {
