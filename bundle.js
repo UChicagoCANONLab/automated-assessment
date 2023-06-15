@@ -11295,15 +11295,37 @@ function get(url) {
 async function gradeOneProject(projectID) {
 
     console.log('Grading project with aws ' + projectID);
-    /// Getting the project info via Scratch API
+    /// Getting the project metadata from Scratch API through TurboWarp
+    const metadataResponse = await fetch(`https://trampoline.turbowarp.org/api/projects/${projectID}`);
+    if (metadataResponse.status === 404) {
+        throw new Error('The project is unshared or does not exist');
+    }
+    if (!metadataResponse.ok) {
+        throw new Error(`HTTP error ${metadataResponse.status} fetching project metadata`);
+    }
+    const metadata = await metadataResponse.json();
+    console.log(metadata);
 
-    get('https://backend-quantime.link/get_project?projectID=' + projectID)
-    .then(async function (result) {
-        console.log(result.target)
-        var projectJSON = JSON.parse(result.target.response);
-        analyze(projectJSON, '', projectID);
-        printReportList();
-    });
+    /// Getting the project JSON using project ID and token
+    const token = metadata.project_token;
+    const projectResponse = await fetch(`https://projects.scratch.mit.edu/${projectID}?token=${token}`);
+    if (!projectResponse.ok) {
+        throw new Error(`HTTP error ${projectResponse.status} fetching project data`);
+    }
+    const projectJSON = await projectResponse.json();
+    console.log(projectJSON);
+
+    analyze(projectJSON, '', projectID);
+    printReportList();
+
+    // get('https://backend-quantime.link/get_project?projectID=' + projectID)
+    // .then(async function (result) {
+    //     console.log(result.target)
+    //     var projectJSON = JSON.parse(result.target.response);
+    //     analyze(projectJSON, '', projectID);
+    //     printReportList();
+    // });
+
     // get('https://api.scratch.mit.edu/projects/' + projectID)
     //     .then(async function (result) {
     //         var projectInfo = JSON.parse(result.target.response);
@@ -11356,17 +11378,18 @@ async function gradeStudioProject(projectIdentifier) {
     console.log('Grading project ' + projectID);
     /// Getting the project page from Scratch so we can see the teacher-facing usernames
     get('https://backend-quantime.link/get_project?projectID=' + projectID)
-            .then(async function (result) {
-                let projectJSON = JSON.parse(result.target.response);
-                try {
-                    analyze(projectJSON, projectAuthor, projectID);
-                }
-                catch (err) {
-                    console.log('Error grading project ' + projectID);
-                    /// console.log(err);
-                }
-                printReportList();
-            });
+        .then(async function (result) {
+            let projectJSON = JSON.parse(result.target.response);
+            try {
+                analyze(projectJSON, projectAuthor, projectID);
+            }
+            catch (err) {
+                console.log('Error grading project ' + projectID);
+                /// console.log(err);
+            }
+            printReportList();
+        });
+
     // get('https://api.scratch.mit.edu/projects/' + projectID)
     //     .then(async function (result) {
     //         let projectInfo = JSON.parse(result.target.response);
