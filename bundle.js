@@ -11307,6 +11307,7 @@ async function gradeOneProject(projectID) {
     console.log(metadata);
 
     /// Getting the project JSON using project ID and token
+    const projectAuthor = metadata.author.username;
     const token = metadata.project_token;
     const projectResponse = await fetch(`https://projects.scratch.mit.edu/${projectID}?token=${token}`);
     if (!projectResponse.ok) {
@@ -11315,107 +11316,67 @@ async function gradeOneProject(projectID) {
     const projectJSON = await projectResponse.json();
     console.log(projectJSON);
 
-    analyze(projectJSON, '', projectID);
+    try {
+        analyze(projectJSON, projectAuthor, projectID);
+    }
+    catch (err) {
+        console.log('Error grading project ' + projectID);
+        /// console.log(err);
+    }
     printReportList();
-
-    // get('https://backend-quantime.link/get_project?projectID=' + projectID)
-    // .then(async function (result) {
-    //     console.log(result.target)
-    //     var projectJSON = JSON.parse(result.target.response);
-    //     analyze(projectJSON, '', projectID);
-    //     printReportList();
-    // });
-
-    // get('https://api.scratch.mit.edu/projects/' + projectID)
-    //     .then(async function (result) {
-    //         var projectInfo = JSON.parse(result.target.response);
-    //         console.log("token received")
-    //         if (projectInfo.length === 0 || projectInfo.targets === undefined){
-    //             if (!project_count) {
-    //                 document.getElementById('wait_time').innerHTML =
-    //                 'Project ' + projectID + ' could not be found. Did you enter a valid Scratch project URL?';
-    //                 IS_LOADING = false;
-    //                 hideColorKey();                    
-    //             }
-    //         }
-
-    //         /// Using project ID and token download project JSON file only via Scratch API
-    //         projectToken = projectInfo.project_token
-    //         projectAuthor = projectInfo.author.username
-    //         get('https://projects.scratch.mit.edu/' + projectID + '?token=' + projectToken)
-    //         .then(async function (result) {
-    //             var projectJSON = JSON.parse(result.target.response);
-    //             try {
-    //                 analyze(projectJSON, projectAuthor, projectID);
-    //             }
-    //             catch (err) {
-    //                 console.log('Error grading project ' + projectID);
-    //                 /// console.log(err);
-    //             }
-    //             printReportList();
-    //         });
-    //     });
 }
 
-async function crawl(studioID, offset, projectIdentifiers) {
-    if (!offset) console.log('Grading studio ' + studioID);
-    get('https://backend-quantime.link/get_studio?studioID=' + studioID)
-        .then(async function (result) {
-            let studioResponse = JSON.parse(result.target.response);
-            for (let projectIdentifier of studioResponse) {
-                    console.log(projectIdentifier)
-                    await gradeStudioProject(projectIdentifier);
-                    if (downloadEnabled) await new Promise((resolve, reject) => setTimeout(resolve, 300));
-            }
-            return;
+async function crawl(studioID) {
+    const studioResponse = await fetch(`https://trampoline.turbowarp.org/api/studios/${studioID}/projects`);
+    if (studioResponse.status === 404) {
+        throw new Error('The studio is unshared or does not exist');
+    }
+    if (!studioResponse.ok) {
+        throw new Error(`HTTP error ${studioResponse.status} fetching studio metadata`);
+    }
+    const studioJSON = await studioResponse.json();
+    // console.log(studioJSON);
 
-        });
+    for (let projectIdentifier of studioJSON) {
+        // console.log(projectIdentifier);
+        await gradeStudioProject(projectIdentifier);
+        if (downloadEnabled) await new Promise((resolve, reject) => setTimeout(resolve, 300));
+    }
 }
 
 async function gradeStudioProject(projectIdentifier) {
     let projectID = projectIdentifier.id;
-    let projectAuthor = projectIdentifier.author;
+    let projectAuthor = projectIdentifier.username;
     console.log('Grading project ' + projectID);
-    /// Getting the project page from Scratch so we can see the teacher-facing usernames
-    get('https://backend-quantime.link/get_project?projectID=' + projectID)
-        .then(async function (result) {
-            let projectJSON = JSON.parse(result.target.response);
-            try {
-                analyze(projectJSON, projectAuthor, projectID);
-            }
-            catch (err) {
-                console.log('Error grading project ' + projectID);
-                /// console.log(err);
-            }
-            printReportList();
-        });
+    
+    /// Getting the project metadata from Scratch API through TurboWarp
+    const metadataResponse = await fetch(`https://trampoline.turbowarp.org/api/projects/${projectID}`);
+    if (metadataResponse.status === 404) {
+        throw new Error('The project is unshared or does not exist');
+    }
+    if (!metadataResponse.ok) {
+        throw new Error(`HTTP error ${metadataResponse.status} fetching project metadata`);
+    }
+    const metadata = await metadataResponse.json();
+    console.log(metadata);
 
-    // get('https://api.scratch.mit.edu/projects/' + projectID)
-    //     .then(async function (result) {
-    //         let projectInfo = JSON.parse(result.target.response);
-    //         if (projectInfo.length === 0 || projectInfo.targets === undefined) {
-    //             if (!project_count) {
-    //                 document.getElementById('wait_time').innerHTML = `Project ${projectID} could not be found. Did you enter a valid Scratch project URL?`;
-    //                 IS_LOADING = false;
-    //                 hideColorKey();
-    //             }
-    //         }
-    //         /// Using project ID and token download project JSON file only via Scratch API
-    //         projectToken = projectInfo.project_token
-    //         projectAuthor = projectInfo.author.username
-    //         get('https://projects.scratch.mit.edu/' + projectID + '?token=' + projectToken)
-    //         .then(async function (result) {
-    //             let projectJSON = JSON.parse(result.target.response);
-    //             try {
-    //                 analyze(projectJSON, projectAuthor, projectID);
-    //             }
-    //             catch (err) {
-    //                 console.log('Error grading project ' + projectID);
-    //                 /// console.log(err);
-    //             }
-    //             printReportList();
-    //         });
-    //     });
+    /// Getting the project JSON using project ID and token
+    const token = metadata.project_token;
+    const projectResponse = await fetch(`https://projects.scratch.mit.edu/${projectID}?token=${token}`);
+    if (!projectResponse.ok) {
+        throw new Error(`HTTP error ${projectResponse.status} fetching project data`);
+    }
+    const projectJSON = await projectResponse.json();
+    console.log(projectJSON);
+
+    try {
+        analyze(projectJSON, projectAuthor, projectID);
+    }
+    catch (err) {
+        console.log('Error grading project ' + projectID);
+        /// console.log(err);
+    }
+    printReportList();
 }
 
 // function downloadProject(projectID, projectJSON) {
