@@ -54,41 +54,6 @@ function get(url) {
 
 
 
-
-async function gradeOneProject(projectID, report_dict, gradeObj) {
-    /// Getting the project page from Scratch so we can see the teacher-facing usernames
-    get('https://chord.cs.uchicago.edu/scratch/projectinfo/' + projectID)
-        .then(async function (result) {
-            var projectInfo = JSON.parse(result.target.response);
-            if (projectInfo.length === 0 || projectInfo.targets === undefined){
-                    console.log('Error: Project ' + projectID + ' could not be found. Did you enter a valid Scratch project URL?');
-                    report_dict['error'] = true;
-            }
-            else {
-              report_dict['error'] = false;
-            }
-	    get('https://projects.scratch.mit.edu/' + projectID + '?token=' + projectInfo.project_token)
-    	    .then(async function (result) {
-                var projectJSON = JSON.parse(result.target.response);
-                if (projectJSON.targets === undefined) {
-                    console.log('Error: Project ' + projectID + ' could not be found');
-                    report_dict['error'] = true;
-                    return;
-                }
-                report_dict['error'] = false;
-                try {
-                    analyze(projectJSON, projectInfo.author.username, projectID, report_dict, gradeObj);
-                }
-                catch (err) {
-                    //console.log('Error grading project ' + projectID);
-                    //report_dict['error'] = err;
-                    //console.log(err);
-                }
-            });
-	});
-}
-
-/*
 async function gradeOneProject(projectID, report_dict, gradeObj) {
     /// Getting the project page from Scratch so we can see the teacher-facing usernames
     get('https://chord.cs.uchicago.edu/scratch/projectinfo/' + projectID)
@@ -122,8 +87,6 @@ async function gradeOneProject(projectID, report_dict, gradeObj) {
             });
         });
 }
-
-*/
 
 function analyze(fileObj, user, id, report_dict, gradeObj) {
     try {
