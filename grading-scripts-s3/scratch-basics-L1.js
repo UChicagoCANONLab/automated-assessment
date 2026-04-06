@@ -10,7 +10,7 @@ module.exports = class {
     initReqsGaming() {
         this.requirements = {};
         this.extensions = {};
-        this.requirements.addSayCarl = { bool: false, str: 'A say block is added after Carl says "TESTING' }; // done
+        this.requirements.addSayCarl = { bool: false, str: 'A say block is added after Carl says "Click the Space Bar to see Helen the Amazing Color Changing Hedgehog."' }; // done
         this.extensions.helenSpeaks = { bool: false, str: 'Helen says something else' }; // done
         this.extensions.carlMoves = { bool: false, str: 'Carl the Cloud moves 10 steps when he is finished talking' }; // done
     }
@@ -26,7 +26,7 @@ module.exports = class {
     initReqsYouthCulture() {
         this.requirements = {};
         this.extensions = {};
-        this.requirements.addSayIndia = { bool: false, str: 'A say block is added after India says "Click the Space Bar to see some of the things I like' }; // done
+        this.requirements.addSayIndia = { bool: false, str: 'A say block is added after India says "Click the Space Bar to see some of the things I like"' }; // done
         this.extensions.easelSaysSomethingElse = { bool: false, str: 'The easel sprite says something else' }; // done
         this.extensions.indiaMoves = { bool: false, str: 'India moves 10 steps when she is finished talking' }; // done
         this.extensions.changeCostumeEasel = { bool: false, str: "The easel sprite's costume is changed to show something about the student's community" }; // done

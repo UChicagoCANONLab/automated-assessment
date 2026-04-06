@@ -270,15 +270,6 @@ global.Project = class {
 /// Identify which strand the project belongs to.
 global.detectStrand = function(project, templates) {
     var strand = 'generic';
-    /// Format for templates:
-    /*
-    var templates = {
-        multicultural: require('./templates/events-L1-multicultural'),
-        youthCulture:  require('./templates/events-L1-youth-culture'),
-        gaming:        require('./templates/events-L1-gaming')
-    };
-    */
-
     // Instead of checking of assetIDs, check for blocks
     try {
         var projectBlocks = [];

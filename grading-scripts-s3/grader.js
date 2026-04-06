@@ -21,31 +21,27 @@ global.anyOf = function(tests) {
 }
 
 global.detectStrand = function(project, templates, defaultStrand = 'generic') {
-   var strand = defaultStrand;
-    var projectAssetIDs = [];
+    var strand = defaultStrand;
+    var projectBlocks = [];
     for (var target of project.targets) {
-        for (var costume of target.costumes) {
-            projectAssetIDs.push(costume.assetId);
-        }
-        for (var sound of target.sounds) {
-            projectAssetIDs.push(sound.assetId);
+        for (const key in target.blocks) {
+            var block = target.blocks[key]
+            projectBlocks.push(block.opcode);
         }
     }
     var highScore = 0;
     for (var template in templates) {
         var templateFile = templates[template];
-        var templateAssetIDs = [];
+        var templateBlocks = [];
         for (var target of templateFile.targets) {
-            for (var costume of target.costumes) {
-                templateAssetIDs.push(costume.assetId);
-            }
-            for (var sound of target.sounds) {
-                templateAssetIDs.push(sound.assetId);
+            for (const key in target.blocks) {
+                var block = target.blocks[key]
+                templateBlocks.push(block.opcode);
             }
         }
         var templateScore = 0;
-        for (var projectAssetID of projectAssetIDs) {
-            if (templateAssetIDs.includes(projectAssetID)) {
+        for (var i = 0; i < projectBlocks.length; i++) {
+            if (templateBlocks[i] == projectBlocks[i]) {
                 templateScore++;
             }
             if (templateScore > highScore) {
@@ -53,6 +49,8 @@ global.detectStrand = function(project, templates, defaultStrand = 'generic') {
                 highScore = templateScore;
             }
         }
+        console.log(templateScore)
+        console.log(template)
     }
     return strand;
 }
