@@ -1,0 +1,718 @@
+{
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Background",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "641d24a64fc8646994a176e23715b6b3",
+                    "md5ext": "641d24a64fc8646994a176e23715b6b3.svg",
+                    "rotationCenterX": 239.54093724511173,
+                    "rotationCenterY": 179.21891651865013
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "pop",
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 1124,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Robin",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "QuM#lHk;lg6Iu9/{9eTU": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "~f:u6FGlzyDZe*!!N8HJ",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": -228,
+                    "y": -241
+                },
+                "~f:u6FGlzyDZe*!!N8HJ": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": "+Z5HhSx42cw:pR,VTsqh",
+                    "parent": "QuM#lHk;lg6Iu9/{9eTU",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "[N#S0+vr+ZWc=K49]P-m"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "[N#S0+vr+ZWc=K49]P-m": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "~f:u6FGlzyDZe*!!N8HJ",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "Robin1",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "+Z5HhSx42cw:pR,VTsqh": {
+                    "opcode": "motion_movesteps",
+                    "next": "+f-m:;+fTr{%aw2coa]i",
+                    "parent": "~f:u6FGlzyDZe*!!N8HJ",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "20"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "+f-m:;+fTr{%aw2coa]i": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "h8(]DC4Bi~3DQu+pbu)G",
+                    "parent": "+Z5HhSx42cw:pR,VTsqh",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Hi! I'm Robin, the carpenter!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "h8(]DC4Bi~3DQu+pbu)G": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "7eZqo_5:V0[P~!bJZmFz",
+                    "parent": "+f-m:;+fTr{%aw2coa]i",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Wait... my carpenter eye spots a problem!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "7eZqo_5:V0[P~!bJZmFz": {
+                    "opcode": "control_repeat",
+                    "next": "i)k9?FRs7Sy6auD@Q#.)",
+                    "parent": "h8(]DC4Bi~3DQu+pbu)G",
+                    "inputs": {
+                        "TIMES": [
+                            1,
+                            [
+                                6,
+                                "3"
+                            ]
+                        ],
+                        "SUBSTACK": [
+                            2,
+                            "u*AuH;iO#Oh#ClFX^]6o"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "u*AuH;iO#Oh#ClFX^]6o": {
+                    "opcode": "control_wait",
+                    "next": "!*;?()/uPjS+-+j]gMD+",
+                    "parent": "7eZqo_5:V0[P~!bJZmFz",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                "0.3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "!*;?()/uPjS+-+j]gMD+": {
+                    "opcode": "looks_nextcostume",
+                    "next": null,
+                    "parent": "u*AuH;iO#Oh#ClFX^]6o",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "i)k9?FRs7Sy6auD@Q#.)": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "vFPE{[hy3JI8Fr#RaOgZ",
+                    "parent": "7eZqo_5:V0[P~!bJZmFz",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Our logo above me is totally WONKY! They'll never find us"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "5"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "vFPE{[hy3JI8Fr#RaOgZ": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "i)k9?FRs7Sy6auD@Q#.)",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click the spacebar to save the day!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "jRHEp0jHZg^HU[vFXiLR": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "]TeS8Q*8mQp~BH)|iLB@",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": -230,
+                    "y": -495
+                },
+                "]TeS8Q*8mQp~BH)|iLB@": {
+                    "opcode": "motion_gotoxy",
+                    "next": "}46w1o|P?8@h[.NTTw:F",
+                    "parent": "jRHEp0jHZg^HU[vFXiLR",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-193"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-83"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "}46w1o|P?8@h[.NTTw:F": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": null,
+                    "parent": "]TeS8Q*8mQp~BH)|iLB@",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "Yf)Nmz9o]yZ]Z3n!Q^w["
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "Yf)Nmz9o]yZ]Z3n!Q^w[": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "}46w1o|P?8@h[.NTTw:F",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "Robin1",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "tD|*[U%%0+SJ5M1tpIru": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "occOTg%_BY|vt$^|4[1t",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": -178,
+                    "y": 362
+                },
+                "occOTg%_BY|vt$^|4[1t": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "f4/4/^28cMIBYnUVl2$f",
+                    "parent": "tD|*[U%%0+SJ5M1tpIru",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Welcome!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "f4/4/^28cMIBYnUVl2$f": {
+                    "opcode": "motion_movesteps",
+                    "next": null,
+                    "parent": "occOTg%_BY|vt$^|4[1t",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "10"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Robin1",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "cc233e7a413897435824540bcc32e1dc",
+                    "md5ext": "cc233e7a413897435824540bcc32e1dc.svg",
+                    "rotationCenterX": 21.000000000000085,
+                    "rotationCenterY": 42
+                },
+                {
+                    "name": "Robin2",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "644ec714d69809ac360a4844bd2aaac7",
+                    "md5ext": "644ec714d69809ac360a4844bd2aaac7.svg",
+                    "rotationCenterX": 20.1589683311,
+                    "rotationCenterY": 48.466002801031095
+                },
+                {
+                    "name": "Robin3",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "a0122d4befed324bcac0f1302eedab79",
+                    "md5ext": "a0122d4befed324bcac0f1302eedab79.svg",
+                    "rotationCenterX": 18.754923413566758,
+                    "rotationCenterY": 42.198577680525204
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": -193,
+            "y": -83,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Mayor Lewis",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "6*c`Xv=UPZ2te:JB2+U*": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "#;GgQ}*l)tV4E{1NPadV",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": -67,
+                    "y": -587
+                },
+                "#;GgQ}*l)tV4E{1NPadV": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "GBVU3I7+QD=TSfHx]bhU",
+                    "parent": "6*c`Xv=UPZ2te:JB2+U*",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Welcome to Stardew Valley! I'm Mayor Lewis"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "5"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "GBVU3I7+QD=TSfHx]bhU": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "6qe_}$?510c)Q(YQ$gb|",
+                    "parent": "#;GgQ}*l)tV4E{1NPadV",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "We're expecting someone new today!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "6qe_}$?510c)Q(YQ$gb|": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "GBVU3I7+QD=TSfHx]bhU",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Click on Robin to meet our carpenter!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "3"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "e+y:I1,y:h`Re^OX.2h~": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "YCqe.}~o,[Dyp#5oeg`(",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": -67,
+                    "y": -342
+                },
+                "YCqe.}~o,[Dyp#5oeg`(": {
+                    "opcode": "control_wait",
+                    "next": "ft.KhDm7.qnlVkW`m%Ur",
+                    "parent": "e+y:I1,y:h`Re^OX.2h~",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                "1"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "ft.KhDm7.qnlVkW`m%Ur": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "Fa}f@jEC5#ed!+K2!u;-",
+                    "parent": "YCqe.}~o,[Dyp#5oeg`(",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "You're a HERO! Now they'll definitely find our awesome valley!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "5"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "Fa}f@jEC5#ed!+K2!u;-": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "ft.KhDm7.qnlVkW`m%Ur",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "I love capitalism!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "mayor_lewis",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "4b824e8fcc391d89ec7ada6f74f52f9e",
+                    "md5ext": "4b824e8fcc391d89ec7ada6f74f52f9e.svg",
+                    "rotationCenterX": 18.688811188811172,
+                    "rotationCenterY": 24.72727272727272
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "pop",
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 1124,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": 194,
+            "y": -79,
+            "size": 139.99999999999997,
+            "direction": -90,
+            "draggable": false,
+            "rotationStyle": "left-right"
+        },
+        {
+            "isStage": false,
+            "name": "Logo",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "?=5-ig4N[8KOOplSkU-:": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "V_7f)[lmDyxN@:vfWB0D",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": -173,
+                    "y": -545
+                },
+                "V_7f)[lmDyxN@:vfWB0D": {
+                    "opcode": "motion_gotoxy",
+                    "next": null,
+                    "parent": "?=5-ig4N[8KOOplSkU-:",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-86"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-40"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "VM$~[{F^Mu/6zCKz6JR$": {
+                    "opcode": "motion_movesteps",
+                    "next": null,
+                    "parent": "2+s/nX_Xdt`zV%:_;%@M",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "150"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "2+s/nX_Xdt`zV%:_;%@M": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "VM$~[{F^Mu/6zCKz6JR$",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": -169,
+                    "y": -381
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "background_logo",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "b4268c772e5a59a48f261e46e462fad8",
+                    "md5ext": "b4268c772e5a59a48f261e46e462fad8.svg",
+                    "rotationCenterX": 184.8761084399997,
+                    "rotationCenterY": 233.97440564765003
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": -86,
+            "y": -40,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "12.7.0",
+        "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:149.0) Gecko/20100101 Firefox/149.0"
+    }
+}

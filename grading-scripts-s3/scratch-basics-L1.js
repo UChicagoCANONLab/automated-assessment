@@ -10,7 +10,7 @@ module.exports = class {
     initReqsGaming() {
         this.requirements = {};
         this.extensions = {};
-        this.requirements.addSayCarl = { bool: false, str: 'A say block is added after Carl says "Click the Space Bar to see Helen the Amazing Color Changing Hedgehog' }; // done
+        this.requirements.addSayCarl = { bool: false, str: 'A say block is added after Carl says "TESTING' }; // done
         this.extensions.helenSpeaks = { bool: false, str: 'Helen says something else' }; // done
         this.extensions.carlMoves = { bool: false, str: 'Carl the Cloud moves 10 steps when he is finished talking' }; // done
     }
@@ -32,6 +32,14 @@ module.exports = class {
         this.extensions.changeCostumeEasel = { bool: false, str: "The easel sprite's costume is changed to show something about the student's community" }; // done
     }
 
+    initReqsStardew(){
+        this.requirements = {};
+        this.extensions = {};
+        this.requirements.addSayLewis = { bool: false,str: 'A say block is added to 1 sprite' }; // done
+        this.extensions.addSayRobin = { bool: false,str: 'A say block is added to a sprite after the green flag is clicked' }; // done
+        this.extensions.addMoveRobin = { bool: false,str: 'A sprite moves 10 blocks after the green flag is clicked' }; // done
+    }
+
    
 
     grade(fileObj, user) {
@@ -48,7 +56,8 @@ module.exports = class {
         var templates = {
             multicultural: require('./templates/scratch-basics-L1-multicultural'),
             youthCulture: require('./templates/scratch-basics-L1-youthculture'),
-            gaming: require('./templates/scratch-basics-L1-gaming')
+            gaming: require('./templates/scratch-basics-L1-gaming'),
+            stardew: require('./templates/scratch-basics-L1-stardew.json')
         };
         
         let strand = detectStrand(project, templates);
@@ -162,6 +171,7 @@ module.exports = class {
             if (sayBlocksMulticultural > 2) {
                 this.extensions.bradSpeaks.bool = true;
             }
+            project.add
         }
 
         if (strand === 'youthCulture') {
@@ -248,6 +258,46 @@ module.exports = class {
             // }  
             if (sayBlocksYouthCulture > 1) {
                 this.extensions.easelSaysSomethingElse.bool = true;
+            }
+        }
+        if (strand == 'stardew') {
+            this.initReqsStardew();
+            for (let target of project.targets) {
+                if (target.isStage) { continue; }
+                else {
+                    for (let script of target.scripts) {
+                        for (let i = 0; i < script.blocks.length; i++) {
+                            // makes sure that the script starts with an event block
+                            if (script.blocks[0].opcode.includes('event_')) {
+                                if (script.blocks[i].opcode.includes('looks_say')) {
+                                    if (script.blocks[i].inputs.MESSAGE[1][1] === "You're a HERO! Now they'll definitely find our awesome valley!") {
+                                        let next = i + 1;
+                                        // checks the next block to make sure it is not undefined, if it is not, checks to see if it is a say block
+                                        if (script.blocks[next] !== undefined) {
+                                            if (sayBlocks.includes(script.blocks[next].opcode)) {
+                                                this.requirements.addSayLewis.bool = true;
+                                                sayMayor = true;
+                                            }
+                                        }
+                                    }
+                                }
+                                // checks to see blocks after flag click
+                                if (script.blocks[0].opcode.includes('event_whenflag'))
+                                {
+                                    if (script.blocks[i].opcode.includes('looks_say')) {
+                                        this.extensions.addSayRobin.bool = true;
+                                    }
+                                    if (script.blocks[i].opcode === 'motion_movesteps') {
+                                        if (script.blocks[i].inputs.STEPS[1][1] === '10') {
+                                            this.extensions.addMoveRobin.bool = true;
+                                        }
+                                    }
+                                }
+                                
+                            }
+                        }
+                    }
+                }
             }
         }
     }

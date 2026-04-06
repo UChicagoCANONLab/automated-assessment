@@ -278,31 +278,27 @@ global.detectStrand = function(project, templates) {
         gaming:        require('./templates/events-L1-gaming')
     };
     */
+
+    // Instead of checking of assetIDs, check for blocks
     try {
-        var projectAssetIDs = [];
+        var projectBlocks = [];
         for (var target of project.targets) {
-            for (var costume of target.costumes) {
-                projectAssetIDs.push(costume.assetId);
-            }
-            for (var sound of target.sounds) {
-                projectAssetIDs.push(sound.assetId);
+            for (var blocks of target.blocks) {
+                projectBlocks.push(blocks.opcode);
             }
         }
         var highScore = 0;
         for (var template in templates) {
             var templateFile = templates[template];
-            var templateAssetIDs = [];
+            var templateBlocks = [];
             for (var target of templateFile.targets) {
-                for (var costume of target.costumes) {
-                    templateAssetIDs.push(costume.assetId);
-                }
-                for (var sound of target.sounds) {
-                    templateAssetIDs.push(sound.assetId);
+                for (var blocks of target.blocks) {
+                    projectBlocks.push(blocks.opcode);
                 }
             }
             var templateScore = 0;
-            for (var projectAssetID of projectAssetIDs) {
-                if (templateAssetIDs.includes(projectAssetID)) {
+            for (var projectBlock of projectBlocks) {
+                if (templateBlocks.includes(projectBlock)) {
                     templateScore++;
                 }
                 if (templateScore > highScore) {

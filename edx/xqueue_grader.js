@@ -174,7 +174,7 @@ function setProgress(name, bar, items, total_items, color) {
     bar['width'] = width_percent + '%';
     if (items && color === 0) {
         if (items !== total_items) bar['innerHTML'] = items;
-        if (width_percent === 100) bar['innerHTML'] += 'All tasks done!';
+        if (width_percent === 100) bar['innerHTML'] = 'All tasks done!';
         else if (width_percent >= 15) bar['innerHTML'] += projectMode ?
             items === 1 ?
                 ' task done' : ' tasks done'
