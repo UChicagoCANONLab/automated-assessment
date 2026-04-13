@@ -49,10 +49,39 @@ global.detectStrand = function(project, templates, defaultStrand = 'generic') {
                 highScore = templateScore;
             }
         }
-        console.log(templateScore)
-        console.log(template)
     }
     return strand;
+}
+
+// Function to determine what sprite this is based off of in conjuror
+global.detectSprite = function(sprite, template) {
+    var spriteName = ""
+    var gradeBlocks = [];
+    for (const key in sprite.blocks) {
+        var block = sprite.blocks[key]
+        gradeBlocks.push(block.opcode);
+    }
+
+    var highScore = 0;
+
+    for (var target of template.targets) {
+        var templateBlocks = [];
+        for (const key in target.blocks) {
+            var block = target.blocks[key]
+            templateBlocks.push(block.opcode);
+        }
+        var templateScore = 0;
+        for (var i = 0; i < gradeBlocks.length; i++) {
+            if (templateBlocks[i] == gradeBlocks[i]) {
+                templateScore++;
+            }
+            if (templateScore > highScore) {
+                spriteName = target.name;
+                highScore = templateScore
+            }
+        }
+    }
+    return spriteName
 }
 
 global.Requirement = class {

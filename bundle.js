@@ -6828,10 +6828,39 @@ global.detectStrand = function(project, templates, defaultStrand = 'generic') {
                 highScore = templateScore;
             }
         }
-        console.log(templateScore)
-        console.log(template)
     }
     return strand;
+}
+
+// Function to determine what sprite this is based off of in conjuror
+global.detectSprite = function(sprite, template) {
+    var spriteName = ""
+    var gradeBlocks = [];
+    for (const key in sprite.blocks) {
+        var block = sprite.blocks[key]
+        gradeBlocks.push(block.opcode);
+    }
+
+    var highScore = 0;
+
+    for (var target of template.targets) {
+        var templateBlocks = [];
+        for (const key in target.blocks) {
+            var block = target.blocks[key]
+            templateBlocks.push(block.opcode);
+        }
+        var templateScore = 0;
+        for (var i = 0; i < gradeBlocks.length; i++) {
+            if (templateBlocks[i] == gradeBlocks[i]) {
+                templateScore++;
+            }
+            if (templateScore > highScore) {
+                spriteName = target.name;
+                highScore = templateScore
+            }
+        }
+    }
+    return spriteName
 }
 
 global.Requirement = class {
@@ -7244,41 +7273,19 @@ require('../grading-scripts-s3/scratch3')
 
 module.exports = class {
 
+    // Implement Generic Requirements instead
 
-    initReqsGaming() {
-        this.requirements = {};
-        this.extensions = {};
-        this.requirements.addSayCarl = { bool: false, str: 'A say block is added after Carl says "TESTING' }; // done
-        this.extensions.helenSpeaks = { bool: false, str: 'Helen says something else' }; // done
-        this.extensions.carlMoves = { bool: false, str: 'Carl the Cloud moves 10 steps when he is finished talking' }; // done
-    }
+    init(){
+        this.requirements = {
+            addSay : {bool: false, str: 'A say block is added'}
+        }
+        this.extensions = {
+            addSayAgain : {bool: false, str: 'A second say block is added'},
+            addMove: {bool: false, str: 'A move block is added'}
+        }
 
-    initReqsMulticultural() {
-        this.requirements = {};
-        this.extensions = {};
-        this.requirements.addSayNeha = { bool: false, str: 'A say block is added after Neha says "Happy Holi!"' }; // done
-        this.extensions.bradSpeaks = { bool: false, str: 'Brad says something else' }; // done
-        this.extensions.nehaMoves = { bool: false, str: 'Neha moves 10 steps when she is finished jumping and talking' }; // done
-    }
-
-    initReqsYouthCulture() {
-        this.requirements = {};
-        this.extensions = {};
-        this.requirements.addSayIndia = { bool: false, str: 'A say block is added after India says "Click the Space Bar to see some of the things I like' }; // done
-        this.extensions.easelSaysSomethingElse = { bool: false, str: 'The easel sprite says something else' }; // done
-        this.extensions.indiaMoves = { bool: false, str: 'India moves 10 steps when she is finished talking' }; // done
-        this.extensions.changeCostumeEasel = { bool: false, str: "The easel sprite's costume is changed to show something about the student's community" }; // done
-    }
-
-    initReqsStardew(){
-        this.requirements = {};
-        this.extensions = {};
-        this.requirements.addSayLewis = { bool: false,str: 'A say block is added to 1 sprite' }; // done
-        this.extensions.addSayRobin = { bool: false,str: 'A say block is added to a sprite after the green flag is clicked' }; // done
-        this.extensions.addMoveRobin = { bool: false,str: 'A sprite moves 10 blocks after the green flag is clicked' }; // done
-    }
-
-   
+        
+    }   
 
     grade(fileObj, user) {
         var project = new Project(fileObj, null);
@@ -7293,254 +7300,109 @@ module.exports = class {
 
         var templates = {
             multicultural: require('./templates/scratch-basics-L1-multicultural'),
-            youthCulture: require('./templates/scratch-basics-L1-youthculture'),
             gaming: require('./templates/scratch-basics-L1-gaming'),
             stardew: require('./templates/scratch-basics-L1-stardew.json')
         };
         
         let strand = detectStrand(project, templates);
+        let template = templates[strand]
 
-        let sayBlocks = ['looks_say', 'looks_sayforsecs'];
-
-        // gaming strand 
-        if (strand === 'gaming') {
-            this.initReqsGaming();
-            let sayCarl = false;
-            let sayBlocksGaming = 0;
-
-            for (let target of project.targets) {
-                if (target.isStage) { continue; }
-                else {
-                    for (let script of target.scripts) {
-                        for (let i = 0; i < script.blocks.length; i++) {
-                            // makes sure that the script starts with an event block
-                            if (script.blocks[0].opcode.includes('event_')) {
-                                if (script.blocks[i].opcode.includes('looks_say')) {
-                                    // finds the block with specified message
-                                    if (script.blocks[i].inputs.MESSAGE[1][1] === 'Click the Space Bar to see Helen the Amazing Color Changing Hedgehog.') {
-                                        let next = i + 1;
-                                        // checks the next block to make sure it is not undefined, if it is not, checks to see if it is a say block
-                                        if (script.blocks[next] !== undefined) {
-                                            if (sayBlocks.includes(script.blocks[next].opcode)) {
-                                                this.requirements.addSayCarl.bool = true;
-                                                sayCarl = true;
-                                            }
-                                        }
-                                    }
+        this.init()
+        var addSay = 0;
+        var addSayAgain = 0;
+        var addMove = 0;
+        for (var sprite of project.sprites) {
+            // Find the primary sprite
+            if(strand == 'gaming'){
+                var spriteName = detectSprite(sprite, template)
+                if (spriteName == "Carl the Cloud"){
+                    const opcodes = Object.values(sprite.blocks).map(item => item.opcode);
+                    for (var opcode of opcodes) {
+                        if (opcode.includes('looks_say')) {
+                            addSay++;
+                        }
+                        else if (opcode.includes('motion_movesteps')){
+                            addMove++;
+                        }
+                    }
+                }
+                else if (spriteName == "Helen the Hedgehog") {
+                    const opcodes = Object.values(sprite.blocks).map(item => item.opcode);
+                    for (var opcode of opcodes) {
+                        if (opcode.includes('looks_say')) {
+                            addSayAgain++;
+                        }
+                    }
+                }                            
+            }
+            else if (strand == 'multicultural'){
+                var spriteName = detectSprite(sprite, template)
+                if (spriteName == "Neha"){
+                    const opcodes = Object.values(sprite.blocks).map(item => item.opcode);
+                    for (var opcode of opcodes) {
+                        if (opcode.includes('looks_say')) {
+                            addSay++;
+                        }
+                        else if (opcode.includes('motion_movesteps')){
+                            addMove++;
+                        }
+                    }
+                }
+                else if (spriteName == "Brad"){
+                    const opcodes = Object.values(sprite.blocks).map(item => item.opcode);
+                    for (var opcode of opcodes) {
+                        if (opcode.includes('looks_say')) {
+                            addSayAgain++;
+                        }
+                    }
+                }
+            }
+            else if (strand == 'stardew'){
+                var spriteName = detectSprite(sprite, template)
+                if (spriteName == "Mayor Lewis"){
+                    const opcodes = Object.values(sprite.blocks).map(item => item.opcode);
+                    for (var opcode of opcodes) {
+                        if (opcode.includes('looks_say')) {
+                            addSay++;
+                        }
+                    }
+                }
+                else if (spriteName == "Robin"){
+                    for (var script of sprite.scripts) {
+                        if (script.blocks[0].opcode === 'event_whenflagclicked') {
+                            
+                            for (var block of script.blocks) {
+                                if (block.opcode.includes('looks_say')) {
+                                    addSayAgain++;
                                 }
-                                // checks to see if there is any block that moves 10 steps
-                                if (script.blocks[i].opcode === 'motion_movesteps') {
-                                    if (script.blocks[i].inputs.STEPS[1][1] === '10') {
-                                        this.extensions.carlMoves.bool = true;
-                                    }
-                                }
-                                if (sayBlocks.includes(script.blocks[i].opcode) && target.name.includes('elen')) {
-                                    sayBlocksGaming++;
+                                else if (block.opcode === 'motion_movesteps'){
+                                    addMove++;
                                 }
                             }
                         }
                     }
                 }
             }
-            // requirement not fulfilled
-            // if (sayCarl === false) {
-            //     if (sayBlocksGaming > 4) {
-            //         this.extensions.helenSpeaks.bool = true;
-            //     }
-            // } else {
-            //     if (sayBlocksGaming > 5) {
-            //         this.extensions.helenSpeaks.bool = true;
-            //     }   
-            // }
-            if (sayBlocksGaming > 1) {
-                this.extensions.helenSpeaks.bool = true;
-            }
+        } 
+        if (strand == 'gaming'){
+            this.requirements.addSay.bool = (addSay > 3);
+            this.extensions.addMove.bool = (addMove > 3);
+            this.extensions.addSayAgain.bool = (addSayAgain > 1);    
         }
-
-        if (strand === 'multicultural') {
-            this.initReqsMulticultural();
-            let sayBlocksMulticultural = 0;
-            let sayNeha = false;
-
-            for (let target of project.targets) {
-                if (target.isStage) { continue; }
-                else {
-                    for (let script of target.scripts) {
-                        for (let i = 0; i < script.blocks.length; i++) {
-                            // makes sure that the script starts with an event block
-                            if (script.blocks[0].opcode.includes('event_')) {
-                                if (script.blocks[i].opcode.includes('looks_say')) {
-                                    // finds the block with the specified message
-                                    if (script.blocks[i].inputs.MESSAGE[1][1] === 'Happy Holi!') {
-                                        let next = i + 1;
-                                        // checks the next block to make sure it is not undefined, if it not, checks to see if it is a say block
-                                        if (script.blocks[next] !== undefined) {
-                                            if (sayBlocks.includes(script.blocks[next].opcode)) {
-                                                this.requirements.addSayNeha.bool = true;
-                                                sayNeha = true;
-                                            }
-                                        }
-                                    }
-                                }
-                                // checks to see if there is a block that moves 10 steps
-                                if (script.blocks[i].opcode === 'motion_movesteps') {
-                                    if (script.blocks[i].inputs.STEPS[1][1] === '10') {
-                                        this.extensions.nehaMoves.bool = true;
-                                    }
-                                }
-                                // if there is a say block in the sprite that is brad and the message is different from what he says
-                                if (sayBlocks.includes(script.blocks[i].opcode) && target.name.includes('rad')) {
-                                    sayBlocksMulticultural++;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            // if (sayNeha === false) {
-            //     if (sayBlocksMulticultural > 14) {
-            //         this.extensions.bradSpeaks.bool = true;
-            //     }
-            // }
-            // // checks to see if there is one more than the original say block count, exlcuding the say block needed for the requirement
-            // if (sayBlocksMulticultural > 15) {
-            //     this.extensions.bradSpeaks.bool = true;
-            // }
-            if (sayBlocksMulticultural > 2) {
-                this.extensions.bradSpeaks.bool = true;
-            }
-            project.add
+        else if (strand == 'multicultural'){
+            this.requirements.addSay.bool = (addSay > 9);
+            this.extensions.addMove.bool = (addMove > 0);
+            this.extensions.addSayAgain.bool = (addSayAgain > 2);
         }
-
-        if (strand === 'youthCulture') {
-            // make an array of the original costumes from the original project
-            this.initReqsYouthCulture();
-            let origCostumes = [];
-            let newCostumes = [];
-            var originalYouth = new Project(require('../grading-scripts-s3/youthOriginal'), null);
-            for (let target of originalYouth.targets) {
-                if (target.name === 'easel') {
-                    for (let costume of target.costumes) {
-                        origCostumes.push(costume.assetId);
-                    }
-                }
-            }
-
-            for (let target of project.targets) {
-                if (target.name === 'easel') {
-                    for (let costume of target.costumes) {
-                        newCostumes.push(costume.assetId);
-                    }
-                }
-            }
-
-            if (origCostumes.length !== newCostumes.length) {
-                this.extensions.changeCostumeEasel.bool = true;
-            } else {
-                for (let i = 0; i < origCostumes.length; i++) {
-                    if (origCostumes[i] !== newCostumes[i]) {
-                        this.extensions.changeCostumeEasel.bool = true;
-                        break;
-                    }
-                }
-            }
-
-            let sayBlocksYouthCulture = 0;
-            let sayIndia = false;
-
-            for (let target of project.targets) {
-                if (target.isStage) { continue; }
-                else {
-                    for (let script of target.scripts) {
-                        for (let i = 0; i < script.blocks.length; i++) {
-                            //makes sure that the script starts with an event block
-                            if (script.blocks[0].opcode.includes('event_')) {
-                                if (script.blocks[i].opcode.includes('looks_say')) {
-                                    // find the block with the specified message
-                                    if (script.blocks[i].inputs.MESSAGE[1][1] === 'Click the Space Bar to see some of the things I like.') {
-                                        let next = i + 1;
-                                        // checks the next block to make sure it is not undefined, if it is not, checks to see that the block after that is a say block
-                                        if (script.blocks[next] !== undefined) {
-                                            if (sayBlocks.includes(script.blocks[next].opcode)) {
-                                                this.requirements.addSayIndia.bool = true;
-                                                sayIndia = true;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            // checks to see if there is a block that moves 10 steps
-                            if (script.blocks[i].opcode === 'motion_movesteps') {
-                                if (script.blocks[i].inputs.STEPS[1][1] === '10') {
-                                    this.extensions.indiaMoves.bool = true;
-                                }
-                            }
-
-                            // counts the number of say blocks
-                            if (sayBlocks.includes(script.blocks[i].opcode) && target.name.includes('asel')) {
-                                sayBlocksYouthCulture++;
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // if (sayIndia === false) {
-            //     if (sayBlocksYouthCulture > 4) {
-            //         this.extensions.easelSaysSomethingElse.bool = true;
-            //     }
-            // }
-            // if (sayBlocksYouthCulture > 5) {
-            //     this.extensions.easelSaysSomethingElse.bool = true;
-            // }  
-            if (sayBlocksYouthCulture > 1) {
-                this.extensions.easelSaysSomethingElse.bool = true;
-            }
+        else if (strand == 'stardew'){
+            this.requirements.addSay.bool = (addSay > 4);
+            this.extensions.addSayAgain.bool = (addSayAgain > 0);
+            this.extensions.addMove.bool = (addMove > 0);
         }
-        if (strand == 'stardew') {
-            this.initReqsStardew();
-            for (let target of project.targets) {
-                if (target.isStage) { continue; }
-                else {
-                    for (let script of target.scripts) {
-                        for (let i = 0; i < script.blocks.length; i++) {
-                            // makes sure that the script starts with an event block
-                            if (script.blocks[0].opcode.includes('event_')) {
-                                if (script.blocks[i].opcode.includes('looks_say')) {
-                                    if (script.blocks[i].inputs.MESSAGE[1][1] === "You're a HERO! Now they'll definitely find our awesome valley!") {
-                                        let next = i + 1;
-                                        // checks the next block to make sure it is not undefined, if it is not, checks to see if it is a say block
-                                        if (script.blocks[next] !== undefined) {
-                                            if (sayBlocks.includes(script.blocks[next].opcode)) {
-                                                this.requirements.addSayLewis.bool = true;
-                                                sayMayor = true;
-                                            }
-                                        }
-                                    }
-                                }
-                                // checks to see blocks after flag click
-                                if (script.blocks[0].opcode.includes('event_whenflag'))
-                                {
-                                    if (script.blocks[i].opcode.includes('looks_say')) {
-                                        this.extensions.addSayRobin.bool = true;
-                                    }
-                                    if (script.blocks[i].opcode === 'motion_movesteps') {
-                                        if (script.blocks[i].inputs.STEPS[1][1] === '10') {
-                                            this.extensions.addMoveRobin.bool = true;
-                                        }
-                                    }
-                                }
-                                
-                            }
-                        }
-                    }
-                }
-            }
-        }
+              
     }
 }
-},{"../grading-scripts-s3/scratch3":83,"../grading-scripts-s3/youthOriginal":107,"./templates/scratch-basics-L1-gaming":99,"./templates/scratch-basics-L1-multicultural":100,"./templates/scratch-basics-L1-stardew.json":101,"./templates/scratch-basics-L1-youthculture":102}],82:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":83,"./templates/scratch-basics-L1-gaming":99,"./templates/scratch-basics-L1-multicultural":100,"./templates/scratch-basics-L1-stardew.json":101}],82:[function(require,module,exports){
 /* Scratch Basics L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -13733,515 +13595,8 @@ module.exports={
     }
 }
 },{}],102:[function(require,module,exports){
-module.exports={
-    "targets": [
-        {
-            "isStage": true,
-            "name": "Stage",
-            "variables": {},
-            "lists": {},
-            "broadcasts": {},
-            "blocks": {},
-            "comments": {},
-            "currentCostume": 3,
-            "costumes": [
-                {
-                    "assetId": "2b0bddaf727e6bb95131290ae2549ac4",
-                    "name": "background3",
-                    "bitmapResolution": 2,
-                    "md5ext": "2b0bddaf727e6bb95131290ae2549ac4.png",
-                    "dataFormat": "png",
-                    "rotationCenterX": 480,
-                    "rotationCenterY": 360
-                },
-                {
-                    "assetId": "a81668321aa3dcc0fc185d3e36ae76f6",
-                    "name": "Room 1",
-                    "bitmapResolution": 2,
-                    "md5ext": "a81668321aa3dcc0fc185d3e36ae76f6.png",
-                    "dataFormat": "png",
-                    "rotationCenterX": 480,
-                    "rotationCenterY": 360
-                },
-                {
-                    "assetId": "e5f794c8756ca0cead5cb7e7fe354c41",
-                    "name": "Playground",
-                    "bitmapResolution": 2,
-                    "md5ext": "e5f794c8756ca0cead5cb7e7fe354c41.png",
-                    "dataFormat": "png",
-                    "rotationCenterX": 480,
-                    "rotationCenterY": 360
-                },
-                {
-                    "assetId": "38be88e8026768d4606fe1932b05d258",
-                    "name": "backdrop",
-                    "bitmapResolution": 2,
-                    "md5ext": "38be88e8026768d4606fe1932b05d258.png",
-                    "dataFormat": "png",
-                    "rotationCenterX": 480,
-                    "rotationCenterY": 360
-                }
-            ],
-            "sounds": [
-                {
-                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
-                    "name": "pop",
-                    "dataFormat": "wav",
-                    "format": "",
-                    "rate": 48000,
-                    "sampleCount": 1123,
-                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
-                }
-            ],
-            "volume": 100,
-            "layerOrder": 0,
-            "tempo": 60,
-            "videoTransparency": 50,
-            "videoState": "off",
-            "textToSpeechLanguage": null
-        },
-        {
-            "isStage": false,
-            "name": "India",
-            "variables": {},
-            "lists": {},
-            "broadcasts": {},
-            "blocks": {
-                "{?%H[3PODtzIOzw3NUAD": {
-                    "opcode": "event_whenflagclicked",
-                    "next": "X9F`sK3d.L!x-cTWVaGz",
-                    "parent": null,
-                    "inputs": {},
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": true,
-                    "x": 0,
-                    "y": 0
-                },
-                "X9F`sK3d.L!x-cTWVaGz": {
-                    "opcode": "motion_gotoxy",
-                    "next": "kBZo|n~NnzgG!crdI1E;",
-                    "parent": "{?%H[3PODtzIOzw3NUAD",
-                    "inputs": {
-                        "X": [
-                            1,
-                            [
-                                4,
-                                "-215"
-                            ]
-                        ],
-                        "Y": [
-                            1,
-                            [
-                                4,
-                                "-145"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "kBZo|n~NnzgG!crdI1E;": {
-                    "opcode": "motion_movesteps",
-                    "next": "u=@^[0kNfQx.2*Xvk0TX",
-                    "parent": "X9F`sK3d.L!x-cTWVaGz",
-                    "inputs": {
-                        "STEPS": [
-                            1,
-                            [
-                                4,
-                                "50"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "u=@^[0kNfQx.2*Xvk0TX": {
-                    "opcode": "looks_sayforsecs",
-                    "next": "C;QZb9TtC1(Ov9vkC+$f",
-                    "parent": "kBZo|n~NnzgG!crdI1E;",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Hello! My name is India."
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                "3"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "C;QZb9TtC1(Ov9vkC+$f": {
-                    "opcode": "motion_movesteps",
-                    "next": "=6=T6QR$yee::D$b8~s{",
-                    "parent": "u=@^[0kNfQx.2*Xvk0TX",
-                    "inputs": {
-                        "STEPS": [
-                            1,
-                            [
-                                4,
-                                "50"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "=6=T6QR$yee::D$b8~s{": {
-                    "opcode": "looks_sayforsecs",
-                    "next": ",`%kTB=!2Lz#4m!W2OpL",
-                    "parent": "C;QZb9TtC1(Ov9vkC+$f",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Welcome to Scratch!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                "3"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                ",`%kTB=!2Lz#4m!W2OpL": {
-                    "opcode": "motion_movesteps",
-                    "next": "{Ipink+*Ul#QILZqGvdF",
-                    "parent": "=6=T6QR$yee::D$b8~s{",
-                    "inputs": {
-                        "STEPS": [
-                            1,
-                            [
-                                4,
-                                "50"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "{Ipink+*Ul#QILZqGvdF": {
-                    "opcode": "looks_sayforsecs",
-                    "next": null,
-                    "parent": ",`%kTB=!2Lz#4m!W2OpL",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Click the Space Bar to see some of the things I like."
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                "5"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                }
-            },
-            "comments": {},
-            "currentCostume": 0,
-            "costumes": [
-                {
-                    "assetId": "fec9549b732165ec6d09991de08b69cd",
-                    "name": "character (1)",
-                    "bitmapResolution": 1,
-                    "md5ext": "fec9549b732165ec6d09991de08b69cd.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 78.87000274658203,
-                    "rotationCenterY": 165.80999755859375
-                }
-            ],
-            "sounds": [],
-            "volume": 100,
-            "layerOrder": 2,
-            "visible": true,
-            "x": -165,
-            "y": -145,
-            "size": 162.8369844855632,
-            "direction": 90,
-            "draggable": false,
-            "rotationStyle": "all around"
-        },
-        {
-            "isStage": false,
-            "name": "easel",
-            "variables": {},
-            "lists": {},
-            "broadcasts": {},
-            "blocks": {
-                "XYmoOsQpwwb~bRU[WtDb": {
-                    "opcode": "event_whenkeypressed",
-                    "next": "NX*(%@1qK}o{lJ)1dp(L",
-                    "parent": null,
-                    "inputs": {},
-                    "fields": {
-                        "KEY_OPTION": [
-                            "space",
-                            null
-                        ]
-                    },
-                    "shadow": false,
-                    "topLevel": true,
-                    "x": 56,
-                    "y": 66
-                },
-                "NX*(%@1qK}o{lJ)1dp(L": {
-                    "opcode": "looks_switchcostumeto",
-                    "next": "A*?(6=CMw!5NQvy3GoJz",
-                    "parent": "XYmoOsQpwwb~bRU[WtDb",
-                    "inputs": {
-                        "COSTUME": [
-                            1,
-                            "uxs{_T(3Fk%RETANj%^X"
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "uxs{_T(3Fk%RETANj%^X": {
-                    "opcode": "looks_costume",
-                    "next": null,
-                    "parent": "NX*(%@1qK}o{lJ)1dp(L",
-                    "inputs": {},
-                    "fields": {
-                        "COSTUME": [
-                            "easel-music",
-                            null
-                        ]
-                    },
-                    "shadow": true,
-                    "topLevel": false
-                },
-                "A*?(6=CMw!5NQvy3GoJz": {
-                    "opcode": "control_repeat",
-                    "next": null,
-                    "parent": "NX*(%@1qK}o{lJ)1dp(L",
-                    "inputs": {
-                        "TIMES": [
-                            1,
-                            [
-                                6,
-                                "7"
-                            ]
-                        ],
-                        "SUBSTACK": [
-                            2,
-                            "MkZ9YIg7M,WuN@FR]l:o"
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "MkZ9YIg7M,WuN@FR]l:o": {
-                    "opcode": "looks_nextcostume",
-                    "next": "*i@~ROBKeTP[#l_7v/_-",
-                    "parent": "A*?(6=CMw!5NQvy3GoJz",
-                    "inputs": {},
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "*i@~ROBKeTP[#l_7v/_-": {
-                    "opcode": "control_wait",
-                    "next": null,
-                    "parent": "MkZ9YIg7M,WuN@FR]l:o",
-                    "inputs": {
-                        "DURATION": [
-                            1,
-                            [
-                                5,
-                                "1"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                },
-                "3?,1QT}D[0#@^jvT!J*^": {
-                    "opcode": "event_whenthisspriteclicked",
-                    "next": "gPD.*ilWONI2U7F-SE[}",
-                    "parent": null,
-                    "inputs": {},
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": true,
-                    "x": 51,
-                    "y": 455
-                },
-                "gPD.*ilWONI2U7F-SE[}": {
-                    "opcode": "looks_sayforsecs",
-                    "next": null,
-                    "parent": "3?,1QT}D[0#@^jvT!J*^",
-                    "inputs": {
-                        "MESSAGE": [
-                            1,
-                            [
-                                10,
-                                "Tada!"
-                            ]
-                        ],
-                        "SECS": [
-                            1,
-                            [
-                                4,
-                                "2"
-                            ]
-                        ]
-                    },
-                    "fields": {},
-                    "shadow": false,
-                    "topLevel": false
-                }
-            },
-            "comments": {},
-            "currentCostume": 7,
-            "costumes": [
-                {
-                    "assetId": "47a257ec82df9b221a9c8a0da1174652",
-                    "name": "easel",
-                    "bitmapResolution": 1,
-                    "md5ext": "47a257ec82df9b221a9c8a0da1174652.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 72,
-                    "rotationCenterY": 100.5
-                },
-                {
-                    "assetId": "f80c9c273a7542f28fc0a0aa16f80532",
-                    "name": "easel-sports",
-                    "bitmapResolution": 1,
-                    "md5ext": "f80c9c273a7542f28fc0a0aa16f80532.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 71.83499908447266,
-                    "rotationCenterY": 99.56999969482422
-                },
-                {
-                    "assetId": "25fc936818594e0f67f48ffd39ee06b2",
-                    "name": "easel-animals",
-                    "bitmapResolution": 1,
-                    "md5ext": "25fc936818594e0f67f48ffd39ee06b2.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 71.83499908447266,
-                    "rotationCenterY": 99.56999969482422
-                },
-                {
-                    "assetId": "6a904db737d12cc410bd18e0e3837f1a",
-                    "name": "easel-music",
-                    "bitmapResolution": 1,
-                    "md5ext": "6a904db737d12cc410bd18e0e3837f1a.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 71.83499908447266,
-                    "rotationCenterY": 99.56999969482422
-                },
-                {
-                    "assetId": "eb955b9d6d17d5358e1c66ca5dbc4648",
-                    "name": "easel-neighborhood",
-                    "bitmapResolution": 1,
-                    "md5ext": "eb955b9d6d17d5358e1c66ca5dbc4648.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 71.83499908447266,
-                    "rotationCenterY": 99.56999969482422
-                },
-                {
-                    "assetId": "4c0e56f2cc17d497d76070033ab08654",
-                    "name": "easel-travel",
-                    "bitmapResolution": 1,
-                    "md5ext": "4c0e56f2cc17d497d76070033ab08654.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 71.83499908447266,
-                    "rotationCenterY": 99.56999969482422
-                },
-                {
-                    "assetId": "ba4d4b1af1eafdda9b882c0f51ced3ff",
-                    "name": "easel-astronomy",
-                    "bitmapResolution": 1,
-                    "md5ext": "ba4d4b1af1eafdda9b882c0f51ced3ff.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 71.83499908447266,
-                    "rotationCenterY": 99.56999969482422
-                },
-                {
-                    "assetId": "b0841fa4e9ea101a530022a9b4758d14",
-                    "name": "easel-video-games",
-                    "bitmapResolution": 1,
-                    "md5ext": "b0841fa4e9ea101a530022a9b4758d14.svg",
-                    "dataFormat": "svg",
-                    "rotationCenterX": 71.83499908447266,
-                    "rotationCenterY": 99.56999969482422
-                }
-            ],
-            "sounds": [],
-            "volume": 100,
-            "layerOrder": 1,
-            "visible": true,
-            "x": 144,
-            "y": -52,
-            "size": 150,
-            "direction": 90,
-            "draggable": false,
-            "rotationStyle": "all around"
-        }
-    ],
-    "monitors": [
-        {
-            "id": "undefined_costumenumbername_number",
-            "mode": "default",
-            "opcode": "looks_costumenumbername",
-            "params": {
-                "NUMBER_NAME": "number"
-            },
-            "spriteName": "Helen",
-            "value": "",
-            "width": 0,
-            "height": 0,
-            "x": 5,
-            "y": 5,
-            "visible": false,
-            "sliderMin": 0,
-            "sliderMax": 100,
-            "isDiscrete": true
-        }
-    ],
-    "extensions": [],
-    "meta": {
-        "semver": "3.0.0",
-        "vm": "0.2.0-prerelease.20190813192748",
-        "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
-    }
-}
-},{}],103:[function(require,module,exports){
 module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"7b59e3c3cd3ec7a9ff1499ae7ad0f79a","name":"hand in hallway iphone w: name","bitmapResolution":2,"md5ext":"7b59e3c3cd3ec7a9ff1499ae7ad0f79a.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Basketball","variables":{},"lists":{},"broadcasts":{},"blocks":{"Xv-Endey!BbY..-VD:)]":{"opcode":"event_whenflagclicked","next":"FG(H`DtDM]NB}C!M}x:j","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"FG(H`DtDM]NB}C!M}x:j":{"opcode":"sound_play","next":"I1KeKKubTFU?QWq7}Myu","parent":"Xv-Endey!BbY..-VD:)]","inputs":{"SOUND_MENU":[1,"`V#`75q{.O)!E0x*eNge"]},"fields":{},"shadow":false,"topLevel":false},"`V#`75q{.O)!E0x*eNge":{"opcode":"sound_sounds_menu","next":null,"parent":"FG(H`DtDM]NB}C!M}x:j","inputs":{},"fields":{"SOUND_MENU":["boing"]},"shadow":true,"topLevel":false},"I1KeKKubTFU?QWq7}Myu":{"opcode":"looks_thinkforsecs","next":"IfHnM9X)N2O%SYxhh?+r","parent":"FG(H`DtDM]NB}C!M}x:j","inputs":{"MESSAGE":[1,[10,"Hey!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"IfHnM9X)N2O%SYxhh?+r":{"opcode":"control_wait","next":null,"parent":"I1KeKKubTFU?QWq7}Myu","inputs":{"DURATION":[1,[5,2]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"gV6Y}?gnF~}viknGKJxZ":{"blockId":null,"x":444,"y":39.6,"width":261,"height":325.6,"minimized":false,"text":"Add two more lines of text to the conversation - one for each sprite. \r\rBe sure to use wait blocks to synchronize the conversation! "}},"currentCostume":0,"costumes":[{"assetId":"c5e41b7b0c37fa47d850e58e13f2c2c6","name":"basketball","bitmapResolution":1,"md5ext":"c5e41b7b0c37fa47d850e58e13f2c2c6.svg","dataFormat":"svg","rotationCenterX":36,"rotationCenterY":-17}],"sounds":[{"assetId":"53a3c2e27d1fb5fdb14aaf0cb41e7889","name":"boing","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":7113,"md5ext":"53a3c2e27d1fb5fdb14aaf0cb41e7889.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":16,"y":55,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Rainbow","variables":{},"lists":{},"broadcasts":{},"blocks":{"h%]_u4BasZFDtgMhl5UB":{"opcode":"event_whenflagclicked","next":"+;%OI3%-II/qzQh8QC8T","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"+;%OI3%-II/qzQh8QC8T":{"opcode":"control_wait","next":"slNuul3C|C,sDMI2jvR?","parent":"h%]_u4BasZFDtgMhl5UB","inputs":{"DURATION":[1,[5,2]]},"fields":{},"shadow":false,"topLevel":false},"slNuul3C|C,sDMI2jvR?":{"opcode":"sound_play","next":"Zu0dPVz+a,tNFA.pGF0E","parent":"+;%OI3%-II/qzQh8QC8T","inputs":{"SOUND_MENU":[1,"{:pWe[3-+.foJQ_Uy|5D"]},"fields":{},"shadow":false,"topLevel":false},"{:pWe[3-+.foJQ_Uy|5D":{"opcode":"sound_sounds_menu","next":null,"parent":"slNuul3C|C,sDMI2jvR?","inputs":{},"fields":{"SOUND_MENU":["pop"]},"shadow":true,"topLevel":false},"Zu0dPVz+a,tNFA.pGF0E":{"opcode":"looks_thinkforsecs","next":null,"parent":"slNuul3C|C,sDMI2jvR?","inputs":{"MESSAGE":[1,[10,"How r u?"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"4b5e631517784303a68b1be661a25e5d","name":"rainbow","bitmapResolution":1,"md5ext":"4b5e631517784303a68b1be661a25e5d.svg","dataFormat":"svg","rotationCenterX":72,"rotationCenterY":-24}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":52,"y":-51,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190918022946","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36"}}
-},{}],104:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -14543,9 +13898,9 @@ module.exports={
         "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36"
     }
 }
-},{}],105:[function(require,module,exports){
-arguments[4][103][0].apply(exports,arguments)
-},{"dup":103}],106:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
+arguments[4][102][0].apply(exports,arguments)
+},{"dup":102}],105:[function(require,module,exports){
 require('./grader');
 require('./scratch3');
 
@@ -14640,9 +13995,7 @@ module.exports = class GradeTwoWaySyncL1 extends Grader {
     }
 }
 
-},{"./grader":78,"./scratch3":83,"./templates/two-way-sync-L1-gaming":103,"./templates/two-way-sync-L1-multicultural":104,"./templates/two-way-sync-L1-youth-culture":105}],107:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":3,"costumes":[{"assetId":"2b0bddaf727e6bb95131290ae2549ac4","name":"background3","bitmapResolution":2,"md5ext":"2b0bddaf727e6bb95131290ae2549ac4.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"a81668321aa3dcc0fc185d3e36ae76f6","name":"Room 1","bitmapResolution":2,"md5ext":"a81668321aa3dcc0fc185d3e36ae76f6.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"e5f794c8756ca0cead5cb7e7fe354c41","name":"Playground","bitmapResolution":2,"md5ext":"e5f794c8756ca0cead5cb7e7fe354c41.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"38be88e8026768d4606fe1932b05d258","name":"backdrop","bitmapResolution":2,"md5ext":"38be88e8026768d4606fe1932b05d258.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"India","variables":{},"lists":{},"broadcasts":{},"blocks":{"{?%H[3PODtzIOzw3NUAD":{"opcode":"event_whenflagclicked","next":"X9F`sK3d.L!x-cTWVaGz","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":0,"y":0},"X9F`sK3d.L!x-cTWVaGz":{"opcode":"motion_gotoxy","next":"kBZo|n~NnzgG!crdI1E;","parent":"{?%H[3PODtzIOzw3NUAD","inputs":{"X":[1,[4,"-215"]],"Y":[1,[4,"-145"]]},"fields":{},"shadow":false,"topLevel":false},"kBZo|n~NnzgG!crdI1E;":{"opcode":"motion_movesteps","next":"u=@^[0kNfQx.2*Xvk0TX","parent":"X9F`sK3d.L!x-cTWVaGz","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"u=@^[0kNfQx.2*Xvk0TX":{"opcode":"looks_sayforsecs","next":"C;QZb9TtC1(Ov9vkC+$f","parent":"kBZo|n~NnzgG!crdI1E;","inputs":{"MESSAGE":[1,[10,"Hello! My name is India."]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},"C;QZb9TtC1(Ov9vkC+$f":{"opcode":"motion_movesteps","next":"=6=T6QR$yee::D$b8~s{","parent":"u=@^[0kNfQx.2*Xvk0TX","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"=6=T6QR$yee::D$b8~s{":{"opcode":"looks_sayforsecs","next":",`%kTB=!2Lz#4m!W2OpL","parent":"C;QZb9TtC1(Ov9vkC+$f","inputs":{"MESSAGE":[1,[10,"Welcome to Scratch!"]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},",`%kTB=!2Lz#4m!W2OpL":{"opcode":"motion_movesteps","next":"{Ipink+*Ul#QILZqGvdF","parent":"=6=T6QR$yee::D$b8~s{","inputs":{"STEPS":[1,[4,"50"]]},"fields":{},"shadow":false,"topLevel":false},"{Ipink+*Ul#QILZqGvdF":{"opcode":"looks_sayforsecs","next":null,"parent":",`%kTB=!2Lz#4m!W2OpL","inputs":{"MESSAGE":[1,[10,"Click the Space Bar to see some of the things I like."]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"fec9549b732165ec6d09991de08b69cd","name":"character (1)","bitmapResolution":1,"md5ext":"fec9549b732165ec6d09991de08b69cd.svg","dataFormat":"svg","rotationCenterX":78.87000274658203,"rotationCenterY":165.80999755859375}],"sounds":[],"volume":100,"layerOrder":2,"visible":true,"x":-165,"y":-145,"size":162.8369844855632,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"easel","variables":{},"lists":{},"broadcasts":{},"blocks":{"XYmoOsQpwwb~bRU[WtDb":{"opcode":"event_whenkeypressed","next":"NX*(%@1qK}o{lJ)1dp(L","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":56,"y":66},"NX*(%@1qK}o{lJ)1dp(L":{"opcode":"looks_switchcostumeto","next":"A*?(6=CMw!5NQvy3GoJz","parent":"XYmoOsQpwwb~bRU[WtDb","inputs":{"COSTUME":[1,"uxs{_T(3Fk%RETANj%^X"]},"fields":{},"shadow":false,"topLevel":false},"uxs{_T(3Fk%RETANj%^X":{"opcode":"looks_costume","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{},"fields":{"COSTUME":["easel-music",null]},"shadow":true,"topLevel":false},"A*?(6=CMw!5NQvy3GoJz":{"opcode":"control_repeat","next":null,"parent":"NX*(%@1qK}o{lJ)1dp(L","inputs":{"TIMES":[1,[6,"7"]],"SUBSTACK":[2,"MkZ9YIg7M,WuN@FR]l:o"]},"fields":{},"shadow":false,"topLevel":false},"MkZ9YIg7M,WuN@FR]l:o":{"opcode":"looks_nextcostume","next":"*i@~ROBKeTP[#l_7v/_-","parent":"A*?(6=CMw!5NQvy3GoJz","inputs":{},"fields":{},"shadow":false,"topLevel":false},"*i@~ROBKeTP[#l_7v/_-":{"opcode":"control_wait","next":null,"parent":"MkZ9YIg7M,WuN@FR]l:o","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"3?,1QT}D[0#@^jvT!J*^":{"opcode":"event_whenthisspriteclicked","next":"gPD.*ilWONI2U7F-SE[}","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":51,"y":455},"gPD.*ilWONI2U7F-SE[}":{"opcode":"looks_sayforsecs","next":null,"parent":"3?,1QT}D[0#@^jvT!J*^","inputs":{"MESSAGE":[1,[10,"Tada!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":7,"costumes":[{"assetId":"47a257ec82df9b221a9c8a0da1174652","name":"easel","bitmapResolution":1,"md5ext":"47a257ec82df9b221a9c8a0da1174652.svg","dataFormat":"svg","rotationCenterX":72,"rotationCenterY":100.5},{"assetId":"f80c9c273a7542f28fc0a0aa16f80532","name":"easel-sports","bitmapResolution":1,"md5ext":"f80c9c273a7542f28fc0a0aa16f80532.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"25fc936818594e0f67f48ffd39ee06b2","name":"easel-animals","bitmapResolution":1,"md5ext":"25fc936818594e0f67f48ffd39ee06b2.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"6a904db737d12cc410bd18e0e3837f1a","name":"easel-music","bitmapResolution":1,"md5ext":"6a904db737d12cc410bd18e0e3837f1a.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"eb955b9d6d17d5358e1c66ca5dbc4648","name":"easel-neighborhood","bitmapResolution":1,"md5ext":"eb955b9d6d17d5358e1c66ca5dbc4648.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"4c0e56f2cc17d497d76070033ab08654","name":"easel-travel","bitmapResolution":1,"md5ext":"4c0e56f2cc17d497d76070033ab08654.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"ba4d4b1af1eafdda9b882c0f51ced3ff","name":"easel-astronomy","bitmapResolution":1,"md5ext":"ba4d4b1af1eafdda9b882c0f51ced3ff.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422},{"assetId":"b0841fa4e9ea101a530022a9b4758d14","name":"easel-video-games","bitmapResolution":1,"md5ext":"b0841fa4e9ea101a530022a9b4758d14.svg","dataFormat":"svg","rotationCenterX":71.83499908447266,"rotationCenterY":99.56999969482422}],"sounds":[],"volume":100,"layerOrder":1,"visible":true,"x":144,"y":-52,"size":150,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[{"id":"undefined_costumenumbername_number","mode":"default","opcode":"looks_costumenumbername","params":{"NUMBER_NAME":"number"},"spriteName":"Helen","value":"","width":0,"height":0,"x":5,"y":5,"visible":false,"sliderMin":0,"sliderMax":100,"isDiscrete":true}],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
-},{}],108:[function(require,module,exports){
+},{"./grader":78,"./scratch3":83,"./templates/two-way-sync-L1-gaming":102,"./templates/two-way-sync-L1-multicultural":103,"./templates/two-way-sync-L1-youth-culture":104}],106:[function(require,module,exports){
 /// Provides necessary scripts for HTML indices.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -15193,4 +14546,4 @@ function noError() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-},{"./act1-grading-scripts/aboutMe":58,"./act1-grading-scripts/animal-parade":59,"./act1-grading-scripts/dance-party":60,"./act1-grading-scripts/final-project":61,"./act1-grading-scripts/knockKnock":62,"./act1-grading-scripts/name-poem":63,"./act1-grading-scripts/ofrenda":64,"./act1-grading-scripts/onTheFarm":65,"./act1-grading-scripts/scavengerHunt":67,"./grading-scripts-s3/animation-L1":68,"./grading-scripts-s3/animation-L2":69,"./grading-scripts-s3/complex-conditionals-L1":70,"./grading-scripts-s3/cond-loops-L1-syn":71,"./grading-scripts-s3/cond-loops-L2":72,"./grading-scripts-s3/decomp-L1":74,"./grading-scripts-s3/decomp-L2":75,"./grading-scripts-s3/events-L1-syn":76,"./grading-scripts-s3/events-L2":77,"./grading-scripts-s3/one-way-sync-L1":79,"./grading-scripts-s3/one-way-sync-L2":80,"./grading-scripts-s3/scratch-basics-L1":81,"./grading-scripts-s3/scratch-basics-L2":82,"./grading-scripts-s3/two-way-sync-L1":106}]},{},[108]);
+},{"./act1-grading-scripts/aboutMe":58,"./act1-grading-scripts/animal-parade":59,"./act1-grading-scripts/dance-party":60,"./act1-grading-scripts/final-project":61,"./act1-grading-scripts/knockKnock":62,"./act1-grading-scripts/name-poem":63,"./act1-grading-scripts/ofrenda":64,"./act1-grading-scripts/onTheFarm":65,"./act1-grading-scripts/scavengerHunt":67,"./grading-scripts-s3/animation-L1":68,"./grading-scripts-s3/animation-L2":69,"./grading-scripts-s3/complex-conditionals-L1":70,"./grading-scripts-s3/cond-loops-L1-syn":71,"./grading-scripts-s3/cond-loops-L2":72,"./grading-scripts-s3/decomp-L1":74,"./grading-scripts-s3/decomp-L2":75,"./grading-scripts-s3/events-L1-syn":76,"./grading-scripts-s3/events-L2":77,"./grading-scripts-s3/one-way-sync-L1":79,"./grading-scripts-s3/one-way-sync-L2":80,"./grading-scripts-s3/scratch-basics-L1":81,"./grading-scripts-s3/scratch-basics-L2":82,"./grading-scripts-s3/two-way-sync-L1":105}]},{},[106]);
