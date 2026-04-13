@@ -13,7 +13,7 @@ module.exports = class {
             addSay : {bool: false, str: 'A say block is added'}
         }
         this.extensions = {
-            addSayAgain : {bool: false, str: 'A second say block is added'},
+            addSayAgain : {bool: false, str: 'A second say block is added to a different sprite'},
             addMove: {bool: false, str: 'A move block is added'}
         }
 
@@ -60,10 +60,13 @@ module.exports = class {
                     }
                 }
                 else if (spriteName == "Helen the Hedgehog") {
-                    const opcodes = Object.values(sprite.blocks).map(item => item.opcode);
-                    for (var opcode of opcodes) {
-                        if (opcode.includes('looks_say')) {
-                            addSayAgain++;
+                    for (var script of sprite.scripts) {
+                        if (script.blocks[0].opcode === 'event_whenthisspriteclicked') {
+                            for (var block of script.blocks){
+                                if (block.opcode.includes('looks_say')) {
+                                    addSayAgain++;
+                                }
+                            }
                         }
                     }
                 }                            
@@ -71,13 +74,16 @@ module.exports = class {
             else if (strand == 'multicultural'){
                 var spriteName = detectSprite(sprite, template)
                 if (spriteName == "Neha"){
-                    const opcodes = Object.values(sprite.blocks).map(item => item.opcode);
-                    for (var opcode of opcodes) {
-                        if (opcode.includes('looks_say')) {
-                            addSay++;
-                        }
-                        else if (opcode.includes('motion_movesteps')){
-                            addMove++;
+                    for (var script of sprite.scripts) {
+                        if (script.blocks[0].opcode === 'event_whenthisspriteclicked') {
+                            for (var block of script.blocks) {
+                                if (block.opcode.includes('looks_say')) {
+                                    addSay++;
+                                }
+                                else if (block.opcode === 'motion_movesteps'){
+                                    addMove++;
+                                }
+                            }
                         }
                     }
                 }
@@ -123,7 +129,7 @@ module.exports = class {
             this.extensions.addSayAgain.bool = (addSayAgain > 1);    
         }
         else if (strand == 'multicultural'){
-            this.requirements.addSay.bool = (addSay > 9);
+            this.requirements.addSay.bool = (addSay > 4);
             this.extensions.addMove.bool = (addMove > 0);
             this.extensions.addSayAgain.bool = (addSayAgain > 2);
         }

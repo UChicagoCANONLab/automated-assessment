@@ -32,6 +32,15 @@ let actOneGraders = {
     finalProject:  { name: 'M9 - Interactive Story', file: require('./act1-grading-scripts/final-project') },
 };
 
+const rubrics = {
+    scratchBasicsL1: [
+        { Strand: "Gaming", Core: "Carl Says Block", Extension: "Carl Moves 10 Steps, Helen says block" },
+        { Strand: "Multicultural", Core: "Neha Says Block", Extension: "Brad says block, Neha moves 10 steps" },
+        { Strand: "Youth Culture", Core: "India Says Block", Extension: "Easel Changes Costume, India moves 10 blocks, Easel says block" },
+        { Strand: "Stardew", Core: "Lewis Says Block", Extension: "Robin moves 10 steps after the green flag, Robin says something after the green flag" }
+    ],
+};
+
 let allGraders = {};
 for (let graderKeyList of [graders, actOneGraders]) {
     for (let graderKey in graderKeyList) {
@@ -201,6 +210,15 @@ window.onclick = function (event) {
     });
 }
 
+window.drop_handler = function (graderKey) {
+    gradeObj = new allGraders[graderKey].file;
+    console.log("Selected " + allGraders[graderKey].name);
+    document.getElementById("selectedUnit").innerHTML = 'Grading ' + allGraders[graderKey].name;
+    
+    // --> ADD THIS LINE: Update the rubric table whenever a new module is selected
+    printRubricTable(graderKey);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Project retrieval and grading
@@ -266,6 +284,10 @@ async function crawl(studioID) {
     if (!studioResponse.ok) {
         throw new Error(`HTTP error ${studioResponse.status} fetching studio metadata`);
     }
+
+    // Here we should print our requirements for the project
+    
+
     const studioJSON = await studioResponse.json();
     // console.log(studioJSON);
 
@@ -309,6 +331,61 @@ async function gradeStudioProject(projectIdentifier) {
         /// console.log(err);
     }
     printReportList();
+}
+
+/* Generates and displays the grading rubric table */
+function printRubricTable(graderKey) {
+    let rubricContainer = document.getElementById("rubric_container");
+    if (!rubricContainer) 
+        return;
+
+    let rubricData = rubrics[graderKey];
+
+    if (!rubricData) {
+        rubricContainer.style.display = 'none';
+        rubricContainer.innerHTML = '';
+        return;
+    }
+
+
+    // Build the rows dynamically
+    let tableRows = rubricData.map(row => `
+      <tr>
+        <td style="border: 1px solid #ddd; padding: 10px;">${row.Strand}</td>
+        <td style="border: 1px solid #ddd; padding: 10px;">${row.Core}</td>
+        <td style="border: 1px solid #ddd; padding: 10px;">${row.Extension}</td>
+      </tr>
+    `).join('');
+
+    // Wrap the rows in the table layout
+    let tableHTML = `
+    <table style="width: 100%; max-width: 800px; border-collapse: collapse; font-family: Arial, sans-serif; text-align: left;">
+      <thead>
+        <tr style="background-color: #f4f4f4;">
+          <th style="border: 1px solid #ddd; padding: 10px;">Strand</th>
+          <th style="border: 1px solid #ddd; padding: 10px;">Core Requirement</th>
+          <th style="border: 1px solid #ddd; padding: 10px;">Extensions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${tableRows}
+      </tbody>
+    </table>
+    `;
+
+    if (rubricContainer) {
+        rubricContainer.innerHTML = '<h3 style="font-family: Arial, sans-serif;">Grading Requirements</h3>' + tableHTML;
+        rubricContainer.style.display = 'block';
+    }
+}
+
+/* Hides the rubric table when the page is reset */
+function hideRubricTable() {
+    let rubricContainer = document.getElementById("rubric_container");
+    if (rubricContainer) {
+        rubricContainer.style.display = 'none';
+        rubricContainer.innerHTML = ''; // Clear out the old table
+    }
 }
 
 // function downloadProject(projectID, projectJSON) {
