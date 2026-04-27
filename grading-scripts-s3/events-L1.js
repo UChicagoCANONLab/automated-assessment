@@ -10,7 +10,6 @@ module.exports = class {
             resetSize:    { bool: false, str: 'After talking twice the sprites reset to their original size.' }
         };
         this.extensions = {
-            changedName:  { bool: false, str: 'At least one sprite\'s name has been changed.'                  },
             addedSpin:    { bool: false, str: 'At least one sprite spins using turn and wait blocks.'          },
             addedEvent:   { bool: false, str: 'At least one sprite reacts to a different event.'               }
         };
@@ -50,12 +49,11 @@ module.exports = class {
                     script.context.addedSpin = 1;
                 }
             }
-            sprite.context.changedName = !['Left', 'Middle', 'Right', 'Catrina'].includes(sprite.name);
             sprite.context.pull(['reactToClick', 'getBigger', 'resetSize', 'addedEvent', 'addedSpin'], 1, false);
             sprite.context.pull(['talkTwice'], 2, false);
         }
         project.context.pull(['reactToClick', 'getBigger', 'talkTwice', 'resetSize'], 3, true);
-        project.context.pull(['changedName', 'addedSpin', 'addedEvent'], 1, false);
+        project.context.pull(['addedSpin', 'addedEvent'], 1, false);
         project.context.makeGrade(this);
     }
 }

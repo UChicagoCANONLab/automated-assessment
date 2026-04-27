@@ -1,0 +1,78 @@
+{
+    "scratchBasicsL1": [
+        { "strand": "All", "required": true, "criteria": "A new say block should be added to the sprite" },
+        { "strand": "All", "required": false, "criteria": "A new move block should be added doesn't need to be exactly 10 steps" },
+        { "strand": "All", "required": false, "criteria": "A new say block should be added to a different sprite than the one with the new say and move blocks" },
+        
+        { "strand": "Youth Culture", "required": false, "criteria": "The Easel should have changed costume, the grader checks if the costume is no longer the first one" },
+
+        { "strand": "Stardew", "required": false, "criteria": "The grader checks if there is a new move block in a green flag event block" },
+        { "strand": "Stardew", "required": false, "criteria": "The grader checks if there is a new say block in a green flag event block" }
+    ],
+
+    "scratchBasicsL2_create": [
+        {"strand": "Create", "required": true, "criteria": "Add a new backdrop"},
+        {"strand": "Create", "required": true, "criteria": "Add at least one sprite"},
+        {"strand": "Create", "required": true, "criteria": "Sprite has a green flag block"},
+        {"strand": "Create", "required": true, "criteria": "Sprite with green flag block has a go to x y block"},
+        {"strand": "Create", "required": true, "criteria": "Sprite with green flag block has say block"},
+        {"strand": "Create", "required": true, "criteria": "Sprite with green flag block has a move steps block"},
+        
+        {"strand": "Create", "required": false, "criteria": "New block with when sprite clicked or when key pressed"},
+        {"strand": "Create", "required": false, "criteria": "Project uses any block that is new"},
+        {"strand": "Create", "required": false, "criteria": "More than one sprite"},
+        {"strand": "Create", "required": false, "criteria": "Second sprite has a motion block"}
+    ],
+    "eventsL1":[
+        { "strand": "All", "required": true, "criteria": "There should be 3 sprites that increase in size, speak, and then go back to their original size" },
+        { "strand": "All", "required": true, "criteria": "All 3 sprites need to revert back to original size when the green flag is pressed, they just need a go to block and a set size to block" },
+        { "strand": "Gaming", "required": true, "criteria": "A sprite should have an event checking when right arrow key pressed, and that block should have a motion with steps being a positive number" },
+        { "strand": "Stardew", "required": true, "criteria": "A sprite should have an event checking when space is presed, and that block should have a size change that makes it smaller" },
+
+        { "strand": "All", "required": false, "criteria": "A sprite should spin, check if there is a loop (repeat, repeat until, forever) and if in the loop there are turn and wait blocks" },
+        { "strand": "All", "required": false, "criteria": "There should be a new when key pressed event block that has additional actions in it" },
+
+        { "strand": "Youth Culture/Gaming/Stardew", "required": false, "criteria": "A sprite should have an event checking when left arrow key pressed and that block should take negative steps" }
+    ],
+    "eventsL2_create":[
+        {"strand": "Create", "required": true, "criteria": "Add a new backdrop"},
+        {"strand": "Create", "required": true, "criteria": "Add at least three sprites"},
+        {"strand": "Create", "required": true, "criteria": "One sprite has at least 2/3 of the required events"},
+        {"strand": "Create", "required": true, "criteria": "Two sprites have at least 2/3 of the required events"},
+        {"strand": "Create", "required": true, "criteria": "Three sprites have at least 2/3 of the required events"},
+        {"strand": "Create", "required": true, "criteria": "One sprite has at least 2/3 of the required events and has extra blocks added to those events (doesn't check if they are actually about proper topics)"},
+        {"strand": "Create", "required": true, "criteria": "Two sprites have at least 2/3 of the required events and have extra blocks addded to those events"},
+        {"strand": "Create", "required": true, "criteria": "Three sprites have at least 2/3 of the required events and have extra blocks addded to those events"},
+        {"strand": "Create", "required": true, "criteria": "All three of the events have been used at least once"},
+        
+        {"strand": "Create", "required": false, "criteria": "Sprite spins, it has a turn and a wait block"},
+        {"strand": "Create", "required": false, "criteria": "Sprite reacts to an event outside of the required ones"},
+        {"strand": "Create", "required": false, "criteria": "Sprite blinks, it has hide, show, and wait blocks"}
+        ],
+    "animationL1": [
+        {"strand": "All", "required": true, "criteria":"Sprite contains when down arrow key pressed event"},
+        {"strand": "All", "required": true, "criteria":"Sprite contains either next costume or switch costume to block"},
+        {"strand": "All", "required": true, "criteria":"Sprite contains a wait block on down arrow"},
+        {"strand": "All", "required": true, "criteria":"Checks if the distance traveled (steps * loops) reaches the x position of the end point"},
+
+        {"strand": "All", "required": false, "criteria":"Check if the fastest sprite has any block after the loop finishes"},
+        {"strand": "All", "required": false, "criteria":"4 Sprites are animated, includes a loop with costume change, wait, and motion"},
+        {"strand": "All", "required": false, "criteria":"5th sprite is added and is animated, includes a loop with costume change, wait, and motion"},
+        {"strand": "Gaming", "required": false, "criteria":"Checks if the bee while moving uses turn blocks in its script"}
+    ],
+    "animationL2_create": [
+        {"strand": "Create", "required": true, "criteria": "Add a new backdrop"},
+        {"strand": "Create", "required": true, "criteria": "Add at least three sprites"},
+        {"strand": "Create", "required": true, "criteria": "Two sprites are animated in place (loop with costume change and wait) WITHOUT moving"},
+        {"strand": "Create", "required": true, "criteria": "One sprite is animated with motion (loop with cosume change and wait AND move)"},
+        
+        {"strand": "Create", "required": false, "criteria": "Another sprite is animated (loop with cosume change and wait), either in-place or with motion"},
+        {"strand": "Create", "required": false, "criteria": "Multiple types of animation, usage of different motion e.g. glide versus move steps"}
+    ],
+    "condLoopsL1": [],
+    "condLoopsL2_create": [],
+    "decompL1": [],      
+    "decompL2_create": [],   
+    "oneWaySyncL1": [], 
+    "oneWaySyncL2_create": []
+}

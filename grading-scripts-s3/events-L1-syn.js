@@ -95,6 +95,35 @@ module.exports = class GradeEventsL1 {
         return spritesPassing;
     }
 
+    /// Counts the number of sprites with a correct shrink on space script.
+    spacePassing(project) {
+        var spritesPassing = 0;
+        for (var sprite of project.sprites) {
+            var scriptsPassing = 0;
+            var spriteSize = parseFloat(sprite.size);
+            var initialSpriteSize = spriteSize;
+            for (var script of sprite.scripts.filter(
+                script => script.blocks[0].opcode === 'event_whenkeypressed' && script.blocks.length > 1
+            )) {
+                var key = script.blocks[0].fields.KEY_OPTION[0];
+                if (key === "space"){
+                    var containsShrink = false;
+                    for (var block of script.blocks) {
+                        if (block.opcode === 'looks_changesizeby') {
+                            if (block.inputs.CHANGE[1][1] < 0) containsShrink = true;
+                        }
+                        else if (block.opcode === 'looks_setsizeto') {
+                            if (block.inputs.SIZE[1][1] < initialSpriteSize) containsShrink = true;
+                        }
+                    }
+                    if (containsShrink) scriptsPassing++;
+                }
+            }
+            if (scriptsPassing > 0) spritesPassing++;
+        }
+        return spritesPassing;
+    }
+
     /// Counts the number of sprites that spin around using turn and wait blocks in a loop.
     spinPassing(project) {
         var spritesPassing = 0;
@@ -126,18 +155,36 @@ module.exports = class GradeEventsL1 {
         return spritesPassing;
     }
 
-    /// Counts the number of sprites with changed names.
-    namePassing(project) {
-        var defaultNames = [];
-        if (this.strand === 'multicultural') defaultNames = ['Catrina', 'Left', 'Middle', 'Right'];
-        else if (this.strand === 'youthCulture') defaultNames = ['Jamal', 'Monster', 'Cat'];
-        else if (this.strand === 'gaming') defaultNames = ['Beep', 'Bop', 'Planet X', 'Bork'];
+    addEvent(project, theme) {
         var spritesPassing = 0;
+        const baselineKeys = {
+            "youthCulture": ['left arrow'],
+            "gaming": ['left arrow', 'right arrow'],
+            "multicultural": [], // 'none in baseline'
+            "stardew": ['left arrow', 'space']
+        };
+
+        const existingKeys = new Set(
+            (baselineKeys[theme] || []).map(key => key.toLowerCase())
+        );
+
         for (var sprite of project.sprites) {
-            if (!defaultNames.includes(sprite.name)) spritesPassing++;
+            var scriptsPassing = 0;
+            for (var script of sprite.scripts.filter(
+                script => script.blocks[0].opcode === 'event_whenkeypressed' && script.blocks.length > 1
+            )) {
+                var key = script.blocks[0].fields.KEY_OPTION[0];
+                if (key) {                  
+                    if (!existingKeys.has(key)) {
+                        scriptsPassing++;
+                    }
+                }
+            }
+            if (scriptsPassing > 0) spritesPassing++;
         }
         return spritesPassing;
     }
+
 
     /// Evaluate the completion of the requirements and extensions for a given JSON representation of a project.
     grade(json, user) {
@@ -156,7 +203,8 @@ module.exports = class GradeEventsL1 {
         var templates = {
             multicultural: require('./templates/events-L1-multicultural'),
             youthCulture:  require('./templates/events-L1-youth-culture'),
-            gaming:        require('./templates/events-L1-gaming')
+            gaming:        require('./templates/events-L1-gaming'),
+            stardew:       require('./templates/events-L1-stardew.json')
         };
         this.strand = detectStrand(project, templates);
         this.requirements.click1 = {
@@ -179,27 +227,35 @@ module.exports = class GradeEventsL1 {
             bool: this.spinPassing(project) >= 1,
             str: 'At least one sprite spins around using turn and wait blocks in a loop.'
         };
-        if (this.strand === 'multicultural') {
-            this.extensions.name = {
-                bool: this.namePassing(project) >= 1,
-                str: 'At least one sprite\'s name has been customized.'
-            };
+        this.extensions.addEvent = {
+            bool : this.addEvent(project) >= 1,
+            str: 'At least one sprite reacts to a new event/key press'
         }
-        else if (this.strand === 'youthCulture') {
+        if (this.strand === 'youthCulture') {
             this.extensions.key = {
                 bool: this.keyPassing(project, 'left') >= 1,
-                str: 'The cat moves to the left when the left arrow key is pressed.'
+                str: 'Sprite moves to the left when the left arrow key is pressed.'
             };
         }
         else if (this.strand === 'gaming') {
             this.requirements.key = {
                 bool: this.keyPassing(project, 'right') >= 1,
-                str: 'Bop moves to the right when the right arrow key is pressed.'
+                str: 'Sprite moves to the right when the right arrow key is pressed.'
             };
             this.extensions.key = {
                 bool: this.keyPassing(project, 'left') >= 1,
-                str: 'Bork moves to the left when the left arrow key is pressed.'
+                str: 'Sprite moves to the left when the left arrow key is pressed.'
+            };
+        }
+        else if (this.strand === 'stardew') {
+            this.requirements.key = {
+                bool: this.spacePassing(project) >= 1,
+                str: 'Sprite becomes smaller when space key is pressed'
             }
+            this.extensions.key = {
+                bool: this.keyPassing(project, 'left') >= 1,
+                str: 'Sprite moves to the left when the left arrow key is pressed.'
+            };
         }
         return;
     }

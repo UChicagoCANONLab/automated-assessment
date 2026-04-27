@@ -10,12 +10,14 @@ module.exports = class {
         let strandName = detectStrand(json, {
                 gaming: require('./templates/animation-L1-gaming.json'),
                 multicultural: require('./templates/animation-L1-multicultural.json'),
-                youthCulture: require('./templates/animation-L1-youth-culture.json')
+                youthCulture: require('./templates/animation-L1-youth-culture.json'),
+                stardew: require('./templates/animation-L1-stardew.json')
         });
         let differences = {
             gaming: {spriteNames: ['Snake', 'Bee', 'Kangaroo'], endPosition: 119},
             multicultural: {spriteNames: ['Red Dragon Boat', 'Blue Dragon Boat', 'Fish'], endPosition: 350},
             youthCulture: {spriteNames: ['Jordyn', 'Miguel', 'Referee'], endPosition: 220},
+            stardew: {spriteNames: ['Robin', 'Demetrius', 'Pierre'], endPosition: 210},
             generic: {spriteNames: ['Sprite 1', 'Sprite 2', 'Hidden Sprite'], endPosition: 119}
         };
         console.log(strandName);
@@ -35,7 +37,7 @@ module.exports = class {
         };
 
         if (this.strand.name === 'gaming') {
-            this.extensions.wigglyPath = {bool: false, str: 'The Bee moves in a wiggly path.'};
+            this.extensions.wigglyPath = {bool: false, str: 'The sprite moves in a wiggly path.'};
         }
     }
 

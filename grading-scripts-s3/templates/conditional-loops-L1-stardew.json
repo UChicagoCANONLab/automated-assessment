@@ -1,0 +1,462 @@
+{
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Bus Stop",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "48eb058f0e0879064f9cc3118fdf571c",
+                    "md5ext": "48eb058f0e0879064f9cc3118fdf571c.svg",
+                    "rotationCenterX": 430.2494122529001,
+                    "rotationCenterY": 193.04513400000002
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "pop",
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 1124,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Bus",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                ",b,MB{-tz,CPMdx6uPSI": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "e-sb$@26ew9Y;.)yz~3A",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 21,
+                    "y": 30
+                },
+                "e-sb$@26ew9Y;.)yz~3A": {
+                    "opcode": "motion_gotoxy",
+                    "next": "G#U%Yd+G]Rnzbke8IBq,",
+                    "parent": ",b,MB{-tz,CPMdx6uPSI",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-269"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "0"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "G#U%Yd+G]Rnzbke8IBq,": {
+                    "opcode": "control_repeat_until",
+                    "next": null,
+                    "parent": "e-sb$@26ew9Y;.)yz~3A",
+                    "inputs": {
+                        "CONDITION": [
+                            2,
+                            "7!dxCwjGz5XkG%.T^7uR"
+                        ],
+                        "SUBSTACK": [
+                            2,
+                            "{t,HO=FEj-72!S_B1kj8"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "7!dxCwjGz5XkG%.T^7uR": {
+                    "opcode": "sensing_touchingobject",
+                    "next": null,
+                    "parent": "G#U%Yd+G]Rnzbke8IBq,",
+                    "inputs": {
+                        "TOUCHINGOBJECTMENU": [
+                            1,
+                            "zs9|Qt-p|v-Vfk{3/|}}"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "zs9|Qt-p|v-Vfk{3/|}}": {
+                    "opcode": "sensing_touchingobjectmenu",
+                    "next": null,
+                    "parent": "7!dxCwjGz5XkG%.T^7uR",
+                    "inputs": {},
+                    "fields": {
+                        "TOUCHINGOBJECTMENU": [
+                            "Stop",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "{t,HO=FEj-72!S_B1kj8": {
+                    "opcode": "motion_movesteps",
+                    "next": "A87.jAop_(6WuREWEFaR",
+                    "parent": "G#U%Yd+G]Rnzbke8IBq,",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "10"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "A87.jAop_(6WuREWEFaR": {
+                    "opcode": "control_wait",
+                    "next": null,
+                    "parent": "{t,HO=FEj-72!S_B1kj8",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                "0.1"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "p.DF;UyeX~O?;Fa3lY8t": {
+                    "opcode": "sensing_touchingcolor",
+                    "next": null,
+                    "parent": null,
+                    "inputs": {
+                        "COLOR": [
+                            1,
+                            [
+                                9,
+                                "#9966ff"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 379,
+                    "y": 143
+                }
+            },
+            "comments": {
+                "7T?P)4;Rd*r`ZA]E-#Cd": {
+                    "blockId": null,
+                    "x": 597,
+                    "y": 204,
+                    "width": 231,
+                    "height": 233,
+                    "minimized": false,
+                    "text": "Use this block, instead of the touching stop block, to have the bus stop at the line on the street."
+                }
+            },
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Bus",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "511be990d29d8c63e32dd0fa458b8125",
+                    "md5ext": "511be990d29d8c63e32dd0fa458b8125.svg",
+                    "rotationCenterX": 109.40559773770724,
+                    "rotationCenterY": 54.48911606077209
+                },
+                {
+                    "name": "Traveling Cart",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "84cb5860dc0f989fbe36c9312409bab5",
+                    "md5ext": "84cb5860dc0f989fbe36c9312409bab5.svg",
+                    "rotationCenterX": 125.00000000000006,
+                    "rotationCenterY": 68.99999999999999
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "pop",
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 1124,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": 1,
+            "y": 0,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "left-right"
+        },
+        {
+            "isStage": false,
+            "name": "Stop",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Stop Sign",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "6e91e0063b1ea1d27dbf9e34bcb92c06",
+                    "md5ext": "6e91e0063b1ea1d27dbf9e34bcb92c06.svg",
+                    "rotationCenterX": -39,
+                    "rotationCenterY": 5
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 4,
+            "visible": true,
+            "x": 56.9999964396161,
+            "y": 25.00000093248148,
+            "size": 60,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Player",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "eczJ*.rhXdIlS29#1ozS": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "E#R=tx)bi*}_cff*`lN:",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 38,
+                    "y": 44
+                },
+                "E#R=tx)bi*}_cff*`lN:": {
+                    "opcode": "motion_gotoxy",
+                    "next": null,
+                    "parent": "eczJ*.rhXdIlS29#1ozS",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "0"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-40"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "*1Lq8[3RB-Gj)C]3cpt7": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "L|!P#V6xL|HSXnO%B,(A",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 45,
+                    "y": 266
+                },
+                "L|!P#V6xL|HSXnO%B,(A": {
+                    "opcode": "motion_movesteps",
+                    "next": null,
+                    "parent": "*1Lq8[3RB-Gj)C]3cpt7",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Player",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "90f5c2cefdf85e8aacfaea47d1a4202b",
+                    "md5ext": "90f5c2cefdf85e8aacfaea47d1a4202b.svg",
+                    "rotationCenterX": 14.844827586206918,
+                    "rotationCenterY": 30.75
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "dance celebrate",
+                    "assetId": "0edb8fb88af19e6e17d0f8cf64c1d136",
+                    "dataFormat": "wav",
+                    "format": "adpcm",
+                    "rate": 22050,
+                    "sampleCount": 176785,
+                    "md5ext": "0edb8fb88af19e6e17d0f8cf64c1d136.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": 0,
+            "y": -40,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Tree",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "a1O~Zmdj}W!Z91feosSZ": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "[{Ip)|.l@A@MmymOVnkn",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 62,
+                    "y": 90
+                },
+                "[{Ip)|.l@A@MmymOVnkn": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "a1O~Zmdj}W!Z91feosSZ",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Ouch!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Maple_tree_portrait",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "85d1561d401647bee74ad2554a4abb11",
+                    "md5ext": "85d1561d401647bee74ad2554a4abb11.svg",
+                    "rotationCenterX": 35.90507543103445,
+                    "rotationCenterY": 68.38300165077025
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "dance celebrate",
+                    "assetId": "0edb8fb88af19e6e17d0f8cf64c1d136",
+                    "dataFormat": "wav",
+                    "format": "adpcm",
+                    "rate": 22050,
+                    "sampleCount": 176785,
+                    "md5ext": "0edb8fb88af19e6e17d0f8cf64c1d136.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": -145.99999046325743,
+            "y": -58.000002543131295,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0Bus",
+        "vm": "13.7.1",
+        "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:150.0) Gecko/20100101 Firefox/150.0"
+    }
+}

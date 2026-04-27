@@ -1,38 +1,66 @@
 require('./grader');
 require('./scratch3');
 
+const STRAND_CONFIG = {
+    multicultural: {
+        requiresCostumeChange: true,           
+        mainSprite: 'Butterfly',
+        stopTargets: ['King Momo'],
+        exceptionSprite: 'Toucan',
+        defaultSpeed: { steps: 2, duration: 1 },
+        exceptionSpeed: { steps: 1, duration: 1 },
+        requiredSpritesPassing: 1 
+    },
+    youthCulture: {
+        requiresCostumeChange: true,           
+        mainSprite: 'Car',  
+        stopTargets: ['Stop'],
+        defaultSpeed: { steps: 10, duration: 0.1 },
+        requiredSpritesPassing: 0
+    },
+    gaming: {
+        requiresCostumeChange: false,          
+        mainSprite: 'Ninja Cat', 
+        stopTargets: ['Bee'],
+        defaultSpeed: { steps: 5, duration: 1 },
+        requiredSpritesPassing: 0
+    },
+    stardew: {
+        requiresCostumeChange: true,           
+        mainSprite: 'Bus',
+        stopTargets: ['Stop'],                 
+        defaultSpeed: { steps: 10, duration: 0.1 },
+        requiredSpritesPassing: 0
+    }
+};
+
 module.exports = class GradeCondLoopsL1 extends Grader {
 
     init(project) {
         let strandTemplates = {
-            multicultural: require('./templates/conditional-loops-L1-multicultural'),
-            youthCulture:  require('./templates/conditional-loops-L1-youth-culture'),
-            gaming:        require('./templates/conditional-loops-L1-gaming')
+            multicultural: require('./templates/conditional-loops-L1-multicultural.json'),
+            youthCulture:  require('./templates/conditional-loops-L1-youth-culture.json'),
+            gaming:        require('./templates/conditional-loops-L1-gaming.json'),
+            stardew:       require('./templates/conditional-loops-L1-stardew.json')
         };
+        
         this.strand = detectStrand(project, strandTemplates, 'youthCulture');
-        if (this.strand === 'multicultural') {
-            this.requirements = [
-                new Requirement('Choose a different costume for the float.', this.testCostumes(project)),
-                new Requirement('Make the float stop at the Stop Sign, the turquoise blue line, or the red line.', this.testStop(project)),
-                new Requirement('Make the float say something after it stops.', this.testSay(project)),
-                new Requirement('Change the speed of the float.', this.testSpeed(project)),
-            ];
+        this.config = STRAND_CONFIG[this.strand] || STRAND_CONFIG['youthCulture'];
+
+        this.requirements = [];
+
+        if (this.config.requiresCostumeChange) {
+            this.requirements.push(
+                new Requirement('Choose a different costume for the main sprite.', this.testCostumes(project))
+            );
         }
-        else if (this.strand === 'youthCulture') {
-            this.requirements = [
-                new Requirement('Choose a different costume for the car.', this.testCostumes(project)),
-                new Requirement('Make the car stop at Libby, the yellow line, or the purple line.', this.testStop(project)),
-                new Requirement('Make the car say something after it stops.', this.testSay(project)),
-                new Requirement('Change the speed of the car.', this.testSpeed(project)),
-            ];
-        }
-        else if (this.strand === 'gaming') {
-            this.requirements = [
-                new Requirement('Make the cat stop at the gem or a different sprite.', this.testStop(project)),
-                new Requirement('Have the cat say something after it stops.', this.testSay(project)),
-                new Requirement('Change the speed of the cat.', this.testSpeed(project)),
-            ];
-        }
+
+        this.requirements.push(
+            new Requirement('Make the sprite stop at the correct target or color.', this.testStop(project)),
+            new Requirement('Make the sprite say something after it stops.', this.testSay(project)),
+            new Requirement('Change the speed of the sprite.', this.testSpeed(project))
+        );
+
         this.extensions = [
             new Extension('Add another sprite and have it stop at another sprite or a color.', this.checkStopExtension()),
             new Extension('Add a sound when a sprite stops moving.', this.checkSoundExtension()),
@@ -42,53 +70,52 @@ module.exports = class GradeCondLoopsL1 extends Grader {
 
     testCostumes(project) {
         for (let sprite of project.sprites) {
-            let costumeName = sprite.costumes[sprite.currentCostume].name;
-            if (this.strand === 'multicultural' && costumeName === 'Butterfly Float') {
-                return false;
-            }
-            if (this.strand === 'youthCulture' && costumeName === 'Sedan') {
-                return false;
+            
+            // Look for the main sprite defined in our config (e.g., 'Bus')
+            if (sprite.name === this.config.mainSprite) {
+                // If currentCostume > 0, they have switched to a different costume.
+                return sprite.currentCostume > 0;
             }
         }
+        
         return true;
     }
 
     testStop(project) {
         let spritesPassing = 0;
         let spritesPassingExtension = 0;
+        
         for (let sprite of project.sprites) {
             let scriptsPassing = 0;
             let scriptsPassingExtension = 0;
+            
             for (let script of sprite.validScripts) {
                 let blocksPassing = 0;
                 let blocksPassingExtension = 0;
+                
                 for (let block of script.blocks) {
                     let moves = false;
                     let movesForExtension = false;
                     let stops = false;
                     let stopsForExtension = false;
+                    
                     if (block.opcode === 'control_repeat_until') {
                         for (let subscript of block.subscriptsRecursive) {
                             for (let subblock of subscript.blocks) {
-                                if (subblock.opcode === 'motion_movesteps') {
-                                    moves = true;
-                                }
-                                if (opcodeLists.changeXY.includes(subblock.opcode)) {
-                                    movesForExtension = true;
-                                }
+                                if (subblock.opcode === 'motion_movesteps') moves = true;
+                                if (opcodeLists.changeXY.includes(subblock.opcode)) movesForExtension = true;
                             }
                         }
+                        
                         if (block.conditionBlock) {
                             for (let menuBlock of block.conditionBlock.inputBlocks) {
                                 if (menuBlock.opcode === 'sensing_touchingobjectmenu') {
                                     let touchingObject = menuBlock.fields.TOUCHINGOBJECTMENU[0];
-                                    if (this.strand === 'multicultural' && (touchingObject !== 'King Momo' || sprite.name === 'Toucan')) {
-                                        stops = true;
-                                    }
-                                    if (this.strand === 'youthCulture' && touchingObject !== 'Stop') {
-                                        stops = true;
-                                    }
-                                    if (this.strand === 'gaming' && touchingObject !== 'Bee') {
+                                    
+                                    let isDefaultTarget = this.config.stopTargets.includes(touchingObject);
+                                    let isExceptionSprite = sprite.name === this.config.exceptionSprite;
+                                    
+                                    if (!isDefaultTarget || isExceptionSprite) {
                                         stops = true;
                                     }
                                     stopsForExtension = true;
@@ -100,36 +127,19 @@ module.exports = class GradeCondLoopsL1 extends Grader {
                             }
                         }
                     }
-                    if (moves && stops) {
-                        blocksPassing++;
-                    }
-                    if (movesForExtension && stopsForExtension) {
-                        blocksPassingExtension++;
-                    }
+                    if (moves && stops) blocksPassing++;
+                    if (movesForExtension && stopsForExtension) blocksPassingExtension++;
                 }
-                if (blocksPassing) {
-                    scriptsPassing++;
-                }
-                if (blocksPassingExtension) {
-                    scriptsPassingExtension++;
-                }
+                if (blocksPassing) scriptsPassing++;
+                if (blocksPassingExtension) scriptsPassingExtension++;
             }
-            if (scriptsPassing) {
-                spritesPassing++;
-            }
-            if (scriptsPassingExtension) {
-                spritesPassingExtension++;
-            }
+            if (scriptsPassing) spritesPassing++;
+            if (scriptsPassingExtension) spritesPassingExtension++;
         }
-        this.stopExtensionPassing = false;
-        if (this.strand === 'multicultural') {
-            this.stopExtensionPassing = spritesPassingExtension > 2;
-            return spritesPassing > 1; /// To account for the toucan float
-        }
-        else {
-            this.stopExtensionPassing = spritesPassingExtension > 1;
-            return spritesPassing > 0;
-        }
+        
+        let threshold = this.config.requiredSpritesPassing;
+        this.stopExtensionPassing = spritesPassingExtension > (threshold + 1);
+        return spritesPassing > threshold;
     }
 
     testSay(project) {
@@ -137,9 +147,8 @@ module.exports = class GradeCondLoopsL1 extends Grader {
             for (let script of sprite.validScripts) {
                 let hasLooped = false;
                 for (let block of script.blocks) {
-                    if (block.opcode === 'control_repeat_until') {
-                        hasLooped = true;
-                    }
+                    if (block.opcode === 'control_repeat_until') hasLooped = true;
+                    
                     if ((block.opcode.includes('looks_say') || block.opcode.includes('looks_think')) && hasLooped) {
                         return true;
                     }
@@ -158,31 +167,25 @@ module.exports = class GradeCondLoopsL1 extends Grader {
                 for (let block of script.blocks) {
                     let steps = 0;
                     let duration = 0;
+                    
                     if (block.opcode === 'control_repeat_until') {
                         for (let subscript of block.subscriptsRecursive) {
                             for (let subblock of subscript.blocks) {
-                                if (subblock.opcode === 'motion_movesteps') {
-                                    steps += subblock.inputs.STEPS[1][1];
-                                }
-                                if (subblock.opcode === 'control_wait') {
-                                    duration += subblock.inputs.DURATION[1][1];
-                                }
+                                if (subblock.opcode === 'motion_movesteps') steps += subblock.inputs.STEPS[1][1];
+                                if (subblock.opcode === 'control_wait') duration += subblock.inputs.DURATION[1][1];
                             }
                         }
                     }
-                    if (this.strand === 'multicultural') {
-                        if (sprite.name === 'Toucan' && steps && (steps !== 1 || duration !== 1)) {
+                    
+                    // 6. Generic Speed Check based on config
+                    if (steps) {
+                        let expected = (sprite.name === this.config.exceptionSprite && this.config.exceptionSpeed) 
+                            ? this.config.exceptionSpeed 
+                            : this.config.defaultSpeed;
+                            
+                        if (steps !== expected.steps || duration !== expected.duration) {
                             return true;
                         }
-                        else if (steps && (steps !== 2 || duration !== 1)) {
-                            return true;
-                        }
-                    }
-                    if (this.strand === 'youthCulture' && steps && (steps !== 10 || duration !== 0.1)) {
-                        return true;
-                    }
-                    if (this.strand === 'gaming' && steps && (steps !== 5 || duration !== 1)) {
-                        return true;
                     }
                 }
             }
@@ -191,17 +194,11 @@ module.exports = class GradeCondLoopsL1 extends Grader {
     }
 
     checkStopExtension() {
-        if (this.stopExtensionPassing) {
-            return true;
-        }
-        return false;
+        return !!this.stopExtensionPassing;
     }
 
     checkSoundExtension() {
-        if (this.soundExtensionPassing) {
-            return true;
-        }
-        return false;
+        return !!this.soundExtensionPassing;
     }
 
     testTurnAround(project) {
@@ -209,24 +206,14 @@ module.exports = class GradeCondLoopsL1 extends Grader {
             for (let script of sprite.scripts) {
                 let hasLooped = false;
                 for (let block of script.blocks) {
-                    if (block.opcode === 'control_repeat_until') {
-                        hasLooped = true;
-                    }
+                    if (block.opcode === 'control_repeat_until') hasLooped = true;
                     if (hasLooped) {
-                        if (block.opcode === 'motion_movesteps' && block.floatInput('STEPS') < 0) {
-                            return true;
-                        }
-                        if (block.opcode.includes('motion_goto') || block.opcode.includes('motion_turn')) {
-                            return true;
-                        }
-                        if (block.opcode === 'motion_pointindirection') {
-                            return true;
-                        }
+                        if (block.opcode === 'motion_movesteps' && block.floatInput('STEPS') < 0) return true;
+                        if (block.opcode.includes('motion_goto') || block.opcode.includes('motion_turn')) return true;
+                        if (block.opcode === 'motion_pointindirection') return true;
                         for (let subscript of block.subscriptsRecursive) {
                             for (let subblock of subscript.blocks) {
-                                if (subblock.opcode === 'motion_movesteps' && subblock.floatInput('STEPS') < 0) {
-                                    return true;
-                                }
+                                if (subblock.opcode === 'motion_movesteps' && subblock.floatInput('STEPS') < 0) return true;
                             }
                         }
                     }

@@ -267,41 +267,61 @@ global.Project = class {
     }
 }
 
-/// Identify which strand the project belongs to.
+// Identify which strand we are using 
 global.detectStrand = function(project, templates) {
     var strand = 'generic';
-    // Instead of checking of assetIDs, check for blocks
+    
     try {
         var projectBlocks = [];
+        // 1. Get all block opcodes from the project
         for (var target of project.targets) {
-            for (var blocks of target.blocks) {
-                projectBlocks.push(blocks.opcode);
+            var blocksArray = Array.isArray(target.blocks) ? target.blocks : Object.values(target.blocks);
+            for (var block of blocksArray) {
+                // Ensure the block is valid and has an opcode
+                if (block && block.opcode) { 
+                    projectBlocks.push(block.opcode);
+                }
             }
         }
+        
         var highScore = 0;
+        
         for (var template in templates) {
             var templateFile = templates[template];
             var templateBlocks = [];
+            
             for (var target of templateFile.targets) {
-                for (var blocks of target.blocks) {
-                    projectBlocks.push(blocks.opcode);
+                var blocksArray = Array.isArray(target.blocks) ? target.blocks : Object.values(target.blocks);
+                for (var block of blocksArray) {
+                    if (block && block.opcode) {
+                        templateBlocks.push(block.opcode);
+                    }
                 }
             }
+            
             var templateScore = 0;
+            
+            // Instead of direct checking, see how many blocks match
             for (var projectBlock of projectBlocks) {
-                if (templateBlocks.includes(projectBlock)) {
+                var matchIndex = templateBlocks.indexOf(projectBlock);
+                if (matchIndex !== -1) {
                     templateScore++;
+                    templateBlocks.splice(matchIndex, 1);
                 }
-                if (templateScore > highScore) {
-                    strand = template;
-                    highScore = templateScore;
-                }
+            }
+            
+            console.log(template)
+            console.log(templateScore)
+            if (templateScore > highScore) {
+                strand = template;
+                highScore = templateScore;
             }
         }
     }
     catch(err) {
         console.log(err);
     }
+    
     return strand;
 }
 
