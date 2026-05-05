@@ -4639,12 +4639,14 @@ module.exports = class {
         let strandName = detectStrand(json, {
                 gaming: require('./templates/animation-L1-gaming.json'),
                 multicultural: require('./templates/animation-L1-multicultural.json'),
-                youthCulture: require('./templates/animation-L1-youth-culture.json')
+                youthCulture: require('./templates/animation-L1-youth-culture.json'),
+                stardew: require('./templates/animation-L1-stardew.json')
         });
         let differences = {
             gaming: {spriteNames: ['Snake', 'Bee', 'Kangaroo'], endPosition: 119},
             multicultural: {spriteNames: ['Red Dragon Boat', 'Blue Dragon Boat', 'Fish'], endPosition: 350},
             youthCulture: {spriteNames: ['Jordyn', 'Miguel', 'Referee'], endPosition: 220},
+            stardew: {spriteNames: ['Robin', 'Demetrius', 'Pierre'], endPosition: 210},
             generic: {spriteNames: ['Sprite 1', 'Sprite 2', 'Hidden Sprite'], endPosition: 119}
         };
         console.log(strandName);
@@ -4652,19 +4654,19 @@ module.exports = class {
         let racingSprites = this.strand.spriteNames.slice(0, 2).join(' and ');
 
         this.requirements = {
-            handlesDownArrow: {bool: false, str: 'Both ' + racingSprites + ' have an event block for the down arrow.'},
-            downArrowCostumeChange: {bool: false, str: 'Both ' + racingSprites + ' switch costumes on the down arrow.'},
-            downArrowWaitBlock: {bool: false, str: 'Both ' + racingSprites + ' have a wait block on down arrow.'},
-            bugFixed: {bool: false, str: 'Bug fixed: both ' + racingSprites + ' finish the race when the space bar is pressed.'}
+            handlesDownArrow: {bool: false, str: 'Both sprites have an event block for the down arrow.'},
+            downArrowCostumeChange: {bool: false, str: 'Both sprites switch costumes on the down arrow.'},
+            downArrowWaitBlock: {bool: false, str: 'Both sprites have a wait block on down arrow.'},
+            bugFixed: {bool: false, str: 'Bug fixed: both sprites finish the race when the space bar is pressed.'}
         };
         this.extensions = {
             winnerCelebrates: {bool: false, str: 'The race has a winner and they celebrate.'},
-            showFourthSprite: {bool: false, str: this.strand.spriteNames[2] + ' (and the 3 other sprites) are shown and animated.'},
+            showFourthSprite: {bool: false, str: '4 sprites are shown and animated.'},
             animateNewSprite: {bool: false, str: 'A 5th sprite is added from the Scratch library and animated.'}
         };
 
         if (this.strand.name === 'gaming') {
-            this.extensions.wigglyPath = {bool: false, str: 'The Bee moves in a wiggly path.'};
+            this.extensions.wigglyPath = {bool: false, str: 'The sprite moves in a wiggly path.'};
         }
     }
 
@@ -4809,7 +4811,7 @@ module.exports = class {
 
 }
 
-},{"./scratch3":84,"./templates/animation-L1-gaming.json":85,"./templates/animation-L1-multicultural.json":86,"./templates/animation-L1-youth-culture.json":87}],69:[function(require,module,exports){
+},{"./scratch3":84,"./templates/animation-L1-gaming.json":85,"./templates/animation-L1-multicultural.json":86,"./templates/animation-L1-stardew.json":87,"./templates/animation-L1-youth-culture.json":88}],69:[function(require,module,exports){
 /* Animation L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and minor bug fixes: Marco Anaya, Summer 2019
@@ -5158,41 +5160,72 @@ module.exports = class {
 }
 
 },{"./scratch3":84}],71:[function(require,module,exports){
+(function (global){(function (){
 require('./grader');
 require('./scratch3');
 
-module.exports = class GradeCondLoopsL1 extends Grader {
+const STRAND_CONFIG = {
+    multicultural: {
+        requiresCostumeChange: true,           
+        mainSprite: 'Butterfly',
+        stopTargets: ['King Momo'],
+        exceptionSprite: 'Toucan',
+        defaultSpeed: { steps: 2, duration: .1 },
+        exceptionSpeed: { steps: 1, duration: .1 },
+        requiredSpritesPassing: 1 
+    },
+    youthCulture: {
+        requiresCostumeChange: true,           
+        mainSprite: 'Car',  
+        stopTargets: ['Stop'],
+        defaultSpeed: { steps: 10, duration: 0.1 },
+        requiredSpritesPassing: 0
+    },
+    gaming: {
+        requiresCostumeChange: false,          
+        mainSprite: 'Ninja Cat', 
+        stopTargets: ['Bee'],
+        defaultSpeed: { steps: 5, duration: .1 },
+        requiredSpritesPassing: 0
+    },
+    stardew: {
+        requiresCostumeChange: true,           
+        mainSprite: 'Bus',
+        stopTargets: ['Stop'],                 
+        defaultSpeed: { steps: 10, duration: 0.1 },
+        requiredSpritesPassing: 0
+    }
+};
 
+module.exports = class GradeCondLoopsL1 extends Grader {
     init(project) {
         let strandTemplates = {
-            multicultural: require('./templates/conditional-loops-L1-multicultural'),
-            youthCulture:  require('./templates/conditional-loops-L1-youth-culture'),
-            gaming:        require('./templates/conditional-loops-L1-gaming')
+            multicultural: require('./templates/conditional-loops-L1-multicultural.json'),
+            youthCulture:  require('./templates/conditional-loops-L1-youth-culture.json'),
+            gaming:        require('./templates/conditional-loops-L1-gaming.json'),
+            stardew:       require('./templates/conditional-loops-L1-stardew.json')
         };
+        
         this.strand = detectStrand(project, strandTemplates, 'youthCulture');
-        if (this.strand === 'multicultural') {
-            this.requirements = [
-                new Requirement('Choose a different costume for the float.', this.testCostumes(project)),
-                new Requirement('Make the float stop at the Stop Sign, the turquoise blue line, or the red line.', this.testStop(project)),
-                new Requirement('Make the float say something after it stops.', this.testSay(project)),
-                new Requirement('Change the speed of the float.', this.testSpeed(project)),
-            ];
+        this.config = STRAND_CONFIG[this.strand] || STRAND_CONFIG['youthCulture'];
+        
+        // Save the template so we can use it to detect sprite DNA later
+        this.template = strandTemplates[this.strand] || strandTemplates['youthCulture'];
+
+        this.requirements = [];
+
+        if (this.config.requiresCostumeChange) {
+            this.requirements.push(
+                new Requirement('Choose a different costume for the main sprite.', this.testCostumes(project))
+            );
         }
-        else if (this.strand === 'youthCulture') {
-            this.requirements = [
-                new Requirement('Choose a different costume for the car.', this.testCostumes(project)),
-                new Requirement('Make the car stop at Libby, the yellow line, or the purple line.', this.testStop(project)),
-                new Requirement('Make the car say something after it stops.', this.testSay(project)),
-                new Requirement('Change the speed of the car.', this.testSpeed(project)),
-            ];
-        }
-        else if (this.strand === 'gaming') {
-            this.requirements = [
-                new Requirement('Make the cat stop at the gem or a different sprite.', this.testStop(project)),
-                new Requirement('Have the cat say something after it stops.', this.testSay(project)),
-                new Requirement('Change the speed of the cat.', this.testSpeed(project)),
-            ];
-        }
+
+        this.requirements.push(
+            new Requirement('Make the sprite stop at the correct target or color.', this.testStop(project)),
+            new Requirement('Make the sprite say something after it stops.', this.testSay(project)),
+            new Requirement('Change the speed of the sprite.', this.testSpeed(project))
+        );
+
         this.extensions = [
             new Extension('Add another sprite and have it stop at another sprite or a color.', this.checkStopExtension()),
             new Extension('Add a sound when a sprite stops moving.', this.checkSoundExtension()),
@@ -5202,53 +5235,71 @@ module.exports = class GradeCondLoopsL1 extends Grader {
 
     testCostumes(project) {
         for (let sprite of project.sprites) {
-            let costumeName = sprite.costumes[sprite.currentCostume].name;
-            if (this.strand === 'multicultural' && costumeName === 'Butterfly Float') {
-                return false;
-            }
-            if (this.strand === 'youthCulture' && costumeName === 'Sedan') {
-                return false;
+            // Identify the sprite using its block DNA
+            let detectedIdentity = global.detectSprite(sprite, this.template);
+            
+            // Look for the main sprite defined in our config
+            if (detectedIdentity === this.config.mainSprite) {
+                // If currentCostume > 0, they have switched to a different costume.
+                return sprite.currentCostume > 0;
             }
         }
+        
         return true;
     }
 
     testStop(project) {
         let spritesPassing = 0;
         let spritesPassingExtension = 0;
+        
         for (let sprite of project.sprites) {
             let scriptsPassing = 0;
             let scriptsPassingExtension = 0;
+            
+            // 1. Identify the ACTING sprite via DNA
+            let detectedIdentity = global.detectSprite(sprite, this.template);
+            
             for (let script of sprite.validScripts) {
                 let blocksPassing = 0;
                 let blocksPassingExtension = 0;
+                
                 for (let block of script.blocks) {
                     let moves = false;
                     let movesForExtension = false;
                     let stops = false;
                     let stopsForExtension = false;
+                    
                     if (block.opcode === 'control_repeat_until') {
                         for (let subscript of block.subscriptsRecursive) {
                             for (let subblock of subscript.blocks) {
-                                if (subblock.opcode === 'motion_movesteps') {
-                                    moves = true;
-                                }
-                                if (opcodeLists.changeXY.includes(subblock.opcode)) {
-                                    movesForExtension = true;
-                                }
+                                if (subblock.opcode === 'motion_movesteps') moves = true;
+                                if (opcodeLists.changeXY.includes(subblock.opcode)) movesForExtension = true;
                             }
                         }
+                        
                         if (block.conditionBlock) {
                             for (let menuBlock of block.conditionBlock.inputBlocks) {
                                 if (menuBlock.opcode === 'sensing_touchingobjectmenu') {
-                                    let touchingObject = menuBlock.fields.TOUCHINGOBJECTMENU[0];
-                                    if (this.strand === 'multicultural' && (touchingObject !== 'King Momo' || sprite.name === 'Toucan')) {
-                                        stops = true;
+                                    let touchingObjectName = menuBlock.fields.TOUCHINGOBJECTMENU[0];
+                                    
+                                    // 2. Fetch the TARGET sprite object using the name from the dropdown
+                                    let targetSprite = project.sprites.find(s => s.name === touchingObjectName);
+                                    
+                                    let isDefaultTarget = false;
+                                    
+                                    // 3. Verify the target's identity via DNA
+                                    if (targetSprite) {
+                                        let targetIdentity = global.detectSprite(targetSprite, this.template);
+                                        isDefaultTarget = this.config.stopTargets.includes(targetIdentity);
+                                    } else {
+                                        // Fallback for "_mouse_" or "_edge_"
+                                        isDefaultTarget = this.config.stopTargets.includes(touchingObjectName);
                                     }
-                                    if (this.strand === 'youthCulture' && touchingObject !== 'Stop') {
-                                        stops = true;
-                                    }
-                                    if (this.strand === 'gaming' && touchingObject !== 'Bee') {
+
+                                    // 4. Check if the acting sprite is the exception
+                                    let isExceptionSprite = detectedIdentity === this.config.exceptionSprite;
+                                    
+                                    if (!isDefaultTarget || isExceptionSprite) {
                                         stops = true;
                                     }
                                     stopsForExtension = true;
@@ -5260,36 +5311,19 @@ module.exports = class GradeCondLoopsL1 extends Grader {
                             }
                         }
                     }
-                    if (moves && stops) {
-                        blocksPassing++;
-                    }
-                    if (movesForExtension && stopsForExtension) {
-                        blocksPassingExtension++;
-                    }
+                    if (moves && stops) blocksPassing++;
+                    if (movesForExtension && stopsForExtension) blocksPassingExtension++;
                 }
-                if (blocksPassing) {
-                    scriptsPassing++;
-                }
-                if (blocksPassingExtension) {
-                    scriptsPassingExtension++;
-                }
+                if (blocksPassing) scriptsPassing++;
+                if (blocksPassingExtension) scriptsPassingExtension++;
             }
-            if (scriptsPassing) {
-                spritesPassing++;
-            }
-            if (scriptsPassingExtension) {
-                spritesPassingExtension++;
-            }
+            if (scriptsPassing) spritesPassing++;
+            if (scriptsPassingExtension) spritesPassingExtension++;
         }
-        this.stopExtensionPassing = false;
-        if (this.strand === 'multicultural') {
-            this.stopExtensionPassing = spritesPassingExtension > 2;
-            return spritesPassing > 1; /// To account for the toucan float
-        }
-        else {
-            this.stopExtensionPassing = spritesPassingExtension > 1;
-            return spritesPassing > 0;
-        }
+        
+        let threshold = this.config.requiredSpritesPassing;
+        this.stopExtensionPassing = spritesPassingExtension > (threshold + 1);
+        return spritesPassing > threshold;
     }
 
     testSay(project) {
@@ -5297,9 +5331,8 @@ module.exports = class GradeCondLoopsL1 extends Grader {
             for (let script of sprite.validScripts) {
                 let hasLooped = false;
                 for (let block of script.blocks) {
-                    if (block.opcode === 'control_repeat_until') {
-                        hasLooped = true;
-                    }
+                    if (block.opcode === 'control_repeat_until') hasLooped = true;
+                    
                     if ((block.opcode.includes('looks_say') || block.opcode.includes('looks_think')) && hasLooped) {
                         return true;
                     }
@@ -5314,35 +5347,33 @@ module.exports = class GradeCondLoopsL1 extends Grader {
 
     testSpeed(project) {
         for (let sprite of project.sprites) {
+            
+            // Identify the sprite via DNA to check against the correct baseline speed
+            let detectedIdentity = global.detectSprite(sprite, this.template);
+            
             for (let script of sprite.validScripts) {
                 for (let block of script.blocks) {
                     let steps = 0;
                     let duration = 0;
+                    
                     if (block.opcode === 'control_repeat_until') {
                         for (let subscript of block.subscriptsRecursive) {
                             for (let subblock of subscript.blocks) {
-                                if (subblock.opcode === 'motion_movesteps') {
-                                    steps += subblock.inputs.STEPS[1][1];
-                                }
-                                if (subblock.opcode === 'control_wait') {
-                                    duration += subblock.inputs.DURATION[1][1];
-                                }
+                                if (subblock.opcode === 'motion_movesteps') steps += subblock.inputs.STEPS[1][1];
+                                if (subblock.opcode === 'control_wait') duration += subblock.inputs.DURATION[1][1];
                             }
                         }
                     }
-                    if (this.strand === 'multicultural') {
-                        if (sprite.name === 'Toucan' && steps && (steps !== 1 || duration !== 1)) {
+                    
+                    if (steps) {
+                        // Look up expected speed using the detected DNA identity
+                        let expected = (detectedIdentity === this.config.exceptionSprite && this.config.exceptionSpeed) 
+                            ? this.config.exceptionSpeed 
+                            : this.config.defaultSpeed;
+                            
+                        if (steps !== expected.steps || duration !== expected.duration) {
                             return true;
                         }
-                        else if (steps && (steps !== 2 || duration !== 1)) {
-                            return true;
-                        }
-                    }
-                    if (this.strand === 'youthCulture' && steps && (steps !== 10 || duration !== 0.1)) {
-                        return true;
-                    }
-                    if (this.strand === 'gaming' && steps && (steps !== 5 || duration !== 1)) {
-                        return true;
                     }
                 }
             }
@@ -5351,17 +5382,11 @@ module.exports = class GradeCondLoopsL1 extends Grader {
     }
 
     checkStopExtension() {
-        if (this.stopExtensionPassing) {
-            return true;
-        }
-        return false;
+        return !!this.stopExtensionPassing;
     }
 
     checkSoundExtension() {
-        if (this.soundExtensionPassing) {
-            return true;
-        }
-        return false;
+        return !!this.soundExtensionPassing;
     }
 
     testTurnAround(project) {
@@ -5369,24 +5394,14 @@ module.exports = class GradeCondLoopsL1 extends Grader {
             for (let script of sprite.scripts) {
                 let hasLooped = false;
                 for (let block of script.blocks) {
-                    if (block.opcode === 'control_repeat_until') {
-                        hasLooped = true;
-                    }
+                    if (block.opcode === 'control_repeat_until') hasLooped = true;
                     if (hasLooped) {
-                        if (block.opcode === 'motion_movesteps' && block.floatInput('STEPS') < 0) {
-                            return true;
-                        }
-                        if (block.opcode.includes('motion_goto') || block.opcode.includes('motion_turn')) {
-                            return true;
-                        }
-                        if (block.opcode === 'motion_pointindirection') {
-                            return true;
-                        }
+                        if (block.opcode === 'motion_movesteps' && block.floatInput('STEPS') < 0) return true;
+                        if (block.opcode.includes('motion_goto') || block.opcode.includes('motion_turn')) return true;
+                        if (block.opcode === 'motion_pointindirection') return true;
                         for (let subscript of block.subscriptsRecursive) {
                             for (let subblock of subscript.blocks) {
-                                if (subblock.opcode === 'motion_movesteps' && subblock.floatInput('STEPS') < 0) {
-                                    return true;
-                                }
+                                if (subblock.opcode === 'motion_movesteps' && subblock.floatInput('STEPS') < 0) return true;
                             }
                         }
                     }
@@ -5396,8 +5411,8 @@ module.exports = class GradeCondLoopsL1 extends Grader {
         return false;
     }
 }
-
-},{"./grader":78,"./scratch3":84,"./templates/conditional-loops-L1-gaming":88,"./templates/conditional-loops-L1-multicultural":89,"./templates/conditional-loops-L1-youth-culture":90}],72:[function(require,module,exports){
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./grader":78,"./scratch3":84,"./templates/conditional-loops-L1-gaming.json":89,"./templates/conditional-loops-L1-multicultural.json":90,"./templates/conditional-loops-L1-stardew.json":91,"./templates/conditional-loops-L1-youth-culture.json":92}],72:[function(require,module,exports){
 /* Conditional Loops L2 Autograder
 Scratch 2 (original) version: Max White, Summer 2018
 Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -5641,79 +5656,172 @@ global.Context = class {
 },{}],74:[function(require,module,exports){
 /* General/All-Strand Decomposition By Sequence L1 Autograder
  * Scratch 3 (original) version: Anna Zipp, Summer 2019
+ * Updated by Jonathan Li, Spring 2026
+ * Refactored to be able to handle conjuror
  */
 
+require('./grader');
 require('./scratch3');
 
-module.exports = class {
+const STRAND_CONFIG = {
+    multicultural: {
+        req: {
+            aMoves: 'The Marchers move right towards the Speaker.',
+            aStops: 'The Marchers stop when they touch the Speaker.',
+            bWaits: 'The Speaker stays still until the Marchers touch them.',
+            bMoves: 'The Speaker moves until they touch the Poster Holder.',
+        },
+        ext: {
+            aJumps: 'The Marchers jump up and down after they say "Speech, Speech!".',
+            bounce: null,
+            extra: 'Added another sprite to the project that walks across the road and says something to match the protest goals (Change, Hope, Sisterhood, etc.).'
+        },
+        jumpType: 'saySpeech',
+        checkBounce: null,
+        checkExtra: (res) => res.Extra.name && res.Extra.moves && res.Extra.speaks
+    },
+    youthCulture: {
+        req: {
+            aMoves: 'Jaime runs towards the Ball.',
+            aStops: 'Jaime stops when they touch the Ball.',
+            bWaits: 'The Ball stays still until Jaime touches it.',
+            bMoves: 'The Ball rolls until it touches the Goal.',
+        },
+        ext: {
+            bounce: 'The Ball bounces off the Goal (then Jaime kicks it again).',
+            aJumps: 'Jaime jumps up and down to celebrate (use a "wait" block).',
+            extra: 'Added a goalie sprite to the project. Have the ball bounce off the goalie if it touches.'
+        },
+        jumpType: 'waitBlock',
+        checkBounce: (res) => {
+            if (!res.B.movesLeft) return false;
+            let numWaitsForA = res.B.waitsFor.filter(x => x === res.A.name).length;
+            let numMovesToB = res.A.movesTo.filter(x => x === res.B.name).length;
+            let numBounces = res.B.movesTo.filter(x => x === res.C.name).length;
+            
+            return (((numWaitsForA > 1 && numMovesToB > 1) || res.B.bouncesTowards.includes(res.A.name)) && numBounces > 1);
+        },
+        checkExtra: (res) => (res.totSprites > 3) && res.B.movesLeft
+    },
+    gaming: {
+        req: {
+            aMoves: 'The Player moves towards the Stairs.',
+            aStops: 'The Player stops when they touch the Stairs.',
+            bWaits: 'The Stairs stay still until the Player touches them.',
+            bMoves: 'The Stairs move until they touch the Cliff.',
+        },
+        ext: {
+            sound: 'A sound is played when the Stairs touch the Cliff.',
+            bounce: 'The Stairs "bounce" off the Cliff back towards the Player (then when they touch the Player, they move back to the Cliff again).',
+            aJumps: 'The Player jumps up and down to celebrate when the Stairs touch the Cliff (use a "wait" block).',
+            extra: 'Added another sprite to the project on top of the Stairs. After the Stairs touch the Cliff, this sprite moves right and stops at the blue treasure chest.'
+        },
+        jumpType: 'waitBlock',
+        checkBounce: (res) => {
+            if (!res.B.movesLeft) return false;
+            let numWaitsForA = res.B.waitsFor.filter(x => x === res.A.name).length;
+            let numBounces = res.B.movesTo.filter(x => x === res.C.name).length;
+            
+            return ((numWaitsForA > 1 || res.B.bouncesTowards.includes(res.A.name)) && numBounces > 1);
+        },
+        checkExtra: (res) => res.Extra.name && res.Extra.movesTo.length > 0
+    },
+    stardew: {
+        req: {
+            aMoves: 'Kent moves towards the hot air balloon.',
+            aStops: 'Kent stops when they touch the Hot air balloon.',
+            bWaits: 'The hot air balloon stays still until Kent touches it.',
+            bMoves: 'The hot air balloon rises until it touches the cloud.',
+        },
+        ext: {
+            sound: 'A sound is played when the Stairs touch the Cliff.',
+            bounce: 'The Stairs "bounce" off the Cliff back towards the Player (then when they touch the Player, they move back to the Cliff again).',
+            aJumps: 'The Player jumps up and down to celebrate when the Stairs touch the Cliff (use a "wait" block).',
+            extra: 'Added another sprite to the project on top of the Stairs. After the Stairs touch the Cliff, this sprite moves right and stops at the blue treasure chest.'
+        }
+    }
+};
 
-    // identify the correct strand, then initialize the appropriate requirement and extension objects to be graded
+module.exports = class GradeDecompL1 extends Grader {
+
     init(project) {
         let templates = {
             multicultural: require('./templates/decomp-L1-multicultural.json'),
-            youthCulture: require('./templates/decomp-L1-youthculture.json'),
-            gaming: require('./templates/decomp-L1-gaming.json'),
+            youthCulture:  require('./templates/decomp-L1-youthculture.json'),
+            gaming:        require('./templates/decomp-L1-gaming.json'),
+            stardew:       require('./templates/decomp-L1-stardew.json')
         }
 
         this.strand = detectStrand(project, templates);
+        this.config = STRAND_CONFIG[this.strand];
 
-        switch (this.strand) {
-            case "multicultural":
-                this.requirements = {
-                    marchersMove: { bool: false, str: 'The Marchers move right towards the Speaker.' },
-                    marchersStop: { bool: false, str: 'The Marchers stop when they touch the Speaker.' },
-                    speakerWaits: { bool: false, str: 'The Speaker stays still until the Marchers touch them.' },
-                    speakerMoves: { bool: false, str: 'The Speaker moves until they touch the Poster Holder.' },
-                    speakerChanges: { bool: false, str: 'The Speaker changes costume to "Speaking" so she is facing the podium.' },
-                }
-                this.extensions = {
-                    soundAdded: { bool: false, str: 'A sound is played when the Speaker touches the Poster Holder and arrives at the Podium.' },
-                    marchersJump: { bool: false, str: 'The Marchers jump up and down after they say "Speech, Speech!".' },
-                    newSpriteAdded: { bool: false, str: 'Added another sprite to the project that walks across the road and says something to match the protest goals (Change, Hope, Sisterhood, etc.).' },
-                }
-                break;
-            case "youthCulture":
-                this.requirements = {
-                    jaimeMoves: { bool: false, str: 'Jaime runs towards the Ball.' },
-                    jaimeStops: { bool: false, str: 'Jaime stops when they touch the Ball.' },
-                    ballWaits: { bool: false, str: 'The Ball stays still until Jaime touches it.' },
-                    ballMoves: { bool: false, str: 'The Ball rolls until it touches the Goal.' },
-                }
-                this.extensions = {
-                    soundAdded: { bool: false, str: 'A "cheer" sound is played when the Ball goes in the Goal.' },
-                    ballBounces: { bool: false, str: 'The Ball bounces off the Goal (then Jaime kicks it again).' },
-                    jaimeJumps: { bool: false, str: 'Jaime jumps up and down to celebrate (use a "wait" block).' },
-                    goalieAdded: { bool: false, str: 'Added a goalie sprite to the project. Have the ball bounce off the goalie if it touches.' },
-                }
-                break;
-            case "gaming":
-                this.requirements = {
-                    playerMoves: { bool: false, str: 'The Player moves towards the Stairs.' },
-                    playerStops: { bool: false, str: 'The Player stops when they touch the Stairs.' },
-                    stairsWait: { bool: false, str: 'The Stairs stay still until the Player touches them.' },
-                    stairsMove: { bool: false, str: 'The Stairs move until they touch the Cliff.' },
-                }
-                this.extensions = {
-                    soundAdded: { bool: false, str: 'A sound is played when the Stairs touch the Cliff.' },
-                    stairsBounce: { bool: false, str: 'The Stairs "bounce" off the Cliff back towards the Player (then when they touch the Player, they move back to the Cliff again).' },
-                    playerJumps: { bool: false, str: 'The Player jumps up and down to celebrate when the Stairs touch the Cliff (use a "wait" block).' },
-                    newSpriteAdded: { bool: false, str: 'Added another sprite to the project on top of the Stairs. After the Stairs touch the Cliff, this sprite moves right and stops at the blue treasure chest.' },
-                }
-                break;
-            default:
-                // if no strand found, error
-                console.log("ERROR: unable to match strand.");
-                return;
+        if (!this.config) {
+            console.log("ERROR: unable to match strand.");
+            return;
         }
+
+        // Evaluate the project first to identify Sprite A, B, C, and Extra
+        this.evaluateProject(project);
+
+        let { A, B, C } = this.evalResults;
+
+        // Map standard requirements generically
+        this.requirements = [
+            new Requirement(this.config.req.aMoves, A.moves),
+            new Requirement(this.config.req.aStops, A.stopsAt.includes(B.name)),
+            new Requirement(this.config.req.bWaits, B.waits && B.waitsFor.includes(A.name)),
+            new Requirement(this.config.req.bMoves, B.moves && B.movesTo.includes(C.name))
+        ];
+
+
+        // Map Standard Extensions
+        let jumpConditionMet = this.config.jumpType === 'saySpeech' ? A.jumpsAfter.saySpeech : A.jumpsAfter.waitBlock;
+        
+        this.extensions = [
+            new Extension(this.config.ext.sound, A.sounds || B.sounds || C.sounds),
+            new Extension(this.config.ext.aJumps, jumpConditionMet)
+        ];
+
+        // Map Conditional Extensions via generic logic functions in the config
+        if (this.config.ext.bounce) {
+            this.extensions.push(new Extension(this.config.ext.bounce, this.config.checkBounce(this.evalResults)));
+        }
+
+        if (this.config.ext.extra) {
+            this.extensions.push(new Extension(this.config.ext.extra, this.config.checkExtra(this.evalResults)));
+        }
+    }
+
+    // Helper to run the heuristic engine before initializing requirements
+    evaluateProject(project) {
+        let spriteReports = [];
+        let totSprites = 0;
+
+        for (let target of project.targets) {
+            if (!target.isStage) {
+                totSprites++;
+                spriteReports.push(this.gradeSprite(target));
+            }
+        }
+
+        let sortedSprites = this.sortSprites(spriteReports, project);
+        
+        // Cache the results so init() can map them to the Requirements arrays
+        this.evalResults = {
+            A: sortedSprites.A,
+            B: sortedSprites.B,
+            C: sortedSprites.C,
+            Extra: sortedSprites.Extra,
+            totSprites: totSprites
+        };
     }
 
     // given a block that has an input conditon, check if it is a Touching condition
     // and return the opcode of what its touching target conditon is
     getTouchTarget(block) {
         let targetCond = null;
-        let inputCond = block.conditionBlock;  // the input condition block
+        let inputCond = block.conditionBlock;  
         if ((inputCond !== null) && ("sensing_touchingobject" === inputCond.opcode)) {
-            // find the specific field entered into the input condition block
             let condSelected = inputCond.toBlock(inputCond.inputs.TOUCHINGOBJECTMENU[1]);
             if ((condSelected !== null) && (condSelected.opcode === "sensing_touchingobjectmenu")) {
                 targetCond = condSelected.fields.TOUCHINGOBJECTMENU[0];
@@ -5743,7 +5851,6 @@ module.exports = class {
 
         let pointDir;
 
-        // iterate through each of the sprite's scripts that start with 'When Green Flag Clicked'
         for (let script of sprite.scripts.filter(s => s.blocks[0].opcode === "event_whenflagclicked")) {
             script.traverseBlocks((block, level) => {
 
@@ -5752,22 +5859,19 @@ module.exports = class {
                     if (block.inputs.DIRECTION[1][1] === "-90") pointDir = "left";
                 }
 
-                // check for movement to the right
                 if (["motion_movesteps", "motion_changexby"].includes(block.opcode)) {
                     let stepNumber;
                     if (block.opcode === "motion_movesteps") stepNumber = block.inputs.STEPS[1][1];
                     if (block.opcode === "motion_changexby") stepNumber = block.inputs.DX[1][1];
+                    
                     if (stepNumber > 0) {
                         report.moves = true;
 
-                        // check if the move block is within a loop
                         let potentialLoop = block.isWithin();
                         if (potentialLoop !== null) {
-                            // if the move block is within a "repeat until touching" loop
                             if (potentialLoop.opcode === "control_repeat_until") {
                                 let repeatUntilTarget = this.getTouchTarget(potentialLoop);
                                 if (repeatUntilTarget != null) {
-                                    // if student puts motion block inside a repeat until touching loop, then Sprite both moves to the target, and stops when they touch it
                                     report.movesTo.push(repeatUntilTarget);
                                     report.score++;
 
@@ -5775,22 +5879,18 @@ module.exports = class {
                                     report.stopsAt.push(repeatUntilTarget);
                                     report.score++;
 
-                                    // if "repeat until touching" block is within a repeat loop, add repeatUntilTarget again (for "bounce" extension)
                                     let repeatIsWithin = potentialLoop.isWithin();
                                     if ((repeatIsWithin !== null) && (repeatIsWithin.opcode === "control_repeat")) {
                                         report.movesTo.push(repeatUntilTarget);
                                         report.score++;
                                     }
 
-                                    // Create a script of all the blocks immediately after the repeatUntilTouching loop
                                     let blockAfterLoop = potentialLoop.nextBlock();
-                                    // if the repeatUntilTouching loop is within another loop, create another script of the blocks following that outer loop
                                     let blockOutsideLoop = potentialLoop.isWithin();
 
                                     if (blockAfterLoop !== null) {
                                         let scriptAfterLoop = new Script(blockAfterLoop, blockAfterLoop.target);
 
-                                        // if the repeatUntilTouching loop is within another loop, concatenate the two scripts created above
                                         if (blockOutsideLoop !== null) {
                                             let scriptOutsideLoop = new Script(blockOutsideLoop, blockOutsideLoop.target);
                                             scriptAfterLoop.blocks = scriptAfterLoop.blocks.concat(scriptOutsideLoop.blocks);
@@ -5799,9 +5899,7 @@ module.exports = class {
                                         let waitBlockFound = false;
                                         let speechBlockFound = false;
 
-                                        // iterate through the script representing all blocks after the repeatUntilTouching loop
                                         scriptAfterLoop.traverseBlocks((currBlock, level) => {
-                                            // check for costume change to "Speaking", for unique req in Mulicultural strand
                                             if (currBlock.opcode === "looks_switchcostumeto") {
                                                 let costumeInput = currBlock.toBlock(currBlock.inputs.COSTUME[1]);
                                                 if ((costumeInput != null) && (costumeInput.opcode === "looks_costume")) {
@@ -5817,10 +5915,7 @@ module.exports = class {
                                                     speechBlockFound = true;
                                                 }
                                             }
-                                            // if sprite "jumps" after saying "Speech! Speech!", or some variant spelling/capitalization as long as it includes "eech!"
-                                            // unique req for Multicultural strand
-                                            // TODO: this just checks for a "change/set y" block
-                                            // more rigorous evaluation should check for other types of vertical motion (like multiple gotoXY blocks, checking up/down differences in the y-coordinate)
+                                            
                                             if (["motion_sety", "motion_changeyby"].includes(currBlock.opcode) && speechBlockFound) {
                                                 report.jumps = true;
                                                 report.jumpsAfter.saySpeech = true;
@@ -5829,15 +5924,12 @@ module.exports = class {
                                             if (currBlock.opcode === "control_wait") {
                                                 waitBlockFound = true;
                                             }
-                                            // if sprite "jumps" after a wait block has already been used
-                                            // TODO: this just checks for a "change/set y" block
-                                            // more rigorous evaluation should check for other types of vertical motion (like multiple gotoXY blocks, checking up/down differences in the y-coordinate)
+                                            
                                             if (["motion_sety", "motion_changeyby"].includes(currBlock.opcode) && waitBlockFound) {
                                                 report.jumps = true;
                                                 report.jumpsAfter.waitBlock = true;
                                             }
 
-                                            // check for sound block
                                             if (["sound_play", "sound_playuntildone"].includes(currBlock.opcode)) {
                                                 report.sounds = true;
                                             }
@@ -5847,13 +5939,10 @@ module.exports = class {
                             }
                         }
                     }
-                    // check for negative steps/movement to the left, inside a repeat until touching block (for "Bounce" extension)
                     if (stepNumber < 0 || pointDir == "left") {
                         report.movesLeft = true;
-                        // check if the move block is within a loop
                         let potentialLoop = block.isWithin();
                         if (potentialLoop !== null) {
-                            // if the move block is within a "repeat until touching" loop
                             if (potentialLoop.opcode === "control_repeat_until") {
                                 let repeatUntilTarget = this.getTouchTarget(potentialLoop);
                                 if (repeatUntilTarget != null) {
@@ -5867,14 +5956,12 @@ module.exports = class {
                 if (block.opcode === "control_wait_until") {
                     let waitUntilTarget = this.getTouchTarget(block);
                     if (waitUntilTarget !== null) {
-                        // If no horizontal move blocks have been found before the "wait until touching" block, i.e. report.moves is false up to this point
                         if (!report.moves) {
                             report.waits = true;
                         }
                         report.waitsFor.push(waitUntilTarget);
                         report.score++;
 
-                        // check remaining blocks for sound
                         let blocksAfterWait = block.childBlocks();
                         for (let currBlock of blocksAfterWait) {
                             if (["sound_play", "sound_playuntildone"].includes(currBlock.opcode)) {
@@ -5884,7 +5971,6 @@ module.exports = class {
                     }
                 }
 
-                // check for any sound blocks within an "if 'touching X' then..." block
                 if (["sound_play", "sound_playuntildone"].includes(block.opcode)) {
                     let potentialIf = block.isWithin();
                     if (potentialIf !== null) {
@@ -5897,7 +5983,6 @@ module.exports = class {
                     }
                 }
 
-                // check for any Say blocks
                 if (block.opcode.includes("looks_say")) {
                     report.speaks = true;
                     report.score++;
@@ -5907,38 +5992,16 @@ module.exports = class {
         return report;
     }
 
-    // given all Sprite reports, identify the best candidate for Sprite A, B, C, and Extra
-    // Examples for each strand (Multicultural, Youth Culture, Gaming)
-    // A: Marchers, Jaime, Player
-    // B: Speaker, Ball, Stairs
-    // C: Poster Holder, Goal, Cliff
-    // Extra: Sprite that Walks across the road and says something, Goalie, sprite that goes to Blue Treasure Chest
     sortSprites(reports, project) {
         let defaultObj = {
-            name: null,
-            moves: false,
-            movesTo: [],
-            stops: false,
-            stopsAt: [],
-            waits: false,
-            waitsFor: [],
-            sounds: false,
-            changesCostumeToSpeaking: false,
-            jumps: false,
-            jumpsAfter: { saySpeech: false, waitBlock: false },
-            movesLeft: false,
-            bouncesTowards: [],
-            speaks: false,
-            score: 0,
+            name: null, moves: false, movesTo: [], stops: false, stopsAt: [],
+            waits: false, waitsFor: [], sounds: false, changesCostumeToSpeaking: false,
+            jumps: false, jumpsAfter: { saySpeech: false, waitBlock: false },
+            movesLeft: false, bouncesTowards: [], speaks: false, score: 0,
         }
-        let sprites = {
-            A: defaultObj,
-            B: defaultObj,
-            C: defaultObj,
-            Extra: defaultObj,
-        }
+        
+        let sprites = { A: defaultObj, B: defaultObj, C: defaultObj, Extra: defaultObj }
 
-        // Identify Sprite B first
         let maxBScore = -1;
         for (let possibleB of reports) {
             let currBScore = possibleB.score;
@@ -5954,7 +6017,6 @@ module.exports = class {
             }
         }
 
-        // after Sprite B, find Sprite A
         let maxAScore = -1;
         for (let possibleA of reports) {
             if (possibleA.name !== sprites.B.name) {
@@ -5973,7 +6035,6 @@ module.exports = class {
             }
         }
 
-        // Once B and A have been found, C is easily identifiable
         for (let possibleC of reports) {
             if ((possibleC.name !== sprites.B.name) && (possibleC.name !== sprites.A.name)) {
                 if (sprites.B.movesTo.includes(possibleC.name)) {
@@ -5982,7 +6043,6 @@ module.exports = class {
             }
         }
 
-        // find Extra sprite, if any. (Checks requirements for Multicultural and Gaming strand. In Youth Culture strand, any new sprite will be accepted)
         let maxExtraScore = -1;
         if (reports.length > 4) {
             for (let remainingSprite of reports) {
@@ -6001,134 +6061,8 @@ module.exports = class {
         }
         return sprites;
     }
-
-    // main grading function
-    grade(fileObj, user) {
-        // if project doesn't exist, return
-        if (!is(fileObj)) return;
-
-        var project = new Project(fileObj);
-        this.init(project);
-
-        let spriteReports = [];
-        let totSprites = 0;
-
-        for (let target of project.targets) {
-            if (!target.isStage) {
-                totSprites++;
-                spriteReports.push(this.gradeSprite(target));
-            }
-        }
-
-        let sortedSprites = this.sortSprites(spriteReports, project);
-        let spriteA = sortedSprites.A;
-        let spriteB = sortedSprites.B;
-        let spriteC = sortedSprites.C;
-        let spriteExtra = sortedSprites.Extra;
-
-        if (this.strand === "multicultural") {
-            if (spriteA.moves) this.requirements.marchersMove.bool = true;
-            if (spriteA.stopsAt.includes(spriteB.name)) this.requirements.marchersStop.bool = true;
-            if (spriteB.waits && spriteB.waitsFor.includes(spriteA.name))
-                this.requirements.speakerWaits.bool = true;
-            if (spriteB.moves && spriteB.movesTo.includes(spriteC.name))
-                this.requirements.speakerMoves.bool = true;
-            if (spriteB.changesCostumeToSpeaking) this.requirements.speakerChanges.bool = true;
-
-            if (spriteA.sounds || spriteB.sounds || spriteC.sounds)
-                this.extensions.soundAdded.bool = true;
-            if (spriteA.jumpsAfter.saySpeech) this.extensions.marchersJump.bool = true;
-            if (spriteExtra) {
-                if (spriteExtra.moves && spriteExtra.speaks) this.extensions.newSpriteAdded.bool = true;
-            }
-        } else if (this.strand === "youthCulture") {
-            if (spriteA.moves) this.requirements.jaimeMoves.bool = true;
-            if (spriteA.stopsAt.includes(spriteB.name)) this.requirements.jaimeStops.bool = true;
-            if (spriteB.waits && spriteB.waitsFor.includes(spriteA.name))
-                this.requirements.ballWaits.bool = true;
-            if (spriteB.moves && spriteB.movesTo.includes(spriteC.name))
-                this.requirements.ballMoves.bool = true;
-
-            if (spriteA.sounds || spriteB.sounds || spriteC.sounds)
-                this.extensions.soundAdded.bool = true;
-            if (spriteA.jumpsAfter.waitBlock) this.extensions.jaimeJumps.bool = true;
-            if ((totSprites > 3) && spriteB.movesLeft) this.extensions.goalieAdded.bool = true;
-            // bouncing extension
-            if (spriteB.movesLeft) {
-                // checks that after SpriteB waits for SpriteA and moves right to SpriteC the first time, it then moves left any distance, and then waits for SpriteA before moving right again
-                // or that SpriteB moves Right to SpriteC, Left to SpriteA, and Right to SpriteC again, all using repeatUntilTouching Loops
-                // i.e. checks that SpriteB movesTo SpriteC at least twice, AND (spriteB bouncesTo spriteA OR (spriteB waitsFor SpriteA twice AND spriteA movesTo spriteB twice))
-                let numWaitsForA = 0;
-                for (let i = 0; i < spriteB.waitsFor.length; i++) {
-                    if (spriteB.waitsFor[i] === spriteA.name) {
-                        numWaitsForA++;
-                    }
-                }
-                // also check that SpriteA movesTo SpriteB at least twice (for "Jaime kicks the ball again" part of the extension)
-                let numMovesToB = 0;
-                for (let k = 0; k < spriteA.movesTo.length; k++) {
-                    if (spriteA.movesTo[k] === spriteB.name) {
-                        numMovesToB++;
-                    }
-                }
-
-                let numBounces = 0;
-                for (let j = 0; j < spriteB.movesTo.length; j++) {
-                    if (spriteB.movesTo[j] === spriteC.name) {
-                        numBounces++;
-                    }
-                }
-
-                if (((numWaitsForA > 1) && (numMovesToB > 1)) || spriteB.bouncesTowards.includes(spriteA.name)) {
-                    if (numBounces > 1) this.extensions.ballBounces.bool = true;
-                }
-            }
-
-        } else if (this.strand === "gaming") {
-            if (spriteA.moves) this.requirements.playerMoves.bool = true;
-            if (spriteA.stopsAt.includes(spriteB.name)) this.requirements.playerStops.bool = true;
-            if (spriteB.waits && spriteB.waitsFor.includes(spriteA.name))
-                this.requirements.stairsWait.bool = true;
-            if (spriteB.moves && spriteB.movesTo.includes(spriteC.name))
-                this.requirements.stairsMove.bool = true;
-
-            if (spriteA.sounds || spriteB.sounds || spriteC.sounds)
-                this.extensions.soundAdded.bool = true;
-            if (spriteA.jumpsAfter.waitBlock) this.extensions.playerJumps.bool = true;
-            if (spriteExtra) {
-                if (spriteExtra.movesTo.length) this.extensions.newSpriteAdded.bool = true;
-            }
-            // bouncing extension
-            if (spriteB.movesLeft) {
-                // checks that after SpriteB waits for SpriteA and moves right to SpriteC the first time, it then moves left any distance, and then waits for SpriteA before moving right again
-                // or that SpriteB moves Right to SpriteC, Left to SpriteA, and Right to SpriteC again, all using repeatUntilTouching Loops
-                // i.e. checks that SpriteB movesTo SpriteC at least twice, AND spriteB waitsFor SpriteA twice, or bouncesTowards SpriteA once
-                let numWaitsForA = 0;
-                for (let i = 0; i < spriteB.waitsFor.length; i++) {
-                    if (spriteB.waitsFor[i] === spriteA.name) {
-                        numWaitsForA++;
-                    }
-                }
-                let numBounces = 0;
-                    for (let j = 0; j < spriteB.movesTo.length; j++) {
-                        if (spriteB.movesTo[j] === spriteC.name) {
-                            numBounces++;
-                        }
-                    }
-
-                if ((numWaitsForA > 1) || spriteB.bouncesTowards.includes(spriteA.name)) {
-                    if (numBounces > 1) this.extensions.stairsBounce.bool = true;
-                }
-            }
-        } else {
-            // if no strand found, error
-            console.log("ERROR: unable to match strand.");
-            return;
-        }
-    }
 }
-
-},{"./scratch3":84,"./templates/decomp-L1-gaming.json":91,"./templates/decomp-L1-multicultural.json":92,"./templates/decomp-L1-youthculture.json":93}],75:[function(require,module,exports){
+},{"./grader":78,"./scratch3":84,"./templates/decomp-L1-gaming.json":93,"./templates/decomp-L1-multicultural.json":94,"./templates/decomp-L1-stardew.json":95,"./templates/decomp-L1-youthculture.json":96}],75:[function(require,module,exports){
 /* Decomposition by Sequence L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -6636,7 +6570,7 @@ module.exports = class GradeEventsL1 {
     }
 }
 
-},{"./scratch3":84,"./templates/events-L1-gaming":94,"./templates/events-L1-multicultural":95,"./templates/events-L1-stardew.json":96,"./templates/events-L1-youth-culture":97}],77:[function(require,module,exports){
+},{"./scratch3":84,"./templates/events-L1-gaming":97,"./templates/events-L1-multicultural":98,"./templates/events-L1-stardew.json":99,"./templates/events-L1-youth-culture":100}],77:[function(require,module,exports){
 /* Events L2 Autograder
 Initial version and testing: Zack Crenshaw, Spring 2019
 Reformatting and bug fixes: Marco Anaya, Summer 2019
@@ -6855,56 +6789,62 @@ global.anyOf = function(tests) {
     return result;
 }
 
-global.detectStrand = function(project, templates, defaultStrand = 'generic') {
-    var strand = defaultStrand;
+// Helper function to compare blocks regardless of their exact order.
+// It counts matching block frequencies (Multiset intersection).
+function getSimilarityScore(blocksA, blocksB) {
+    const countsA = {};
     
-    try {
-        var projectBlocks = [];
-        // Get all block opcodes from the project
-        for (var target of project.targets) {
-            var blocksArray = Array.isArray(target.blocks) ? target.blocks : Object.values(target.blocks);
-            for (var block of blocksArray) {
-                if (block && block.opcode) { 
-                    projectBlocks.push(block.opcode);
-                }
-            }
-        }
-        
-        var highScore = 0;
-        
-        // Get all block opcodes from template
-        for (var template in templates) {
-            var templateFile = templates[template];
-            var templateBlocks = [];
-            
-            for (var target of templateFile.targets) {
-                var blocksArray = Array.isArray(target.blocks) ? target.blocks : Object.values(target.blocks);
-                for (var block of blocksArray) {
-                    if (block && block.opcode) {
-                        templateBlocks.push(block.opcode);
-                    }
-                }
-            }
-            
-            var templateScore = 0;
-            
-            // Instead of direct checking, see how many blocks match
-            for (var projectBlock of projectBlocks) {
-                var matchIndex = templateBlocks.indexOf(projectBlock);
-                if (matchIndex !== -1) {
-                    templateScore++;
-                    templateBlocks.splice(matchIndex, 1);
-                }
-            }
-            
-            if (templateScore > highScore) {
-                strand = template;
-                highScore = templateScore;
-            }
+    // Count the frequency of each opcode in the first array
+    for (const op of blocksA) {
+        countsA[op] = (countsA[op] || 0) + 1;
+    }
+
+    let score = 0;
+    
+    // Compare against the second array
+    for (const op of blocksB) {
+        if (countsA[op] > 0) {
+            score++;
+            countsA[op]--; // Decrement so we don't double-count matches
         }
     }
-    catch(err) {
-        console.log(err);
+    
+    return score;
+}
+
+global.detectStrand = function(project, templates, defaultStrand = 'generic') {
+    var strand = defaultStrand;
+    var projectBlocks = [];
+    
+    // Gather all project opcodes
+    for (var target of project.targets) {
+        for (const key in target.blocks) {
+            projectBlocks.push(target.blocks[key].opcode);
+        }
+    }
+    
+    var highScore = 0;
+    
+    for (var template in templates) {
+        var templateFile = templates[template];
+        var templateBlocks = [];
+        
+        // Gather all template opcodes
+        for (var target of templateFile.targets) {
+            for (const key in target.blocks) {
+                templateBlocks.push(target.blocks[key].opcode);
+            }
+        }
+        
+        // Use the order-independent scoring helper
+        var templateScore = getSimilarityScore(projectBlocks, templateBlocks);
+        
+        // Update high score once per template
+        if (templateScore > highScore) {
+            strand = template;
+            highScore = templateScore;
+        }
+        console.log(template + ": " + templateScore);
     }
     
     return strand;
@@ -6912,33 +6852,35 @@ global.detectStrand = function(project, templates, defaultStrand = 'generic') {
 
 // Function to determine what sprite this is based off of in conjuror
 global.detectSprite = function(sprite, template) {
-    var spriteName = ""
+    var spriteName = "";
     var gradeBlocks = [];
+    
+    // Gather opcodes for the target sprite
     for (const key in sprite.blocks) {
-        var block = sprite.blocks[key]
-        gradeBlocks.push(block.opcode);
+        gradeBlocks.push(sprite.blocks[key].opcode);
     }
 
     var highScore = 0;
 
     for (var target of template.targets) {
         var templateBlocks = [];
+        
+        // Gather opcodes for the template sprite
         for (const key in target.blocks) {
-            var block = target.blocks[key]
-            templateBlocks.push(block.opcode);
+            templateBlocks.push(target.blocks[key].opcode);
         }
-        var templateScore = 0;
-        for (var i = 0; i < gradeBlocks.length; i++) {
-            if (templateBlocks[i] == gradeBlocks[i]) {
-                templateScore++;
-            }
-            if (templateScore > highScore) {
-                spriteName = target.name;
-                highScore = templateScore
-            }
+        
+        // Use the order-independent scoring helper
+        var templateScore = getSimilarityScore(gradeBlocks, templateBlocks);
+        
+        // Update high score once per target
+        if (templateScore > highScore) {
+            spriteName = target.name;
+            highScore = templateScore;
         }
     }
-    return spriteName
+    
+    return spriteName;
 }
 
 global.Requirement = class {
@@ -6978,259 +6920,296 @@ global.Grader = class {
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./scratch3":84}],79:[function(require,module,exports){
+(function (global){(function (){
 /* One Way Sync L1 Autograder
- * Marco Anaya, Summer 2019
+ * Jonathan Li, Spring 2026
+ * Refactored to be able to handle conjuror
  */
- require('./scratch3');
+require('./grader');
+require('./scratch3');
 
- module.exports = class {
-
-	init(project) { //initialize all metrics to false
-
-
-		let strandTemplates = {
-			multicultural: require('./templates/one-way-sync-L1-multicultural'),
-			youthCulture:  require('./templates/one-way-sync-L1-youth-culture'),
-			gaming:        require('./templates/one-way-sync-L1-gaming')
-		};
-		this.strand = detectStrand(project, strandTemplates, 'youthCulture');
-
-		let source;
-		let target;
-		let broadcaster;
-		let sourceAction;
-		let targetAction;
-		this.extraSayRequirements = 1;
-
-		switch(this.strand) {
-			case "multicultural":
-			source = "Djembe";
-			target = "Mali child";
-			sourceAction = "plays music";
-			targetAction = "dances";
-			broadcaster = "Start button";
-			break;
-			case "gaming":
-			source = "Casey";
-			target = "yellow car";
-			sourceAction = "says something";
-			targetAction = "moves to pink ramp";
-			broadcaster = "Wizard";
-			this.extraSayRequirements = 2;
-			break;
-
-			case "youthCulture":
-			source = "Rectangle play button";
-			target = "cat video";
-			sourceAction = "changes costume";
-			targetAction = "changes costume";
-			broadcaster = "Start button";
-
-
-		}
-		this.requirements = {
-			oneToOne: {bool:false, str:`${source} passes unique message to ${target}`},
-			sourceAction: {bool: false, str: `When ${source} is clicked, ${source} ${sourceAction}`},
-			sourceSound: {bool: false, str: `When ${source} is clicked, ${source} plays a sound`},
-			targetAction: {bool: false, str: `When ${source} is clicked, ${target} ${targetAction}`},
-			startButton: {bool: false, str: 'Start button sprite created'},
-			oneToMany: {bool: false, str: `${broadcaster} passes the same message to all other sprites`},
-			broadcastToSprite1: {bool: false, str: `A sprite plays or dances when the ${broadcaster} is clicked`},
-			broadcastToSprite2:	{bool: false, str: `Another sprite plays or dances when the ${broadcaster} is clicked`},
-			broadcastToSprite3:	{bool: false, str: `A third sprite plays or dances when the ${broadcaster} is clicked`},
-			broadcastToSprite4:	{bool: false, str: `A fourth sprite plays or dances when the ${broadcaster} is clicked`}
-		};
-		this.extensions = {
-			changeWait: {bool: false, str: 'Changed the duration of a wait block'},
-			sayBlock:	{bool: false, str: 'Added a say block under another event'}
-		};
-		if(this.strand === 'gaming'){
-			delete this.requirements.startButton;
-		}
-		if(!(this.strand === 'youthCulture')){
-			delete this.requirements.sourceSound;
-		}
-	}
-
-
-	grade(fileObj, user) {
-		const project = new Project(fileObj)
-		this.init(project);
-
-		let rawReports = project.sprites.map(sprite => this.gradeSprite(sprite));
-		let nSays = rawReports.map(report => report.says).reduce((acc, val) => acc + val);
-		if (nSays >= this.extraSayRequirements) {
-			this.extensions.sayBlock.bool = true;
-		}
-		let messages = {};
-		
-		for (let report of rawReports) {
-			if (report.sent != []) {
-				for (let msg of report.sent) {
-					if (msg in messages) messages[msg].sent = true;
-					else messages[msg] = {sent: true, recipents: []};
-				}
-			}
-			if (report.received != []) {
-				for (let msg of report.received) {
-					if (msg in messages) messages[msg].recipents.push(report.name);
-					else messages[msg] = {sent: false, recipents: [report.name]};
-				}
-			}
-		}
-
-		
-
-		let reports = rawReports.reduce((acc, r) => {
-			acc.push({
-				name: r.name,
-				plays: r.plays,
-				sent: 
-				r.sent.length === 0 ? null : r.sent.reduce((acc, msg) => {
-					acc[msg] = messages[msg].recipents;
-					return acc;
-				}, {}),
-				received: r.received,
-				dances: r.dances,
-				movesTilPink: r.movesTilPink,
-
-			});
-			return acc;
-		}, []);
-
-		let sentCount;
-		if (this.strand === "multicultural" ) {
-			sentCount = (sender) => 
-			Object.values(sender.sent).reduce((acc, b) => acc + b.length, 0) + !(sender.name.includes('ali') || sender.name.includes('avajo'));
-		} else if (this.strand === "gaming") {
-			sentCount = (sender) => 
-			Object.values(sender.sent).reduce((acc, b) => acc + b.length, 0) + !(sender.name.toLowerCase().includes('go') || sender.name.toLowerCase().includes('truck'));
-		} else if (this.strand === "youthCulture"){
-			sentCount = (sender) => 
-			Object.values(sender.sent).reduce((acc, b) => acc + b.length, 0) + !(sender.name.toLowerCase().includes('play'));
-		}
-
-		let senders = reports.filter(r => r.sent).sort((a, b) => {
-			return sentCount(b) - sentCount(a);
-		})
-		if(this.requirements.startButton != null){
-			this.requirements.startButton.bool = reports.length >= 5;
-		} 
-        // Checks the sprite with the most broadcasts, assuming that it must be the start button
-        if (senders.length >= 3) {
-        	let startButton = senders[0];
-
-        	let totalRecipients = new Set([]);
-        	for (let recipients of Object.values(startButton.sent)) {
-        		let score = 0;
-        		for (let name of recipients) {
-        			let recipientReport = reports.find(r => r.name == name);
-        			if (recipientReport.plays.onClick || recipientReport.plays.onBroadcast || recipientReport.dances) {
-        				score++;
-        				totalRecipients.add(name);
-        			}
-        		}
-        		if (score >= 4) this.requirements.oneToMany.bool = true;
-        	}
-
-        	if (totalRecipients.size > 0) {
-        		for (let i = Math.min(totalRecipients.size, 4); i > 0; i--) 
-        			this.requirements[`broadcastToSprite${i}`].bool = true;
-				//remove this sprite
-				senders = senders.slice(1);
-			}
-		}
-        // Check if at least two of remaining sprites do what is expected from Djembe and Flute sprites
-        if (senders.length >= 2) {
-
-        	let visitedFlute = false;
-        	let probableDjembe = null;
-
-        	const sumScore = (score) => !score? 0 : Object.values(score).reduce((a, b) => a + b, 0)
-
-        	for (let sender of senders) {    
-        		for (let [msg, recipients] of Object.entries(sender.sent)) {
-        			let score = {
-        				uniqueMessage: msg.toLowerCase() != 'navajo',
-        				senderPlays: (sender.plays.onClick || sender.plays.onBroadcast),
-        				recipientDances: recipients.some(recipient => reports.find(r => r.name == recipient && r.dances))
-        			};
-
-        			if (score.recipientDances && score.senderPlays && !score.uniqueMessage && !visitedFlute) {
-        				visitedFlute = true;
-        			} else {
-        				probableDjembe = sumScore(score) > sumScore(probableDjembe) ? score : probableDjembe;
-        			}
-        		}
-        	}
-        	[this.requirements.oneToOne.bool, this.requirements.sourceAction.bool, this.requirements.targetAction.bool] = Object.values(probableDjembe);
-        }
-
-        if (this.strand === "gaming") {
-        	this.requirements.targetAction.bool = rawReports.filter(r => r.movesTilPink).length >= 1;
-        } else if (this.strand === "youthCulture"){
-        	this.requirements.targetAction.bool = rawReports.filter(r => r.soundOnClick).length >= 1;
-        }
+const STRAND_CONFIG = {
+    multicultural: {
+        source: "Djembe", target: "Mali child", sourceAction: "plays music", targetAction: "dances", broadcaster: "Start button",
+        extraSayReq: 1,
+        hasStartButton: true,
+        hasSourceSound: false,
+        onClickActions: ['sound_play', 'sound_playuntildone'],
+        ignoreSenders: ['ali', 'avajo'],
+        checkTargetAction: (rawReports, sourceStats) => sourceStats.targetAction
+    },
+    gaming: {
+        source: "Casey", target: "yellow car", sourceAction: "says something", targetAction: "moves to pink ramp", broadcaster: "Wizard",
+        extraSayReq: 2,
+        hasStartButton: false,
+        hasSourceSound: false,
+        onClickActions: ['looks_say', 'looks_sayforsecs'],
+        ignoreSenders: ['go', 'truck'],
+        checkTargetAction: (rawReports, sourceStats) => rawReports.some(r => r.movesTilPink)
+    },
+    youthCulture: {
+        source: "Rectangle play button", target: "cat video", sourceAction: "changes costume", targetAction: "changes costume", broadcaster: "Start button",
+        extraSayReq: 1,
+        hasStartButton: true,
+        hasSourceSound: true,
+        onClickActions: ['looks_switchcostumeto', 'looks_costume', 'looks_nextcostume', 'looks'],
+        ignoreSenders: ['play'],
+        checkTargetAction: (rawReports, sourceStats) => rawReports.some(r => r.soundOnClick)
+    },
+	stardew: {
+        source: "Flute box", 
+        target: "Abigael", 
+        sourceAction: "plays music", 
+        targetAction: "dances", 
+        broadcaster: "Start button",
+        extraSayReq: 2,
+        hasStartButton: true,
+        hasSourceSound: false,
+        onClickActions: ['sound_play', 'sound_playuntildone'], 
+        ignoreSenders: ['flute', 'box'],
+        checkTargetAction: (rawReports, sourceStats) => sourceStats.targetAction
     }
-    gradeSprite(sprite) {
-    	let reqs = {
-    		name: sprite.name,
-    		plays: {onClick: false, onBroadcast: false},
-    		sent: [],
-    		received: [],
-    		dances: {costume: false, wait: false},
-    		movesTilPink : false,
-    		says: 0,
-    		soundOnClick: false
-    	}
-    	let onClickActions;
-    	if (this.strand === "multicultural") {
-    		onClickActions = ['sound_play', 'sound_playuntildone'];
-    	} else if (this.strand === "gaming") {
-    		onClickActions = ['looks_say', 'looks_sayforsecs']
-    	} else if (this.strand === "youthCulture"){
-            onClickActions = ['looks_switchcostumeto', 'looks_costume', 'looks_nextcostume', 'looks']
+};
+
+module.exports = class GradeOneWaySyncL1 extends Grader {
+
+    init(project) {
+        let strandTemplates = {
+            multicultural: require('./templates/one-way-sync-L1-multicultural'),
+            youthCulture:  require('./templates/one-way-sync-L1-youth-culture'),
+            gaming:        require('./templates/one-way-sync-L1-gaming'),
+			stardew:       require('./templates/one-way-sync-L1-stardew.json')
+        };
+        
+        this.strand = detectStrand(project, strandTemplates, 'youthCulture');
+        this.config = STRAND_CONFIG[this.strand] || STRAND_CONFIG['youthCulture'];
+        this.template = strandTemplates[this.strand] || strandTemplates['youthCulture'];
+
+        this.evaluateProject(project);
+
+        let res = this.evalResults;
+        let c = this.config;
+
+        // Map standard requirements generically
+        this.requirements = [
+            new Requirement(`${c.source} passes unique message to ${c.target}`, res.oneToOne),
+            new Requirement(`When ${c.source} is clicked, ${c.source} ${c.sourceAction}`, res.sourceAction),
+            new Requirement(`When ${c.source} is clicked, ${c.target} ${c.targetAction}`, res.targetAction),
+            new Requirement(`${c.broadcaster} passes the same message to all other sprites`, res.oneToMany),
+            new Requirement(`A sprite plays or dances when the ${c.broadcaster} is clicked`, res.broadcastTo[0]),
+            new Requirement(`Another sprite plays or dances when the ${c.broadcaster} is clicked`, res.broadcastTo[1]),
+            new Requirement(`A third sprite plays or dances when the ${c.broadcaster} is clicked`, res.broadcastTo[2]),
+            new Requirement(`A fourth sprite plays or dances when the ${c.broadcaster} is clicked`, res.broadcastTo[3])
+        ];
+
+        // Map conditional requirements
+        if (c.hasStartButton) {
+            this.requirements.push(new Requirement('Start button sprite created', res.startButton));
         }
-    	for (let script of sprite.scripts.filter(s => s.blocks[0].opcode.includes('event_when'))) {
-    		if (script.blocks[0].opcode === 'event_whenthisspriteclicked')
-    			script.traverseBlocks((block, level) => {
-    				if (onClickActions.includes(block.opcode))
-    					reqs.plays.onClick = true;
-    				else if (['event_broadcast', 'event_broadcastandwait'].includes(block.opcode))
-    					reqs.sent.push( block.inputs.BROADCAST_INPUT[1][1])
-    				else if(['sound_play', 'sound_playuntildone'].includes(block.opcode)){
-    					reqs.soundOnClick = true
-    				}
-    			});
-    		else if (script.blocks[0].opcode === 'event_whenbroadcastreceived') {
-    			reqs.received.push(script.blocks[0].fields.BROADCAST_OPTION[0]);
-    			let stopsOnPink = false
-    			script.traverseBlocks((block, level) => { 
-    				if (['sound_play', 'sound_playuntildone'].includes(block.opcode))
-    					reqs.plays.onBroadcast = true;
-    				else if (['event_blooks_switchcostumeto', 'looks_nextcostume'].includes(block.opcode))
-    					reqs.dances.costume = true;
-    				else if (block.opcode === 'control_wait') {
-    					reqs.dances.wait = true;
-    					if (block.inputs.DURATION[1][1] != .5) this.extensions.changeWait.bool = true;
-    				} else if(block.opcode === "motion_movesteps" && block.within != null 
-    					&& block.within.opcode === "control_repeat_until" && 
-    					block.within.conditionBlock.opcode === "sensing_touchingcolor" &&
-    					block.within.conditionBlock.inputs['COLOR'][1][1] === "#ed75ec"){
-    						reqs.movesTilPink = true
-    				}
-    			});
-    		} 
-    		script.traverseBlocks((block, level) => {
-    			if (['looks_say', 'looks_sayforsecs'].includes(block.opcode))
-    				reqs.says += 1;
-    		});
-    	}
-    	reqs.dances = reqs.dances.costume && reqs.dances.costume;
-    	return reqs;
+        if (c.hasSourceSound) {
+            this.requirements.push(new Requirement(`When ${c.source} is clicked, ${c.source} plays a sound`, res.sourceSound));
+        }
+
+        // Map extensions
+        this.extensions = [
+            new Extension('Changed the duration of a wait block', res.changeWait),
+            new Extension('Added a say block under another event', res.sayBlock)
+        ];
+    }
+
+    evaluateProject(project) {
+        this.evalResults = {
+            sayBlock: false, changeWait: false, startButton: false, sourceSound: false,
+            oneToOne: false, sourceAction: false, targetAction: false,
+            oneToMany: false, broadcastTo: [false, false, false, false]
+        };
+
+        let rawReports = project.sprites.map(sprite => this.gradeSprite(sprite));
+        
+        // Extension: Say Blocks
+        let nSays = rawReports.reduce((acc, report) => acc + report.says, 0);
+        if (nSays >= this.config.extraSayReq) {
+            this.evalResults.sayBlock = true;
+        }
+
+        // Extension: Change Wait
+        if (rawReports.some(r => r.changedWait)) {
+            this.evalResults.changeWait = true;
+        }
+
+        // Evaluate graph of messages sent/received
+        let messages = {};
+        for (let report of rawReports) {
+            if (report.sent.length > 0) {
+                for (let msg of report.sent) {
+                    if (messages[msg]) messages[msg].sent = true;
+                    else messages[msg] = { sent: true, recipients: [] };
+                }
+            }
+            if (report.received.length > 0) {
+                for (let msg of report.received) {
+                    if (messages[msg]) messages[msg].recipients.push(report.name);
+                    else messages[msg] = { sent: false, recipients: [report.name] };
+                }
+            }
+        }
+
+        let reports = rawReports.map(r => ({
+            name: r.name,
+            plays: r.plays,
+            sent: r.sent.length === 0 ? null : r.sent.reduce((acc, msg) => {
+                acc[msg] = messages[msg] ? messages[msg].recipients : [];
+                return acc;
+            }, {}),
+            received: r.received,
+            dances: r.dances,
+            movesTilPink: r.movesTilPink
+        }));
+
+        let sentCount = (sender) => {
+            let numSent = Object.values(sender.sent).reduce((acc, b) => acc + b.length, 0);
+            
+            // Find the sprite to analyze its DNA
+            let actualSprite = project.sprites.find(s => s.name === sender.name);
+            let dnaName = actualSprite ? global.detectSprite(actualSprite, this.template).toLowerCase() : "";
+            
+            let isIgnored = this.config.ignoreSenders.some(ign => dnaName.includes(ign));
+            return numSent + (isIgnored ? 0 : 1);
+        };
+
+        let senders = reports.filter(r => r.sent).sort((a, b) => sentCount(b) - sentCount(a));
+
+        if (this.config.hasStartButton) {
+            this.evalResults.startButton = reports.length >= 5;
+        }
+
+        // Extract Start Button logic (largest broadcaster)
+        if (senders.length >= 3) {
+            let startButton = senders[0];
+            let totalRecipients = new Set([]);
+
+            for (let recipients of Object.values(startButton.sent)) {
+                let score = 0;
+                for (let name of recipients) {
+                    let recipientReport = reports.find(r => r.name === name);
+                    if (recipientReport && (recipientReport.plays.onClick || recipientReport.plays.onBroadcast || recipientReport.dances)) {
+                        score++;
+                        totalRecipients.add(name);
+                    }
+                }
+                if (score >= 4) this.evalResults.oneToMany = true;
+            }
+
+            if (totalRecipients.size > 0) {
+                let numBroadcasts = Math.min(totalRecipients.size, 4);
+                for (let i = 0; i < numBroadcasts; i++) {
+                    this.evalResults.broadcastTo[i] = true;
+                }
+                senders = senders.slice(1);
+            }
+        }
+
+        // Extract Source and Target logic
+        if (senders.length >= 2) {
+            let visitedFlute = false;
+            let probableSourceStats = { oneToOne: false, sourceAction: false, targetAction: false };
+
+            const sumScore = (scoreObj) => !scoreObj ? 0 : Object.values(scoreObj).filter(Boolean).length;
+
+            for (let sender of senders) {
+                for (let [msg, recipients] of Object.entries(sender.sent)) {
+                    let score = {
+                        oneToOne: msg.toLowerCase() !== 'navajo',
+                        sourceAction: (sender.plays.onClick || sender.plays.onBroadcast),
+                        targetAction: recipients.some(recipient => reports.find(r => r.name === recipient && r.dances))
+                    };
+
+                    if (score.targetAction && score.sourceAction && !score.oneToOne && !visitedFlute) {
+                        visitedFlute = true;
+                    } else {
+                        if (sumScore(score) > sumScore(probableSourceStats)) {
+                            probableSourceStats = score;
+                        }
+                    }
+                }
+            }
+
+            this.evalResults.oneToOne = probableSourceStats.oneToOne;
+            this.evalResults.sourceAction = probableSourceStats.sourceAction;
+            
+            // Delegate strand-specific target checks to the config helper
+            this.evalResults.targetAction = this.config.checkTargetAction(rawReports, probableSourceStats);
+        }
+
+        // Set the legacy youthCulture sound requirement safely
+        this.evalResults.sourceSound = rawReports.some(r => r.soundOnClick);
+    }
+
+    gradeSprite(sprite) {
+        let reqs = {
+            name: sprite.name,
+            plays: { onClick: false, onBroadcast: false },
+            sent: [],
+            received: [],
+            dances: false,
+            dancesData: { costume: false, wait: false },
+            movesTilPink: false,
+            says: 0,
+            soundOnClick: false,
+            changedWait: false // Extracted from global side-effects
+        };
+
+        let onClickActions = this.config.onClickActions;
+
+        for (let script of sprite.scripts.filter(s => s.blocks[0].opcode.includes('event_when'))) {
+            
+            if (script.blocks[0].opcode === 'event_whenthisspriteclicked') {
+                script.traverseBlocks((block, level) => {
+                    if (onClickActions.includes(block.opcode)) {
+                        reqs.plays.onClick = true;
+                    } else if (['event_broadcast', 'event_broadcastandwait'].includes(block.opcode)) {
+                        reqs.sent.push(block.inputs.BROADCAST_INPUT[1][1]);
+                    } else if (['sound_play', 'sound_playuntildone'].includes(block.opcode)) {
+                        reqs.soundOnClick = true;
+                    }
+                });
+            } 
+            else if (script.blocks[0].opcode === 'event_whenbroadcastreceived') {
+                reqs.received.push(script.blocks[0].fields.BROADCAST_OPTION[0]);
+                
+                script.traverseBlocks((block, level) => {
+                    if (['sound_play', 'sound_playuntildone'].includes(block.opcode)) {
+                        reqs.plays.onBroadcast = true;
+                    } else if (['looks_switchcostumeto', 'looks_nextcostume'].includes(block.opcode)) {
+                        reqs.dancesData.costume = true;
+                    } else if (block.opcode === 'control_wait') {
+                        reqs.dancesData.wait = true;
+                        if (block.inputs.DURATION[1][1] != 0.5) reqs.changedWait = true;
+                    } else if (
+                        block.opcode === "motion_movesteps" && block.within != null &&
+                        block.within.opcode === "control_repeat_until" &&
+                        block.within.conditionBlock.opcode === "sensing_touchingcolor" &&
+                        block.within.conditionBlock.inputs['COLOR'][1][1] === "#ed75ec"
+                    ) {
+                        reqs.movesTilPink = true;
+                    }
+                });
+            }
+
+            script.traverseBlocks((block, level) => {
+                if (['looks_say', 'looks_sayforsecs'].includes(block.opcode)) {
+                    reqs.says += 1;
+                }
+            });
+        }
+        
+        // Fixed original bug where it checked costume && costume
+        reqs.dances = reqs.dancesData.costume && reqs.dancesData.wait;
+        return reqs;
     }
 }
-},{"./scratch3":84,"./templates/one-way-sync-L1-gaming":98,"./templates/one-way-sync-L1-multicultural":99,"./templates/one-way-sync-L1-youth-culture":100}],80:[function(require,module,exports){
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./grader":78,"./scratch3":84,"./templates/one-way-sync-L1-gaming":101,"./templates/one-way-sync-L1-multicultural":102,"./templates/one-way-sync-L1-stardew.json":103,"./templates/one-way-sync-L1-youth-culture":104}],80:[function(require,module,exports){
 /* One Way Sync L2 Autograder
  * Marco Anaya, Summer 2019
  */
@@ -7355,12 +7334,23 @@ module.exports={
         { "strand": "Stardew", "required": false, "criteria": "The grader checks if there is a new say block in a green flag event block" }
     ],
 
-    "scratchBasicsL2_create": [      
+    "scratchBasicsL2_create": [
+        {"strand": "Create", "required": true, "criteria": "Add a new backdrop"},
+        {"strand": "Create", "required": true, "criteria": "Add at least one sprite"},
+        {"strand": "Create", "required": true, "criteria": "Sprite has a green flag block"},
+        {"strand": "Create", "required": true, "criteria": "Sprite with green flag block has a go to x y block"},
+        {"strand": "Create", "required": true, "criteria": "Sprite with green flag block has say block"},
+        {"strand": "Create", "required": true, "criteria": "Sprite with green flag block has a move steps block"},
+        
+        {"strand": "Create", "required": false, "criteria": "New block with when sprite clicked or when key pressed"},
+        {"strand": "Create", "required": false, "criteria": "Project uses any block that is new"},
+        {"strand": "Create", "required": false, "criteria": "More than one sprite"},
+        {"strand": "Create", "required": false, "criteria": "Second sprite has a motion block"}
     ],
     "eventsL1":[
         { "strand": "All", "required": true, "criteria": "There should be 3 sprites that increase in size, speak, and then go back to their original size" },
         { "strand": "All", "required": true, "criteria": "All 3 sprites need to revert back to original size when the green flag is pressed, they just need a go to block and a set size to block" },
-        { "strand": "Gaming", "required": true, "criteria": "A sprite should have an event checking when right arrow key presed, and that block should have a motion with steps being a positive number" },
+        { "strand": "Gaming", "required": true, "criteria": "A sprite should have an event checking when right arrow key pressed, and that block should have a motion with steps being a positive number" },
         { "strand": "Stardew", "required": true, "criteria": "A sprite should have an event checking when space is presed, and that block should have a size change that makes it smaller" },
 
         { "strand": "All", "required": false, "criteria": "A sprite should spin, check if there is a loop (repeat, repeat until, forever) and if in the loop there are turn and wait blocks" },
@@ -7368,9 +7358,41 @@ module.exports={
 
         { "strand": "Youth Culture/Gaming/Stardew", "required": false, "criteria": "A sprite should have an event checking when left arrow key pressed and that block should take negative steps" }
     ],
-    "eventsL2_create":[],
-    "animationL1": [],
-    "animationL2_create": [],
+    "eventsL2_create":[
+        {"strand": "Create", "required": true, "criteria": "Add a new backdrop"},
+        {"strand": "Create", "required": true, "criteria": "Add at least three sprites"},
+        {"strand": "Create", "required": true, "criteria": "One sprite has at least 2/3 of the required events"},
+        {"strand": "Create", "required": true, "criteria": "Two sprites have at least 2/3 of the required events"},
+        {"strand": "Create", "required": true, "criteria": "Three sprites have at least 2/3 of the required events"},
+        {"strand": "Create", "required": true, "criteria": "One sprite has at least 2/3 of the required events and has extra blocks added to those events (doesn't check if they are actually about proper topics)"},
+        {"strand": "Create", "required": true, "criteria": "Two sprites have at least 2/3 of the required events and have extra blocks addded to those events"},
+        {"strand": "Create", "required": true, "criteria": "Three sprites have at least 2/3 of the required events and have extra blocks addded to those events"},
+        {"strand": "Create", "required": true, "criteria": "All three of the events have been used at least once"},
+        
+        {"strand": "Create", "required": false, "criteria": "Sprite spins, it has a turn and a wait block"},
+        {"strand": "Create", "required": false, "criteria": "Sprite reacts to an event outside of the required ones"},
+        {"strand": "Create", "required": false, "criteria": "Sprite blinks, it has hide, show, and wait blocks"}
+        ],
+    "animationL1": [
+        {"strand": "All", "required": true, "criteria":"Sprite contains when down arrow key pressed event"},
+        {"strand": "All", "required": true, "criteria":"Sprite contains either next costume or switch costume to block"},
+        {"strand": "All", "required": true, "criteria":"Sprite contains a wait block on down arrow"},
+        {"strand": "All", "required": true, "criteria":"Checks if the distance traveled (steps * loops) reaches the x position of the end point"},
+
+        {"strand": "All", "required": false, "criteria":"Check if the fastest sprite has any block after the loop finishes"},
+        {"strand": "All", "required": false, "criteria":"4 Sprites are \"animated\", a loop block with a costume change, wait block, and some blue motion block inside"},
+        {"strand": "All", "required": false, "criteria":"5th sprite is added and is \"animated\", a loop block with a costume change, wait block, and some blue motion block inside"},
+        {"strand": "Gaming", "required": false, "criteria":"Checks if the bee while moving uses turn blocks in its animation loop"}
+    ],
+    "animationL2_create": [
+        {"strand": "Create", "required": true, "criteria": "Add a new backdrop"},
+        {"strand": "Create", "required": true, "criteria": "Add at least three sprites"},
+        {"strand": "Create", "required": true, "criteria": "Two sprites are animated in place (loop with costume change and wait) WITHOUT moving"},
+        {"strand": "Create", "required": true, "criteria": "One sprite is animated with motion (loop with cosume change and wait AND move)"},
+        
+        {"strand": "Create", "required": false, "criteria": "Another sprite is animated (loop with cosume change and wait), either in-place or with motion"},
+        {"strand": "Create", "required": false, "criteria": "Multiple types of animation, usage of different motion e.g. glide versus move steps"}
+    ],
     "condLoopsL1": [],
     "condLoopsL2_create": [],
     "decompL1": [],      
@@ -7522,7 +7544,7 @@ module.exports = class {
               
     }
 }
-},{"../grading-scripts-s3/scratch3":84,"./templates/scratch-basics-L1-gaming":101,"./templates/scratch-basics-L1-multicultural":102,"./templates/scratch-basics-L1-stardew.json":103}],83:[function(require,module,exports){
+},{"../grading-scripts-s3/scratch3":84,"./templates/scratch-basics-L1-gaming":105,"./templates/scratch-basics-L1-multicultural":106,"./templates/scratch-basics-L1-stardew.json":107}],83:[function(require,module,exports){
 /* Scratch Basics L2 Autograder
  * Scratch 2 (original) version: Max White, Summer 2018
  * Scratch 3 updates: Elizabeth Crowdus, Spring 2019
@@ -8076,14 +8098,1158 @@ module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists"
 },{}],86:[function(require,module,exports){
 module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":1,"costumes":[{"assetId":"4953b97814c20b8a3dab049695d509c7","name":"073018DragonBoat_bg","bitmapResolution":2,"md5ext":"4953b97814c20b8a3dab049695d509c7.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"b9c928707e817780fe6e373ab7251e2b","name":"081018DragonBoat_bg","bitmapResolution":2,"md5ext":"b9c928707e817780fe6e373ab7251e2b.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"blue dragon boat","variables":{},"lists":{},"broadcasts":{},"blocks":{"FFR95}}V~GN]}7X5j;9K":{"opcode":"event_whenkeypressed","next":".O#5Xx[CR_kMrHY[i|Dx","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-935,"y":-1220},".O#5Xx[CR_kMrHY[i|Dx":{"opcode":"control_repeat","next":null,"parent":"FFR95}}V~GN]}7X5j;9K","inputs":{"TIMES":[1,[6,"35"]],"SUBSTACK":[2,"jNFbKFq}IuK(c[9(`oWr"]},"fields":{},"shadow":false,"topLevel":false},"jNFbKFq}IuK(c[9(`oWr":{"opcode":"looks_switchcostumeto","next":"XEW(Z076Z#9yHvZ|ZDL5","parent":".O#5Xx[CR_kMrHY[i|Dx","inputs":{"COSTUME":[1,"TP!8h)[T(:vpYEJo+3~v"]},"fields":{},"shadow":false,"topLevel":false},"TP!8h)[T(:vpYEJo+3~v":{"opcode":"looks_costume","next":null,"parent":"jNFbKFq}IuK(c[9(`oWr","inputs":{},"fields":{"COSTUME":["down_blue",null]},"shadow":true,"topLevel":false},"XEW(Z076Z#9yHvZ|ZDL5":{"opcode":"control_wait","next":"l:C@C=2n]Y;]QJPkGpGY","parent":"jNFbKFq}IuK(c[9(`oWr","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},"l:C@C=2n]Y;]QJPkGpGY":{"opcode":"motion_movesteps","next":"Gz6/Hi}oZ.0Kz[B(I[N@","parent":"XEW(Z076Z#9yHvZ|ZDL5","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"Gz6/Hi}oZ.0Kz[B(I[N@":{"opcode":"looks_nextcostume","next":"Tm(ekBMU.|y#[:tiuIxX","parent":"l:C@C=2n]Y;]QJPkGpGY","inputs":{},"fields":{},"shadow":false,"topLevel":false},"Tm(ekBMU.|y#[:tiuIxX":{"opcode":"control_wait","next":"/1p=po};l=p2wBFg.+KX","parent":"Gz6/Hi}oZ.0Kz[B(I[N@","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},"/1p=po};l=p2wBFg.+KX":{"opcode":"motion_movesteps","next":"%xgSU|a%n6?6B^:p#79W","parent":"Tm(ekBMU.|y#[:tiuIxX","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"%xgSU|a%n6?6B^:p#79W":{"opcode":"looks_nextcostume","next":"SxL%_l}47U7X-A1Gf#xQ","parent":"/1p=po};l=p2wBFg.+KX","inputs":{},"fields":{},"shadow":false,"topLevel":false},"SxL%_l}47U7X-A1Gf#xQ":{"opcode":"control_wait","next":".O92:D-$N=O;#2Jb2%TU","parent":"%xgSU|a%n6?6B^:p#79W","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},".O92:D-$N=O;#2Jb2%TU":{"opcode":"motion_movesteps","next":"++}8Ln3qt-1T4|DOUy,r","parent":"SxL%_l}47U7X-A1Gf#xQ","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"++}8Ln3qt-1T4|DOUy,r":{"opcode":"looks_nextcostume","next":null,"parent":".O92:D-$N=O;#2Jb2%TU","inputs":{},"fields":{},"shadow":false,"topLevel":false},"c+:6O#=EJUR.aX!#*%.M":{"opcode":"event_whenflagclicked","next":"{5ZSJ=*@5/!=NTcWjXa(","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1265,"y":-1517},"{5ZSJ=*@5/!=NTcWjXa(":{"opcode":"motion_gotoxy","next":"tik2?JnJviBGw^rjm`1]","parent":"c+:6O#=EJUR.aX!#*%.M","inputs":{"X":[1,[4,"-22"]],"Y":[1,[4,"123"]]},"fields":{},"shadow":false,"topLevel":false},"tik2?JnJviBGw^rjm`1]":{"opcode":"looks_switchcostumeto","next":null,"parent":"{5ZSJ=*@5/!=NTcWjXa(","inputs":{"COSTUME":[1,"c;;U)E!O()YxY;tE]I8L"]},"fields":{},"shadow":false,"topLevel":false},"c;;U)E!O()YxY;tE]I8L":{"opcode":"looks_costume","next":null,"parent":"tik2?JnJviBGw^rjm`1]","inputs":{},"fields":{"COSTUME":["down_blue",null]},"shadow":true,"topLevel":false},"m4d,Ry=}Y^jA%8TKE#d{":{"opcode":"event_whenkeypressed","next":"c=qhD{:.l#[]rRuA{Jh%","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow",null]},"shadow":false,"topLevel":true,"x":-607,"y":-1201},"c=qhD{:.l#[]rRuA{Jh%":{"opcode":"looks_switchcostumeto","next":"keG~!evr$UsJ}hvFIznM","parent":"m4d,Ry=}Y^jA%8TKE#d{","inputs":{"COSTUME":[1,";rROHx/$=g5D:aq4/;G|"]},"fields":{},"shadow":false,"topLevel":false},";rROHx/$=g5D:aq4/;G|":{"opcode":"looks_costume","next":null,"parent":"c=qhD{:.l#[]rRuA{Jh%","inputs":{},"fields":{"COSTUME":["cheer1_blue",null]},"shadow":true,"topLevel":false},"keG~!evr$UsJ}hvFIznM":{"opcode":"control_repeat","next":"+Hh%#l`Z[Qu1mLfh-H*`","parent":"c=qhD{:.l#[]rRuA{Jh%","inputs":{"TIMES":[1,[6,"2"]],"SUBSTACK":[2,"4*Iefk1%;[oeL@hQ.=ex"]},"fields":{},"shadow":false,"topLevel":false},"4*Iefk1%;[oeL@hQ.=ex":{"opcode":"control_wait","next":"=JY(;_7IgkC{d^kL+8oJ","parent":"keG~!evr$UsJ}hvFIznM","inputs":{"DURATION":[1,[5,".5"]]},"fields":{},"shadow":false,"topLevel":false},"=JY(;_7IgkC{d^kL+8oJ":{"opcode":"looks_nextcostume","next":null,"parent":"4*Iefk1%;[oeL@hQ.=ex","inputs":{},"fields":{},"shadow":false,"topLevel":false},"+Hh%#l`Z[Qu1mLfh-H*`":{"opcode":"looks_sayforsecs","next":null,"parent":"keG~!evr$UsJ}hvFIznM","inputs":{"MESSAGE":[1,[10,"Yay!"]],"SECS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"0S:gt:l:0NN+W@{MR@Wm":{"opcode":"event_whenthisspriteclicked","next":"}oR.w?fGtTlORUz04YEe","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-841,"y":-1518},"}oR.w?fGtTlORUz04YEe":{"opcode":"looks_sayforsecs","next":"j/Q/{X@F3rCo{@kcyUBY","parent":"0S:gt:l:0NN+W@{MR@Wm","inputs":{"MESSAGE":[1,[10,"Press the down arrow key to see a cheer."]],"SECS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"j/Q/{X@F3rCo{@kcyUBY":{"opcode":"looks_sayforsecs","next":null,"parent":"}oR.w?fGtTlORUz04YEe","inputs":{"MESSAGE":[1,[10,"Click on the space bar to see us race!"]],"SECS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":3,"costumes":[{"assetId":"4159218d9f72e802fca2e93e61aee2c8","name":"down_blue","bitmapResolution":2,"md5ext":"4159218d9f72e802fca2e93e61aee2c8.png","dataFormat":"png","rotationCenterX":454,"rotationCenterY":50},{"assetId":"18c6aa8bb365e84a338ee0edc16e7bd0","name":"middle_blue","bitmapResolution":2,"md5ext":"18c6aa8bb365e84a338ee0edc16e7bd0.png","dataFormat":"png","rotationCenterX":452,"rotationCenterY":50},{"assetId":"47db3f356c44fe4e0e0733ac250f295e","name":"up_blue","bitmapResolution":2,"md5ext":"47db3f356c44fe4e0e0733ac250f295e.png","dataFormat":"png","rotationCenterX":457,"rotationCenterY":51},{"assetId":"f380430253f8e8da013d4b6777d55786","name":"cheer1_blue","bitmapResolution":2,"md5ext":"f380430253f8e8da013d4b6777d55786.png","dataFormat":"png","rotationCenterX":453,"rotationCenterY":51},{"assetId":"174eff4f9464966cbc03baef7b87f397","name":"cheer2_blue","bitmapResolution":2,"md5ext":"174eff4f9464966cbc03baef7b87f397.png","dataFormat":"png","rotationCenterX":453,"rotationCenterY":51}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":453,"y":123,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"red dragon boat2","variables":{},"lists":{},"broadcasts":{},"blocks":{"6}O]aJN^jh=FRZ4B%_Ck":{"opcode":"event_whenflagclicked","next":"mdXB=)t5:KSqG_Jbnm7I","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1431,"y":-995},"mdXB=)t5:KSqG_Jbnm7I":{"opcode":"motion_gotoxy","next":"Y.?XbYRER/KJ~F[QBP54","parent":"6}O]aJN^jh=FRZ4B%_Ck","inputs":{"X":[1,[4,"-22"]],"Y":[1,[4,"-43"]]},"fields":{},"shadow":false,"topLevel":false},"Y.?XbYRER/KJ~F[QBP54":{"opcode":"looks_switchcostumeto","next":"7=(OQT~_tljhP^Pc~Cgi","parent":"mdXB=)t5:KSqG_Jbnm7I","inputs":{"COSTUME":[1,"]EUK-sDeGZ.CN9)5}Vkl"]},"fields":{},"shadow":false,"topLevel":false},"]EUK-sDeGZ.CN9)5}Vkl":{"opcode":"looks_costume","next":null,"parent":"Y.?XbYRER/KJ~F[QBP54","inputs":{},"fields":{"COSTUME":["down",null]},"shadow":true,"topLevel":false},"7=(OQT~_tljhP^Pc~Cgi":{"opcode":"looks_sayforsecs","next":"H@ytYjcf=bI;xcsnM1gW","parent":"Y.?XbYRER/KJ~F[QBP54","inputs":{"MESSAGE":[1,[10,"We are dragon boat racing!"]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false},"H@ytYjcf=bI;xcsnM1gW":{"opcode":"looks_sayforsecs","next":"o9y-gE8P!s6PTuL!.h=/","parent":"7=(OQT~_tljhP^Pc~Cgi","inputs":{"MESSAGE":[1,[10,"This is a tradition that originated in China."]],"SECS":[1,[4,"7"]]},"fields":{},"shadow":false,"topLevel":false},"o9y-gE8P!s6PTuL!.h=/":{"opcode":"looks_sayforsecs","next":"IF~s%DYs(N!f-$H@!0Sy","parent":"H@ytYjcf=bI;xcsnM1gW","inputs":{"MESSAGE":[1,[10,"But now, it is celebrated all around the world!"]],"SECS":[1,[4,"7"]]},"fields":{},"shadow":false,"topLevel":false},"IF~s%DYs(N!f-$H@!0Sy":{"opcode":"looks_sayforsecs","next":null,"parent":"o9y-gE8P!s6PTuL!.h=/","inputs":{"MESSAGE":[1,[10,"Click on the Blue Dragon Boat to learn how to race!"]],"SECS":[1,[4,"8"]]},"fields":{},"shadow":false,"topLevel":false},"~vzV,)k9Smog*S=2Vxnl":{"opcode":"event_whenkeypressed","next":"wC/mHJR,(y))HXD?`r]Y","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-1439,"y":-586},"wC/mHJR,(y))HXD?`r]Y":{"opcode":"control_repeat","next":null,"parent":"~vzV,)k9Smog*S=2Vxnl","inputs":{"TIMES":[1,[6,"7"]],"SUBSTACK":[2,"RO$%71YtoH;`U(5Ow0sr"]},"fields":{},"shadow":false,"topLevel":false},"RO$%71YtoH;`U(5Ow0sr":{"opcode":"looks_switchcostumeto","next":"}Q`=g?o=6yi?Jz]/|4g{","parent":"wC/mHJR,(y))HXD?`r]Y","inputs":{"COSTUME":[1,"^yq!VUNAkeHHvfe$xbmQ"]},"fields":{},"shadow":false,"topLevel":false},"^yq!VUNAkeHHvfe$xbmQ":{"opcode":"looks_costume","next":null,"parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{},"fields":{"COSTUME":["down",null]},"shadow":true,"topLevel":false},"}Q`=g?o=6yi?Jz]/|4g{":{"opcode":"control_wait","next":"|NWa,`~hMAAZse]zo}Kq","parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{"DURATION":[1,[5,".6"]]},"fields":{},"shadow":false,"topLevel":false},"|NWa,`~hMAAZse]zo}Kq":{"opcode":"motion_movesteps","next":"x#U4xVOG?)DPyx)7Y~(r","parent":"}Q`=g?o=6yi?Jz]/|4g{","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"x#U4xVOG?)DPyx)7Y~(r":{"opcode":"looks_nextcostume","next":";QpVzrsk@Zk_{d}4I[kW","parent":"|NWa,`~hMAAZse]zo}Kq","inputs":{},"fields":{},"shadow":false,"topLevel":false},";QpVzrsk@Zk_{d}4I[kW":{"opcode":"control_wait","next":"h#G`QEI1CVFPW6iP*oo?","parent":"x#U4xVOG?)DPyx)7Y~(r","inputs":{"DURATION":[1,[5,".6"]]},"fields":{},"shadow":false,"topLevel":false},"h#G`QEI1CVFPW6iP*oo?":{"opcode":"motion_movesteps","next":"zCHOB*;ri@)7UZm6:^+T","parent":";QpVzrsk@Zk_{d}4I[kW","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"zCHOB*;ri@)7UZm6:^+T":{"opcode":"looks_nextcostume","next":"YPD_9gC5TvEmog2hb{Dv","parent":"h#G`QEI1CVFPW6iP*oo?","inputs":{},"fields":{},"shadow":false,"topLevel":false},"YPD_9gC5TvEmog2hb{Dv":{"opcode":"control_wait","next":"oYoK@Tr+-o=t[rnocZ*Q","parent":"zCHOB*;ri@)7UZm6:^+T","inputs":{"DURATION":[1,[5,".6"]]},"fields":{},"shadow":false,"topLevel":false},"oYoK@Tr+-o=t[rnocZ*Q":{"opcode":"motion_movesteps","next":null,"parent":"YPD_9gC5TvEmog2hb{Dv","inputs":{"STEPS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":2,"costumes":[{"assetId":"8fb24626392ea7d7ea291be86e455a87","name":"down","bitmapResolution":2,"md5ext":"8fb24626392ea7d7ea291be86e455a87.png","dataFormat":"png","rotationCenterX":470,"rotationCenterY":38},{"assetId":"5ef07742224cb206714eacc0b1a6f4a1","name":"middle","bitmapResolution":2,"md5ext":"5ef07742224cb206714eacc0b1a6f4a1.png","dataFormat":"png","rotationCenterX":470,"rotationCenterY":38},{"assetId":"416a83dcf33fab5c6a199d166738a97f","name":"up","bitmapResolution":2,"md5ext":"416a83dcf33fab5c6a199d166738a97f.png","dataFormat":"png","rotationCenterX":474,"rotationCenterY":38},{"assetId":"0379a7ff77676213e2e5b04adbf112ee","name":"cheer1","bitmapResolution":2,"md5ext":"0379a7ff77676213e2e5b04adbf112ee.png","dataFormat":"png","rotationCenterX":471,"rotationCenterY":38},{"assetId":"0fe20e56960b05a3000acb870655556d","name":"cheer2","bitmapResolution":2,"md5ext":"0fe20e56960b05a3000acb870655556d.png","dataFormat":"png","rotationCenterX":470,"rotationCenterY":38}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":104,"y":-43,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"flags","variables":{},"lists":{},"broadcasts":{},"blocks":{"Sc~32M@N)m;,^#R_`aSK":{"opcode":"event_whenflagclicked","next":"5qphS/+N)swh5kuR}ii1","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1064,"y":-2361},"5qphS/+N)swh5kuR}ii1":{"opcode":"motion_gotoxy","next":"/8WJ}hHpXETjsV2A*[|G","parent":"Sc~32M@N)m;,^#R_`aSK","inputs":{"X":[1,[4,-2]],"Y":[1,[4,3]]},"fields":{},"shadow":false,"topLevel":false},"/8WJ}hHpXETjsV2A*[|G":{"opcode":"looks_switchcostumeto","next":"F~NIU+f.7qr*x~eQ+PpZ","parent":"5qphS/+N)swh5kuR}ii1","inputs":{"COSTUME":[1,"TP//JCgrUD]8R-M0Rdm-"]},"fields":{},"shadow":false,"topLevel":false},"TP//JCgrUD]8R-M0Rdm-":{"opcode":"looks_costume","next":null,"parent":"/8WJ}hHpXETjsV2A*[|G","inputs":{},"fields":{"COSTUME":["center"]},"shadow":true,"topLevel":false},"F~NIU+f.7qr*x~eQ+PpZ":{"opcode":"control_forever","next":null,"parent":"/8WJ}hHpXETjsV2A*[|G","inputs":{"SUBSTACK":[2,"J5Wbr[%[%YMJAgoO2BN-"]},"fields":{},"shadow":false,"topLevel":false},"J5Wbr[%[%YMJAgoO2BN-":{"opcode":"looks_nextcostume","next":"LQRSAf.0d2mv:eYbuaC)","parent":"F~NIU+f.7qr*x~eQ+PpZ","inputs":{},"fields":{},"shadow":false,"topLevel":false},"LQRSAf.0d2mv:eYbuaC)":{"opcode":"control_wait","next":null,"parent":"J5Wbr[%[%YMJAgoO2BN-","inputs":{"DURATION":[1,[5,1]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":2,"costumes":[{"assetId":"b1b2a43f5f87da9f5adf53eda1c886ba","name":"left","bitmapResolution":2,"md5ext":"b1b2a43f5f87da9f5adf53eda1c886ba.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"97de43aed81c81e3f3df1a4bcf21ff64","name":"center","bitmapResolution":2,"md5ext":"97de43aed81c81e3f3df1a4bcf21ff64.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"1c3bc9cc59d4178b7cde5e064d2557d6","name":"right","bitmapResolution":2,"md5ext":"1c3bc9cc59d4178b7cde5e064d2557d6.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"97de43aed81c81e3f3df1a4bcf21ff64","name":"center2","bitmapResolution":2,"md5ext":"97de43aed81c81e3f3df1a4bcf21ff64.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":-2,"y":3,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Fish","variables":{},"lists":{},"broadcasts":{},"blocks":{"ez!h95irNu^6pqSdAR;[":{"opcode":"event_whenflagclicked","next":"@_5[:En|ymE[nBlD$2p:","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-953,"y":-1170},"@_5[:En|ymE[nBlD$2p:":{"opcode":"motion_gotoxy","next":"^8DsG#kGCoEFy0ilnK[l","parent":"ez!h95irNu^6pqSdAR;[","inputs":{"X":[1,[4,"149"]],"Y":[1,[4,"-45"]]},"fields":{},"shadow":false,"topLevel":false},"^8DsG#kGCoEFy0ilnK[l":{"opcode":"looks_switchcostumeto","next":null,"parent":"@_5[:En|ymE[nBlD$2p:","inputs":{"COSTUME":[1,"UcfBrOE?mW,]0_Ljhy0g"]},"fields":{},"shadow":false,"topLevel":false},"UcfBrOE?mW,]0_Ljhy0g":{"opcode":"looks_costume","next":null,"parent":"^8DsG#kGCoEFy0ilnK[l","inputs":{},"fields":{"COSTUME":["fish1",null]},"shadow":true,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"0109d8d6c0f4f14efd79b91923bab2fa","name":"fish1","bitmapResolution":2,"md5ext":"0109d8d6c0f4f14efd79b91923bab2fa.png","dataFormat":"png","rotationCenterX":278,"rotationCenterY":330},{"assetId":"56c27e51403099cfab2aeb7f33ebcc9a","name":"fish2","bitmapResolution":2,"md5ext":"56c27e51403099cfab2aeb7f33ebcc9a.png","dataFormat":"png","rotationCenterX":357,"rotationCenterY":347},{"assetId":"a58a5ab92ed526cf6379ce86dfec4af9","name":"fish3","bitmapResolution":2,"md5ext":"a58a5ab92ed526cf6379ce86dfec4af9.png","dataFormat":"png","rotationCenterX":328,"rotationCenterY":309},{"assetId":"7bb9688c3518ddb08c0048266b1bfd2d","name":"fish4","bitmapResolution":2,"md5ext":"7bb9688c3518ddb08c0048266b1bfd2d.png","dataFormat":"png","rotationCenterX":278,"rotationCenterY":257}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":false,"x":149,"y":-45,"size":30,"direction":92.35553230387865,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190813192748","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"}}
 },{}],87:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":4,"costumes":[{"assetId":"4953b97814c20b8a3dab049695d509c7","name":"073018DragonBoat_bg","bitmapResolution":2,"md5ext":"4953b97814c20b8a3dab049695d509c7.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"b9c928707e817780fe6e373ab7251e2b","name":"081018DragonBoat_bg","bitmapResolution":2,"md5ext":"b9c928707e817780fe6e373ab7251e2b.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"b3892fe075aa7a88b2c7e3aba4d4b790","name":"backdrop1","bitmapResolution":1,"md5ext":"b3892fe075aa7a88b2c7e3aba4d4b790.svg","dataFormat":"svg","rotationCenterX":255.964835,"rotationCenterY":146.36328125},{"assetId":"1d75c9a6202e2415391335f5fb495c99","name":"e79fd28fe8789ff55fd9b6220037ecf5_royalty-free-gym-floor-clip-art-vector-images-illustrations-_612-612","bitmapResolution":2,"md5ext":"1d75c9a6202e2415391335f5fb495c99.png","dataFormat":"png","rotationCenterX":306,"rotationCenterY":306},{"assetId":"6e3ef0083d5bce20e2c964363514c826","name":"Basketball 1","bitmapResolution":1,"md5ext":"6e3ef0083d5bce20e2c964363514c826.svg","dataFormat":"svg","rotationCenterX":364,"rotationCenterY":212}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Andie","variables":{},"lists":{},"broadcasts":{},"blocks":{"6}O]aJN^jh=FRZ4B%_Ck":{"opcode":"event_whenflagclicked","next":"S%{DxI8Q7NR(J:EQBX~q","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1400,"y":-705},":pQz?p*Z/HkU!m^@k?b.":{"opcode":"looks_switchcostumeto","next":"N|+K}Y@sie[^.VR,-]]f","parent":"S%{DxI8Q7NR(J:EQBX~q","inputs":{"COSTUME":[1,"5geX;Qg:+ztVfv~/6TOR"]},"fields":{},"shadow":false,"topLevel":false},"5geX;Qg:+ztVfv~/6TOR":{"opcode":"looks_costume","next":null,"parent":":pQz?p*Z/HkU!m^@k?b.","inputs":{},"fields":{"COSTUME":["Andie1",null]},"shadow":true,"topLevel":false},"~vzV,)k9Smog*S=2Vxnl":{"opcode":"event_whenkeypressed","next":"RO$%71YtoH;`U(5Ow0sr","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow",null]},"shadow":false,"topLevel":true,"x":-1394,"y":-381},"RO$%71YtoH;`U(5Ow0sr":{"opcode":"looks_switchcostumeto","next":"wC/mHJR,(y))HXD?`r]Y","parent":"~vzV,)k9Smog*S=2Vxnl","inputs":{"COSTUME":[1,"^yq!VUNAkeHHvfe$xbmQ"]},"fields":{},"shadow":false,"topLevel":false},"^yq!VUNAkeHHvfe$xbmQ":{"opcode":"looks_costume","next":null,"parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{},"fields":{"COSTUME":["Andie1",null]},"shadow":true,"topLevel":false},"wC/mHJR,(y))HXD?`r]Y":{"opcode":"control_repeat","next":null,"parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{"TIMES":[1,[6,"20"]],"SUBSTACK":[2,"}Q`=g?o=6yi?Jz]/|4g{"]},"fields":{},"shadow":false,"topLevel":false},"}Q`=g?o=6yi?Jz]/|4g{":{"opcode":"control_wait","next":"x#U4xVOG?)DPyx)7Y~(r","parent":"wC/mHJR,(y))HXD?`r]Y","inputs":{"DURATION":[1,[5,".3"]]},"fields":{},"shadow":false,"topLevel":false},"x#U4xVOG?)DPyx)7Y~(r":{"opcode":"looks_nextcostume","next":null,"parent":"}Q`=g?o=6yi?Jz]/|4g{","inputs":{},"fields":{},"shadow":false,"topLevel":false},"{`iq@=gYKl2;GBWAK/*]":{"opcode":"looks_sayforsecs","next":null,"parent":"N|+K}Y@sie[^.VR,-]]f","inputs":{"MESSAGE":[1,[10,"Press the down arrow key to see us dribble."]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"N|+K}Y@sie[^.VR,-]]f":{"opcode":"looks_gotofrontback","next":"{`iq@=gYKl2;GBWAK/*]","parent":":pQz?p*Z/HkU!m^@k?b.","inputs":{},"fields":{"FRONT_BACK":["back",null]},"shadow":false,"topLevel":false},"S%{DxI8Q7NR(J:EQBX~q":{"opcode":"motion_gotoxy","next":":pQz?p*Z/HkU!m^@k?b.","parent":"6}O]aJN^jh=FRZ4B%_Ck","inputs":{"X":[1,[4,"131"]],"Y":[1,[4,"30"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"428d26cd7db0965f3cdc695f4bf7c187","name":"Andie1","bitmapResolution":1,"md5ext":"428d26cd7db0965f3cdc695f4bf7c187.svg","dataFormat":"svg","rotationCenterX":88.15144525307196,"rotationCenterY":81.55357252089803},{"assetId":"2c987528236f67bf8df4cefe21da0bd2","name":"Andie2","bitmapResolution":1,"md5ext":"2c987528236f67bf8df4cefe21da0bd2.svg","dataFormat":"svg","rotationCenterX":89.43607148025549,"rotationCenterY":64.15005150322513},{"assetId":"35297645747defb06da8fc1b43dd4366","name":"Andie3","bitmapResolution":1,"md5ext":"35297645747defb06da8fc1b43dd4366.svg","dataFormat":"svg","rotationCenterX":85.49156767224497,"rotationCenterY":64.15005493877038},{"assetId":"656df76d07ad799eb115dd96091005e0","name":"Andie4","bitmapResolution":1,"md5ext":"656df76d07ad799eb115dd96091005e0.svg","dataFormat":"svg","rotationCenterX":89.43607148025549,"rotationCenterY":64.15005150322513}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":131,"y":30,"size":80,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Jordyn","variables":{},"lists":{},"broadcasts":{},"blocks":{"FFR95}}V~GN]}7X5j;9K":{"opcode":"event_whenkeypressed","next":"RN6(fwI%ap{?|dYR4@sK","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-1559,"y":-989},"RN6(fwI%ap{?|dYR4@sK":{"opcode":"control_repeat","next":"V-V:T9r%tgtP,,9F]Lb|","parent":"FFR95}}V~GN]}7X5j;9K","inputs":{"TIMES":[1,[6,"22"]],"SUBSTACK":[2,"y3A-jV0d+}7Ka#dor(mr"]},"fields":{},"shadow":false,"topLevel":false},"y3A-jV0d+}7Ka#dor(mr":{"opcode":"control_wait","next":"Mulix|]{S}[c)MYzRS[{","parent":"RN6(fwI%ap{?|dYR4@sK","inputs":{"DURATION":[1,[5,".15"]]},"fields":{},"shadow":false,"topLevel":false},"Mulix|]{S}[c)MYzRS[{":{"opcode":"looks_nextcostume","next":"FkBPY%cvJx6;4x%Nmzj)","parent":"y3A-jV0d+}7Ka#dor(mr","inputs":{},"fields":{},"shadow":false,"topLevel":false},"FkBPY%cvJx6;4x%Nmzj)":{"opcode":"motion_movesteps","next":null,"parent":"Mulix|]{S}[c)MYzRS[{","inputs":{"STEPS":[1,[4,"20"]]},"fields":{},"shadow":false,"topLevel":false},"V-V:T9r%tgtP,,9F]Lb|":{"opcode":"looks_switchcostumeto","next":null,"parent":"RN6(fwI%ap{?|dYR4@sK","inputs":{"COSTUME":[1,"GU@U^b|Z!g*swSK+:ZM%"]},"fields":{},"shadow":false,"topLevel":false},"GU@U^b|Z!g*swSK+:ZM%":{"opcode":"looks_costume","next":null,"parent":"V-V:T9r%tgtP,,9F]Lb|","inputs":{},"fields":{"COSTUME":["Jordyn1",null]},"shadow":true,"topLevel":false},"c+:6O#=EJUR.aX!#*%.M":{"opcode":"event_whenflagclicked","next":"{5ZSJ=*@5/!=NTcWjXa(","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1579,"y":-1243},"{5ZSJ=*@5/!=NTcWjXa(":{"opcode":"motion_gotoxy","next":"tik2?JnJviBGw^rjm`1]","parent":"c+:6O#=EJUR.aX!#*%.M","inputs":{"X":[1,[4,"-200"]],"Y":[1,[4,"-40"]]},"fields":{},"shadow":false,"topLevel":false},"tik2?JnJviBGw^rjm`1]":{"opcode":"looks_switchcostumeto","next":null,"parent":"{5ZSJ=*@5/!=NTcWjXa(","inputs":{"COSTUME":[1,"c;;U)E!O()YxY;tE]I8L"]},"fields":{},"shadow":false,"topLevel":false},"c;;U)E!O()YxY;tE]I8L":{"opcode":"looks_costume","next":null,"parent":"tik2?JnJviBGw^rjm`1]","inputs":{},"fields":{"COSTUME":["Jordyn1",null]},"shadow":true,"topLevel":false},"?s;CncrOM,T4}DtB=vst":{"opcode":"event_whenkeypressed","next":"Z6Ks5#h9lz(7Qb_,-[-f","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow",null]},"shadow":false,"topLevel":true,"x":-1207,"y":-1233},"Z6Ks5#h9lz(7Qb_,-[-f":{"opcode":"control_repeat","next":"FcANosyL39HlORt?O8eS","parent":"?s;CncrOM,T4}DtB=vst","inputs":{"TIMES":[1,[6,"12"]],"SUBSTACK":[2,"f!pt@]c$J^U1[CS:C|e,"]},"fields":{},"shadow":false,"topLevel":false},"f!pt@]c$J^U1[CS:C|e,":{"opcode":"control_wait","next":"{OtG{Yv)zo!ia%}n]H95","parent":"Z6Ks5#h9lz(7Qb_,-[-f","inputs":{"DURATION":[1,[5,".3"]]},"fields":{},"shadow":false,"topLevel":false},"{OtG{Yv)zo!ia%}n]H95":{"opcode":"looks_nextcostume","next":null,"parent":"f!pt@]c$J^U1[CS:C|e,","inputs":{},"fields":{},"shadow":false,"topLevel":false},"FcANosyL39HlORt?O8eS":{"opcode":"looks_sayforsecs","next":null,"parent":"Z6Ks5#h9lz(7Qb_,-[-f","inputs":{"MESSAGE":[1,[10,"Press the space bar to watch Miguel and me dribble across the court!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"?g,x?Jb[1{AQl75%XcjG":{"blockId":".O#5Xx[CR_kMrHY[i|Dx","x":178,"y":-1048,"width":200,"height":200,"minimized":false,"text":"This longer code would prevent the standing dribble animation to overlap with the run/dribble animation"}},"currentCostume":0,"costumes":[{"assetId":"ec0c260d2321b33a7bcbffb93f1970d2","name":"Jordyn1","bitmapResolution":1,"md5ext":"ec0c260d2321b33a7bcbffb93f1970d2.svg","dataFormat":"svg","rotationCenterX":33.74546494910098,"rotationCenterY":62.69436263827484},{"assetId":"1b5edf25437124002136418e99d02dfe","name":"Jordyn2","bitmapResolution":1,"md5ext":"1b5edf25437124002136418e99d02dfe.svg","dataFormat":"svg","rotationCenterX":48.9517821174727,"rotationCenterY":62.694377914824486},{"assetId":"bf13eddeef9d2da3c0cfce155869eb88","name":"Jordyn3","bitmapResolution":1,"md5ext":"bf13eddeef9d2da3c0cfce155869eb88.svg","dataFormat":"svg","rotationCenterX":33.74546986498308,"rotationCenterY":62.69436527654966},{"assetId":"d710e71614edaf1d86e5f8c741fe3d1e","name":"Jordyn4","bitmapResolution":1,"md5ext":"d710e71614edaf1d86e5f8c741fe3d1e.svg","dataFormat":"svg","rotationCenterX":51.145432069474,"rotationCenterY":62.69435447870612}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":-200,"y":-40,"size":90,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Miguel","variables":{},"lists":{},"broadcasts":{},"blocks":{"4Z3i{QKZROpJnOe,b_DN":{"opcode":"event_whenflagclicked","next":"CWto!?+oXxrv`e~-;le[","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-2342,"y":-1454},"CWto!?+oXxrv`e~-;le[":{"opcode":"motion_gotoxy","next":"%q@JG_HRK|QtS~v/L0%h","parent":"4Z3i{QKZROpJnOe,b_DN","inputs":{"X":[1,[4,"-203"]],"Y":[1,[4,"-110"]]},"fields":{},"shadow":false,"topLevel":false},"%q@JG_HRK|QtS~v/L0%h":{"opcode":"looks_switchcostumeto","next":null,"parent":"CWto!?+oXxrv`e~-;le[","inputs":{"COSTUME":[1,"9cKXdQ14:c7[Ye~!`1/~"]},"fields":{},"shadow":false,"topLevel":false},"9cKXdQ14:c7[Ye~!`1/~":{"opcode":"looks_costume","next":null,"parent":"%q@JG_HRK|QtS~v/L0%h","inputs":{},"fields":{"COSTUME":["Miguel1",null]},"shadow":true,"topLevel":false},"[GqfrGN]^`tQ4q:Q3#JJ":{"opcode":"event_whenkeypressed","next":"QHe#Vkys)Rh+@UXqxB2{","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-2347,"y":-1175},"QHe#Vkys)Rh+@UXqxB2{":{"opcode":"control_repeat","next":null,"parent":"[GqfrGN]^`tQ4q:Q3#JJ","inputs":{"TIMES":[1,[6,"8"]],"SUBSTACK":[2,"6tV]3_1VT=^NmAx%q!g4"]},"fields":{},"shadow":false,"topLevel":false},"6tV]3_1VT=^NmAx%q!g4":{"opcode":"control_wait","next":"Qk/o|;QFt+F4$=UuayAJ","parent":"QHe#Vkys)Rh+@UXqxB2{","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},"Qk/o|;QFt+F4$=UuayAJ":{"opcode":"looks_nextcostume","next":".DjF9o3KoHe=8Yd(7:LW","parent":"6tV]3_1VT=^NmAx%q!g4","inputs":{},"fields":{},"shadow":false,"topLevel":false},".DjF9o3KoHe=8Yd(7:LW":{"opcode":"motion_movesteps","next":null,"parent":"Qk/o|;QFt+F4$=UuayAJ","inputs":{"STEPS":[1,[4,"20"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"K_1eCG@}Jr2SIUQs-r#h":{"blockId":null,"x":-1948.7407407407406,"y":-1317.9259259259259,"width":200,"height":200,"minimized":false,"text":"Build 1 script and modify a script..."},"6JV9Goq|XG$}U$mDQsYS":{"blockId":null,"x":-1952.481323521161,"y":-1102.7219852817411,"width":200,"height":200,"minimized":false,"text":"One will have Miguel dribble in place, when the down arrow key is pressed. Look at the script for Jordyn."},"w)]!x]e.9?/[4GH|+[O:":{"blockId":null,"x":-1957.481323521161,"y":-879.3301575353256,"width":200,"height":200,"minimized":false,"text":"The other will have Miguel dribble ALL the way across the basketball court when the space key is pressed. Look at Jordyn's script"}},"currentCostume":0,"costumes":[{"assetId":"8a00295a8d657ea087cc88010c3a844c","name":"Miguel1","bitmapResolution":1,"md5ext":"8a00295a8d657ea087cc88010c3a844c.svg","dataFormat":"svg","rotationCenterX":26.37499494910105,"rotationCenterY":62.69436185272684},{"assetId":"80e8002553b2cac9c3e4887a7583a65c","name":"Miguel2","bitmapResolution":1,"md5ext":"80e8002553b2cac9c3e4887a7583a65c.svg","dataFormat":"svg","rotationCenterX":49.74051742656934,"rotationCenterY":62.69436162506062},{"assetId":"5dba01afa32235f7f91a4132f3d448cd","name":"Miguel3","bitmapResolution":1,"md5ext":"5dba01afa32235f7f91a4132f3d448cd.svg","dataFormat":"svg","rotationCenterX":26.374997377707814,"rotationCenterY":62.69436159568707},{"assetId":"14904cc6bbad4a87b6f924707730dd0f","name":"Miguel4","bitmapResolution":1,"md5ext":"14904cc6bbad4a87b6f924707730dd0f.svg","dataFormat":"svg","rotationCenterX":50.926268599392586,"rotationCenterY":62.69436185272684}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-203,"y":-110,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Referee","variables":{},"lists":{},"broadcasts":{},"blocks":{"Uw:zXlolx).J/|3Vv}.(":{"opcode":"event_whenflagclicked","next":"2`:.Ap!-R]l#bQyC^ho2","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":71,"y":55},"2`:.Ap!-R]l#bQyC^ho2":{"opcode":"motion_gotoxy","next":null,"parent":"Uw:zXlolx).J/|3Vv}.(","inputs":{"X":[1,[4,"-131"]],"Y":[1,[4,"44"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":3,"costumes":[{"assetId":"7eeca5313c2e7d455482badff3079f64","name":"referee-b","bitmapResolution":1,"md5ext":"7eeca5313c2e7d455482badff3079f64.svg","dataFormat":"svg","rotationCenterX":44,"rotationCenterY":63},{"assetId":"1cd641a48499db84636d983916b62a83","name":"referee-d","bitmapResolution":1,"md5ext":"1cd641a48499db84636d983916b62a83.svg","dataFormat":"svg","rotationCenterX":50,"rotationCenterY":63},{"assetId":"5948c4160089fcc0975a867221ff2256","name":"referee-c","bitmapResolution":1,"md5ext":"5948c4160089fcc0975a867221ff2256.svg","dataFormat":"svg","rotationCenterX":55,"rotationCenterY":62},{"assetId":"46dde2baba61a7e48463ae8e58441470","name":"referee-a","bitmapResolution":1,"md5ext":"46dde2baba61a7e48463ae8e58441470.svg","dataFormat":"svg","rotationCenterX":44,"rotationCenterY":63}],"sounds":[{"assetId":"8468b9b3f11a665ee4d215afd8463b97","name":"referee whistle","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":14225,"md5ext":"8468b9b3f11a665ee4d215afd8463b97.wav"}],"volume":100,"layerOrder":2,"visible":false,"x":-131.00000000000003,"y":44,"size":80,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190822194548","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"}}
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":1,"costumes":[{"name":"Racetrack","bitmapResolution":1,"dataFormat":"svg","assetId":"fb9b9e6a4ce5114fd0479ac6532d8c39","md5ext":"fb9b9e6a4ce5114fd0479ac6532d8c39.svg","rotationCenterX":240,"rotationCenterY":180},{"name":"Pierre3","bitmapResolution":1,"dataFormat":"svg","assetId":"b036442fae386c41235b8d469b56d9f5","md5ext":"b036442fae386c41235b8d469b56d9f5.svg","rotationCenterX":304.6882574788135,"rotationCenterY":196.11647550651415}],"sounds":[{"name":"pop","assetId":"83a9787d4cb6f3b7632b4ddfebf74367","dataFormat":"wav","format":"","rate":48000,"sampleCount":1124,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Robin","variables":{},"lists":{},"broadcasts":{},"blocks":{"6SL{~-aUO/B)N,0:4e`I":{"opcode":"event_whenkeypressed","next":"u5/+yfX4J=rM@9Q*:B@w","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":15,"y":320},"u5/+yfX4J=rM@9Q*:B@w":{"opcode":"control_repeat","next":null,"parent":"6SL{~-aUO/B)N,0:4e`I","inputs":{"TIMES":[1,[6,"15"]],"SUBSTACK":[2,"|sf#C9q(,AvU+D4x-]/%"]},"fields":{},"shadow":false,"topLevel":false},"|sf#C9q(,AvU+D4x-]/%":{"opcode":"control_wait","next":"bS(Oj%`mZa)2#]~Z]=op","parent":"u5/+yfX4J=rM@9Q*:B@w","inputs":{"DURATION":[1,[5,"0.2"]]},"fields":{},"shadow":false,"topLevel":false},"bS(Oj%`mZa)2#]~Z]=op":{"opcode":"motion_movesteps","next":"A|cVksa0c~Mp,5[(pI:G","parent":"|sf#C9q(,AvU+D4x-]/%","inputs":{"STEPS":[1,[4,"10"]]},"fields":{},"shadow":false,"topLevel":false},"A|cVksa0c~Mp,5[(pI:G":{"opcode":"looks_nextcostume","next":null,"parent":"bS(Oj%`mZa)2#]~Z]=op","inputs":{},"fields":{},"shadow":false,"topLevel":false},"|eVhU^*t{;}V9lblV1yq":{"opcode":"event_whenflagclicked","next":":iFzbJP7..Jb{XV(GT~C","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":14,"y":70},":iFzbJP7..Jb{XV(GT~C":{"opcode":"motion_gotoxy","next":"9jkL+HoHtd2d4KB@uiW(","parent":"|eVhU^*t{;}V9lblV1yq","inputs":{"X":[1,[4,"-119"]],"Y":[1,[4,"-46"]]},"fields":{},"shadow":false,"topLevel":false},"9jkL+HoHtd2d4KB@uiW(":{"opcode":"looks_switchcostumeto","next":"=cH%/GAjV0]/}6+h3^8.","parent":":iFzbJP7..Jb{XV(GT~C","inputs":{"COSTUME":[1,"Y8IEtxc9v_A/%ErZV|mg"]},"fields":{},"shadow":false,"topLevel":false},"Y8IEtxc9v_A/%ErZV|mg":{"opcode":"looks_costume","next":null,"parent":"9jkL+HoHtd2d4KB@uiW(","inputs":{},"fields":{"COSTUME":["robin_1",null]},"shadow":true,"topLevel":false},"=cH%/GAjV0]/}6+h3^8.":{"opcode":"looks_gotofrontback","next":null,"parent":"9jkL+HoHtd2d4KB@uiW(","inputs":{},"fields":{"FRONT_BACK":["back",null]},"shadow":false,"topLevel":false}},"comments":{"2`:YE~wQRLrj9KLAeGgx_comment":{"blockId":"2`:YE~wQRLrj9KLAeGgx","x":338.4184036254883,"y":342,"width":200,"height":200,"minimized":false,"text":"STUDENTS CREATE"}},"currentCostume":0,"costumes":[{"name":"robin_1","bitmapResolution":1,"dataFormat":"svg","assetId":"752bade9a1fb9beff65e7497b1fa9b65","md5ext":"752bade9a1fb9beff65e7497b1fa9b65.svg","rotationCenterX":13.938899993896484,"rotationCenterY":25.09001922607422},{"name":"robin_2","bitmapResolution":1,"dataFormat":"svg","assetId":"75678b58193506671e5c7a0720a3ce88","md5ext":"75678b58193506671e5c7a0720a3ce88.svg","rotationCenterX":14.557499885559082,"rotationCenterY":25.232999801635742},{"name":"robin_3","bitmapResolution":1,"dataFormat":"svg","assetId":"4ba34eb2b4790b7b077abe5aa0dbe15d","md5ext":"4ba34eb2b4790b7b077abe5aa0dbe15d.svg","rotationCenterX":14.61460018157959,"rotationCenterY":25.33197593688965}],"sounds":[{"name":"pop","assetId":"83a9787d4cb6f3b7632b4ddfebf74367","dataFormat":"wav","format":"","rate":48000,"sampleCount":1124,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-119,"y":-46,"size":100,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Demetrius","variables":{},"lists":{},"broadcasts":{},"blocks":{"WND#/#]vuIsje%_2Lioo":{"opcode":"event_whenkeypressed","next":"-?7nVr.:z#nMoiY5(k#M","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow",null]},"shadow":false,"topLevel":true,"x":42,"y":279},"-?7nVr.:z#nMoiY5(k#M":{"opcode":"control_wait","next":"f0y9xxcy/6nNJpnQAX4m","parent":"WND#/#]vuIsje%_2Lioo","inputs":{"DURATION":[1,[5,"0.1"]]},"fields":{},"shadow":false,"topLevel":false},"f0y9xxcy/6nNJpnQAX4m":{"opcode":"looks_switchcostumeto","next":"l59OIZx_!T3dtM,cWqY@","parent":"-?7nVr.:z#nMoiY5(k#M","inputs":{"COSTUME":[1,";+4;p-WOV]1ps[v8Vj,I"]},"fields":{},"shadow":false,"topLevel":false},";+4;p-WOV]1ps[v8Vj,I":{"opcode":"looks_costume","next":null,"parent":"f0y9xxcy/6nNJpnQAX4m","inputs":{},"fields":{"COSTUME":["Demetrius_1",null]},"shadow":true,"topLevel":false},"l59OIZx_!T3dtM,cWqY@":{"opcode":"control_wait","next":"g;6CdrQ3Z+{D?z]{gx;i","parent":"f0y9xxcy/6nNJpnQAX4m","inputs":{"DURATION":[1,[5,"0.1"]]},"fields":{},"shadow":false,"topLevel":false},"g;6CdrQ3Z+{D?z]{gx;i":{"opcode":"looks_switchcostumeto","next":"`F}qAxW1JTcGRKPqw^zj","parent":"l59OIZx_!T3dtM,cWqY@","inputs":{"COSTUME":[1,"[i#+v,.D{fl##0V0GTND"]},"fields":{},"shadow":false,"topLevel":false},"[i#+v,.D{fl##0V0GTND":{"opcode":"looks_costume","next":null,"parent":"g;6CdrQ3Z+{D?z]{gx;i","inputs":{},"fields":{"COSTUME":["Demetrius_2",null]},"shadow":true,"topLevel":false},"`F}qAxW1JTcGRKPqw^zj":{"opcode":"control_wait","next":"5X}?=y)6rH~GA`!^d+Rt","parent":"g;6CdrQ3Z+{D?z]{gx;i","inputs":{"DURATION":[1,[5,"0.1"]]},"fields":{},"shadow":false,"topLevel":false},"5X}?=y)6rH~GA`!^d+Rt":{"opcode":"looks_switchcostumeto","next":"#?fMapL0z:ViedAg~0w%","parent":"`F}qAxW1JTcGRKPqw^zj","inputs":{"COSTUME":[1,".m(IMd,-00.zsUC::@({"]},"fields":{},"shadow":false,"topLevel":false},".m(IMd,-00.zsUC::@({":{"opcode":"looks_costume","next":null,"parent":"5X}?=y)6rH~GA`!^d+Rt","inputs":{},"fields":{"COSTUME":["Demetrius_1",null]},"shadow":true,"topLevel":false},"#?fMapL0z:ViedAg~0w%":{"opcode":"control_wait","next":"O)zBez58nT!ucrH3Y=]H","parent":"5X}?=y)6rH~GA`!^d+Rt","inputs":{"DURATION":[1,[5,"0.1"]]},"fields":{},"shadow":false,"topLevel":false},"O)zBez58nT!ucrH3Y=]H":{"opcode":"looks_switchcostumeto","next":null,"parent":"#?fMapL0z:ViedAg~0w%","inputs":{"COSTUME":[1,"VK(#d/y,3Y9+~Ca9u+12"]},"fields":{},"shadow":false,"topLevel":false},"VK(#d/y,3Y9+~Ca9u+12":{"opcode":"looks_costume","next":null,"parent":"O)zBez58nT!ucrH3Y=]H","inputs":{},"fields":{"COSTUME":["Demetrius_2",null]},"shadow":true,"topLevel":false},"!1DNllR,(m~iUeqK|?`-":{"opcode":"event_whenflagclicked","next":"us6]Mvlz8Q*YLC!Ma`gq","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":45,"y":28},"us6]Mvlz8Q*YLC!Ma`gq":{"opcode":"motion_gotoxy","next":"P/|%Ye{1vW[05fjgsWWz","parent":"!1DNllR,(m~iUeqK|?`-","inputs":{"X":[1,[4,"-117"]],"Y":[1,[4,"-85"]]},"fields":{},"shadow":false,"topLevel":false},"P/|%Ye{1vW[05fjgsWWz":{"opcode":"looks_switchcostumeto","next":null,"parent":"us6]Mvlz8Q*YLC!Ma`gq","inputs":{"COSTUME":[1,"i#uP2o:)NL20H]+w}W`!"]},"fields":{},"shadow":false,"topLevel":false},"i#uP2o:)NL20H]+w}W`!":{"opcode":"looks_costume","next":null,"parent":"P/|%Ye{1vW[05fjgsWWz","inputs":{},"fields":{"COSTUME":["Demetrius_1",null]},"shadow":true,"topLevel":false},"4+7yLS!V,#zfA+9O,TjG":{"opcode":"event_whenkeypressed","next":"fnMeWyB(,{6w9L;r-f)/","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":43,"y":809},"fnMeWyB(,{6w9L;r-f)/":{"opcode":"control_repeat","next":null,"parent":"4+7yLS!V,#zfA+9O,TjG","inputs":{"TIMES":[1,[6,"45"]],"SUBSTACK":[2,"YgW[#!m/9!Y2SFo?+M)6"]},"fields":{},"shadow":false,"topLevel":false},"YgW[#!m/9!Y2SFo?+M)6":{"opcode":"control_wait","next":"9lQ:*uWLzFwK={FhX/kp","parent":"fnMeWyB(,{6w9L;r-f)/","inputs":{"DURATION":[1,[5,"0.2"]]},"fields":{},"shadow":false,"topLevel":false},"9lQ:*uWLzFwK={FhX/kp":{"opcode":"motion_movesteps","next":"kI^0+Flge*jzq6;D_k{4","parent":"YgW[#!m/9!Y2SFo?+M)6","inputs":{"STEPS":[1,[4,"7"]]},"fields":{},"shadow":false,"topLevel":false},"kI^0+Flge*jzq6;D_k{4":{"opcode":"looks_nextcostume","next":null,"parent":"9lQ:*uWLzFwK={FhX/kp","inputs":{},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"name":"Demetrius_2","bitmapResolution":1,"dataFormat":"svg","assetId":"ba811b74bacd00f3f0558bc8a734de72","md5ext":"ba811b74bacd00f3f0558bc8a734de72.svg","rotationCenterX":10.97070026397705,"rotationCenterY":25.316999435424805},{"name":"Demetrius_3","bitmapResolution":1,"dataFormat":"svg","assetId":"7ad538d87585eb4b9b30ea1c40bb4f55","md5ext":"7ad538d87585eb4b9b30ea1c40bb4f55.svg","rotationCenterX":10.118160247802734,"rotationCenterY":25.295400619506836},{"name":"Demetrius_1","bitmapResolution":1,"dataFormat":"svg","assetId":"23b90ebab59995c64b707fbc09754934","md5ext":"23b90ebab59995c64b707fbc09754934.svg","rotationCenterX":8.14169979095459,"rotationCenterY":25.239269256591797}],"sounds":[{"name":"pop","assetId":"83a9787d4cb6f3b7632b4ddfebf74367","dataFormat":"wav","format":"","rate":48000,"sampleCount":1124,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":-117,"y":-85,"size":100,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Pierre","variables":{},"lists":{},"broadcasts":{},"blocks":{"EvIBpT4O/53quJ%FKYMz":{"opcode":"event_whenflagclicked","next":"YrAog2etgR#,:5LUFH;N","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":11,"y":2},"YrAog2etgR#,:5LUFH;N":{"opcode":"looks_gotofrontback","next":"}OVU=T284PFe{`vh_ix+","parent":"EvIBpT4O/53quJ%FKYMz","inputs":{},"fields":{"FRONT_BACK":["back",null]},"shadow":false,"topLevel":false},"}OVU=T284PFe{`vh_ix+":{"opcode":"looks_switchcostumeto","next":"2r.Dy49`deSAqO[+j`z9","parent":"YrAog2etgR#,:5LUFH;N","inputs":{"COSTUME":[1,"y?4dlqatytLX?y-h,l*a"]},"fields":{},"shadow":false,"topLevel":false},"y?4dlqatytLX?y-h,l*a":{"opcode":"looks_costume","next":null,"parent":"}OVU=T284PFe{`vh_ix+","inputs":{},"fields":{"COSTUME":["Pierre1",null]},"shadow":true,"topLevel":false},"2r.Dy49`deSAqO[+j`z9":{"opcode":"motion_gotoxy","next":"i,W{FhWR;~^S3AI6/X0/","parent":"}OVU=T284PFe{`vh_ix+","inputs":{"X":[1,[4,"210"]],"Y":[1,[4,"-55"]]},"fields":{},"shadow":false,"topLevel":false},"i,W{FhWR;~^S3AI6/X0/":{"opcode":"looks_sayforsecs","next":",71~]VLkPK`tI[6SDRJ%","parent":"2r.Dy49`deSAqO[+j`z9","inputs":{"MESSAGE":[1,[10,"Hello! I'm Pierre. Welcome to my store."]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false},"a@D4xn?bi:D@g,Gyoi,`":{"opcode":"looks_sayforsecs","next":"tuo5/~+vWZ|/mmNa`h,a","parent":",71~]VLkPK`tI[6SDRJ%","inputs":{"MESSAGE":[1,[10,"Press the down arrow to see me wave."]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},"tuo5/~+vWZ|/mmNa`h,a":{"opcode":"looks_sayforsecs","next":null,"parent":"a@D4xn?bi:D@g,Gyoi,`","inputs":{"MESSAGE":[1,[10,"Then, press the spacebar to see who arrives first."]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},"-J(l2QPRMvwr%#F:bDGd":{"opcode":"event_whenkeypressed","next":"iH?Nvg.peJxyJ^6b#nk*","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":11,"y":1081},"iH?Nvg.peJxyJ^6b#nk*":{"opcode":"control_repeat","next":"Hfi_?!EG9*8NUqC80w=9","parent":"-J(l2QPRMvwr%#F:bDGd","inputs":{"TIMES":[1,[6,"33"]],"SUBSTACK":[2,"C4[f;+8DeBSO#Z{xk|6)"]},"fields":{},"shadow":false,"topLevel":false},"C4[f;+8DeBSO#Z{xk|6)":{"opcode":"control_wait","next":"fcuL4uB714t(KXnCJGh~","parent":"iH?Nvg.peJxyJ^6b#nk*","inputs":{"DURATION":[1,[5,"0.2"]]},"fields":{},"shadow":false,"topLevel":false},"fcuL4uB714t(KXnCJGh~":{"opcode":"looks_nextcostume","next":null,"parent":"C4[f;+8DeBSO#Z{xk|6)","inputs":{},"fields":{},"shadow":false,"topLevel":false},"Hfi_?!EG9*8NUqC80w=9":{"opcode":"looks_sayforsecs","next":null,"parent":"iH?Nvg.peJxyJ^6b#nk*","inputs":{"MESSAGE":[1,[10,"Yay! Welcome!!!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},",71~]VLkPK`tI[6SDRJ%":{"opcode":"looks_sayforsecs","next":"a@D4xn?bi:D@g,Gyoi,`","parent":"i,W{FhWR;~^S3AI6/X0/","inputs":{"MESSAGE":[1,[10,"Today, I have RED CABBAGE SEEDS."]],"SECS":[1,[4,"3"]]},"fields":{},"shadow":false,"topLevel":false},"X@mZYDFl1NwQlW2;r2rC":{"opcode":"event_whenkeypressed","next":"Q?JCMTM$%W#)lr1gjx7$","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow",null]},"shadow":false,"topLevel":true,"x":13,"y":464},"Q?JCMTM$%W#)lr1gjx7$":{"opcode":"control_wait","next":"*2osnxkp6p@(?s{E?h8b","parent":"X@mZYDFl1NwQlW2;r2rC","inputs":{"DURATION":[1,[5,"0.2"]]},"fields":{},"shadow":false,"topLevel":false},"*2osnxkp6p@(?s{E?h8b":{"opcode":"looks_switchcostumeto","next":")V^}s72@fw%bTK49.0;,","parent":"Q?JCMTM$%W#)lr1gjx7$","inputs":{"COSTUME":[1,"(^tpyQhzlet#)Z%Kt8DF"]},"fields":{},"shadow":false,"topLevel":false},"(^tpyQhzlet#)Z%Kt8DF":{"opcode":"looks_costume","next":null,"parent":"*2osnxkp6p@(?s{E?h8b","inputs":{},"fields":{"COSTUME":["Pierre1",null]},"shadow":true,"topLevel":false},")V^}s72@fw%bTK49.0;,":{"opcode":"control_wait","next":"yA4FpDTUhN`e!aZYgCnn","parent":"*2osnxkp6p@(?s{E?h8b","inputs":{"DURATION":[1,[5,"0.2"]]},"fields":{},"shadow":false,"topLevel":false},"yA4FpDTUhN`e!aZYgCnn":{"opcode":"looks_switchcostumeto","next":"JWUwct?gOk;S]KFJTwJ;","parent":")V^}s72@fw%bTK49.0;,","inputs":{"COSTUME":[1,"YTaD!I!P$);O-Q^vbo(I"]},"fields":{},"shadow":false,"topLevel":false},"YTaD!I!P$);O-Q^vbo(I":{"opcode":"looks_costume","next":null,"parent":"yA4FpDTUhN`e!aZYgCnn","inputs":{},"fields":{"COSTUME":["Pierre2",null]},"shadow":true,"topLevel":false},"JWUwct?gOk;S]KFJTwJ;":{"opcode":"control_wait","next":"LQLK]Fa?UOpU1GIXF_{E","parent":"yA4FpDTUhN`e!aZYgCnn","inputs":{"DURATION":[1,[5,"0.2"]]},"fields":{},"shadow":false,"topLevel":false},"LQLK]Fa?UOpU1GIXF_{E":{"opcode":"looks_switchcostumeto","next":"S^_H4=kg5GM`UV1h}|IK","parent":"JWUwct?gOk;S]KFJTwJ;","inputs":{"COSTUME":[1,"KBri77+W=VYC?1780R*j"]},"fields":{},"shadow":false,"topLevel":false},"KBri77+W=VYC?1780R*j":{"opcode":"looks_costume","next":null,"parent":"LQLK]Fa?UOpU1GIXF_{E","inputs":{},"fields":{"COSTUME":["Pierre1",null]},"shadow":true,"topLevel":false},"S^_H4=kg5GM`UV1h}|IK":{"opcode":"control_wait","next":"=r5:Cq0,~z9g4Z#IL%iT","parent":"LQLK]Fa?UOpU1GIXF_{E","inputs":{"DURATION":[1,[5,"0.2"]]},"fields":{},"shadow":false,"topLevel":false},"=r5:Cq0,~z9g4Z#IL%iT":{"opcode":"looks_switchcostumeto","next":"_0kLkQsU9%Ib|#}8lrp4","parent":"S^_H4=kg5GM`UV1h}|IK","inputs":{"COSTUME":[1,"eo!z?|0-Y~RlL)z$0)cT"]},"fields":{},"shadow":false,"topLevel":false},"eo!z?|0-Y~RlL)z$0)cT":{"opcode":"looks_costume","next":null,"parent":"=r5:Cq0,~z9g4Z#IL%iT","inputs":{},"fields":{"COSTUME":["Pierre2",null]},"shadow":true,"topLevel":false},"_0kLkQsU9%Ib|#}8lrp4":{"opcode":"control_wait","next":"TaG0.lTkjOv~y+O$|JXA","parent":"=r5:Cq0,~z9g4Z#IL%iT","inputs":{"DURATION":[1,[5,"0.2"]]},"fields":{},"shadow":false,"topLevel":false},"TaG0.lTkjOv~y+O$|JXA":{"opcode":"looks_switchcostumeto","next":null,"parent":"_0kLkQsU9%Ib|#}8lrp4","inputs":{"COSTUME":[1,":%Om[ORr3HO)Q0!v]k01"]},"fields":{},"shadow":false,"topLevel":false},":%Om[ORr3HO)Q0!v]k01":{"opcode":"looks_costume","next":null,"parent":"TaG0.lTkjOv~y+O$|JXA","inputs":{},"fields":{"COSTUME":["Pierre1",null]},"shadow":true,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"name":"Pierre1","bitmapResolution":1,"dataFormat":"svg","assetId":"75cd081bf7acf78816fc2c0c0530a8b2","md5ext":"75cd081bf7acf78816fc2c0c0530a8b2.svg","rotationCenterX":14.133250000000004,"rotationCenterY":25.617909999999995},{"name":"Pierre2","bitmapResolution":1,"dataFormat":"svg","assetId":"8c735fdf31c09fc8742094eeb5f99d6b","md5ext":"8c735fdf31c09fc8742094eeb5f99d6b.svg","rotationCenterX":13.300000190734863,"rotationCenterY":25.768749237060547}],"sounds":[{"name":"pop","assetId":"83a9787d4cb6f3b7632b4ddfebf74367","dataFormat":"wav","format":"","rate":48000,"sampleCount":1124,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":210,"y":-55,"size":100,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Seeds","variables":{},"lists":{},"broadcasts":{},"blocks":{"f;fqot[hvc=e!xHd,.i^":{"opcode":"event_whenflagclicked","next":"qFcd=eDa8ek|/hWHOxO.","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":174,"y":-233},"qFcd=eDa8ek|/hWHOxO.":{"opcode":"motion_gotoxy","next":null,"parent":"f;fqot[hvc=e!xHd,.i^","inputs":{"X":[1,[4,"232"]],"Y":[1,[4,"-97"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"name":"Red Cabbage Seeds","bitmapResolution":1,"dataFormat":"svg","assetId":"529cfdfdc23dee3cacc5728d35f6411c","md5ext":"529cfdfdc23dee3cacc5728d35f6411c.svg","rotationCenterX":17.16608019079999,"rotationCenterY":25.312600000000003},{"name":"Starfruit Seeds","bitmapResolution":1,"dataFormat":"svg","assetId":"e5a65d72d3cc52c9a3e85216b76a5a02","md5ext":"e5a65d72d3cc52c9a3e85216b76a5a02.svg","rotationCenterX":17.166079999999994,"rotationCenterY":24.741420258300025}],"sounds":[{"name":"pop","assetId":"83a9787d4cb6f3b7632b4ddfebf74367","dataFormat":"wav","format":"","rate":48000,"sampleCount":1124,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":false,"x":232,"y":-97,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"13.7.1","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:150.0) Gecko/20100101 Firefox/150.0"}}
 },{}],88:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{"`jEk@4|i[#Fk?(8x)AV.-my variable":["my variable",0]},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"6579c565f60733c4d4b6bfa84dcb2ffa","name":"backdrop3","bitmapResolution":2,"md5ext":"6579c565f60733c4d4b6bfa84dcb2ffa.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"on","textToSpeechLanguage":null},{"isStage":false,"name":"Ninja Cat","variables":{},"lists":{},"broadcasts":{},"blocks":{"|etjt+q79~RJiBzX6}^e":{"opcode":"event_whenflagclicked","next":"tE;G95v,1|}a4mmB7}A)","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":7,"y":205},"tE;G95v,1|}a4mmB7}A)":{"opcode":"motion_gotoxy","next":"0og]NcATQdOy/U@IY^E*","parent":"|etjt+q79~RJiBzX6}^e","inputs":{"X":[1,[4,"-189"]],"Y":[1,[4,"-43"]]},"fields":{},"shadow":false,"topLevel":false},"0og]NcATQdOy/U@IY^E*":{"opcode":"looks_sayforsecs","next":"(q!*oSyO?PG-bfs5=;BM","parent":"tE;G95v,1|}a4mmB7}A)","inputs":{"MESSAGE":[1,[10,"Help me reach the gem!"]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false},"(q!*oSyO?PG-bfs5=;BM":{"opcode":"control_repeat_until","next":null,"parent":"0og]NcATQdOy/U@IY^E*","inputs":{"CONDITION":[2,"o.iU%bahu);Xt,2%/G%|"],"SUBSTACK":[2,"cxWFIP6b~(|7UneIBU7b"]},"fields":{},"shadow":false,"topLevel":false},"-fiMoRkw6qWeIhleb:KF":{"opcode":"sensing_touchingcolor","next":null,"parent":null,"inputs":{"COLOR":[1,[9,"#337f6e"]]},"fields":{},"shadow":false,"topLevel":true,"x":455,"y":427},"cxWFIP6b~(|7UneIBU7b":{"opcode":"motion_movesteps","next":"06`-+_|52.|#S{D`ry^s","parent":"(q!*oSyO?PG-bfs5=;BM","inputs":{"STEPS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false},"06`-+_|52.|#S{D`ry^s":{"opcode":"looks_nextcostume","next":"LCdrJz0P~{cA~)_bv4ix","parent":"cxWFIP6b~(|7UneIBU7b","inputs":{},"fields":{},"shadow":false,"topLevel":false},"LCdrJz0P~{cA~)_bv4ix":{"opcode":"control_wait","next":null,"parent":"06`-+_|52.|#S{D`ry^s","inputs":{"DURATION":[1,[5,".1"]]},"fields":{},"shadow":false,"topLevel":false},"YwhEuJhA+!.A`{Gg`/[Y":{"opcode":"sensing_touchingobject","next":null,"parent":null,"inputs":{"TOUCHINGOBJECTMENU":[1,"L}|yA:ge@8N3I;V]@bNi"]},"fields":{},"shadow":false,"topLevel":true,"x":457,"y":341},"L}|yA:ge@8N3I;V]@bNi":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"YwhEuJhA+!.A`{Gg`/[Y","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Gem",null]},"shadow":true,"topLevel":false},"o.iU%bahu);Xt,2%/G%|":{"opcode":"sensing_touchingobject","next":null,"parent":"(q!*oSyO?PG-bfs5=;BM","inputs":{"TOUCHINGOBJECTMENU":[1,"{:X)27L[p8uEpJO(-%MI"]},"fields":{},"shadow":false,"topLevel":false},"{:X)27L[p8uEpJO(-%MI":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"o.iU%bahu);Xt,2%/G%|","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Bee",null]},"shadow":true,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"d96aa54542a76f2a0dab1f974257faec","name":"costume2","bitmapResolution":1,"md5ext":"d96aa54542a76f2a0dab1f974257faec.svg","dataFormat":"svg","rotationCenterX":42.399999999999864,"rotationCenterY":55.375},{"assetId":"ad0bfbf4f9c7f4c41220044e058f4fde","name":"costume1","bitmapResolution":1,"md5ext":"ad0bfbf4f9c7f4c41220044e058f4fde.svg","dataFormat":"svg","rotationCenterX":41.863566856754716,"rotationCenterY":54.46991940038589}],"sounds":[{"assetId":"83c36d806dc92327b9e7049a565c6bff","name":"Meow","dataFormat":"wav","format":"","rate":44100,"sampleCount":37376,"md5ext":"83c36d806dc92327b9e7049a565c6bff.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":-19.024425943795386,"y":-45.881705096581854,"size":100,"direction":90.97127910616189,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Gem","variables":{},"lists":{},"broadcasts":{},"blocks":{"1BtqzcG0(#T0/$Pb0n5I":{"opcode":"event_whenflagclicked","next":"al[eLo~-(_2GmOMw*(2T","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-13,"y":177},"al[eLo~-(_2GmOMw*(2T":{"opcode":"motion_gotoxy","next":null,"parent":"1BtqzcG0(#T0/$Pb0n5I","inputs":{"X":[1,[4,"185"]],"Y":[1,[4,"-40"]]},"fields":{},"shadow":false,"topLevel":false},"!-R!cTxqq#1SsX}H76)V":{"opcode":"event_whenkeypressed","next":"|dI~VFgaZ_-B}Er{-=D:","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":427,"y":202},"|dI~VFgaZ_-B}Er{-=D:":{"opcode":"motion_movesteps","next":null,"parent":"!-R!cTxqq#1SsX}H76)V","inputs":{"STEPS":[1,[4,"30"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"b411e48862aa61ce892721e258f19240","name":"Gem_Red","bitmapResolution":2,"md5ext":"b411e48862aa61ce892721e258f19240.png","dataFormat":"png","rotationCenterX":53,"rotationCenterY":47}],"sounds":[],"volume":100,"layerOrder":1,"visible":true,"x":215,"y":-40,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Bee","variables":{},"lists":{},"broadcasts":{},"blocks":{"[SGBumU#}c=?46fEWQUF":{"opcode":"event_whenthisspriteclicked","next":"xbZNiPJHW=N%a#2f}AsS","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":204,"y":163},"xbZNiPJHW=N%a#2f}AsS":{"opcode":"looks_sayforsecs","next":null,"parent":"[SGBumU#}c=?46fEWQUF","inputs":{"MESSAGE":[1,[10,"Hello!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"7955018306bb03b5444bed8306569041","name":"bee","bitmapResolution":2,"md5ext":"7955018306bb03b5444bed8306569041.png","dataFormat":"png","rotationCenterX":48,"rotationCenterY":34}],"sounds":[],"volume":100,"layerOrder":2,"visible":true,"x":13.999999999999993,"y":-10.000000000000014,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190904154449","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":4,"costumes":[{"assetId":"4953b97814c20b8a3dab049695d509c7","name":"073018DragonBoat_bg","bitmapResolution":2,"md5ext":"4953b97814c20b8a3dab049695d509c7.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"b9c928707e817780fe6e373ab7251e2b","name":"081018DragonBoat_bg","bitmapResolution":2,"md5ext":"b9c928707e817780fe6e373ab7251e2b.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"b3892fe075aa7a88b2c7e3aba4d4b790","name":"backdrop1","bitmapResolution":1,"md5ext":"b3892fe075aa7a88b2c7e3aba4d4b790.svg","dataFormat":"svg","rotationCenterX":255.964835,"rotationCenterY":146.36328125},{"assetId":"1d75c9a6202e2415391335f5fb495c99","name":"e79fd28fe8789ff55fd9b6220037ecf5_royalty-free-gym-floor-clip-art-vector-images-illustrations-_612-612","bitmapResolution":2,"md5ext":"1d75c9a6202e2415391335f5fb495c99.png","dataFormat":"png","rotationCenterX":306,"rotationCenterY":306},{"assetId":"6e3ef0083d5bce20e2c964363514c826","name":"Basketball 1","bitmapResolution":1,"md5ext":"6e3ef0083d5bce20e2c964363514c826.svg","dataFormat":"svg","rotationCenterX":364,"rotationCenterY":212}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Andie","variables":{},"lists":{},"broadcasts":{},"blocks":{"6}O]aJN^jh=FRZ4B%_Ck":{"opcode":"event_whenflagclicked","next":"S%{DxI8Q7NR(J:EQBX~q","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1400,"y":-705},":pQz?p*Z/HkU!m^@k?b.":{"opcode":"looks_switchcostumeto","next":"N|+K}Y@sie[^.VR,-]]f","parent":"S%{DxI8Q7NR(J:EQBX~q","inputs":{"COSTUME":[1,"5geX;Qg:+ztVfv~/6TOR"]},"fields":{},"shadow":false,"topLevel":false},"5geX;Qg:+ztVfv~/6TOR":{"opcode":"looks_costume","next":null,"parent":":pQz?p*Z/HkU!m^@k?b.","inputs":{},"fields":{"COSTUME":["Andie1",null]},"shadow":true,"topLevel":false},"~vzV,)k9Smog*S=2Vxnl":{"opcode":"event_whenkeypressed","next":"RO$%71YtoH;`U(5Ow0sr","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow",null]},"shadow":false,"topLevel":true,"x":-1394,"y":-381},"RO$%71YtoH;`U(5Ow0sr":{"opcode":"looks_switchcostumeto","next":"wC/mHJR,(y))HXD?`r]Y","parent":"~vzV,)k9Smog*S=2Vxnl","inputs":{"COSTUME":[1,"^yq!VUNAkeHHvfe$xbmQ"]},"fields":{},"shadow":false,"topLevel":false},"^yq!VUNAkeHHvfe$xbmQ":{"opcode":"looks_costume","next":null,"parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{},"fields":{"COSTUME":["Andie1",null]},"shadow":true,"topLevel":false},"wC/mHJR,(y))HXD?`r]Y":{"opcode":"control_repeat","next":null,"parent":"RO$%71YtoH;`U(5Ow0sr","inputs":{"TIMES":[1,[6,"20"]],"SUBSTACK":[2,"}Q`=g?o=6yi?Jz]/|4g{"]},"fields":{},"shadow":false,"topLevel":false},"}Q`=g?o=6yi?Jz]/|4g{":{"opcode":"control_wait","next":"x#U4xVOG?)DPyx)7Y~(r","parent":"wC/mHJR,(y))HXD?`r]Y","inputs":{"DURATION":[1,[5,".3"]]},"fields":{},"shadow":false,"topLevel":false},"x#U4xVOG?)DPyx)7Y~(r":{"opcode":"looks_nextcostume","next":null,"parent":"}Q`=g?o=6yi?Jz]/|4g{","inputs":{},"fields":{},"shadow":false,"topLevel":false},"{`iq@=gYKl2;GBWAK/*]":{"opcode":"looks_sayforsecs","next":null,"parent":"N|+K}Y@sie[^.VR,-]]f","inputs":{"MESSAGE":[1,[10,"Press the down arrow key to see us dribble."]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"N|+K}Y@sie[^.VR,-]]f":{"opcode":"looks_gotofrontback","next":"{`iq@=gYKl2;GBWAK/*]","parent":":pQz?p*Z/HkU!m^@k?b.","inputs":{},"fields":{"FRONT_BACK":["back",null]},"shadow":false,"topLevel":false},"S%{DxI8Q7NR(J:EQBX~q":{"opcode":"motion_gotoxy","next":":pQz?p*Z/HkU!m^@k?b.","parent":"6}O]aJN^jh=FRZ4B%_Ck","inputs":{"X":[1,[4,"131"]],"Y":[1,[4,"30"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"428d26cd7db0965f3cdc695f4bf7c187","name":"Andie1","bitmapResolution":1,"md5ext":"428d26cd7db0965f3cdc695f4bf7c187.svg","dataFormat":"svg","rotationCenterX":88.15144525307196,"rotationCenterY":81.55357252089803},{"assetId":"2c987528236f67bf8df4cefe21da0bd2","name":"Andie2","bitmapResolution":1,"md5ext":"2c987528236f67bf8df4cefe21da0bd2.svg","dataFormat":"svg","rotationCenterX":89.43607148025549,"rotationCenterY":64.15005150322513},{"assetId":"35297645747defb06da8fc1b43dd4366","name":"Andie3","bitmapResolution":1,"md5ext":"35297645747defb06da8fc1b43dd4366.svg","dataFormat":"svg","rotationCenterX":85.49156767224497,"rotationCenterY":64.15005493877038},{"assetId":"656df76d07ad799eb115dd96091005e0","name":"Andie4","bitmapResolution":1,"md5ext":"656df76d07ad799eb115dd96091005e0.svg","dataFormat":"svg","rotationCenterX":89.43607148025549,"rotationCenterY":64.15005150322513}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":131,"y":30,"size":80,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Jordyn","variables":{},"lists":{},"broadcasts":{},"blocks":{"FFR95}}V~GN]}7X5j;9K":{"opcode":"event_whenkeypressed","next":"RN6(fwI%ap{?|dYR4@sK","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-1559,"y":-989},"RN6(fwI%ap{?|dYR4@sK":{"opcode":"control_repeat","next":"V-V:T9r%tgtP,,9F]Lb|","parent":"FFR95}}V~GN]}7X5j;9K","inputs":{"TIMES":[1,[6,"22"]],"SUBSTACK":[2,"y3A-jV0d+}7Ka#dor(mr"]},"fields":{},"shadow":false,"topLevel":false},"y3A-jV0d+}7Ka#dor(mr":{"opcode":"control_wait","next":"Mulix|]{S}[c)MYzRS[{","parent":"RN6(fwI%ap{?|dYR4@sK","inputs":{"DURATION":[1,[5,".15"]]},"fields":{},"shadow":false,"topLevel":false},"Mulix|]{S}[c)MYzRS[{":{"opcode":"looks_nextcostume","next":"FkBPY%cvJx6;4x%Nmzj)","parent":"y3A-jV0d+}7Ka#dor(mr","inputs":{},"fields":{},"shadow":false,"topLevel":false},"FkBPY%cvJx6;4x%Nmzj)":{"opcode":"motion_movesteps","next":null,"parent":"Mulix|]{S}[c)MYzRS[{","inputs":{"STEPS":[1,[4,"20"]]},"fields":{},"shadow":false,"topLevel":false},"V-V:T9r%tgtP,,9F]Lb|":{"opcode":"looks_switchcostumeto","next":null,"parent":"RN6(fwI%ap{?|dYR4@sK","inputs":{"COSTUME":[1,"GU@U^b|Z!g*swSK+:ZM%"]},"fields":{},"shadow":false,"topLevel":false},"GU@U^b|Z!g*swSK+:ZM%":{"opcode":"looks_costume","next":null,"parent":"V-V:T9r%tgtP,,9F]Lb|","inputs":{},"fields":{"COSTUME":["Jordyn1",null]},"shadow":true,"topLevel":false},"c+:6O#=EJUR.aX!#*%.M":{"opcode":"event_whenflagclicked","next":"{5ZSJ=*@5/!=NTcWjXa(","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-1579,"y":-1243},"{5ZSJ=*@5/!=NTcWjXa(":{"opcode":"motion_gotoxy","next":"tik2?JnJviBGw^rjm`1]","parent":"c+:6O#=EJUR.aX!#*%.M","inputs":{"X":[1,[4,"-200"]],"Y":[1,[4,"-40"]]},"fields":{},"shadow":false,"topLevel":false},"tik2?JnJviBGw^rjm`1]":{"opcode":"looks_switchcostumeto","next":null,"parent":"{5ZSJ=*@5/!=NTcWjXa(","inputs":{"COSTUME":[1,"c;;U)E!O()YxY;tE]I8L"]},"fields":{},"shadow":false,"topLevel":false},"c;;U)E!O()YxY;tE]I8L":{"opcode":"looks_costume","next":null,"parent":"tik2?JnJviBGw^rjm`1]","inputs":{},"fields":{"COSTUME":["Jordyn1",null]},"shadow":true,"topLevel":false},"?s;CncrOM,T4}DtB=vst":{"opcode":"event_whenkeypressed","next":"Z6Ks5#h9lz(7Qb_,-[-f","parent":null,"inputs":{},"fields":{"KEY_OPTION":["down arrow",null]},"shadow":false,"topLevel":true,"x":-1207,"y":-1233},"Z6Ks5#h9lz(7Qb_,-[-f":{"opcode":"control_repeat","next":"FcANosyL39HlORt?O8eS","parent":"?s;CncrOM,T4}DtB=vst","inputs":{"TIMES":[1,[6,"12"]],"SUBSTACK":[2,"f!pt@]c$J^U1[CS:C|e,"]},"fields":{},"shadow":false,"topLevel":false},"f!pt@]c$J^U1[CS:C|e,":{"opcode":"control_wait","next":"{OtG{Yv)zo!ia%}n]H95","parent":"Z6Ks5#h9lz(7Qb_,-[-f","inputs":{"DURATION":[1,[5,".3"]]},"fields":{},"shadow":false,"topLevel":false},"{OtG{Yv)zo!ia%}n]H95":{"opcode":"looks_nextcostume","next":null,"parent":"f!pt@]c$J^U1[CS:C|e,","inputs":{},"fields":{},"shadow":false,"topLevel":false},"FcANosyL39HlORt?O8eS":{"opcode":"looks_sayforsecs","next":null,"parent":"Z6Ks5#h9lz(7Qb_,-[-f","inputs":{"MESSAGE":[1,[10,"Press the space bar to watch Miguel and me dribble across the court!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"?g,x?Jb[1{AQl75%XcjG":{"blockId":".O#5Xx[CR_kMrHY[i|Dx","x":178,"y":-1048,"width":200,"height":200,"minimized":false,"text":"This longer code would prevent the standing dribble animation to overlap with the run/dribble animation"}},"currentCostume":0,"costumes":[{"assetId":"ec0c260d2321b33a7bcbffb93f1970d2","name":"Jordyn1","bitmapResolution":1,"md5ext":"ec0c260d2321b33a7bcbffb93f1970d2.svg","dataFormat":"svg","rotationCenterX":33.74546494910098,"rotationCenterY":62.69436263827484},{"assetId":"1b5edf25437124002136418e99d02dfe","name":"Jordyn2","bitmapResolution":1,"md5ext":"1b5edf25437124002136418e99d02dfe.svg","dataFormat":"svg","rotationCenterX":48.9517821174727,"rotationCenterY":62.694377914824486},{"assetId":"bf13eddeef9d2da3c0cfce155869eb88","name":"Jordyn3","bitmapResolution":1,"md5ext":"bf13eddeef9d2da3c0cfce155869eb88.svg","dataFormat":"svg","rotationCenterX":33.74546986498308,"rotationCenterY":62.69436527654966},{"assetId":"d710e71614edaf1d86e5f8c741fe3d1e","name":"Jordyn4","bitmapResolution":1,"md5ext":"d710e71614edaf1d86e5f8c741fe3d1e.svg","dataFormat":"svg","rotationCenterX":51.145432069474,"rotationCenterY":62.69435447870612}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":-200,"y":-40,"size":90,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Miguel","variables":{},"lists":{},"broadcasts":{},"blocks":{"4Z3i{QKZROpJnOe,b_DN":{"opcode":"event_whenflagclicked","next":"CWto!?+oXxrv`e~-;le[","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-2342,"y":-1454},"CWto!?+oXxrv`e~-;le[":{"opcode":"motion_gotoxy","next":"%q@JG_HRK|QtS~v/L0%h","parent":"4Z3i{QKZROpJnOe,b_DN","inputs":{"X":[1,[4,"-203"]],"Y":[1,[4,"-110"]]},"fields":{},"shadow":false,"topLevel":false},"%q@JG_HRK|QtS~v/L0%h":{"opcode":"looks_switchcostumeto","next":null,"parent":"CWto!?+oXxrv`e~-;le[","inputs":{"COSTUME":[1,"9cKXdQ14:c7[Ye~!`1/~"]},"fields":{},"shadow":false,"topLevel":false},"9cKXdQ14:c7[Ye~!`1/~":{"opcode":"looks_costume","next":null,"parent":"%q@JG_HRK|QtS~v/L0%h","inputs":{},"fields":{"COSTUME":["Miguel1",null]},"shadow":true,"topLevel":false},"[GqfrGN]^`tQ4q:Q3#JJ":{"opcode":"event_whenkeypressed","next":"QHe#Vkys)Rh+@UXqxB2{","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":-2347,"y":-1175},"QHe#Vkys)Rh+@UXqxB2{":{"opcode":"control_repeat","next":null,"parent":"[GqfrGN]^`tQ4q:Q3#JJ","inputs":{"TIMES":[1,[6,"8"]],"SUBSTACK":[2,"6tV]3_1VT=^NmAx%q!g4"]},"fields":{},"shadow":false,"topLevel":false},"6tV]3_1VT=^NmAx%q!g4":{"opcode":"control_wait","next":"Qk/o|;QFt+F4$=UuayAJ","parent":"QHe#Vkys)Rh+@UXqxB2{","inputs":{"DURATION":[1,[5,".2"]]},"fields":{},"shadow":false,"topLevel":false},"Qk/o|;QFt+F4$=UuayAJ":{"opcode":"looks_nextcostume","next":".DjF9o3KoHe=8Yd(7:LW","parent":"6tV]3_1VT=^NmAx%q!g4","inputs":{},"fields":{},"shadow":false,"topLevel":false},".DjF9o3KoHe=8Yd(7:LW":{"opcode":"motion_movesteps","next":null,"parent":"Qk/o|;QFt+F4$=UuayAJ","inputs":{"STEPS":[1,[4,"20"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"K_1eCG@}Jr2SIUQs-r#h":{"blockId":null,"x":-1948.7407407407406,"y":-1317.9259259259259,"width":200,"height":200,"minimized":false,"text":"Build 1 script and modify a script..."},"6JV9Goq|XG$}U$mDQsYS":{"blockId":null,"x":-1952.481323521161,"y":-1102.7219852817411,"width":200,"height":200,"minimized":false,"text":"One will have Miguel dribble in place, when the down arrow key is pressed. Look at the script for Jordyn."},"w)]!x]e.9?/[4GH|+[O:":{"blockId":null,"x":-1957.481323521161,"y":-879.3301575353256,"width":200,"height":200,"minimized":false,"text":"The other will have Miguel dribble ALL the way across the basketball court when the space key is pressed. Look at Jordyn's script"}},"currentCostume":0,"costumes":[{"assetId":"8a00295a8d657ea087cc88010c3a844c","name":"Miguel1","bitmapResolution":1,"md5ext":"8a00295a8d657ea087cc88010c3a844c.svg","dataFormat":"svg","rotationCenterX":26.37499494910105,"rotationCenterY":62.69436185272684},{"assetId":"80e8002553b2cac9c3e4887a7583a65c","name":"Miguel2","bitmapResolution":1,"md5ext":"80e8002553b2cac9c3e4887a7583a65c.svg","dataFormat":"svg","rotationCenterX":49.74051742656934,"rotationCenterY":62.69436162506062},{"assetId":"5dba01afa32235f7f91a4132f3d448cd","name":"Miguel3","bitmapResolution":1,"md5ext":"5dba01afa32235f7f91a4132f3d448cd.svg","dataFormat":"svg","rotationCenterX":26.374997377707814,"rotationCenterY":62.69436159568707},{"assetId":"14904cc6bbad4a87b6f924707730dd0f","name":"Miguel4","bitmapResolution":1,"md5ext":"14904cc6bbad4a87b6f924707730dd0f.svg","dataFormat":"svg","rotationCenterX":50.926268599392586,"rotationCenterY":62.69436185272684}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-203,"y":-110,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Referee","variables":{},"lists":{},"broadcasts":{},"blocks":{"Uw:zXlolx).J/|3Vv}.(":{"opcode":"event_whenflagclicked","next":"2`:.Ap!-R]l#bQyC^ho2","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":71,"y":55},"2`:.Ap!-R]l#bQyC^ho2":{"opcode":"motion_gotoxy","next":null,"parent":"Uw:zXlolx).J/|3Vv}.(","inputs":{"X":[1,[4,"-131"]],"Y":[1,[4,"44"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":3,"costumes":[{"assetId":"7eeca5313c2e7d455482badff3079f64","name":"referee-b","bitmapResolution":1,"md5ext":"7eeca5313c2e7d455482badff3079f64.svg","dataFormat":"svg","rotationCenterX":44,"rotationCenterY":63},{"assetId":"1cd641a48499db84636d983916b62a83","name":"referee-d","bitmapResolution":1,"md5ext":"1cd641a48499db84636d983916b62a83.svg","dataFormat":"svg","rotationCenterX":50,"rotationCenterY":63},{"assetId":"5948c4160089fcc0975a867221ff2256","name":"referee-c","bitmapResolution":1,"md5ext":"5948c4160089fcc0975a867221ff2256.svg","dataFormat":"svg","rotationCenterX":55,"rotationCenterY":62},{"assetId":"46dde2baba61a7e48463ae8e58441470","name":"referee-a","bitmapResolution":1,"md5ext":"46dde2baba61a7e48463ae8e58441470.svg","dataFormat":"svg","rotationCenterX":44,"rotationCenterY":63}],"sounds":[{"assetId":"8468b9b3f11a665ee4d215afd8463b97","name":"referee whistle","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":14225,"md5ext":"8468b9b3f11a665ee4d215afd8463b97.wav"}],"volume":100,"layerOrder":2,"visible":false,"x":-131.00000000000003,"y":44,"size":80,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190822194548","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"}}
 },{}],89:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"bd72cb5f3bded42480516a718001b528","name":"Sambadrome","bitmapResolution":1,"md5ext":"bd72cb5f3bded42480516a718001b528.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Butterfly","variables":{},"lists":{},"broadcasts":{},"blocks":{"?3Zl.6nOK{[BWe^7a5{B":{"opcode":"event_whenflagclicked","next":"+Cfb89be^mtRZV7]^7*?","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-483,"y":-531},"+Cfb89be^mtRZV7]^7*?":{"opcode":"motion_gotoxy","next":"oUQPz4^X*Pf3SaNm.|%o","parent":"?3Zl.6nOK{[BWe^7a5{B","inputs":{"X":[1,[4,"-325"]],"Y":[1,[4,-65]]},"fields":{},"shadow":false,"topLevel":false},"/(%U[W6DY.cdTnp,78:O":{"opcode":"control_repeat_until","next":null,"parent":"oUQPz4^X*Pf3SaNm.|%o","inputs":{"CONDITION":[2,"N^bw~_OboaqS;e/oA5;["],"SUBSTACK":[2,"ZY6yg~jw,+5zy^(_?Cqw"]},"fields":{},"shadow":false,"topLevel":false},"N^bw~_OboaqS;e/oA5;[":{"opcode":"sensing_touchingobject","next":null,"parent":"/(%U[W6DY.cdTnp,78:O","inputs":{"TOUCHINGOBJECTMENU":[1,"bVZa^Cr6s}-L+{PzN;D?"]},"fields":{},"shadow":false,"topLevel":false},"bVZa^Cr6s}-L+{PzN;D?":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"N^bw~_OboaqS;e/oA5;[","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["King Momo"]},"shadow":true,"topLevel":false},"ZY6yg~jw,+5zy^(_?Cqw":{"opcode":"motion_movesteps","next":",T!=6NSo1Z.0]:-+dZNR","parent":"/(%U[W6DY.cdTnp,78:O","inputs":{"STEPS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false},"~(EB0p9Iqeo{}{;fTUW:":{"opcode":"sensing_touchingcolor","next":null,"parent":null,"inputs":{"COLOR":[1,[9,"#e64e3e"]]},"fields":{},"shadow":false,"topLevel":true,"x":-140,"y":-508,"comment":"k)L~z*+b|rNaAP57;rUd"},"oUQPz4^X*Pf3SaNm.|%o":{"opcode":"control_wait","next":"/(%U[W6DY.cdTnp,78:O","parent":"+Cfb89be^mtRZV7]^7*?","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},",T!=6NSo1Z.0]:-+dZNR":{"opcode":"control_wait","next":null,"parent":"ZY6yg~jw,+5zy^(_?Cqw","inputs":{"DURATION":[1,[5,".1"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"k)L~z*+b|rNaAP57;rUd":{"blockId":"~(EB0p9Iqeo{}{;fTUW:","x":236.70706958089977,"y":-558.9639699541087,"width":200,"height":200,"minimized":false,"text":"Use this block instead of the touching \"King Momo\" or \"Stop Sign\" block to have the float stop at one of the color lines on the street."}},"currentCostume":0,"costumes":[{"assetId":"15a80dcb99ac6bef9a4fd2934aa78d8c","name":"Butterfly Float","bitmapResolution":1,"md5ext":"15a80dcb99ac6bef9a4fd2934aa78d8c.svg","dataFormat":"svg","rotationCenterX":65,"rotationCenterY":100},{"assetId":"024464c850fe008b3e5396d88551643c","name":"Foosball Float","bitmapResolution":1,"md5ext":"024464c850fe008b3e5396d88551643c.svg","dataFormat":"svg","rotationCenterX":127.06507873535156,"rotationCenterY":53.921165466308594},{"assetId":"13a3c3af1928ac189e0d0110ea53f23d","name":"Eagle Float","bitmapResolution":1,"md5ext":"13a3c3af1928ac189e0d0110ea53f23d.svg","dataFormat":"svg","rotationCenterX":65,"rotationCenterY":97.91893005371094},{"assetId":"e45952b060ab2f647e22b9aea178e517","name":"Rio de Janeiro Float","bitmapResolution":1,"md5ext":"e45952b060ab2f647e22b9aea178e517.svg","dataFormat":"svg","rotationCenterX":85.998291015625,"rotationCenterY":89.5671157836914}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":118,"y":-65,"size":100,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Toucan","variables":{},"lists":{},"broadcasts":{},"blocks":{"H:Xg0b8eLJGUFImS2XEz":{"opcode":"event_whenflagclicked","next":"{[+Bm@*U6u34j+LAHBaJ","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-452,"y":-524},"{[+Bm@*U6u34j+LAHBaJ":{"opcode":"motion_gotoxy","next":"N8=B3J]u%dz!tW,W9p?~","parent":"H:Xg0b8eLJGUFImS2XEz","inputs":{"X":[1,[4,"-300"]],"Y":[1,[4,-100]]},"fields":{},"shadow":false,"topLevel":false},"j:^NE1OmeFqVs0D3m,u@":{"opcode":"control_repeat_until","next":null,"parent":"N8=B3J]u%dz!tW,W9p?~","inputs":{"CONDITION":[2,"NhrN2N2B+q9P4VwsFrdN"],"SUBSTACK":[2,"_TwkKO(Og;|o1$X)fL9o"]},"fields":{},"shadow":false,"topLevel":false},"NhrN2N2B+q9P4VwsFrdN":{"opcode":"sensing_touchingcolor","next":null,"parent":"j:^NE1OmeFqVs0D3m,u@","inputs":{"COLOR":[1,[9,"#e64e3e"]]},"fields":{},"shadow":false,"topLevel":false},"_TwkKO(Og;|o1$X)fL9o":{"opcode":"motion_movesteps","next":"CF]M}%#3Adrz#EBd5;jW","parent":"j:^NE1OmeFqVs0D3m,u@","inputs":{"STEPS":[1,[4,"1"]]},"fields":{},"shadow":false,"topLevel":false},"N8=B3J]u%dz!tW,W9p?~":{"opcode":"control_wait","next":"j:^NE1OmeFqVs0D3m,u@","parent":"{[+Bm@*U6u34j+LAHBaJ","inputs":{"DURATION":[1,[5,"1"]]},"fields":{},"shadow":false,"topLevel":false},"CF]M}%#3Adrz#EBd5;jW":{"opcode":"control_wait","next":null,"parent":"_TwkKO(Og;|o1$X)fL9o","inputs":{"DURATION":[1,[5,".1"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"358389ede568bd95a5d6fcd80eb2119e","name":"Toucan Float","bitmapResolution":1,"md5ext":"358389ede568bd95a5d6fcd80eb2119e.svg","dataFormat":"svg","rotationCenterX":135,"rotationCenterY":65}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":-96,"y":-100,"size":100,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"King Momo","variables":{},"lists":{},"broadcasts":{},"blocks":{"`J;(Yr!NHe]WM]r[Kj*z":{"opcode":"event_whenthisspriteclicked","next":"l*zItNS.eFtvx|R@:pP-","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":10,"y":-486},"l*zItNS.eFtvx|R@:pP-":{"opcode":"looks_sayforsecs","next":"h4=*nG}?2Pc(kgBJWJ(-","parent":"`J;(Yr!NHe]WM]r[Kj*z","inputs":{"MESSAGE":[1,[10,"Welcome to Rio de Janeiro! Welcome to Carnival!"]],"SECS":[1,[4,"6"]]},"fields":{},"shadow":false,"topLevel":false},"h4=*nG}?2Pc(kgBJWJ(-":{"opcode":"looks_sayforsecs","next":"/R}YB*tU*u6mQ1eBRJ/x","parent":"l*zItNS.eFtvx|R@:pP-","inputs":{"MESSAGE":[1,[10,"For a few days of each year, Carnival transforms the streets of Rio into a festival of music and parades."]],"SECS":[1,[4,"10"]]},"fields":{},"shadow":false,"topLevel":false},"/R}YB*tU*u6mQ1eBRJ/x":{"opcode":"looks_sayforsecs","next":"~@FQV3dKt?uB(t#xrYS`","parent":"h4=*nG}?2Pc(kgBJWJ(-","inputs":{"MESSAGE":[1,[10,"I am this year's King Momo, the leader of the celebrations!"]],"SECS":[1,[4,"8"]]},"fields":{},"shadow":false,"topLevel":false},"~@FQV3dKt?uB(t#xrYS`":{"opcode":"looks_sayforsecs","next":"HP##IfnbgaQ9V0|BCKCy","parent":"/R}YB*tU*u6mQ1eBRJ/x","inputs":{"MESSAGE":[1,[10,"Every year, a different Momo is chosen to get the parades and dances of Carnival started."]],"SECS":[1,[4,"8"]]},"fields":{},"shadow":false,"topLevel":false},"HP##IfnbgaQ9V0|BCKCy":{"opcode":"looks_sayforsecs","next":"5wPxwkyx-{){MN^Xk9OX","parent":"~@FQV3dKt?uB(t#xrYS`","inputs":{"MESSAGE":[1,[10,"Right now, we're lining up the parade floats in the right order for our big entrance."]],"SECS":[1,[4,"8"]]},"fields":{},"shadow":false,"topLevel":false},"5wPxwkyx-{){MN^Xk9OX":{"opcode":"looks_sayforsecs","next":null,"parent":"HP##IfnbgaQ9V0|BCKCy","inputs":{"MESSAGE":[1,[10,"Now let the celebrations begin!"]],"SECS":[1,[4,"4"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"c6f00b3573465cc1f2a9bf9aad924709","name":"King Momo","bitmapResolution":1,"md5ext":"c6f00b3573465cc1f2a9bf9aad924709.svg","dataFormat":"svg","rotationCenterX":30,"rotationCenterY":35}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":204,"y":-130,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Stop Sign","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"21d9b38330c08514704103d67968951e","name":"Stop Sign","bitmapResolution":1,"md5ext":"21d9b38330c08514704103d67968951e.svg","dataFormat":"svg","rotationCenterX":25,"rotationCenterY":50}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":217,"y":-74,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190904154449","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{"`jEk@4|i[#Fk?(8x)AV.-my variable":["my variable",0]},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"6579c565f60733c4d4b6bfa84dcb2ffa","name":"backdrop3","bitmapResolution":2,"md5ext":"6579c565f60733c4d4b6bfa84dcb2ffa.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"on","textToSpeechLanguage":null},{"isStage":false,"name":"Ninja Cat","variables":{},"lists":{},"broadcasts":{},"blocks":{"|etjt+q79~RJiBzX6}^e":{"opcode":"event_whenflagclicked","next":"tE;G95v,1|}a4mmB7}A)","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":7,"y":205},"tE;G95v,1|}a4mmB7}A)":{"opcode":"motion_gotoxy","next":"0og]NcATQdOy/U@IY^E*","parent":"|etjt+q79~RJiBzX6}^e","inputs":{"X":[1,[4,"-189"]],"Y":[1,[4,"-43"]]},"fields":{},"shadow":false,"topLevel":false},"0og]NcATQdOy/U@IY^E*":{"opcode":"looks_sayforsecs","next":"(q!*oSyO?PG-bfs5=;BM","parent":"tE;G95v,1|}a4mmB7}A)","inputs":{"MESSAGE":[1,[10,"Help me reach the gem!"]],"SECS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false},"(q!*oSyO?PG-bfs5=;BM":{"opcode":"control_repeat_until","next":null,"parent":"0og]NcATQdOy/U@IY^E*","inputs":{"CONDITION":[2,"o.iU%bahu);Xt,2%/G%|"],"SUBSTACK":[2,"cxWFIP6b~(|7UneIBU7b"]},"fields":{},"shadow":false,"topLevel":false},"-fiMoRkw6qWeIhleb:KF":{"opcode":"sensing_touchingcolor","next":null,"parent":null,"inputs":{"COLOR":[1,[9,"#337f6e"]]},"fields":{},"shadow":false,"topLevel":true,"x":455,"y":427},"cxWFIP6b~(|7UneIBU7b":{"opcode":"motion_movesteps","next":"06`-+_|52.|#S{D`ry^s","parent":"(q!*oSyO?PG-bfs5=;BM","inputs":{"STEPS":[1,[4,"5"]]},"fields":{},"shadow":false,"topLevel":false},"06`-+_|52.|#S{D`ry^s":{"opcode":"looks_nextcostume","next":"LCdrJz0P~{cA~)_bv4ix","parent":"cxWFIP6b~(|7UneIBU7b","inputs":{},"fields":{},"shadow":false,"topLevel":false},"LCdrJz0P~{cA~)_bv4ix":{"opcode":"control_wait","next":null,"parent":"06`-+_|52.|#S{D`ry^s","inputs":{"DURATION":[1,[5,".1"]]},"fields":{},"shadow":false,"topLevel":false},"YwhEuJhA+!.A`{Gg`/[Y":{"opcode":"sensing_touchingobject","next":null,"parent":null,"inputs":{"TOUCHINGOBJECTMENU":[1,"L}|yA:ge@8N3I;V]@bNi"]},"fields":{},"shadow":false,"topLevel":true,"x":457,"y":341},"L}|yA:ge@8N3I;V]@bNi":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"YwhEuJhA+!.A`{Gg`/[Y","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Gem",null]},"shadow":true,"topLevel":false},"o.iU%bahu);Xt,2%/G%|":{"opcode":"sensing_touchingobject","next":null,"parent":"(q!*oSyO?PG-bfs5=;BM","inputs":{"TOUCHINGOBJECTMENU":[1,"{:X)27L[p8uEpJO(-%MI"]},"fields":{},"shadow":false,"topLevel":false},"{:X)27L[p8uEpJO(-%MI":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"o.iU%bahu);Xt,2%/G%|","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Bee",null]},"shadow":true,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"d96aa54542a76f2a0dab1f974257faec","name":"costume2","bitmapResolution":1,"md5ext":"d96aa54542a76f2a0dab1f974257faec.svg","dataFormat":"svg","rotationCenterX":42.399999999999864,"rotationCenterY":55.375},{"assetId":"ad0bfbf4f9c7f4c41220044e058f4fde","name":"costume1","bitmapResolution":1,"md5ext":"ad0bfbf4f9c7f4c41220044e058f4fde.svg","dataFormat":"svg","rotationCenterX":41.863566856754716,"rotationCenterY":54.46991940038589}],"sounds":[{"assetId":"83c36d806dc92327b9e7049a565c6bff","name":"Meow","dataFormat":"wav","format":"","rate":44100,"sampleCount":37376,"md5ext":"83c36d806dc92327b9e7049a565c6bff.wav"}],"volume":100,"layerOrder":3,"visible":true,"x":-19.024425943795386,"y":-45.881705096581854,"size":100,"direction":90.97127910616189,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Gem","variables":{},"lists":{},"broadcasts":{},"blocks":{"1BtqzcG0(#T0/$Pb0n5I":{"opcode":"event_whenflagclicked","next":"al[eLo~-(_2GmOMw*(2T","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":-13,"y":177},"al[eLo~-(_2GmOMw*(2T":{"opcode":"motion_gotoxy","next":null,"parent":"1BtqzcG0(#T0/$Pb0n5I","inputs":{"X":[1,[4,"185"]],"Y":[1,[4,"-40"]]},"fields":{},"shadow":false,"topLevel":false},"!-R!cTxqq#1SsX}H76)V":{"opcode":"event_whenkeypressed","next":"|dI~VFgaZ_-B}Er{-=D:","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space",null]},"shadow":false,"topLevel":true,"x":427,"y":202},"|dI~VFgaZ_-B}Er{-=D:":{"opcode":"motion_movesteps","next":null,"parent":"!-R!cTxqq#1SsX}H76)V","inputs":{"STEPS":[1,[4,"30"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"b411e48862aa61ce892721e258f19240","name":"Gem_Red","bitmapResolution":2,"md5ext":"b411e48862aa61ce892721e258f19240.png","dataFormat":"png","rotationCenterX":53,"rotationCenterY":47}],"sounds":[],"volume":100,"layerOrder":1,"visible":true,"x":215,"y":-40,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Bee","variables":{},"lists":{},"broadcasts":{},"blocks":{"[SGBumU#}c=?46fEWQUF":{"opcode":"event_whenthisspriteclicked","next":"xbZNiPJHW=N%a#2f}AsS","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":204,"y":163},"xbZNiPJHW=N%a#2f}AsS":{"opcode":"looks_sayforsecs","next":null,"parent":"[SGBumU#}c=?46fEWQUF","inputs":{"MESSAGE":[1,[10,"Hello!"]],"SECS":[1,[4,"2"]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"7955018306bb03b5444bed8306569041","name":"bee","bitmapResolution":2,"md5ext":"7955018306bb03b5444bed8306569041.png","dataFormat":"png","rotationCenterX":48,"rotationCenterY":34}],"sounds":[],"volume":100,"layerOrder":2,"visible":true,"x":13.999999999999993,"y":-10.000000000000014,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190904154449","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
 },{}],90:[function(require,module,exports){
-module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"234e03560170e77d1cc9e8aa40eb80d7","name":"Lincoln Park Zoo","bitmapResolution":2,"md5ext":"234e03560170e77d1cc9e8aa40eb80d7.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Car","variables":{},"lists":{},"broadcasts":{},"blocks":{",b,MB{-tz,CPMdx6uPSI":{"opcode":"event_whenflagclicked","next":"PjfkJWvwcXuiXl4iYCYe","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":21,"y":30},"PjfkJWvwcXuiXl4iYCYe":{"opcode":"motion_gotoxy","next":"G#U%Yd+G]Rnzbke8IBq,","parent":",b,MB{-tz,CPMdx6uPSI","inputs":{"X":[1,[4,-304]],"Y":[1,[4,-118]]},"fields":{},"shadow":false,"topLevel":false},"G#U%Yd+G]Rnzbke8IBq,":{"opcode":"control_repeat_until","next":null,"parent":"PjfkJWvwcXuiXl4iYCYe","inputs":{"CONDITION":[2,"7!dxCwjGz5XkG%.T^7uR"],"SUBSTACK":[2,"{t,HO=FEj-72!S_B1kj8"]},"fields":{},"shadow":false,"topLevel":false},"7!dxCwjGz5XkG%.T^7uR":{"opcode":"sensing_touchingobject","next":null,"parent":"G#U%Yd+G]Rnzbke8IBq,","inputs":{"TOUCHINGOBJECTMENU":[1,"zs9|Qt-p|v-Vfk{3/|}}"]},"fields":{},"shadow":false,"topLevel":false},"zs9|Qt-p|v-Vfk{3/|}}":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"7!dxCwjGz5XkG%.T^7uR","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Stop"]},"shadow":true,"topLevel":false},"{t,HO=FEj-72!S_B1kj8":{"opcode":"motion_movesteps","next":"A87.jAop_(6WuREWEFaR","parent":"G#U%Yd+G]Rnzbke8IBq,","inputs":{"STEPS":[1,[4,10]]},"fields":{},"shadow":false,"topLevel":false},"A87.jAop_(6WuREWEFaR":{"opcode":"control_wait","next":null,"parent":"{t,HO=FEj-72!S_B1kj8","inputs":{"DURATION":[1,[5,0.1]]},"fields":{},"shadow":false,"topLevel":false},"p.DF;UyeX~O?;Fa3lY8t":{"opcode":"sensing_touchingcolor","next":null,"parent":null,"inputs":{"COLOR":[1,[9,"#a42cff"]]},"fields":{},"shadow":false,"topLevel":true,"x":379,"y":143}},"comments":{"7T?P)4;Rd*r`ZA]E-#Cd":{"blockId":null,"x":597,"y":204.60000000000002,"width":231,"height":233.20000000000002,"minimized":false,"text":"Use this block, instead of the touching stop block, to have the car stop at one of the lines on the street."}},"currentCostume":2,"costumes":[{"assetId":"411a94a9e26a243dcde0022835361f8e","name":"SUV","bitmapResolution":1,"md5ext":"411a94a9e26a243dcde0022835361f8e.svg","dataFormat":"svg","rotationCenterX":225,"rotationCenterY":106},{"assetId":"ce4f296c7b3d84fb9856b53594d5b142","name":"Cooper","bitmapResolution":1,"md5ext":"ce4f296c7b3d84fb9856b53594d5b142.svg","dataFormat":"svg","rotationCenterX":222,"rotationCenterY":120},{"assetId":"fd4ccc5303ec2fe6c48656639bddc2c5","name":"Sedan","bitmapResolution":1,"md5ext":"fd4ccc5303ec2fe6c48656639bddc2c5.svg","dataFormat":"svg","rotationCenterX":223,"rotationCenterY":75},{"assetId":"4571b4541799b45c93282a7c6ff397cb","name":"Bug","bitmapResolution":1,"md5ext":"4571b4541799b45c93282a7c6ff397cb.svg","dataFormat":"svg","rotationCenterX":221,"rotationCenterY":83}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":46,"y":-118,"size":75,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Stop","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"fdc509ac5555a3290d253f03e9fa2e32","name":"Stop Sign","bitmapResolution":1,"md5ext":"fdc509ac5555a3290d253f03e9fa2e32.svg","dataFormat":"svg","rotationCenterX":-39,"rotationCenterY":5}],"sounds":[],"volume":100,"layerOrder":3,"visible":true,"x":134,"y":4,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Darian","variables":{},"lists":{},"broadcasts":{},"blocks":{"eczJ*.rhXdIlS29#1ozS":{"opcode":"event_whenflagclicked","next":"26oEd1S]izX-dGAQ9WfC","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":38,"y":44},"26oEd1S]izX-dGAQ9WfC":{"opcode":"motion_gotoxy","next":null,"parent":"eczJ*.rhXdIlS29#1ozS","inputs":{"X":[1,[4,-105]],"Y":[1,[4,-86]]},"fields":{},"shadow":false,"topLevel":false},"*1Lq8[3RB-Gj)C]3cpt7":{"opcode":"event_whenkeypressed","next":"L|!P#V6xL|HSXnO%B,(A","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":45,"y":266},"L|!P#V6xL|HSXnO%B,(A":{"opcode":"motion_movesteps","next":null,"parent":"*1Lq8[3RB-Gj)C]3cpt7","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"810e9e425ba07fa15b1e4536de573b4c","name":"dm stance","bitmapResolution":1,"md5ext":"810e9e425ba07fa15b1e4536de573b4c.svg","dataFormat":"svg","rotationCenterX":55,"rotationCenterY":119},{"assetId":"cbf035d39d0a0bb070d2eb998cebd60d","name":"dm top stand","bitmapResolution":2,"md5ext":"cbf035d39d0a0bb070d2eb998cebd60d.png","dataFormat":"png","rotationCenterX":82,"rotationCenterY":244},{"assetId":"fcb8c2b6cf9b7e6ce9df521b2486deb3","name":"dm top R leg","bitmapResolution":2,"md5ext":"fcb8c2b6cf9b7e6ce9df521b2486deb3.png","dataFormat":"png","rotationCenterX":218,"rotationCenterY":232},{"assetId":"fd8bb9665fe078d2d95dbc35bccf4046","name":"dm top L leg","bitmapResolution":2,"md5ext":"fd8bb9665fe078d2d95dbc35bccf4046.png","dataFormat":"png","rotationCenterX":230,"rotationCenterY":240},{"assetId":"31e687f186b19ea120cd5cfc9dea2a3f","name":"dm freeze","bitmapResolution":2,"md5ext":"31e687f186b19ea120cd5cfc9dea2a3f.png","dataFormat":"png","rotationCenterX":220,"rotationCenterY":234},{"assetId":"0b2fb609d6d10decfdd5a1c3b58369b4","name":"dm pop front","bitmapResolution":2,"md5ext":"0b2fb609d6d10decfdd5a1c3b58369b4.png","dataFormat":"png","rotationCenterX":92,"rotationCenterY":234},{"assetId":"3b65ce3551f9c111794f7f1fb8f325be","name":"dm pop down","bitmapResolution":2,"md5ext":"3b65ce3551f9c111794f7f1fb8f325be.png","dataFormat":"png","rotationCenterX":64,"rotationCenterY":74},{"assetId":"f636510e8ef231d7c0e72a572ce91c99","name":"dm pop left","bitmapResolution":2,"md5ext":"f636510e8ef231d7c0e72a572ce91c99.png","dataFormat":"png","rotationCenterX":204,"rotationCenterY":250},{"assetId":"36b32430e45e071071052ef33c637f48","name":"dm pop right","bitmapResolution":2,"md5ext":"36b32430e45e071071052ef33c637f48.png","dataFormat":"png","rotationCenterX":78,"rotationCenterY":238},{"assetId":"426e1520efc34fef45be0596fd5f7120","name":"dm pop L arm","bitmapResolution":2,"md5ext":"426e1520efc34fef45be0596fd5f7120.png","dataFormat":"png","rotationCenterX":90,"rotationCenterY":238},{"assetId":"370cc57b40f1f1d6e52d6330b73d207f","name":"dm pop stand","bitmapResolution":2,"md5ext":"370cc57b40f1f1d6e52d6330b73d207f.png","dataFormat":"png","rotationCenterX":100,"rotationCenterY":244},{"assetId":"56fe91d2cf3ecb9d1b94006aee9eff79","name":"dm pop R arm","bitmapResolution":2,"md5ext":"56fe91d2cf3ecb9d1b94006aee9eff79.png","dataFormat":"png","rotationCenterX":80,"rotationCenterY":240},{"assetId":"fcb8c2b6cf9b7e6ce9df521b2486deb3","name":"dm top R leg2","bitmapResolution":2,"md5ext":"fcb8c2b6cf9b7e6ce9df521b2486deb3.png","dataFormat":"png","rotationCenterX":218,"rotationCenterY":232}],"sounds":[{"assetId":"0edb8fb88af19e6e17d0f8cf64c1d136","name":"dance celebrate","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":176785,"md5ext":"0edb8fb88af19e6e17d0f8cf64c1d136.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-105,"y":-86,"size":40.000000000000014,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Libby","variables":{},"lists":{},"broadcasts":{},"blocks":{"a1O~Zmdj}W!Z91feosSZ":{"opcode":"event_whenthisspriteclicked","next":"[{Ip)|.l@A@MmymOVnkn","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":62,"y":90},"[{Ip)|.l@A@MmymOVnkn":{"opcode":"looks_sayforsecs","next":null,"parent":"a1O~Zmdj}W!Z91feosSZ","inputs":{"MESSAGE":[1,[10,"Oh, hi!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"008b80a80c4188acc72f7893fb10ac75","name":"lb stance","bitmapResolution":2,"md5ext":"008b80a80c4188acc72f7893fb10ac75.png","dataFormat":"png","rotationCenterX":54,"rotationCenterY":244},{"assetId":"dfe3628ddf46a67dcc21c63be65a8e40","name":"lb top stand","bitmapResolution":2,"md5ext":"dfe3628ddf46a67dcc21c63be65a8e40.png","dataFormat":"png","rotationCenterX":70,"rotationCenterY":248},{"assetId":"e824768a109691b5a3c577d3506ed70c","name":"lb top R leg","bitmapResolution":2,"md5ext":"e824768a109691b5a3c577d3506ed70c.png","dataFormat":"png","rotationCenterX":244,"rotationCenterY":250},{"assetId":"350472368e2310efe6fa734b79f0ff41","name":"lb top L leg","bitmapResolution":2,"md5ext":"350472368e2310efe6fa734b79f0ff41.png","dataFormat":"png","rotationCenterX":234,"rotationCenterY":286},{"assetId":"5a151c4d4e2e2f870d9096d5fce6ed48","name":"lb top L cross","bitmapResolution":2,"md5ext":"5a151c4d4e2e2f870d9096d5fce6ed48.png","dataFormat":"png","rotationCenterX":148,"rotationCenterY":258},{"assetId":"99acf468000c6fcbaf344e4531725efc","name":"lb top R cross","bitmapResolution":2,"md5ext":"99acf468000c6fcbaf344e4531725efc.png","dataFormat":"png","rotationCenterX":174,"rotationCenterY":256},{"assetId":"e34a166807a3ffbf8d147b12aa49dd19","name":"lb pop front","bitmapResolution":2,"md5ext":"e34a166807a3ffbf8d147b12aa49dd19.png","dataFormat":"png","rotationCenterX":66,"rotationCenterY":272},{"assetId":"8e41de92cb932a6898782a39a0d7d300","name":"lb pop down","bitmapResolution":2,"md5ext":"8e41de92cb932a6898782a39a0d7d300.png","dataFormat":"png","rotationCenterX":56,"rotationCenterY":90},{"assetId":"ff1b96d1047d4be459a4614ce7c7c94c","name":"lb pop left","bitmapResolution":2,"md5ext":"ff1b96d1047d4be459a4614ce7c7c94c.png","dataFormat":"png","rotationCenterX":198,"rotationCenterY":266},{"assetId":"d6d5534c628ac5d5fe3cbf1b76b71252","name":"lb pop right","bitmapResolution":2,"md5ext":"d6d5534c628ac5d5fe3cbf1b76b71252.png","dataFormat":"png","rotationCenterX":76,"rotationCenterY":264},{"assetId":"c1fd31607619b8c98a286a650f248511","name":"lb pop L arm","bitmapResolution":2,"md5ext":"c1fd31607619b8c98a286a650f248511.png","dataFormat":"png","rotationCenterX":100,"rotationCenterY":262},{"assetId":"51fe5962fe4d2af7f6fad7abaa692069","name":"lb pop stand","bitmapResolution":2,"md5ext":"51fe5962fe4d2af7f6fad7abaa692069.png","dataFormat":"png","rotationCenterX":66,"rotationCenterY":268},{"assetId":"aa57575fde5ff8b13041e3a7b1499fe0","name":"lb pop R arm","bitmapResolution":2,"md5ext":"aa57575fde5ff8b13041e3a7b1499fe0.png","dataFormat":"png","rotationCenterX":78,"rotationCenterY":258}],"sounds":[{"assetId":"0edb8fb88af19e6e17d0f8cf64c1d136","name":"dance celebrate","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":176785,"md5ext":"0edb8fb88af19e6e17d0f8cf64c1d136.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":100,"y":-87,"size":40.000000000000014,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190904154449","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "bd72cb5f3bded42480516a718001b528",
+                    "name": "Sambadrome",
+                    "bitmapResolution": 1,
+                    "md5ext": "bd72cb5f3bded42480516a718001b528.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 240,
+                    "rotationCenterY": 180
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Butterfly",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "?3Zl.6nOK{[BWe^7a5{B": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "+Cfb89be^mtRZV7]^7*?",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": -483,
+                    "y": -531
+                },
+                "+Cfb89be^mtRZV7]^7*?": {
+                    "opcode": "motion_gotoxy",
+                    "next": "oUQPz4^X*Pf3SaNm.|%o",
+                    "parent": "?3Zl.6nOK{[BWe^7a5{B",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-325"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                -65
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "/(%U[W6DY.cdTnp,78:O": {
+                    "opcode": "control_repeat_until",
+                    "next": null,
+                    "parent": "oUQPz4^X*Pf3SaNm.|%o",
+                    "inputs": {
+                        "CONDITION": [
+                            2,
+                            "N^bw~_OboaqS;e/oA5;["
+                        ],
+                        "SUBSTACK": [
+                            2,
+                            "ZY6yg~jw,+5zy^(_?Cqw"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "N^bw~_OboaqS;e/oA5;[": {
+                    "opcode": "sensing_touchingobject",
+                    "next": null,
+                    "parent": "/(%U[W6DY.cdTnp,78:O",
+                    "inputs": {
+                        "TOUCHINGOBJECTMENU": [
+                            1,
+                            "bVZa^Cr6s}-L+{PzN;D?"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "bVZa^Cr6s}-L+{PzN;D?": {
+                    "opcode": "sensing_touchingobjectmenu",
+                    "next": null,
+                    "parent": "N^bw~_OboaqS;e/oA5;[",
+                    "inputs": {},
+                    "fields": {
+                        "TOUCHINGOBJECTMENU": [
+                            "King Momo"
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "ZY6yg~jw,+5zy^(_?Cqw": {
+                    "opcode": "motion_movesteps",
+                    "next": ",T!=6NSo1Z.0]:-+dZNR",
+                    "parent": "/(%U[W6DY.cdTnp,78:O",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "~(EB0p9Iqeo{}{;fTUW:": {
+                    "opcode": "sensing_touchingcolor",
+                    "next": null,
+                    "parent": null,
+                    "inputs": {
+                        "COLOR": [
+                            1,
+                            [
+                                9,
+                                "#e64e3e"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": -140,
+                    "y": -508,
+                    "comment": "k)L~z*+b|rNaAP57;rUd"
+                },
+                "oUQPz4^X*Pf3SaNm.|%o": {
+                    "opcode": "control_wait",
+                    "next": "/(%U[W6DY.cdTnp,78:O",
+                    "parent": "+Cfb89be^mtRZV7]^7*?",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                "1"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ",T!=6NSo1Z.0]:-+dZNR": {
+                    "opcode": "control_wait",
+                    "next": null,
+                    "parent": "ZY6yg~jw,+5zy^(_?Cqw",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                ".1"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {
+                "k)L~z*+b|rNaAP57;rUd": {
+                    "blockId": "~(EB0p9Iqeo{}{;fTUW:",
+                    "x": 236.70706958089977,
+                    "y": -558.9639699541087,
+                    "width": 200,
+                    "height": 200,
+                    "minimized": false,
+                    "text": "Use this block instead of the touching \"King Momo\" or \"Stop Sign\" block to have the float stop at one of the color lines on the street."
+                }
+            },
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "15a80dcb99ac6bef9a4fd2934aa78d8c",
+                    "name": "Butterfly Float",
+                    "bitmapResolution": 1,
+                    "md5ext": "15a80dcb99ac6bef9a4fd2934aa78d8c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 65,
+                    "rotationCenterY": 100
+                },
+                {
+                    "assetId": "024464c850fe008b3e5396d88551643c",
+                    "name": "Foosball Float",
+                    "bitmapResolution": 1,
+                    "md5ext": "024464c850fe008b3e5396d88551643c.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 127.06507873535156,
+                    "rotationCenterY": 53.921165466308594
+                },
+                {
+                    "assetId": "13a3c3af1928ac189e0d0110ea53f23d",
+                    "name": "Eagle Float",
+                    "bitmapResolution": 1,
+                    "md5ext": "13a3c3af1928ac189e0d0110ea53f23d.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 65,
+                    "rotationCenterY": 97.91893005371094
+                },
+                {
+                    "assetId": "e45952b060ab2f647e22b9aea178e517",
+                    "name": "Rio de Janeiro Float",
+                    "bitmapResolution": 1,
+                    "md5ext": "e45952b060ab2f647e22b9aea178e517.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 85.998291015625,
+                    "rotationCenterY": 89.5671157836914
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": 118,
+            "y": -65,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "left-right"
+        },
+        {
+            "isStage": false,
+            "name": "Toucan",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "H:Xg0b8eLJGUFImS2XEz": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "{[+Bm@*U6u34j+LAHBaJ",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": -452,
+                    "y": -524
+                },
+                "{[+Bm@*U6u34j+LAHBaJ": {
+                    "opcode": "motion_gotoxy",
+                    "next": "N8=B3J]u%dz!tW,W9p?~",
+                    "parent": "H:Xg0b8eLJGUFImS2XEz",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-300"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                -100
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "j:^NE1OmeFqVs0D3m,u@": {
+                    "opcode": "control_repeat_until",
+                    "next": null,
+                    "parent": "N8=B3J]u%dz!tW,W9p?~",
+                    "inputs": {
+                        "CONDITION": [
+                            2,
+                            "NhrN2N2B+q9P4VwsFrdN"
+                        ],
+                        "SUBSTACK": [
+                            2,
+                            "_TwkKO(Og;|o1$X)fL9o"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "NhrN2N2B+q9P4VwsFrdN": {
+                    "opcode": "sensing_touchingcolor",
+                    "next": null,
+                    "parent": "j:^NE1OmeFqVs0D3m,u@",
+                    "inputs": {
+                        "COLOR": [
+                            1,
+                            [
+                                9,
+                                "#e64e3e"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "_TwkKO(Og;|o1$X)fL9o": {
+                    "opcode": "motion_movesteps",
+                    "next": "CF]M}%#3Adrz#EBd5;jW",
+                    "parent": "j:^NE1OmeFqVs0D3m,u@",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "1"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "N8=B3J]u%dz!tW,W9p?~": {
+                    "opcode": "control_wait",
+                    "next": "j:^NE1OmeFqVs0D3m,u@",
+                    "parent": "{[+Bm@*U6u34j+LAHBaJ",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                "1"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "CF]M}%#3Adrz#EBd5;jW": {
+                    "opcode": "control_wait",
+                    "next": null,
+                    "parent": "_TwkKO(Og;|o1$X)fL9o",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                ".1"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "358389ede568bd95a5d6fcd80eb2119e",
+                    "name": "Toucan Float",
+                    "bitmapResolution": 1,
+                    "md5ext": "358389ede568bd95a5d6fcd80eb2119e.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 135,
+                    "rotationCenterY": 65
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 4,
+            "visible": true,
+            "x": -96,
+            "y": -100,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "left-right"
+        },
+        {
+            "isStage": false,
+            "name": "King Momo",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "`J;(Yr!NHe]WM]r[Kj*z": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "l*zItNS.eFtvx|R@:pP-",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 10,
+                    "y": -486
+                },
+                "l*zItNS.eFtvx|R@:pP-": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "h4=*nG}?2Pc(kgBJWJ(-",
+                    "parent": "`J;(Yr!NHe]WM]r[Kj*z",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Welcome to Rio de Janeiro! Welcome to Carnival!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "6"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "h4=*nG}?2Pc(kgBJWJ(-": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "/R}YB*tU*u6mQ1eBRJ/x",
+                    "parent": "l*zItNS.eFtvx|R@:pP-",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "For a few days of each year, Carnival transforms the streets of Rio into a festival of music and parades."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "10"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "/R}YB*tU*u6mQ1eBRJ/x": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "~@FQV3dKt?uB(t#xrYS`",
+                    "parent": "h4=*nG}?2Pc(kgBJWJ(-",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "I am this year's King Momo, the leader of the celebrations!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "8"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "~@FQV3dKt?uB(t#xrYS`": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "HP##IfnbgaQ9V0|BCKCy",
+                    "parent": "/R}YB*tU*u6mQ1eBRJ/x",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Every year, a different Momo is chosen to get the parades and dances of Carnival started."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "8"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "HP##IfnbgaQ9V0|BCKCy": {
+                    "opcode": "looks_sayforsecs",
+                    "next": "5wPxwkyx-{){MN^Xk9OX",
+                    "parent": "~@FQV3dKt?uB(t#xrYS`",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Right now, we're lining up the parade floats in the right order for our big entrance."
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "8"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "5wPxwkyx-{){MN^Xk9OX": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "HP##IfnbgaQ9V0|BCKCy",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Now let the celebrations begin!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "4"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "c6f00b3573465cc1f2a9bf9aad924709",
+                    "name": "King Momo",
+                    "bitmapResolution": 1,
+                    "md5ext": "c6f00b3573465cc1f2a9bf9aad924709.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 30,
+                    "rotationCenterY": 35
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": 204,
+            "y": -130,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Stop Sign",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "assetId": "21d9b38330c08514704103d67968951e",
+                    "name": "Stop Sign",
+                    "bitmapResolution": 1,
+                    "md5ext": "21d9b38330c08514704103d67968951e.svg",
+                    "dataFormat": "svg",
+                    "rotationCenterX": 25,
+                    "rotationCenterY": 50
+                }
+            ],
+            "sounds": [
+                {
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "name": "pop",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 44100,
+                    "sampleCount": 1032,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": 217,
+            "y": -74,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "0.2.0-prerelease.20190904154449",
+        "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
+    }
+}
 },{}],91:[function(require,module,exports){
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Bus Stop",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "48eb058f0e0879064f9cc3118fdf571c",
+                    "md5ext": "48eb058f0e0879064f9cc3118fdf571c.svg",
+                    "rotationCenterX": 430.2494122529001,
+                    "rotationCenterY": 193.04513400000002
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "pop",
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 1124,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Bus",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                ",b,MB{-tz,CPMdx6uPSI": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "e-sb$@26ew9Y;.)yz~3A",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 21,
+                    "y": 30
+                },
+                "e-sb$@26ew9Y;.)yz~3A": {
+                    "opcode": "motion_gotoxy",
+                    "next": "G#U%Yd+G]Rnzbke8IBq,",
+                    "parent": ",b,MB{-tz,CPMdx6uPSI",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-269"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "0"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "G#U%Yd+G]Rnzbke8IBq,": {
+                    "opcode": "control_repeat_until",
+                    "next": null,
+                    "parent": "e-sb$@26ew9Y;.)yz~3A",
+                    "inputs": {
+                        "CONDITION": [
+                            2,
+                            "7!dxCwjGz5XkG%.T^7uR"
+                        ],
+                        "SUBSTACK": [
+                            2,
+                            "{t,HO=FEj-72!S_B1kj8"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "7!dxCwjGz5XkG%.T^7uR": {
+                    "opcode": "sensing_touchingobject",
+                    "next": null,
+                    "parent": "G#U%Yd+G]Rnzbke8IBq,",
+                    "inputs": {
+                        "TOUCHINGOBJECTMENU": [
+                            1,
+                            "zs9|Qt-p|v-Vfk{3/|}}"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "zs9|Qt-p|v-Vfk{3/|}}": {
+                    "opcode": "sensing_touchingobjectmenu",
+                    "next": null,
+                    "parent": "7!dxCwjGz5XkG%.T^7uR",
+                    "inputs": {},
+                    "fields": {
+                        "TOUCHINGOBJECTMENU": [
+                            "Stop",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "{t,HO=FEj-72!S_B1kj8": {
+                    "opcode": "motion_movesteps",
+                    "next": "A87.jAop_(6WuREWEFaR",
+                    "parent": "G#U%Yd+G]Rnzbke8IBq,",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "10"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "A87.jAop_(6WuREWEFaR": {
+                    "opcode": "control_wait",
+                    "next": null,
+                    "parent": "{t,HO=FEj-72!S_B1kj8",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                "0.1"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "p.DF;UyeX~O?;Fa3lY8t": {
+                    "opcode": "sensing_touchingcolor",
+                    "next": null,
+                    "parent": null,
+                    "inputs": {
+                        "COLOR": [
+                            1,
+                            [
+                                9,
+                                "#9966ff"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 379,
+                    "y": 143
+                }
+            },
+            "comments": {
+                "7T?P)4;Rd*r`ZA]E-#Cd": {
+                    "blockId": null,
+                    "x": 597,
+                    "y": 204,
+                    "width": 231,
+                    "height": 233,
+                    "minimized": false,
+                    "text": "Use this block, instead of the touching stop block, to have the bus stop at the line on the street."
+                }
+            },
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Bus",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "511be990d29d8c63e32dd0fa458b8125",
+                    "md5ext": "511be990d29d8c63e32dd0fa458b8125.svg",
+                    "rotationCenterX": 109.40559773770724,
+                    "rotationCenterY": 54.48911606077209
+                },
+                {
+                    "name": "Traveling Cart",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "84cb5860dc0f989fbe36c9312409bab5",
+                    "md5ext": "84cb5860dc0f989fbe36c9312409bab5.svg",
+                    "rotationCenterX": 125.00000000000006,
+                    "rotationCenterY": 68.99999999999999
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "pop",
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 1124,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": 1,
+            "y": 0,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "left-right"
+        },
+        {
+            "isStage": false,
+            "name": "Stop",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Stop Sign",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "6e91e0063b1ea1d27dbf9e34bcb92c06",
+                    "md5ext": "6e91e0063b1ea1d27dbf9e34bcb92c06.svg",
+                    "rotationCenterX": -39,
+                    "rotationCenterY": 5
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 4,
+            "visible": true,
+            "x": 56.9999964396161,
+            "y": 25.00000093248148,
+            "size": 60,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Player",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "eczJ*.rhXdIlS29#1ozS": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "E#R=tx)bi*}_cff*`lN:",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 38,
+                    "y": 44
+                },
+                "E#R=tx)bi*}_cff*`lN:": {
+                    "opcode": "motion_gotoxy",
+                    "next": null,
+                    "parent": "eczJ*.rhXdIlS29#1ozS",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "0"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-40"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "*1Lq8[3RB-Gj)C]3cpt7": {
+                    "opcode": "event_whenkeypressed",
+                    "next": "L|!P#V6xL|HSXnO%B,(A",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "KEY_OPTION": [
+                            "space",
+                            null
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 45,
+                    "y": 266
+                },
+                "L|!P#V6xL|HSXnO%B,(A": {
+                    "opcode": "motion_movesteps",
+                    "next": null,
+                    "parent": "*1Lq8[3RB-Gj)C]3cpt7",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "50"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Player",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "90f5c2cefdf85e8aacfaea47d1a4202b",
+                    "md5ext": "90f5c2cefdf85e8aacfaea47d1a4202b.svg",
+                    "rotationCenterX": 14.844827586206918,
+                    "rotationCenterY": 30.75
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "dance celebrate",
+                    "assetId": "0edb8fb88af19e6e17d0f8cf64c1d136",
+                    "dataFormat": "wav",
+                    "format": "adpcm",
+                    "rate": 22050,
+                    "sampleCount": 176785,
+                    "md5ext": "0edb8fb88af19e6e17d0f8cf64c1d136.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": 0,
+            "y": -40,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Tree",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "a1O~Zmdj}W!Z91feosSZ": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": "[{Ip)|.l@A@MmymOVnkn",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 62,
+                    "y": 90
+                },
+                "[{Ip)|.l@A@MmymOVnkn": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "a1O~Zmdj}W!Z91feosSZ",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Ouch!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Maple_tree_portrait",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "85d1561d401647bee74ad2554a4abb11",
+                    "md5ext": "85d1561d401647bee74ad2554a4abb11.svg",
+                    "rotationCenterX": 35.90507543103445,
+                    "rotationCenterY": 68.38300165077025
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "dance celebrate",
+                    "assetId": "0edb8fb88af19e6e17d0f8cf64c1d136",
+                    "dataFormat": "wav",
+                    "format": "adpcm",
+                    "rate": 22050,
+                    "sampleCount": 176785,
+                    "md5ext": "0edb8fb88af19e6e17d0f8cf64c1d136.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": -145.99999046325743,
+            "y": -58.000002543131295,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0Bus",
+        "vm": "13.7.1",
+        "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:150.0) Gecko/20100101 Firefox/150.0"
+    }
+}
+},{}],92:[function(require,module,exports){
+module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"234e03560170e77d1cc9e8aa40eb80d7","name":"Lincoln Park Zoo","bitmapResolution":2,"md5ext":"234e03560170e77d1cc9e8aa40eb80d7.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Car","variables":{},"lists":{},"broadcasts":{},"blocks":{",b,MB{-tz,CPMdx6uPSI":{"opcode":"event_whenflagclicked","next":"PjfkJWvwcXuiXl4iYCYe","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":21,"y":30},"PjfkJWvwcXuiXl4iYCYe":{"opcode":"motion_gotoxy","next":"G#U%Yd+G]Rnzbke8IBq,","parent":",b,MB{-tz,CPMdx6uPSI","inputs":{"X":[1,[4,-304]],"Y":[1,[4,-118]]},"fields":{},"shadow":false,"topLevel":false},"G#U%Yd+G]Rnzbke8IBq,":{"opcode":"control_repeat_until","next":null,"parent":"PjfkJWvwcXuiXl4iYCYe","inputs":{"CONDITION":[2,"7!dxCwjGz5XkG%.T^7uR"],"SUBSTACK":[2,"{t,HO=FEj-72!S_B1kj8"]},"fields":{},"shadow":false,"topLevel":false},"7!dxCwjGz5XkG%.T^7uR":{"opcode":"sensing_touchingobject","next":null,"parent":"G#U%Yd+G]Rnzbke8IBq,","inputs":{"TOUCHINGOBJECTMENU":[1,"zs9|Qt-p|v-Vfk{3/|}}"]},"fields":{},"shadow":false,"topLevel":false},"zs9|Qt-p|v-Vfk{3/|}}":{"opcode":"sensing_touchingobjectmenu","next":null,"parent":"7!dxCwjGz5XkG%.T^7uR","inputs":{},"fields":{"TOUCHINGOBJECTMENU":["Stop"]},"shadow":true,"topLevel":false},"{t,HO=FEj-72!S_B1kj8":{"opcode":"motion_movesteps","next":"A87.jAop_(6WuREWEFaR","parent":"G#U%Yd+G]Rnzbke8IBq,","inputs":{"STEPS":[1,[4,10]]},"fields":{},"shadow":false,"topLevel":false},"A87.jAop_(6WuREWEFaR":{"opcode":"control_wait","next":null,"parent":"{t,HO=FEj-72!S_B1kj8","inputs":{"DURATION":[1,[5,0.1]]},"fields":{},"shadow":false,"topLevel":false},"p.DF;UyeX~O?;Fa3lY8t":{"opcode":"sensing_touchingcolor","next":null,"parent":null,"inputs":{"COLOR":[1,[9,"#a42cff"]]},"fields":{},"shadow":false,"topLevel":true,"x":379,"y":143}},"comments":{"7T?P)4;Rd*r`ZA]E-#Cd":{"blockId":null,"x":597,"y":204.60000000000002,"width":231,"height":233.20000000000002,"minimized":false,"text":"Use this block, instead of the touching stop block, to have the car stop at one of the lines on the street."}},"currentCostume":2,"costumes":[{"assetId":"411a94a9e26a243dcde0022835361f8e","name":"SUV","bitmapResolution":1,"md5ext":"411a94a9e26a243dcde0022835361f8e.svg","dataFormat":"svg","rotationCenterX":225,"rotationCenterY":106},{"assetId":"ce4f296c7b3d84fb9856b53594d5b142","name":"Cooper","bitmapResolution":1,"md5ext":"ce4f296c7b3d84fb9856b53594d5b142.svg","dataFormat":"svg","rotationCenterX":222,"rotationCenterY":120},{"assetId":"fd4ccc5303ec2fe6c48656639bddc2c5","name":"Sedan","bitmapResolution":1,"md5ext":"fd4ccc5303ec2fe6c48656639bddc2c5.svg","dataFormat":"svg","rotationCenterX":223,"rotationCenterY":75},{"assetId":"4571b4541799b45c93282a7c6ff397cb","name":"Bug","bitmapResolution":1,"md5ext":"4571b4541799b45c93282a7c6ff397cb.svg","dataFormat":"svg","rotationCenterX":221,"rotationCenterY":83}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":44100,"sampleCount":1032,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":4,"visible":true,"x":46,"y":-118,"size":75,"direction":90,"draggable":false,"rotationStyle":"left-right"},{"isStage":false,"name":"Stop","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"fdc509ac5555a3290d253f03e9fa2e32","name":"Stop Sign","bitmapResolution":1,"md5ext":"fdc509ac5555a3290d253f03e9fa2e32.svg","dataFormat":"svg","rotationCenterX":-39,"rotationCenterY":5}],"sounds":[],"volume":100,"layerOrder":3,"visible":true,"x":134,"y":4,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Darian","variables":{},"lists":{},"broadcasts":{},"blocks":{"eczJ*.rhXdIlS29#1ozS":{"opcode":"event_whenflagclicked","next":"26oEd1S]izX-dGAQ9WfC","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":38,"y":44},"26oEd1S]izX-dGAQ9WfC":{"opcode":"motion_gotoxy","next":null,"parent":"eczJ*.rhXdIlS29#1ozS","inputs":{"X":[1,[4,-105]],"Y":[1,[4,-86]]},"fields":{},"shadow":false,"topLevel":false},"*1Lq8[3RB-Gj)C]3cpt7":{"opcode":"event_whenkeypressed","next":"L|!P#V6xL|HSXnO%B,(A","parent":null,"inputs":{},"fields":{"KEY_OPTION":["space"]},"shadow":false,"topLevel":true,"x":45,"y":266},"L|!P#V6xL|HSXnO%B,(A":{"opcode":"motion_movesteps","next":null,"parent":"*1Lq8[3RB-Gj)C]3cpt7","inputs":{"STEPS":[1,[4,50]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"810e9e425ba07fa15b1e4536de573b4c","name":"dm stance","bitmapResolution":1,"md5ext":"810e9e425ba07fa15b1e4536de573b4c.svg","dataFormat":"svg","rotationCenterX":55,"rotationCenterY":119},{"assetId":"cbf035d39d0a0bb070d2eb998cebd60d","name":"dm top stand","bitmapResolution":2,"md5ext":"cbf035d39d0a0bb070d2eb998cebd60d.png","dataFormat":"png","rotationCenterX":82,"rotationCenterY":244},{"assetId":"fcb8c2b6cf9b7e6ce9df521b2486deb3","name":"dm top R leg","bitmapResolution":2,"md5ext":"fcb8c2b6cf9b7e6ce9df521b2486deb3.png","dataFormat":"png","rotationCenterX":218,"rotationCenterY":232},{"assetId":"fd8bb9665fe078d2d95dbc35bccf4046","name":"dm top L leg","bitmapResolution":2,"md5ext":"fd8bb9665fe078d2d95dbc35bccf4046.png","dataFormat":"png","rotationCenterX":230,"rotationCenterY":240},{"assetId":"31e687f186b19ea120cd5cfc9dea2a3f","name":"dm freeze","bitmapResolution":2,"md5ext":"31e687f186b19ea120cd5cfc9dea2a3f.png","dataFormat":"png","rotationCenterX":220,"rotationCenterY":234},{"assetId":"0b2fb609d6d10decfdd5a1c3b58369b4","name":"dm pop front","bitmapResolution":2,"md5ext":"0b2fb609d6d10decfdd5a1c3b58369b4.png","dataFormat":"png","rotationCenterX":92,"rotationCenterY":234},{"assetId":"3b65ce3551f9c111794f7f1fb8f325be","name":"dm pop down","bitmapResolution":2,"md5ext":"3b65ce3551f9c111794f7f1fb8f325be.png","dataFormat":"png","rotationCenterX":64,"rotationCenterY":74},{"assetId":"f636510e8ef231d7c0e72a572ce91c99","name":"dm pop left","bitmapResolution":2,"md5ext":"f636510e8ef231d7c0e72a572ce91c99.png","dataFormat":"png","rotationCenterX":204,"rotationCenterY":250},{"assetId":"36b32430e45e071071052ef33c637f48","name":"dm pop right","bitmapResolution":2,"md5ext":"36b32430e45e071071052ef33c637f48.png","dataFormat":"png","rotationCenterX":78,"rotationCenterY":238},{"assetId":"426e1520efc34fef45be0596fd5f7120","name":"dm pop L arm","bitmapResolution":2,"md5ext":"426e1520efc34fef45be0596fd5f7120.png","dataFormat":"png","rotationCenterX":90,"rotationCenterY":238},{"assetId":"370cc57b40f1f1d6e52d6330b73d207f","name":"dm pop stand","bitmapResolution":2,"md5ext":"370cc57b40f1f1d6e52d6330b73d207f.png","dataFormat":"png","rotationCenterX":100,"rotationCenterY":244},{"assetId":"56fe91d2cf3ecb9d1b94006aee9eff79","name":"dm pop R arm","bitmapResolution":2,"md5ext":"56fe91d2cf3ecb9d1b94006aee9eff79.png","dataFormat":"png","rotationCenterX":80,"rotationCenterY":240},{"assetId":"fcb8c2b6cf9b7e6ce9df521b2486deb3","name":"dm top R leg2","bitmapResolution":2,"md5ext":"fcb8c2b6cf9b7e6ce9df521b2486deb3.png","dataFormat":"png","rotationCenterX":218,"rotationCenterY":232}],"sounds":[{"assetId":"0edb8fb88af19e6e17d0f8cf64c1d136","name":"dance celebrate","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":176785,"md5ext":"0edb8fb88af19e6e17d0f8cf64c1d136.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":-105,"y":-86,"size":40.000000000000014,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Libby","variables":{},"lists":{},"broadcasts":{},"blocks":{"a1O~Zmdj}W!Z91feosSZ":{"opcode":"event_whenthisspriteclicked","next":"[{Ip)|.l@A@MmymOVnkn","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":62,"y":90},"[{Ip)|.l@A@MmymOVnkn":{"opcode":"looks_sayforsecs","next":null,"parent":"a1O~Zmdj}W!Z91feosSZ","inputs":{"MESSAGE":[1,[10,"Oh, hi!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"008b80a80c4188acc72f7893fb10ac75","name":"lb stance","bitmapResolution":2,"md5ext":"008b80a80c4188acc72f7893fb10ac75.png","dataFormat":"png","rotationCenterX":54,"rotationCenterY":244},{"assetId":"dfe3628ddf46a67dcc21c63be65a8e40","name":"lb top stand","bitmapResolution":2,"md5ext":"dfe3628ddf46a67dcc21c63be65a8e40.png","dataFormat":"png","rotationCenterX":70,"rotationCenterY":248},{"assetId":"e824768a109691b5a3c577d3506ed70c","name":"lb top R leg","bitmapResolution":2,"md5ext":"e824768a109691b5a3c577d3506ed70c.png","dataFormat":"png","rotationCenterX":244,"rotationCenterY":250},{"assetId":"350472368e2310efe6fa734b79f0ff41","name":"lb top L leg","bitmapResolution":2,"md5ext":"350472368e2310efe6fa734b79f0ff41.png","dataFormat":"png","rotationCenterX":234,"rotationCenterY":286},{"assetId":"5a151c4d4e2e2f870d9096d5fce6ed48","name":"lb top L cross","bitmapResolution":2,"md5ext":"5a151c4d4e2e2f870d9096d5fce6ed48.png","dataFormat":"png","rotationCenterX":148,"rotationCenterY":258},{"assetId":"99acf468000c6fcbaf344e4531725efc","name":"lb top R cross","bitmapResolution":2,"md5ext":"99acf468000c6fcbaf344e4531725efc.png","dataFormat":"png","rotationCenterX":174,"rotationCenterY":256},{"assetId":"e34a166807a3ffbf8d147b12aa49dd19","name":"lb pop front","bitmapResolution":2,"md5ext":"e34a166807a3ffbf8d147b12aa49dd19.png","dataFormat":"png","rotationCenterX":66,"rotationCenterY":272},{"assetId":"8e41de92cb932a6898782a39a0d7d300","name":"lb pop down","bitmapResolution":2,"md5ext":"8e41de92cb932a6898782a39a0d7d300.png","dataFormat":"png","rotationCenterX":56,"rotationCenterY":90},{"assetId":"ff1b96d1047d4be459a4614ce7c7c94c","name":"lb pop left","bitmapResolution":2,"md5ext":"ff1b96d1047d4be459a4614ce7c7c94c.png","dataFormat":"png","rotationCenterX":198,"rotationCenterY":266},{"assetId":"d6d5534c628ac5d5fe3cbf1b76b71252","name":"lb pop right","bitmapResolution":2,"md5ext":"d6d5534c628ac5d5fe3cbf1b76b71252.png","dataFormat":"png","rotationCenterX":76,"rotationCenterY":264},{"assetId":"c1fd31607619b8c98a286a650f248511","name":"lb pop L arm","bitmapResolution":2,"md5ext":"c1fd31607619b8c98a286a650f248511.png","dataFormat":"png","rotationCenterX":100,"rotationCenterY":262},{"assetId":"51fe5962fe4d2af7f6fad7abaa692069","name":"lb pop stand","bitmapResolution":2,"md5ext":"51fe5962fe4d2af7f6fad7abaa692069.png","dataFormat":"png","rotationCenterX":66,"rotationCenterY":268},{"assetId":"aa57575fde5ff8b13041e3a7b1499fe0","name":"lb pop R arm","bitmapResolution":2,"md5ext":"aa57575fde5ff8b13041e3a7b1499fe0.png","dataFormat":"png","rotationCenterX":78,"rotationCenterY":258}],"sounds":[{"assetId":"0edb8fb88af19e6e17d0f8cf64c1d136","name":"dance celebrate","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":176785,"md5ext":"0edb8fb88af19e6e17d0f8cf64c1d136.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":100,"y":-87,"size":40.000000000000014,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190904154449","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}}
+},{}],93:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -8482,7 +9648,7 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Safari/605.1.15"
     }
 }
-},{}],92:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -8853,7 +10019,581 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Safari/605.1.15"
     }
 }
-},{}],93:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {
+                "9[N1%n{g*z~#XXcW(=Nm-set score-": [
+                    "set score",
+                    0
+                ],
+                "9[N1%n{g*z~#XXcW(=Nm-set-": [
+                    "set",
+                    0
+                ],
+                "9[N1%n{g*z~#XXcW(=Nm-score-": [
+                    "score",
+                    3
+                ]
+            },
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Background",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "d00f3bf37a111e4eb74526016920eb73",
+                    "md5ext": "d00f3bf37a111e4eb74526016920eb73.png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 359.5
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "pop",
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 1124,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Kent",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "dil)YZ{H0})IuwHAwS%C": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "Y]fGiQ8AD$^y/M8XhLG@",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 33,
+                    "y": 59
+                },
+                "Y]fGiQ8AD$^y/M8XhLG@": {
+                    "opcode": "motion_gotoxy",
+                    "next": ".Pb?svcZ*[O+MYgWr;o7",
+                    "parent": "dil)YZ{H0})IuwHAwS%C",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-221"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-139"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ".Pb?svcZ*[O+MYgWr;o7": {
+                    "opcode": "control_wait",
+                    "next": ".Zq(JvX}HC.8=5ft:^*q",
+                    "parent": "Y]fGiQ8AD$^y/M8XhLG@",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                ".01"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ".Zq(JvX}HC.8=5ft:^*q": {
+                    "opcode": "control_repeat_until",
+                    "next": null,
+                    "parent": ".Pb?svcZ*[O+MYgWr;o7",
+                    "inputs": {
+                        "CONDITION": [
+                            2,
+                            "+zU-{|-J4[4r7UlK9VXw"
+                        ],
+                        "SUBSTACK": [
+                            2,
+                            "StCkHU?Qav@|F1qz|tI="
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "+zU-{|-J4[4r7UlK9VXw": {
+                    "opcode": "sensing_touchingobject",
+                    "next": null,
+                    "parent": ".Zq(JvX}HC.8=5ft:^*q",
+                    "inputs": {
+                        "TOUCHINGOBJECTMENU": [
+                            1,
+                            "v##~/:2k9dWfa9nheMoQ"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "v##~/:2k9dWfa9nheMoQ": {
+                    "opcode": "sensing_touchingobjectmenu",
+                    "next": null,
+                    "parent": "+zU-{|-J4[4r7UlK9VXw",
+                    "inputs": {},
+                    "fields": {
+                        "TOUCHINGOBJECTMENU": [
+                            "Sunflower",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "StCkHU?Qav@|F1qz|tI=": {
+                    "opcode": "motion_movesteps",
+                    "next": "FU[7kdff~OKc`r8OhLj+",
+                    "parent": ".Zq(JvX}HC.8=5ft:^*q",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "5"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "FU[7kdff~OKc`r8OhLj+": {
+                    "opcode": "looks_nextcostume",
+                    "next": "2)Eff|agRmr-hLsnuXd`",
+                    "parent": "StCkHU?Qav@|F1qz|tI=",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "2)Eff|agRmr-hLsnuXd`": {
+                    "opcode": "control_wait",
+                    "next": null,
+                    "parent": "FU[7kdff~OKc`r8OhLj+",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                ".05"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {
+                "z=ft#ukk{%ud|P~YyngQ_comment": {
+                    "blockId": "z=ft#ukk{%ud|P~YyngQ",
+                    "x": 426.6666666666667,
+                    "y": 164.4814814814815,
+                    "width": 298.5,
+                    "height": 574.2,
+                    "minimized": false,
+                    "text": "This short wait block is here to make sure Jaime and the Soccer Ball are both at the correct starting location before Jaime points in the direction of the ball. \r\rWithout this wait block, Jaime sometimes starts running to where the ball used to be. If that happens, they never touch and the ball never gets kicked to the goal! "
+                }
+            },
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "kent3",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "b3adcf7ba88e0a5f22093b5bd6174199",
+                    "md5ext": "b3adcf7ba88e0a5f22093b5bd6174199.svg",
+                    "rotationCenterX": 10.875810000000001,
+                    "rotationCenterY": 30.32043999999999
+                },
+                {
+                    "name": "kent4",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "af3d653804a55251dcdde6f233f7876a",
+                    "md5ext": "af3d653804a55251dcdde6f233f7876a.svg",
+                    "rotationCenterX": 13.250000000000028,
+                    "rotationCenterY": 30.75
+                },
+                {
+                    "name": "kent1",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "c2713a24161ffb16118226aef2096039",
+                    "md5ext": "c2713a24161ffb16118226aef2096039.svg",
+                    "rotationCenterX": 10.875666130942307,
+                    "rotationCenterY": 30.320038910505843
+                },
+                {
+                    "name": "kent2",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "f3ac0782de629498ec5c6e75d25f1a4c",
+                    "md5ext": "f3ac0782de629498ec5c6e75d25f1a4c.svg",
+                    "rotationCenterX": 14.123929961089488,
+                    "rotationCenterY": 30.265564202334616
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "pop",
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 1124,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 4,
+            "visible": true,
+            "x": -196.00001472050855,
+            "y": -139.0271297846048,
+            "size": 100,
+            "direction": 90.06217689848177,
+            "draggable": false,
+            "rotationStyle": "left-right"
+        },
+        {
+            "isStage": false,
+            "name": "Hot Air Balloon",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "W9IY!IPYXclx:rLq,5mA": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "F,[mZXKyFmp9`JB-45R%",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 38,
+                    "y": 110
+                },
+                "F,[mZXKyFmp9`JB-45R%": {
+                    "opcode": "motion_gotoxy",
+                    "next": ":YKUti-f_hdztd/oSD93",
+                    "parent": "W9IY!IPYXclx:rLq,5mA",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "19"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-105"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ":YKUti-f_hdztd/oSD93": {
+                    "opcode": "control_wait",
+                    "next": "arz%}0!yQ3+83Sy`Xv(+",
+                    "parent": "F,[mZXKyFmp9`JB-45R%",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                ".01"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "arz%}0!yQ3+83Sy`Xv(+": {
+                    "opcode": "control_wait_until",
+                    "next": "*vRU_`(9`K]kt1]qzeP|",
+                    "parent": ":YKUti-f_hdztd/oSD93",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "*vRU_`(9`K]kt1]qzeP|": {
+                    "opcode": "sound_playuntildone",
+                    "next": null,
+                    "parent": "arz%}0!yQ3+83Sy`Xv(+",
+                    "inputs": {
+                        "SOUND_MENU": [
+                            1,
+                            "(Gv.J(`cRFP;bI}nsU#^"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "(Gv.J(`cRFP;bI}nsU#^": {
+                    "opcode": "sound_sounds_menu",
+                    "next": null,
+                    "parent": "*vRU_`(9`K]kt1]qzeP|",
+                    "inputs": {},
+                    "fields": {
+                        "SOUND_MENU": [
+                            "Space Noise",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Hot air balloon1",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "a055e86eb91befea537fe1b74683ceb8",
+                    "md5ext": "a055e86eb91befea537fe1b74683ceb8.svg",
+                    "rotationCenterX": 50.70038902122889,
+                    "rotationCenterY": 133.98664987802852
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "Space Noise",
+                    "assetId": "a5cd5e83841aaaf34583d6ad53d551f5",
+                    "dataFormat": "wav",
+                    "rate": 22050,
+                    "sampleCount": 58929,
+                    "md5ext": "a5cd5e83841aaaf34583d6ad53d551f5.wav"
+                },
+                {
+                    "name": "Magic Spell",
+                    "assetId": "1cb60ecdb1075c8769cb346d5c2a22c7",
+                    "dataFormat": "wav",
+                    "rate": 22050,
+                    "sampleCount": 43689,
+                    "md5ext": "1cb60ecdb1075c8769cb346d5c2a22c7.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": 19,
+            "y": -105,
+            "size": 100,
+            "direction": 0,
+            "draggable": false,
+            "rotationStyle": "don't rotate"
+        },
+        {
+            "isStage": false,
+            "name": "Cloud",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "cloud-d",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "52ccf7afc74a252d75d1fa581ab0f2a5",
+                    "md5ext": "52ccf7afc74a252d75d1fa581ab0f2a5.svg",
+                    "rotationCenterX": 91.17054748535156,
+                    "rotationCenterY": 17.901348114013672
+                },
+                {
+                    "name": "cloud-a",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "90b5fe294de0b806709ff01228bfe2b5",
+                    "md5ext": "90b5fe294de0b806709ff01228bfe2b5.svg",
+                    "rotationCenterX": 76.42151641845703,
+                    "rotationCenterY": 14.779377937316895
+                },
+                {
+                    "name": "cloud-b",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "4a34e7dadd9b8b800753d1e452fe26b8",
+                    "md5ext": "4a34e7dadd9b8b800753d1e452fe26b8.svg",
+                    "rotationCenterX": 105.25640869140625,
+                    "rotationCenterY": 16.610559463500977
+                },
+                {
+                    "name": "cloud-c",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "66878da61a78dc47b57ff88639fdd489",
+                    "md5ext": "66878da61a78dc47b57ff88639fdd489.svg",
+                    "rotationCenterX": 99.32097625732422,
+                    "rotationCenterY": 9.533393859863281
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "Magic Spell",
+                    "assetId": "1cb60ecdb1075c8769cb346d5c2a22c7",
+                    "dataFormat": "wav",
+                    "rate": 22050,
+                    "sampleCount": 43689,
+                    "md5ext": "1cb60ecdb1075c8769cb346d5c2a22c7.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": 77,
+            "y": 161,
+            "size": 100,
+            "direction": -90,
+            "draggable": false,
+            "rotationStyle": "don't rotate"
+        },
+        {
+            "isStage": false,
+            "name": "Sunflower",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Sunflower",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "a918eae7f89dd725c96491d9747ff6a7",
+                    "md5ext": "a918eae7f89dd725c96491d9747ff6a7.svg",
+                    "rotationCenterX": 16.99999999999997,
+                    "rotationCenterY": 16.25
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": 197,
+            "y": -138,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [
+        {
+            "id": "9[N1%n{g*z~#XXcW(=Nm-set score-",
+            "mode": "default",
+            "opcode": "data_variable",
+            "params": {
+                "VARIABLE": "set score"
+            },
+            "spriteName": null,
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 5,
+            "y": 5,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        },
+        {
+            "id": "9[N1%n{g*z~#XXcW(=Nm-set-",
+            "mode": "default",
+            "opcode": "data_variable",
+            "params": {
+                "VARIABLE": "set"
+            },
+            "spriteName": null,
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 5,
+            "y": 32,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        },
+        {
+            "id": "9[N1%n{g*z~#XXcW(=Nm-score-",
+            "mode": "default",
+            "opcode": "data_variable",
+            "params": {
+                "VARIABLE": "score"
+            },
+            "spriteName": null,
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 4,
+            "y": 9,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        }
+    ],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "13.7.2",
+        "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:150.0) Gecko/20100101 Firefox/150.0"
+    }
+}
+},{}],96:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -9314,7 +11054,7 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Safari/605.1.15"
     }
 }
-},{}],94:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -10102,7 +11842,7 @@ module.exports={
     }
 }
 
-},{}],95:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -10949,7 +12689,7 @@ module.exports={
     }
 }
 
-},{}],96:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -11552,7 +13292,7 @@ module.exports={
         "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:149.0) Gecko/20100101 Firefox/149.0"
     }
 }
-},{}],97:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -12218,13 +13958,708 @@ module.exports={
     }
 }
 
-},{}],98:[function(require,module,exports){
-module.exports={"targets":[{"costumes":[{"assetId":"cd21514d0531fdffb22204e0ec5ed84a","name":"backdrop1","md5ext":"cd21514d0531fdffb22204e0ec5ed84a.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180},{"assetId":"e494c4f44897d94e0541f7036a302449","name":"Basketball 1","bitmapResolution":1,"md5ext":"e494c4f44897d94e0541f7036a302449.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180},{"assetId":"63b6a69594a0a87888b56244bfa2ac1b","name":"Slopes","bitmapResolution":2,"md5ext":"63b6a69594a0a87888b56244bfa2ac1b.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"dcc98dd9fca1c6307a657c3f9b8f7536","name":"Ramps","bitmapResolution":2,"md5ext":"dcc98dd9fca1c6307a657c3f9b8f7536.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]},{"costumes":[{"assetId":"f86c511b2706df7fc11e57ab854917d0","name":"Hat_man1","bitmapResolution":2,"md5ext":"f86c511b2706df7fc11e57ab854917d0.png","dataFormat":"png","rotationCenterX":100,"rotationCenterY":100}],"sounds":[{"assetId":"a434069c58e79d42f5d21abb1c318919","name":"Goal Cheer","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":84329,"md5ext":"a434069c58e79d42f5d21abb1c318919.wav"},{"assetId":"e675f311addd23d450ff60e36d83fb96","name":"Referee Whistle","dataFormat":"wav","format":"","rate":48000,"sampleCount":14267,"md5ext":"e675f311addd23d450ff60e36d83fb96.wav"}]},{"costumes":[{"assetId":"12df676719756c4d0050bc8123b7f9ad","name":"soph-default","bitmapResolution":2,"md5ext":"12df676719756c4d0050bc8123b7f9ad.png","dataFormat":"png","rotationCenterX":36,"rotationCenterY":100}],"sounds":[{"assetId":"1727f65b5f22d151685b8e5917456a60","name":"basketball bounce","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":8129,"md5ext":"1727f65b5f22d151685b8e5917456a60.wav"}]},{"costumes":[{"assetId":"ef5c17601d7d173495c7de6cc757a596","name":"Wizard1","bitmapResolution":2,"md5ext":"ef5c17601d7d173495c7de6cc757a596.png","dataFormat":"png","rotationCenterX":72,"rotationCenterY":72},{"assetId":"121f6941e1d9ceac168960e7b43ad4b1","name":"Wizard2","bitmapResolution":2,"md5ext":"121f6941e1d9ceac168960e7b43ad4b1.png","dataFormat":"png","rotationCenterX":80,"rotationCenterY":84}],"sounds":[{"assetId":"1727f65b5f22d151685b8e5917456a60","name":"basketball bounce","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":8129,"md5ext":"1727f65b5f22d151685b8e5917456a60.wav"}]},{"costumes":[{"assetId":"fff498b6add705de0cf11dc176b87219","name":"Truck-a","bitmapResolution":1,"md5ext":"fff498b6add705de0cf11dc176b87219.svg","dataFormat":"svg","rotationCenterX":174,"rotationCenterY":49},{"assetId":"a4a757dff6c5dc72b154d439b8403041","name":"Truck-b","bitmapResolution":1,"md5ext":"a4a757dff6c5dc72b154d439b8403041.svg","dataFormat":"svg","rotationCenterX":174,"rotationCenterY":58},{"assetId":"ce077e6db3573062017f94c2e4a8caea","name":"Truck-c","bitmapResolution":1,"md5ext":"ce077e6db3573062017f94c2e4a8caea.svg","dataFormat":"svg","rotationCenterX":173.67363114754104,"rotationCenterY":57.74000000000001},{"assetId":"10a62bacf94cef5ef4ea7372fc719589","name":"sprite6_0","bitmapResolution":2,"md5ext":"10a62bacf94cef5ef4ea7372fc719589.png","dataFormat":"png","rotationCenterX":258,"rotationCenterY":159}],"sounds":[{"assetId":"67aadcd28620ecdcdee2ad8eeebefa20","name":"toy honk","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":11177,"md5ext":"67aadcd28620ecdcdee2ad8eeebefa20.wav"},{"assetId":"f166adeb1ae3213f3951b267e5b7de22","name":"Engine","dataFormat":"wav","format":"","rate":48000,"sampleCount":97608,"md5ext":"f166adeb1ae3213f3951b267e5b7de22.wav"}]},{"costumes":[{"assetId":"814fd8eae9751c0fa3eb0efca47ef78c","name":"spr_rally_0","bitmapResolution":2,"md5ext":"814fd8eae9751c0fa3eb0efca47ef78c.png","dataFormat":"png","rotationCenterX":252,"rotationCenterY":81}],"sounds":[{"assetId":"ead1da4a87ff6cb53441142f7ac37b8f","name":"Car Vroom","dataFormat":"wav","rate":22050,"sampleCount":43689,"md5ext":"ead1da4a87ff6cb53441142f7ac37b8f.wav"},{"assetId":"1da43f6d52d0615da8a250e28100a80d","name":"computer beeps1","dataFormat":"wav","format":"","rate":48000,"sampleCount":83591,"md5ext":"1da43f6d52d0615da8a250e28100a80d.wav"},{"assetId":"28c76b6bebd04be1383fe9ba4933d263","name":"computer beeps2","dataFormat":"wav","format":"","rate":48000,"sampleCount":41517,"md5ext":"28c76b6bebd04be1383fe9ba4933d263.wav"}]}]}
-},{}],99:[function(require,module,exports){
-module.exports={"targets":[{"costumes":[{"assetId":"531a943ae6e8b7d9ea34641277495d6e","name":"Navajo and Mali Landscape","bitmapResolution":1,"md5ext":"531a943ae6e8b7d9ea34641277495d6e.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180},{"assetId":"bce115696f675f33f294c1a3a046999d","name":"stage1","bitmapResolution":1,"md5ext":"bce115696f675f33f294c1a3a046999d.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180},{"assetId":"6aa914e018b22b80afeb554e00605371","name":"stage2","bitmapResolution":2,"md5ext":"6aa914e018b22b80afeb554e00605371.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]},{"costumes":[{"assetId":"5c82649ac57f9afee84c2000bca488d3","name":"nativeAmericanFlute","bitmapResolution":2,"md5ext":"5c82649ac57f9afee84c2000bca488d3.png","dataFormat":"png","rotationCenterX":183,"rotationCenterY":82}],"sounds":[{"assetId":"0f0f24fc2b4e03758aa90109b7e3e305","name":"Navajo Flute","dataFormat":"wav","format":"","rate":48000,"sampleCount":525792,"md5ext":"0f0f24fc2b4e03758aa90109b7e3e305.wav"}]},{"costumes":[{"assetId":"be468a30068ed2d20eba3b7c846e01f9","name":"center","bitmapResolution":1,"md5ext":"be468a30068ed2d20eba3b7c846e01f9.svg","dataFormat":"svg","rotationCenterX":38,"rotationCenterY":89},{"assetId":"e3dbd1ca8d3930596eebdb085f39cda0","name":"left","bitmapResolution":1,"md5ext":"e3dbd1ca8d3930596eebdb085f39cda0.svg","dataFormat":"svg","rotationCenterX":38,"rotationCenterY":88},{"assetId":"74e08f63bab1c64492bfa74fb0623151","name":"center2","bitmapResolution":1,"md5ext":"74e08f63bab1c64492bfa74fb0623151.svg","dataFormat":"svg","rotationCenterX":37,"rotationCenterY":88},{"assetId":"93f5413f632b3c468399cd6a079465d2","name":"right","bitmapResolution":1,"md5ext":"93f5413f632b3c468399cd6a079465d2.svg","dataFormat":"svg","rotationCenterX":38,"rotationCenterY":89}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]},{"costumes":[{"assetId":"4002dacaac89b9c133d9510b966b55e3","name":"AfricanDrum","bitmapResolution":2,"md5ext":"4002dacaac89b9c133d9510b966b55e3.png","dataFormat":"png","rotationCenterX":95,"rotationCenterY":133}],"sounds":[{"assetId":"b6e43d1f6ac8d8f082c171f20c2612cb","name":"djembe","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":176785,"md5ext":"b6e43d1f6ac8d8f082c171f20c2612cb.wav"}]},{"costumes":[{"assetId":"7aed63bae8d366377e1b1ac7c534763c","name":"center","bitmapResolution":1,"md5ext":"7aed63bae8d366377e1b1ac7c534763c.svg","dataFormat":"svg","rotationCenterX":34,"rotationCenterY":84},{"assetId":"980d68ab932bfd08a77d6d1966d90539","name":"left","bitmapResolution":1,"md5ext":"980d68ab932bfd08a77d6d1966d90539.svg","dataFormat":"svg","rotationCenterX":59,"rotationCenterY":86},{"assetId":"f93976ee08897d366808878ac5b442b7","name":"center2","bitmapResolution":1,"md5ext":"f93976ee08897d366808878ac5b442b7.svg","dataFormat":"svg","rotationCenterX":37,"rotationCenterY":80},{"assetId":"de518bbf2bb8fbab0337e28ae0458c62","name":"right","bitmapResolution":1,"md5ext":"de518bbf2bb8fbab0337e28ae0458c62.svg","dataFormat":"svg","rotationCenterX":38,"rotationCenterY":86}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]},{"costumes":[{"assetId":"c2a9db148ab274e928edb961922d1604","name":"costume1","bitmapResolution":1,"md5ext":"c2a9db148ab274e928edb961922d1604.svg","dataFormat":"svg","rotationCenterX":79.5,"rotationCenterY":13.505882352941114}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]}]}
-},{}],100:[function(require,module,exports){
-module.exports={"targets":[{"costumes":[{"assetId":"4c2de8d082841594436e381c5212ae04","name":"webpage","bitmapResolution":1,"md5ext":"4c2de8d082841594436e381c5212ae04.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]},{"costumes":[{"assetId":"af1c69446ae4d5463dd5855204b69c33","name":"Button1","bitmapResolution":1,"md5ext":"af1c69446ae4d5463dd5855204b69c33.svg","dataFormat":"svg","rotationCenterX":42.625,"rotationCenterY":43.367999999999995},{"assetId":"20d1b7cfb8af836a54fb4ba0519eff3a","name":"Button2","bitmapResolution":1,"md5ext":"20d1b7cfb8af836a54fb4ba0519eff3a.svg","dataFormat":"svg","rotationCenterX":42.625,"rotationCenterY":43.367999999999995}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]},{"costumes":[{"assetId":"da8898468494ef7bf814d1f33bf28894","name":"ezgif-4-eedd4165d67b (3)3","bitmapResolution":2,"md5ext":"da8898468494ef7bf814d1f33bf28894.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"f617c46dc6b7863309ca1cf2c823c8f9","name":"ezgif-4-eedd4165d67b (3)2","bitmapResolution":2,"md5ext":"f617c46dc6b7863309ca1cf2c823c8f9.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"0ae671ea903b6ce592a37d5857950be6","name":"ezgif-4-eedd4165d67b (3)","bitmapResolution":2,"md5ext":"0ae671ea903b6ce592a37d5857950be6.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"848328445ad15fc023fa840585c6f52c","name":"ezgif-4-eedd4165d67b (3)4","bitmapResolution":2,"md5ext":"848328445ad15fc023fa840585c6f52c.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"acebd72c92c2fe47e55443cd0c2fb247","name":"ezgif-4-eedd4165d67b (3)6","bitmapResolution":2,"md5ext":"acebd72c92c2fe47e55443cd0c2fb247.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"10f5dcd0e150f52617e603d105b76b84","name":"ezgif-4-eedd4165d67b (3)7","bitmapResolution":2,"md5ext":"10f5dcd0e150f52617e603d105b76b84.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"bc1e776fb0765c9ce53dd909c04f60e4","name":"ezgif-4-eedd4165d67b (3)9","bitmapResolution":2,"md5ext":"bc1e776fb0765c9ce53dd909c04f60e4.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"792ee6cd74b591468f185197470d96a4","name":"ezgif-4-eedd4165d67b (3)10","bitmapResolution":2,"md5ext":"792ee6cd74b591468f185197470d96a4.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"2dbb6dbe05239634b1ba2c3a36fcf030","name":"ezgif-4-eedd4165d67b (3)11","bitmapResolution":2,"md5ext":"2dbb6dbe05239634b1ba2c3a36fcf030.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"f4769059acd3731124a66139434e6156","name":"ezgif-4-eedd4165d67b (3)12","bitmapResolution":2,"md5ext":"f4769059acd3731124a66139434e6156.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"3071c1c1cfe62f6a2a70d8eb919df44e","name":"ezgif-4-eedd4165d67b (3)14","bitmapResolution":2,"md5ext":"3071c1c1cfe62f6a2a70d8eb919df44e.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"373c46272176649ce96d2bd60ffdbac9","name":"ezgif-4-eedd4165d67b (3)16","bitmapResolution":2,"md5ext":"373c46272176649ce96d2bd60ffdbac9.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"712ff6d6ec4e6120565b18e761f8bdc6","name":"ezgif-4-eedd4165d67b (3)18","bitmapResolution":2,"md5ext":"712ff6d6ec4e6120565b18e761f8bdc6.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"e31f67f6d28a44d830f8ff5d92c7c333","name":"ezgif-4-eedd4165d67b (3)17","bitmapResolution":2,"md5ext":"e31f67f6d28a44d830f8ff5d92c7c333.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"6f86ba931b5ac778433439daedba7921","name":"ezgif-4-eedd4165d67b (3)19","bitmapResolution":2,"md5ext":"6f86ba931b5ac778433439daedba7921.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]},{"costumes":[{"assetId":"b701e707a7fd85c62bd7910248fac43e","name":"Button3-b","bitmapResolution":1,"md5ext":"b701e707a7fd85c62bd7910248fac43e.svg","dataFormat":"svg","rotationCenterX":44.83099999999999,"rotationCenterY":31.180000000000007},{"assetId":"bdd57f79a31e0fff73a3454f743b4d83","name":"Button3-a","bitmapResolution":1,"md5ext":"bdd57f79a31e0fff73a3454f743b4d83.svg","dataFormat":"svg","rotationCenterX":44.83099999999999,"rotationCenterY":31.180000000000007}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]},{"costumes":[{"assetId":"0e1694bca8368b04a7ce59035a101351","name":"PBClara","bitmapResolution":2,"md5ext":"0e1694bca8368b04a7ce59035a101351.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"565873fc0a4bfacf81ea7135a0ebc082","name":"PBClara2","bitmapResolution":2,"md5ext":"565873fc0a4bfacf81ea7135a0ebc082.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"dc6f8a6bad1013723661ddb1a45c6b77","name":"PBClara3","bitmapResolution":2,"md5ext":"dc6f8a6bad1013723661ddb1a45c6b77.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"4e59346116d7ec85693391bcfef3612f","name":"PBClara4","bitmapResolution":2,"md5ext":"4e59346116d7ec85693391bcfef3612f.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"ad0a38597ba77b920093b899ad2b2481","name":"PBClara5","bitmapResolution":2,"md5ext":"ad0a38597ba77b920093b899ad2b2481.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"6a86db9adc2cbbff20e0d3460ad22fbe","name":"PBClara6","bitmapResolution":2,"md5ext":"6a86db9adc2cbbff20e0d3460ad22fbe.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"ffe2dc1d63d2719b07a3569a9758674a","name":"PBClara7","bitmapResolution":2,"md5ext":"ffe2dc1d63d2719b07a3569a9758674a.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"78f2c8cf19e87de3a3ffafc6562e321b","name":"PBClara8","bitmapResolution":2,"md5ext":"78f2c8cf19e87de3a3ffafc6562e321b.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"da92e68486039420ab2df96aacd19240","name":"PBClara9","bitmapResolution":2,"md5ext":"da92e68486039420ab2df96aacd19240.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"ab407e1649fec8bd3a6cbabda0016b37","name":"PBClara10","bitmapResolution":2,"md5ext":"ab407e1649fec8bd3a6cbabda0016b37.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"6260795eff075efce011bb2a3520069d","name":"PBClara11","bitmapResolution":2,"md5ext":"6260795eff075efce011bb2a3520069d.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"505f00d755f332a792d168f0a239039d","name":"PBClara12","bitmapResolution":2,"md5ext":"505f00d755f332a792d168f0a239039d.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"4c6727151d3755fe528586e8c10ce8ad","name":"PBClara13","bitmapResolution":2,"md5ext":"4c6727151d3755fe528586e8c10ce8ad.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"90e54fdd2d93c05d46a2eee959e47d18","name":"PBClara15","bitmapResolution":2,"md5ext":"90e54fdd2d93c05d46a2eee959e47d18.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"ba7710ce6d0cc85edda0cd1bbcc672a1","name":"PBClara14","bitmapResolution":2,"md5ext":"ba7710ce6d0cc85edda0cd1bbcc672a1.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"f26356e62fdedf65ac180b9bd3a29b05","name":"PBClara16","bitmapResolution":2,"md5ext":"f26356e62fdedf65ac180b9bd3a29b05.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"66daae8144492bb4bd86268e56c99a43","name":"PBClara17","bitmapResolution":2,"md5ext":"66daae8144492bb4bd86268e56c99a43.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"8629610701b24b9b0e04385c51d9b481","name":"PBClara18","bitmapResolution":2,"md5ext":"8629610701b24b9b0e04385c51d9b481.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"46af59e48f2e6925f3adb3db2c541dc6","name":"PBClara19","bitmapResolution":2,"md5ext":"46af59e48f2e6925f3adb3db2c541dc6.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"d52f16bf1cb1119708c7a1b5e460fda4","name":"PBClara20","bitmapResolution":2,"md5ext":"d52f16bf1cb1119708c7a1b5e460fda4.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]}]}
 },{}],101:[function(require,module,exports){
+module.exports={"targets":[{"costumes":[{"assetId":"cd21514d0531fdffb22204e0ec5ed84a","name":"backdrop1","md5ext":"cd21514d0531fdffb22204e0ec5ed84a.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180},{"assetId":"e494c4f44897d94e0541f7036a302449","name":"Basketball 1","bitmapResolution":1,"md5ext":"e494c4f44897d94e0541f7036a302449.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180},{"assetId":"63b6a69594a0a87888b56244bfa2ac1b","name":"Slopes","bitmapResolution":2,"md5ext":"63b6a69594a0a87888b56244bfa2ac1b.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360},{"assetId":"dcc98dd9fca1c6307a657c3f9b8f7536","name":"Ramps","bitmapResolution":2,"md5ext":"dcc98dd9fca1c6307a657c3f9b8f7536.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]},{"costumes":[{"assetId":"f86c511b2706df7fc11e57ab854917d0","name":"Hat_man1","bitmapResolution":2,"md5ext":"f86c511b2706df7fc11e57ab854917d0.png","dataFormat":"png","rotationCenterX":100,"rotationCenterY":100}],"sounds":[{"assetId":"a434069c58e79d42f5d21abb1c318919","name":"Goal Cheer","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":84329,"md5ext":"a434069c58e79d42f5d21abb1c318919.wav"},{"assetId":"e675f311addd23d450ff60e36d83fb96","name":"Referee Whistle","dataFormat":"wav","format":"","rate":48000,"sampleCount":14267,"md5ext":"e675f311addd23d450ff60e36d83fb96.wav"}]},{"costumes":[{"assetId":"12df676719756c4d0050bc8123b7f9ad","name":"soph-default","bitmapResolution":2,"md5ext":"12df676719756c4d0050bc8123b7f9ad.png","dataFormat":"png","rotationCenterX":36,"rotationCenterY":100}],"sounds":[{"assetId":"1727f65b5f22d151685b8e5917456a60","name":"basketball bounce","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":8129,"md5ext":"1727f65b5f22d151685b8e5917456a60.wav"}]},{"costumes":[{"assetId":"ef5c17601d7d173495c7de6cc757a596","name":"Wizard1","bitmapResolution":2,"md5ext":"ef5c17601d7d173495c7de6cc757a596.png","dataFormat":"png","rotationCenterX":72,"rotationCenterY":72},{"assetId":"121f6941e1d9ceac168960e7b43ad4b1","name":"Wizard2","bitmapResolution":2,"md5ext":"121f6941e1d9ceac168960e7b43ad4b1.png","dataFormat":"png","rotationCenterX":80,"rotationCenterY":84}],"sounds":[{"assetId":"1727f65b5f22d151685b8e5917456a60","name":"basketball bounce","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":8129,"md5ext":"1727f65b5f22d151685b8e5917456a60.wav"}]},{"costumes":[{"assetId":"fff498b6add705de0cf11dc176b87219","name":"Truck-a","bitmapResolution":1,"md5ext":"fff498b6add705de0cf11dc176b87219.svg","dataFormat":"svg","rotationCenterX":174,"rotationCenterY":49},{"assetId":"a4a757dff6c5dc72b154d439b8403041","name":"Truck-b","bitmapResolution":1,"md5ext":"a4a757dff6c5dc72b154d439b8403041.svg","dataFormat":"svg","rotationCenterX":174,"rotationCenterY":58},{"assetId":"ce077e6db3573062017f94c2e4a8caea","name":"Truck-c","bitmapResolution":1,"md5ext":"ce077e6db3573062017f94c2e4a8caea.svg","dataFormat":"svg","rotationCenterX":173.67363114754104,"rotationCenterY":57.74000000000001},{"assetId":"10a62bacf94cef5ef4ea7372fc719589","name":"sprite6_0","bitmapResolution":2,"md5ext":"10a62bacf94cef5ef4ea7372fc719589.png","dataFormat":"png","rotationCenterX":258,"rotationCenterY":159}],"sounds":[{"assetId":"67aadcd28620ecdcdee2ad8eeebefa20","name":"toy honk","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":11177,"md5ext":"67aadcd28620ecdcdee2ad8eeebefa20.wav"},{"assetId":"f166adeb1ae3213f3951b267e5b7de22","name":"Engine","dataFormat":"wav","format":"","rate":48000,"sampleCount":97608,"md5ext":"f166adeb1ae3213f3951b267e5b7de22.wav"}]},{"costumes":[{"assetId":"814fd8eae9751c0fa3eb0efca47ef78c","name":"spr_rally_0","bitmapResolution":2,"md5ext":"814fd8eae9751c0fa3eb0efca47ef78c.png","dataFormat":"png","rotationCenterX":252,"rotationCenterY":81}],"sounds":[{"assetId":"ead1da4a87ff6cb53441142f7ac37b8f","name":"Car Vroom","dataFormat":"wav","rate":22050,"sampleCount":43689,"md5ext":"ead1da4a87ff6cb53441142f7ac37b8f.wav"},{"assetId":"1da43f6d52d0615da8a250e28100a80d","name":"computer beeps1","dataFormat":"wav","format":"","rate":48000,"sampleCount":83591,"md5ext":"1da43f6d52d0615da8a250e28100a80d.wav"},{"assetId":"28c76b6bebd04be1383fe9ba4933d263","name":"computer beeps2","dataFormat":"wav","format":"","rate":48000,"sampleCount":41517,"md5ext":"28c76b6bebd04be1383fe9ba4933d263.wav"}]}]}
+},{}],102:[function(require,module,exports){
+module.exports={"targets":[{"costumes":[{"assetId":"531a943ae6e8b7d9ea34641277495d6e","name":"Navajo and Mali Landscape","bitmapResolution":1,"md5ext":"531a943ae6e8b7d9ea34641277495d6e.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180},{"assetId":"bce115696f675f33f294c1a3a046999d","name":"stage1","bitmapResolution":1,"md5ext":"bce115696f675f33f294c1a3a046999d.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180},{"assetId":"6aa914e018b22b80afeb554e00605371","name":"stage2","bitmapResolution":2,"md5ext":"6aa914e018b22b80afeb554e00605371.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]},{"costumes":[{"assetId":"5c82649ac57f9afee84c2000bca488d3","name":"nativeAmericanFlute","bitmapResolution":2,"md5ext":"5c82649ac57f9afee84c2000bca488d3.png","dataFormat":"png","rotationCenterX":183,"rotationCenterY":82}],"sounds":[{"assetId":"0f0f24fc2b4e03758aa90109b7e3e305","name":"Navajo Flute","dataFormat":"wav","format":"","rate":48000,"sampleCount":525792,"md5ext":"0f0f24fc2b4e03758aa90109b7e3e305.wav"}]},{"costumes":[{"assetId":"be468a30068ed2d20eba3b7c846e01f9","name":"center","bitmapResolution":1,"md5ext":"be468a30068ed2d20eba3b7c846e01f9.svg","dataFormat":"svg","rotationCenterX":38,"rotationCenterY":89},{"assetId":"e3dbd1ca8d3930596eebdb085f39cda0","name":"left","bitmapResolution":1,"md5ext":"e3dbd1ca8d3930596eebdb085f39cda0.svg","dataFormat":"svg","rotationCenterX":38,"rotationCenterY":88},{"assetId":"74e08f63bab1c64492bfa74fb0623151","name":"center2","bitmapResolution":1,"md5ext":"74e08f63bab1c64492bfa74fb0623151.svg","dataFormat":"svg","rotationCenterX":37,"rotationCenterY":88},{"assetId":"93f5413f632b3c468399cd6a079465d2","name":"right","bitmapResolution":1,"md5ext":"93f5413f632b3c468399cd6a079465d2.svg","dataFormat":"svg","rotationCenterX":38,"rotationCenterY":89}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]},{"costumes":[{"assetId":"4002dacaac89b9c133d9510b966b55e3","name":"AfricanDrum","bitmapResolution":2,"md5ext":"4002dacaac89b9c133d9510b966b55e3.png","dataFormat":"png","rotationCenterX":95,"rotationCenterY":133}],"sounds":[{"assetId":"b6e43d1f6ac8d8f082c171f20c2612cb","name":"djembe","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":176785,"md5ext":"b6e43d1f6ac8d8f082c171f20c2612cb.wav"}]},{"costumes":[{"assetId":"7aed63bae8d366377e1b1ac7c534763c","name":"center","bitmapResolution":1,"md5ext":"7aed63bae8d366377e1b1ac7c534763c.svg","dataFormat":"svg","rotationCenterX":34,"rotationCenterY":84},{"assetId":"980d68ab932bfd08a77d6d1966d90539","name":"left","bitmapResolution":1,"md5ext":"980d68ab932bfd08a77d6d1966d90539.svg","dataFormat":"svg","rotationCenterX":59,"rotationCenterY":86},{"assetId":"f93976ee08897d366808878ac5b442b7","name":"center2","bitmapResolution":1,"md5ext":"f93976ee08897d366808878ac5b442b7.svg","dataFormat":"svg","rotationCenterX":37,"rotationCenterY":80},{"assetId":"de518bbf2bb8fbab0337e28ae0458c62","name":"right","bitmapResolution":1,"md5ext":"de518bbf2bb8fbab0337e28ae0458c62.svg","dataFormat":"svg","rotationCenterX":38,"rotationCenterY":86}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]},{"costumes":[{"assetId":"c2a9db148ab274e928edb961922d1604","name":"costume1","bitmapResolution":1,"md5ext":"c2a9db148ab274e928edb961922d1604.svg","dataFormat":"svg","rotationCenterX":79.5,"rotationCenterY":13.505882352941114}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]}]}
+},{}],103:[function(require,module,exports){
+module.exports={
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {
+                "wgLG58a9+UrEw._Vj_W[-broadcast message-": [
+                    "broadcast message",
+                    "stop"
+                ],
+                "wgLG58a9+UrEw._Vj_W[-add to band-": [
+                    "add to band",
+                    "sax"
+                ]
+            },
+            "lists": {},
+            "broadcasts": {
+                "%+S{0U,_K??cQwCHF{ZO": "Bone flute"
+            },
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 4,
+            "costumes": [
+                {
+                    "name": "stage1",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "4323fad2add9c58d835a3f4460eebb10",
+                    "md5ext": "4323fad2add9c58d835a3f4460eebb10.svg",
+                    "rotationCenterX": 240,
+                    "rotationCenterY": 180
+                },
+                {
+                    "name": "stage2",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "6aa914e018b22b80afeb554e00605371",
+                    "md5ext": "6aa914e018b22b80afeb554e00605371.png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                },
+                {
+                    "name": "IMG_0878",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "91d3f5ec08df35626619b5716294aeb2",
+                    "md5ext": "91d3f5ec08df35626619b5716294aeb2.svg",
+                    "rotationCenterX": 240,
+                    "rotationCenterY": 180
+                },
+                {
+                    "name": "Flower_festival",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "69d2f045dfe9d46cf9e1053b2e02894c",
+                    "md5ext": "69d2f045dfe9d46cf9e1053b2e02894c.png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                },
+                {
+                    "name": "Flower_festival_10x",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "eacf0eb57b51c66d387c5e89f39fe8eb",
+                    "md5ext": "eacf0eb57b51c66d387c5e89f39fe8eb.png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "pop",
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 1124,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 40,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Bone_Flute",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "w)X.8SgeGc)@!!/Hkxyp": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "x6}.?3v(+Y19wijRd*ZK",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 210,
+                    "y": -284
+                },
+                "x6}.?3v(+Y19wijRd*ZK": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": null,
+                    "parent": "w)X.8SgeGc)@!!/Hkxyp",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "87McF%W3=)E0ihk1F}O?"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "87McF%W3=)E0ihk1F}O?": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "x6}.?3v(+Y19wijRd*ZK",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "Bone_Flute",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "j/l58Rd$L~E5RiC2BQzA": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": ")j)`+,Yqx.WDA9#Q5fP0",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 212,
+                    "y": -88
+                },
+                ")j)`+,Yqx.WDA9#Q5fP0": {
+                    "opcode": "event_broadcast",
+                    "next": ",4Fp/o:v9nInF)SejSWt",
+                    "parent": "j/l58Rd$L~E5RiC2BQzA",
+                    "inputs": {
+                        "BROADCAST_INPUT": [
+                            1,
+                            [
+                                11,
+                                "Bone flute",
+                                "%+S{0U,_K??cQwCHF{ZO"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ",4Fp/o:v9nInF)SejSWt": {
+                    "opcode": "sound_play",
+                    "next": "KQ?gd^O=vQ=3t5m!L![q",
+                    "parent": ")j)`+,Yqx.WDA9#Q5fP0",
+                    "inputs": {
+                        "SOUND_MENU": [
+                            1,
+                            "{U@{fqh;a)EhCO`!Ea-1"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "{U@{fqh;a)EhCO`!Ea-1": {
+                    "opcode": "sound_sounds_menu",
+                    "next": null,
+                    "parent": ",4Fp/o:v9nInF)SejSWt",
+                    "inputs": {},
+                    "fields": {
+                        "SOUND_MENU": [
+                            "Bone flute",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "KQ?gd^O=vQ=3t5m!L![q": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": "@n/bcq;KYVn[22{9/Xb4",
+                    "parent": ",4Fp/o:v9nInF)SejSWt",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "x6x*svVY.{;SPB:|k[-#"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "x6x*svVY.{;SPB:|k[-#": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "KQ?gd^O=vQ=3t5m!L![q",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "Bone_Flute_music",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "@n/bcq;KYVn[22{9/Xb4": {
+                    "opcode": "control_wait",
+                    "next": "T,p6$Td(bN2]sRurB=K,",
+                    "parent": "KQ?gd^O=vQ=3t5m!L![q",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                "11"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "T,p6$Td(bN2]sRurB=K,": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": null,
+                    "parent": "@n/bcq;KYVn[22{9/Xb4",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "U($*.wlCA)~GM@Cxu#oh"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "U($*.wlCA)~GM@Cxu#oh": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "T,p6$Td(bN2]sRurB=K,",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "Bone_Flute",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Bone_Flute",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "8315b2cf8ad62ca3c8944839265b94ff",
+                    "md5ext": "8315b2cf8ad62ca3c8944839265b94ff.png",
+                    "rotationCenterX": 48,
+                    "rotationCenterY": 48
+                },
+                {
+                    "name": "Bone_Flute_music",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "b7cf3a38ec7c9d59e30f6fff9ecc823c",
+                    "md5ext": "b7cf3a38ec7c9d59e30f6fff9ecc823c.svg",
+                    "rotationCenterX": 31.96943211064493,
+                    "rotationCenterY": 35.08728695754783
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "Bone flute",
+                    "assetId": "6e6efd14e70ecdf044d490e14d39913c",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 504275,
+                    "md5ext": "6e6efd14e70ecdf044d490e14d39913c.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": -111,
+            "y": -86,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Penny",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "ln$xu;O6SxHA0t8,A~f0": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "Bg7.d5c4pg|0eQH)F@3i",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 119,
+                    "y": -244
+                },
+                "Bg7.d5c4pg|0eQH)F@3i": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "ln$xu;O6SxHA0t8,A~f0",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Welcome to the Flower Festival!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "_v^TW:EpzA(8?6l5UG}7": {
+                    "opcode": "event_whenbroadcastreceived",
+                    "next": "y*0VV7GtccsTHm0z0KO!",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "BROADCAST_OPTION": [
+                            "Bone flute",
+                            "%+S{0U,_K??cQwCHF{ZO"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 113,
+                    "y": -23
+                },
+                "y*0VV7GtccsTHm0z0KO!": {
+                    "opcode": "control_repeat",
+                    "next": null,
+                    "parent": "_v^TW:EpzA(8?6l5UG}7",
+                    "inputs": {
+                        "TIMES": [
+                            1,
+                            [
+                                6,
+                                "22"
+                            ]
+                        ],
+                        "SUBSTACK": [
+                            2,
+                            "@n^;XBt]:)OxgH/udw-m"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "@n^;XBt]:)OxgH/udw-m": {
+                    "opcode": "looks_nextcostume",
+                    "next": "HS6qn3Mt7^I)h7]G1R4=",
+                    "parent": "y*0VV7GtccsTHm0z0KO!",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "HS6qn3Mt7^I)h7]G1R4=": {
+                    "opcode": "control_wait",
+                    "next": null,
+                    "parent": "@n^;XBt]:)OxgH/udw-m",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                "0.5"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Penny3",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "a65d9f8b52cd5f663fef0ccde308c74a",
+                    "md5ext": "a65d9f8b52cd5f663fef0ccde308c74a.png",
+                    "rotationCenterX": 50,
+                    "rotationCenterY": 87
+                },
+                {
+                    "name": "penny3",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "c3f6140ebd56a33a73121dcf8e7c6171",
+                    "md5ext": "c3f6140ebd56a33a73121dcf8e7c6171.png",
+                    "rotationCenterX": 52,
+                    "rotationCenterY": 88
+                },
+                {
+                    "name": "penny2",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "cf22d3d97bb5235bf0aa0a0a6e89c8d0",
+                    "md5ext": "cf22d3d97bb5235bf0aa0a0a6e89c8d0.png",
+                    "rotationCenterX": 49,
+                    "rotationCenterY": 84
+                },
+                {
+                    "name": "penny4",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "255d486547dfe3266bccfb6decf7014f",
+                    "md5ext": "255d486547dfe3266bccfb6decf7014f.png",
+                    "rotationCenterX": 48,
+                    "rotationCenterY": 78
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": -119,
+            "y": 9,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Flute_Block",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "4D^NfpPUtRZF+dCYN;-s": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "h3MjFb{dO6J8FE;_t%63",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 99,
+                    "y": -293
+                },
+                "h3MjFb{dO6J8FE;_t%63": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": null,
+                    "parent": "4D^NfpPUtRZF+dCYN;-s",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "~|tWlEw%-=kn1LAho-lN"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "~|tWlEw%-=kn1LAho-lN": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "h3MjFb{dO6J8FE;_t%63",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "Flute_Block",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Flute_Block",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "1db660bddf3b43270f8ad8254ed60d04",
+                    "md5ext": "1db660bddf3b43270f8ad8254ed60d04.svg",
+                    "rotationCenterX": 21,
+                    "rotationCenterY": 22.5
+                },
+                {
+                    "name": "Flute_Block_music",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "c4e10a56b0e0094933db231dce0079cb",
+                    "md5ext": "c4e10a56b0e0094933db231dce0079cb.svg",
+                    "rotationCenterX": 24.14065999999997,
+                    "rotationCenterY": 34.095225
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "Flute Block",
+                    "assetId": "907114c7fc355f1bda20206b25e98efd",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 455612,
+                    "md5ext": "907114c7fc355f1bda20206b25e98efd.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": 106.76466645922592,
+            "y": -89.82351439331077,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Abigael",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "x3dms{+gHeb1D!C3{SNg": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "7J#,sc!7E)CsAh;*f+ss",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 9,
+                    "y": -555
+                },
+                "7J#,sc!7E)CsAh;*f+ss": {
+                    "opcode": "motion_gotoxy",
+                    "next": null,
+                    "parent": "x3dms{+gHeb1D!C3{SNg",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "110"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "9"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Abigail1",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "349135d060570de4588abd5047841b8e",
+                    "md5ext": "349135d060570de4588abd5047841b8e.png",
+                    "rotationCenterX": 45,
+                    "rotationCenterY": 91
+                },
+                {
+                    "name": "Abigail2",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "03e580006eda09de79849851d3f4c1d4",
+                    "md5ext": "03e580006eda09de79849851d3f4c1d4.png",
+                    "rotationCenterX": 51,
+                    "rotationCenterY": 86
+                },
+                {
+                    "name": "Abigail4",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "349135d060570de4588abd5047841b8e",
+                    "md5ext": "349135d060570de4588abd5047841b8e.png",
+                    "rotationCenterX": 45,
+                    "rotationCenterY": 91
+                },
+                {
+                    "name": "Abigail3",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "5d3868f40725af7627e69ce40b0483e6",
+                    "md5ext": "5d3868f40725af7627e69ce40b0483e6.png",
+                    "rotationCenterX": 43,
+                    "rotationCenterY": 85
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 4,
+            "visible": true,
+            "x": 110,
+            "y": 9,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [
+        {
+            "id": "wgLG58a9+UrEw._Vj_W[-broadcast message-",
+            "mode": "default",
+            "opcode": "data_variable",
+            "params": {
+                "VARIABLE": "broadcast message"
+            },
+            "spriteName": null,
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 5,
+            "y": 5,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        },
+        {
+            "id": "wgLG58a9+UrEw._Vj_W[-add to band-",
+            "mode": "default",
+            "opcode": "data_variable",
+            "params": {
+                "VARIABLE": "add to band"
+            },
+            "spriteName": null,
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 5,
+            "y": 32,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        }
+    ],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "13.7.2",
+        "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:150.0) Gecko/20100101 Firefox/150.0"
+    }
+}
+},{}],104:[function(require,module,exports){
+module.exports={"targets":[{"costumes":[{"assetId":"4c2de8d082841594436e381c5212ae04","name":"webpage","bitmapResolution":1,"md5ext":"4c2de8d082841594436e381c5212ae04.svg","dataFormat":"svg","rotationCenterX":240,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]},{"costumes":[{"assetId":"af1c69446ae4d5463dd5855204b69c33","name":"Button1","bitmapResolution":1,"md5ext":"af1c69446ae4d5463dd5855204b69c33.svg","dataFormat":"svg","rotationCenterX":42.625,"rotationCenterY":43.367999999999995},{"assetId":"20d1b7cfb8af836a54fb4ba0519eff3a","name":"Button2","bitmapResolution":1,"md5ext":"20d1b7cfb8af836a54fb4ba0519eff3a.svg","dataFormat":"svg","rotationCenterX":42.625,"rotationCenterY":43.367999999999995}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]},{"costumes":[{"assetId":"da8898468494ef7bf814d1f33bf28894","name":"ezgif-4-eedd4165d67b (3)3","bitmapResolution":2,"md5ext":"da8898468494ef7bf814d1f33bf28894.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"f617c46dc6b7863309ca1cf2c823c8f9","name":"ezgif-4-eedd4165d67b (3)2","bitmapResolution":2,"md5ext":"f617c46dc6b7863309ca1cf2c823c8f9.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"0ae671ea903b6ce592a37d5857950be6","name":"ezgif-4-eedd4165d67b (3)","bitmapResolution":2,"md5ext":"0ae671ea903b6ce592a37d5857950be6.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"848328445ad15fc023fa840585c6f52c","name":"ezgif-4-eedd4165d67b (3)4","bitmapResolution":2,"md5ext":"848328445ad15fc023fa840585c6f52c.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"acebd72c92c2fe47e55443cd0c2fb247","name":"ezgif-4-eedd4165d67b (3)6","bitmapResolution":2,"md5ext":"acebd72c92c2fe47e55443cd0c2fb247.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"10f5dcd0e150f52617e603d105b76b84","name":"ezgif-4-eedd4165d67b (3)7","bitmapResolution":2,"md5ext":"10f5dcd0e150f52617e603d105b76b84.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"bc1e776fb0765c9ce53dd909c04f60e4","name":"ezgif-4-eedd4165d67b (3)9","bitmapResolution":2,"md5ext":"bc1e776fb0765c9ce53dd909c04f60e4.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"792ee6cd74b591468f185197470d96a4","name":"ezgif-4-eedd4165d67b (3)10","bitmapResolution":2,"md5ext":"792ee6cd74b591468f185197470d96a4.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"2dbb6dbe05239634b1ba2c3a36fcf030","name":"ezgif-4-eedd4165d67b (3)11","bitmapResolution":2,"md5ext":"2dbb6dbe05239634b1ba2c3a36fcf030.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"f4769059acd3731124a66139434e6156","name":"ezgif-4-eedd4165d67b (3)12","bitmapResolution":2,"md5ext":"f4769059acd3731124a66139434e6156.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"3071c1c1cfe62f6a2a70d8eb919df44e","name":"ezgif-4-eedd4165d67b (3)14","bitmapResolution":2,"md5ext":"3071c1c1cfe62f6a2a70d8eb919df44e.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"373c46272176649ce96d2bd60ffdbac9","name":"ezgif-4-eedd4165d67b (3)16","bitmapResolution":2,"md5ext":"373c46272176649ce96d2bd60ffdbac9.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"712ff6d6ec4e6120565b18e761f8bdc6","name":"ezgif-4-eedd4165d67b (3)18","bitmapResolution":2,"md5ext":"712ff6d6ec4e6120565b18e761f8bdc6.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"e31f67f6d28a44d830f8ff5d92c7c333","name":"ezgif-4-eedd4165d67b (3)17","bitmapResolution":2,"md5ext":"e31f67f6d28a44d830f8ff5d92c7c333.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270},{"assetId":"6f86ba931b5ac778433439daedba7921","name":"ezgif-4-eedd4165d67b (3)19","bitmapResolution":2,"md5ext":"6f86ba931b5ac778433439daedba7921.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":270}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]},{"costumes":[{"assetId":"b701e707a7fd85c62bd7910248fac43e","name":"Button3-b","bitmapResolution":1,"md5ext":"b701e707a7fd85c62bd7910248fac43e.svg","dataFormat":"svg","rotationCenterX":44.83099999999999,"rotationCenterY":31.180000000000007},{"assetId":"bdd57f79a31e0fff73a3454f743b4d83","name":"Button3-a","bitmapResolution":1,"md5ext":"bdd57f79a31e0fff73a3454f743b4d83.svg","dataFormat":"svg","rotationCenterX":44.83099999999999,"rotationCenterY":31.180000000000007}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]},{"costumes":[{"assetId":"0e1694bca8368b04a7ce59035a101351","name":"PBClara","bitmapResolution":2,"md5ext":"0e1694bca8368b04a7ce59035a101351.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"565873fc0a4bfacf81ea7135a0ebc082","name":"PBClara2","bitmapResolution":2,"md5ext":"565873fc0a4bfacf81ea7135a0ebc082.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"dc6f8a6bad1013723661ddb1a45c6b77","name":"PBClara3","bitmapResolution":2,"md5ext":"dc6f8a6bad1013723661ddb1a45c6b77.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"4e59346116d7ec85693391bcfef3612f","name":"PBClara4","bitmapResolution":2,"md5ext":"4e59346116d7ec85693391bcfef3612f.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"ad0a38597ba77b920093b899ad2b2481","name":"PBClara5","bitmapResolution":2,"md5ext":"ad0a38597ba77b920093b899ad2b2481.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"6a86db9adc2cbbff20e0d3460ad22fbe","name":"PBClara6","bitmapResolution":2,"md5ext":"6a86db9adc2cbbff20e0d3460ad22fbe.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"ffe2dc1d63d2719b07a3569a9758674a","name":"PBClara7","bitmapResolution":2,"md5ext":"ffe2dc1d63d2719b07a3569a9758674a.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"78f2c8cf19e87de3a3ffafc6562e321b","name":"PBClara8","bitmapResolution":2,"md5ext":"78f2c8cf19e87de3a3ffafc6562e321b.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"da92e68486039420ab2df96aacd19240","name":"PBClara9","bitmapResolution":2,"md5ext":"da92e68486039420ab2df96aacd19240.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"ab407e1649fec8bd3a6cbabda0016b37","name":"PBClara10","bitmapResolution":2,"md5ext":"ab407e1649fec8bd3a6cbabda0016b37.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"6260795eff075efce011bb2a3520069d","name":"PBClara11","bitmapResolution":2,"md5ext":"6260795eff075efce011bb2a3520069d.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"505f00d755f332a792d168f0a239039d","name":"PBClara12","bitmapResolution":2,"md5ext":"505f00d755f332a792d168f0a239039d.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"4c6727151d3755fe528586e8c10ce8ad","name":"PBClara13","bitmapResolution":2,"md5ext":"4c6727151d3755fe528586e8c10ce8ad.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"90e54fdd2d93c05d46a2eee959e47d18","name":"PBClara15","bitmapResolution":2,"md5ext":"90e54fdd2d93c05d46a2eee959e47d18.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"ba7710ce6d0cc85edda0cd1bbcc672a1","name":"PBClara14","bitmapResolution":2,"md5ext":"ba7710ce6d0cc85edda0cd1bbcc672a1.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"f26356e62fdedf65ac180b9bd3a29b05","name":"PBClara16","bitmapResolution":2,"md5ext":"f26356e62fdedf65ac180b9bd3a29b05.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"66daae8144492bb4bd86268e56c99a43","name":"PBClara17","bitmapResolution":2,"md5ext":"66daae8144492bb4bd86268e56c99a43.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"8629610701b24b9b0e04385c51d9b481","name":"PBClara18","bitmapResolution":2,"md5ext":"8629610701b24b9b0e04385c51d9b481.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"46af59e48f2e6925f3adb3db2c541dc6","name":"PBClara19","bitmapResolution":2,"md5ext":"46af59e48f2e6925f3adb3db2c541dc6.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180},{"assetId":"d52f16bf1cb1119708c7a1b5e460fda4","name":"PBClara20","bitmapResolution":2,"md5ext":"d52f16bf1cb1119708c7a1b5e460fda4.png","dataFormat":"png","rotationCenterX":320,"rotationCenterY":180}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}]}]}
+},{}],105:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -12706,7 +15141,7 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
     }
 }
-},{}],102:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -13618,7 +16053,7 @@ module.exports={
         "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"
     }
 }
-},{}],103:[function(require,module,exports){
+},{}],107:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -14337,9 +16772,9 @@ module.exports={
         "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:149.0) Gecko/20100101 Firefox/149.0"
     }
 }
-},{}],104:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
 module.exports={"targets":[{"isStage":true,"name":"Stage","variables":{},"lists":{},"broadcasts":{},"blocks":{},"comments":{},"currentCostume":0,"costumes":[{"assetId":"7b59e3c3cd3ec7a9ff1499ae7ad0f79a","name":"hand in hallway iphone w: name","bitmapResolution":2,"md5ext":"7b59e3c3cd3ec7a9ff1499ae7ad0f79a.png","dataFormat":"png","rotationCenterX":480,"rotationCenterY":360}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":0,"tempo":60,"videoTransparency":50,"videoState":"off","textToSpeechLanguage":null},{"isStage":false,"name":"Basketball","variables":{},"lists":{},"broadcasts":{},"blocks":{"Xv-Endey!BbY..-VD:)]":{"opcode":"event_whenflagclicked","next":"FG(H`DtDM]NB}C!M}x:j","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"FG(H`DtDM]NB}C!M}x:j":{"opcode":"sound_play","next":"I1KeKKubTFU?QWq7}Myu","parent":"Xv-Endey!BbY..-VD:)]","inputs":{"SOUND_MENU":[1,"`V#`75q{.O)!E0x*eNge"]},"fields":{},"shadow":false,"topLevel":false},"`V#`75q{.O)!E0x*eNge":{"opcode":"sound_sounds_menu","next":null,"parent":"FG(H`DtDM]NB}C!M}x:j","inputs":{},"fields":{"SOUND_MENU":["boing"]},"shadow":true,"topLevel":false},"I1KeKKubTFU?QWq7}Myu":{"opcode":"looks_thinkforsecs","next":"IfHnM9X)N2O%SYxhh?+r","parent":"FG(H`DtDM]NB}C!M}x:j","inputs":{"MESSAGE":[1,[10,"Hey!"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false},"IfHnM9X)N2O%SYxhh?+r":{"opcode":"control_wait","next":null,"parent":"I1KeKKubTFU?QWq7}Myu","inputs":{"DURATION":[1,[5,2]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{"gV6Y}?gnF~}viknGKJxZ":{"blockId":null,"x":444,"y":39.6,"width":261,"height":325.6,"minimized":false,"text":"Add two more lines of text to the conversation - one for each sprite. \r\rBe sure to use wait blocks to synchronize the conversation! "}},"currentCostume":0,"costumes":[{"assetId":"c5e41b7b0c37fa47d850e58e13f2c2c6","name":"basketball","bitmapResolution":1,"md5ext":"c5e41b7b0c37fa47d850e58e13f2c2c6.svg","dataFormat":"svg","rotationCenterX":36,"rotationCenterY":-17}],"sounds":[{"assetId":"53a3c2e27d1fb5fdb14aaf0cb41e7889","name":"boing","dataFormat":"wav","format":"adpcm","rate":22050,"sampleCount":7113,"md5ext":"53a3c2e27d1fb5fdb14aaf0cb41e7889.wav"}],"volume":100,"layerOrder":1,"visible":true,"x":16,"y":55,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"},{"isStage":false,"name":"Rainbow","variables":{},"lists":{},"broadcasts":{},"blocks":{"h%]_u4BasZFDtgMhl5UB":{"opcode":"event_whenflagclicked","next":"+;%OI3%-II/qzQh8QC8T","parent":null,"inputs":{},"fields":{},"shadow":false,"topLevel":true,"x":15,"y":22},"+;%OI3%-II/qzQh8QC8T":{"opcode":"control_wait","next":"slNuul3C|C,sDMI2jvR?","parent":"h%]_u4BasZFDtgMhl5UB","inputs":{"DURATION":[1,[5,2]]},"fields":{},"shadow":false,"topLevel":false},"slNuul3C|C,sDMI2jvR?":{"opcode":"sound_play","next":"Zu0dPVz+a,tNFA.pGF0E","parent":"+;%OI3%-II/qzQh8QC8T","inputs":{"SOUND_MENU":[1,"{:pWe[3-+.foJQ_Uy|5D"]},"fields":{},"shadow":false,"topLevel":false},"{:pWe[3-+.foJQ_Uy|5D":{"opcode":"sound_sounds_menu","next":null,"parent":"slNuul3C|C,sDMI2jvR?","inputs":{},"fields":{"SOUND_MENU":["pop"]},"shadow":true,"topLevel":false},"Zu0dPVz+a,tNFA.pGF0E":{"opcode":"looks_thinkforsecs","next":null,"parent":"slNuul3C|C,sDMI2jvR?","inputs":{"MESSAGE":[1,[10,"How r u?"]],"SECS":[1,[4,2]]},"fields":{},"shadow":false,"topLevel":false}},"comments":{},"currentCostume":0,"costumes":[{"assetId":"4b5e631517784303a68b1be661a25e5d","name":"rainbow","bitmapResolution":1,"md5ext":"4b5e631517784303a68b1be661a25e5d.svg","dataFormat":"svg","rotationCenterX":72,"rotationCenterY":-24}],"sounds":[{"assetId":"83a9787d4cb6f3b7632b4ddfebf74367","name":"pop","dataFormat":"wav","format":"","rate":48000,"sampleCount":1123,"md5ext":"83a9787d4cb6f3b7632b4ddfebf74367.wav"}],"volume":100,"layerOrder":2,"visible":true,"x":52,"y":-51,"size":100,"direction":90,"draggable":false,"rotationStyle":"all around"}],"monitors":[],"extensions":[],"meta":{"semver":"3.0.0","vm":"0.2.0-prerelease.20190918022946","agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36"}}
-},{}],105:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 module.exports={
     "targets": [
         {
@@ -14641,9 +17076,9 @@ module.exports={
         "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36"
     }
 }
-},{}],106:[function(require,module,exports){
-arguments[4][104][0].apply(exports,arguments)
-},{"dup":104}],107:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
+arguments[4][108][0].apply(exports,arguments)
+},{"dup":108}],111:[function(require,module,exports){
 require('./grader');
 require('./scratch3');
 
@@ -14738,7 +17173,7 @@ module.exports = class GradeTwoWaySyncL1 extends Grader {
     }
 }
 
-},{"./grader":78,"./scratch3":84,"./templates/two-way-sync-L1-gaming":104,"./templates/two-way-sync-L1-multicultural":105,"./templates/two-way-sync-L1-youth-culture":106}],108:[function(require,module,exports){
+},{"./grader":78,"./scratch3":84,"./templates/two-way-sync-L1-gaming":108,"./templates/two-way-sync-L1-multicultural":109,"./templates/two-way-sync-L1-youth-culture":110}],112:[function(require,module,exports){
 /// Provides necessary scripts for HTML indices.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -15360,4 +17795,4 @@ function noError() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-},{"./act1-grading-scripts/aboutMe":58,"./act1-grading-scripts/animal-parade":59,"./act1-grading-scripts/dance-party":60,"./act1-grading-scripts/final-project":61,"./act1-grading-scripts/knockKnock":62,"./act1-grading-scripts/name-poem":63,"./act1-grading-scripts/ofrenda":64,"./act1-grading-scripts/onTheFarm":65,"./act1-grading-scripts/scavengerHunt":67,"./grading-scripts-s3/animation-L1":68,"./grading-scripts-s3/animation-L2":69,"./grading-scripts-s3/complex-conditionals-L1":70,"./grading-scripts-s3/cond-loops-L1-syn":71,"./grading-scripts-s3/cond-loops-L2":72,"./grading-scripts-s3/decomp-L1":74,"./grading-scripts-s3/decomp-L2":75,"./grading-scripts-s3/events-L1-syn":76,"./grading-scripts-s3/events-L2":77,"./grading-scripts-s3/one-way-sync-L1":79,"./grading-scripts-s3/one-way-sync-L2":80,"./grading-scripts-s3/rubrics.json":81,"./grading-scripts-s3/scratch-basics-L1":82,"./grading-scripts-s3/scratch-basics-L2":83,"./grading-scripts-s3/two-way-sync-L1":107}]},{},[108]);
+},{"./act1-grading-scripts/aboutMe":58,"./act1-grading-scripts/animal-parade":59,"./act1-grading-scripts/dance-party":60,"./act1-grading-scripts/final-project":61,"./act1-grading-scripts/knockKnock":62,"./act1-grading-scripts/name-poem":63,"./act1-grading-scripts/ofrenda":64,"./act1-grading-scripts/onTheFarm":65,"./act1-grading-scripts/scavengerHunt":67,"./grading-scripts-s3/animation-L1":68,"./grading-scripts-s3/animation-L2":69,"./grading-scripts-s3/complex-conditionals-L1":70,"./grading-scripts-s3/cond-loops-L1-syn":71,"./grading-scripts-s3/cond-loops-L2":72,"./grading-scripts-s3/decomp-L1":74,"./grading-scripts-s3/decomp-L2":75,"./grading-scripts-s3/events-L1-syn":76,"./grading-scripts-s3/events-L2":77,"./grading-scripts-s3/one-way-sync-L1":79,"./grading-scripts-s3/one-way-sync-L2":80,"./grading-scripts-s3/rubrics.json":81,"./grading-scripts-s3/scratch-basics-L1":82,"./grading-scripts-s3/scratch-basics-L2":83,"./grading-scripts-s3/two-way-sync-L1":111}]},{},[112]);

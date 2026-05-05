@@ -25,14 +25,14 @@ module.exports = class {
         let racingSprites = this.strand.spriteNames.slice(0, 2).join(' and ');
 
         this.requirements = {
-            handlesDownArrow: {bool: false, str: 'Both ' + racingSprites + ' have an event block for the down arrow.'},
-            downArrowCostumeChange: {bool: false, str: 'Both ' + racingSprites + ' switch costumes on the down arrow.'},
-            downArrowWaitBlock: {bool: false, str: 'Both ' + racingSprites + ' have a wait block on down arrow.'},
-            bugFixed: {bool: false, str: 'Bug fixed: both ' + racingSprites + ' finish the race when the space bar is pressed.'}
+            handlesDownArrow: {bool: false, str: 'Both sprites have an event block for the down arrow.'},
+            downArrowCostumeChange: {bool: false, str: 'Both sprites switch costumes on the down arrow.'},
+            downArrowWaitBlock: {bool: false, str: 'Both sprites have a wait block on down arrow.'},
+            bugFixed: {bool: false, str: 'Bug fixed: both sprites finish the race when the space bar is pressed.'}
         };
         this.extensions = {
             winnerCelebrates: {bool: false, str: 'The race has a winner and they celebrate.'},
-            showFourthSprite: {bool: false, str: this.strand.spriteNames[2] + ' (and the 3 other sprites) are shown and animated.'},
+            showFourthSprite: {bool: false, str: '4 sprites are shown and animated.'},
             animateNewSprite: {bool: false, str: 'A 5th sprite is added from the Scratch library and animated.'}
         };
 

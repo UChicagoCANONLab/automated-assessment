@@ -1,0 +1,694 @@
+{
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {
+                "wgLG58a9+UrEw._Vj_W[-broadcast message-": [
+                    "broadcast message",
+                    "stop"
+                ],
+                "wgLG58a9+UrEw._Vj_W[-add to band-": [
+                    "add to band",
+                    "sax"
+                ]
+            },
+            "lists": {},
+            "broadcasts": {
+                "%+S{0U,_K??cQwCHF{ZO": "Bone flute"
+            },
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 4,
+            "costumes": [
+                {
+                    "name": "stage1",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "4323fad2add9c58d835a3f4460eebb10",
+                    "md5ext": "4323fad2add9c58d835a3f4460eebb10.svg",
+                    "rotationCenterX": 240,
+                    "rotationCenterY": 180
+                },
+                {
+                    "name": "stage2",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "6aa914e018b22b80afeb554e00605371",
+                    "md5ext": "6aa914e018b22b80afeb554e00605371.png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                },
+                {
+                    "name": "IMG_0878",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "91d3f5ec08df35626619b5716294aeb2",
+                    "md5ext": "91d3f5ec08df35626619b5716294aeb2.svg",
+                    "rotationCenterX": 240,
+                    "rotationCenterY": 180
+                },
+                {
+                    "name": "Flower_festival",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "69d2f045dfe9d46cf9e1053b2e02894c",
+                    "md5ext": "69d2f045dfe9d46cf9e1053b2e02894c.png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                },
+                {
+                    "name": "Flower_festival_10x",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "eacf0eb57b51c66d387c5e89f39fe8eb",
+                    "md5ext": "eacf0eb57b51c66d387c5e89f39fe8eb.png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 360
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "pop",
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 1124,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 40,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Bone_Flute",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "w)X.8SgeGc)@!!/Hkxyp": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "x6}.?3v(+Y19wijRd*ZK",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 210,
+                    "y": -284
+                },
+                "x6}.?3v(+Y19wijRd*ZK": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": null,
+                    "parent": "w)X.8SgeGc)@!!/Hkxyp",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "87McF%W3=)E0ihk1F}O?"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "87McF%W3=)E0ihk1F}O?": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "x6}.?3v(+Y19wijRd*ZK",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "Bone_Flute",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "j/l58Rd$L~E5RiC2BQzA": {
+                    "opcode": "event_whenthisspriteclicked",
+                    "next": ")j)`+,Yqx.WDA9#Q5fP0",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 212,
+                    "y": -88
+                },
+                ")j)`+,Yqx.WDA9#Q5fP0": {
+                    "opcode": "event_broadcast",
+                    "next": ",4Fp/o:v9nInF)SejSWt",
+                    "parent": "j/l58Rd$L~E5RiC2BQzA",
+                    "inputs": {
+                        "BROADCAST_INPUT": [
+                            1,
+                            [
+                                11,
+                                "Bone flute",
+                                "%+S{0U,_K??cQwCHF{ZO"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ",4Fp/o:v9nInF)SejSWt": {
+                    "opcode": "sound_play",
+                    "next": "KQ?gd^O=vQ=3t5m!L![q",
+                    "parent": ")j)`+,Yqx.WDA9#Q5fP0",
+                    "inputs": {
+                        "SOUND_MENU": [
+                            1,
+                            "{U@{fqh;a)EhCO`!Ea-1"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "{U@{fqh;a)EhCO`!Ea-1": {
+                    "opcode": "sound_sounds_menu",
+                    "next": null,
+                    "parent": ",4Fp/o:v9nInF)SejSWt",
+                    "inputs": {},
+                    "fields": {
+                        "SOUND_MENU": [
+                            "Bone flute",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "KQ?gd^O=vQ=3t5m!L![q": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": "@n/bcq;KYVn[22{9/Xb4",
+                    "parent": ",4Fp/o:v9nInF)SejSWt",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "x6x*svVY.{;SPB:|k[-#"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "x6x*svVY.{;SPB:|k[-#": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "KQ?gd^O=vQ=3t5m!L![q",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "Bone_Flute_music",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "@n/bcq;KYVn[22{9/Xb4": {
+                    "opcode": "control_wait",
+                    "next": "T,p6$Td(bN2]sRurB=K,",
+                    "parent": "KQ?gd^O=vQ=3t5m!L![q",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                "11"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "T,p6$Td(bN2]sRurB=K,": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": null,
+                    "parent": "@n/bcq;KYVn[22{9/Xb4",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "U($*.wlCA)~GM@Cxu#oh"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "U($*.wlCA)~GM@Cxu#oh": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "T,p6$Td(bN2]sRurB=K,",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "Bone_Flute",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Bone_Flute",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "8315b2cf8ad62ca3c8944839265b94ff",
+                    "md5ext": "8315b2cf8ad62ca3c8944839265b94ff.png",
+                    "rotationCenterX": 48,
+                    "rotationCenterY": 48
+                },
+                {
+                    "name": "Bone_Flute_music",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "b7cf3a38ec7c9d59e30f6fff9ecc823c",
+                    "md5ext": "b7cf3a38ec7c9d59e30f6fff9ecc823c.svg",
+                    "rotationCenterX": 31.96943211064493,
+                    "rotationCenterY": 35.08728695754783
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "Bone flute",
+                    "assetId": "6e6efd14e70ecdf044d490e14d39913c",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 504275,
+                    "md5ext": "6e6efd14e70ecdf044d490e14d39913c.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": -111,
+            "y": -86,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Penny",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "ln$xu;O6SxHA0t8,A~f0": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "Bg7.d5c4pg|0eQH)F@3i",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 119,
+                    "y": -244
+                },
+                "Bg7.d5c4pg|0eQH)F@3i": {
+                    "opcode": "looks_sayforsecs",
+                    "next": null,
+                    "parent": "ln$xu;O6SxHA0t8,A~f0",
+                    "inputs": {
+                        "MESSAGE": [
+                            1,
+                            [
+                                10,
+                                "Welcome to the Flower Festival!"
+                            ]
+                        ],
+                        "SECS": [
+                            1,
+                            [
+                                4,
+                                "2"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "_v^TW:EpzA(8?6l5UG}7": {
+                    "opcode": "event_whenbroadcastreceived",
+                    "next": "y*0VV7GtccsTHm0z0KO!",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {
+                        "BROADCAST_OPTION": [
+                            "Bone flute",
+                            "%+S{0U,_K??cQwCHF{ZO"
+                        ]
+                    },
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 113,
+                    "y": -23
+                },
+                "y*0VV7GtccsTHm0z0KO!": {
+                    "opcode": "control_repeat",
+                    "next": null,
+                    "parent": "_v^TW:EpzA(8?6l5UG}7",
+                    "inputs": {
+                        "TIMES": [
+                            1,
+                            [
+                                6,
+                                "22"
+                            ]
+                        ],
+                        "SUBSTACK": [
+                            2,
+                            "@n^;XBt]:)OxgH/udw-m"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "@n^;XBt]:)OxgH/udw-m": {
+                    "opcode": "looks_nextcostume",
+                    "next": "HS6qn3Mt7^I)h7]G1R4=",
+                    "parent": "y*0VV7GtccsTHm0z0KO!",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "HS6qn3Mt7^I)h7]G1R4=": {
+                    "opcode": "control_wait",
+                    "next": null,
+                    "parent": "@n^;XBt]:)OxgH/udw-m",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                "0.5"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Penny3",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "a65d9f8b52cd5f663fef0ccde308c74a",
+                    "md5ext": "a65d9f8b52cd5f663fef0ccde308c74a.png",
+                    "rotationCenterX": 50,
+                    "rotationCenterY": 87
+                },
+                {
+                    "name": "penny3",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "c3f6140ebd56a33a73121dcf8e7c6171",
+                    "md5ext": "c3f6140ebd56a33a73121dcf8e7c6171.png",
+                    "rotationCenterX": 52,
+                    "rotationCenterY": 88
+                },
+                {
+                    "name": "penny2",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "cf22d3d97bb5235bf0aa0a0a6e89c8d0",
+                    "md5ext": "cf22d3d97bb5235bf0aa0a0a6e89c8d0.png",
+                    "rotationCenterX": 49,
+                    "rotationCenterY": 84
+                },
+                {
+                    "name": "penny4",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "255d486547dfe3266bccfb6decf7014f",
+                    "md5ext": "255d486547dfe3266bccfb6decf7014f.png",
+                    "rotationCenterX": 48,
+                    "rotationCenterY": 78
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": -119,
+            "y": 9,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Flute_Block",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "4D^NfpPUtRZF+dCYN;-s": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "h3MjFb{dO6J8FE;_t%63",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 99,
+                    "y": -293
+                },
+                "h3MjFb{dO6J8FE;_t%63": {
+                    "opcode": "looks_switchcostumeto",
+                    "next": null,
+                    "parent": "4D^NfpPUtRZF+dCYN;-s",
+                    "inputs": {
+                        "COSTUME": [
+                            1,
+                            "~|tWlEw%-=kn1LAho-lN"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "~|tWlEw%-=kn1LAho-lN": {
+                    "opcode": "looks_costume",
+                    "next": null,
+                    "parent": "h3MjFb{dO6J8FE;_t%63",
+                    "inputs": {},
+                    "fields": {
+                        "COSTUME": [
+                            "Flute_Block",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Flute_Block",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "1db660bddf3b43270f8ad8254ed60d04",
+                    "md5ext": "1db660bddf3b43270f8ad8254ed60d04.svg",
+                    "rotationCenterX": 21,
+                    "rotationCenterY": 22.5
+                },
+                {
+                    "name": "Flute_Block_music",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "c4e10a56b0e0094933db231dce0079cb",
+                    "md5ext": "c4e10a56b0e0094933db231dce0079cb.svg",
+                    "rotationCenterX": 24.14065999999997,
+                    "rotationCenterY": 34.095225
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "Flute Block",
+                    "assetId": "907114c7fc355f1bda20206b25e98efd",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 455612,
+                    "md5ext": "907114c7fc355f1bda20206b25e98efd.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": 106.76466645922592,
+            "y": -89.82351439331077,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        },
+        {
+            "isStage": false,
+            "name": "Abigael",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "x3dms{+gHeb1D!C3{SNg": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "7J#,sc!7E)CsAh;*f+ss",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 9,
+                    "y": -555
+                },
+                "7J#,sc!7E)CsAh;*f+ss": {
+                    "opcode": "motion_gotoxy",
+                    "next": null,
+                    "parent": "x3dms{+gHeb1D!C3{SNg",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "110"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "9"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Abigail1",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "349135d060570de4588abd5047841b8e",
+                    "md5ext": "349135d060570de4588abd5047841b8e.png",
+                    "rotationCenterX": 45,
+                    "rotationCenterY": 91
+                },
+                {
+                    "name": "Abigail2",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "03e580006eda09de79849851d3f4c1d4",
+                    "md5ext": "03e580006eda09de79849851d3f4c1d4.png",
+                    "rotationCenterX": 51,
+                    "rotationCenterY": 86
+                },
+                {
+                    "name": "Abigail4",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "349135d060570de4588abd5047841b8e",
+                    "md5ext": "349135d060570de4588abd5047841b8e.png",
+                    "rotationCenterX": 45,
+                    "rotationCenterY": 91
+                },
+                {
+                    "name": "Abigail3",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "5d3868f40725af7627e69ce40b0483e6",
+                    "md5ext": "5d3868f40725af7627e69ce40b0483e6.png",
+                    "rotationCenterX": 43,
+                    "rotationCenterY": 85
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 4,
+            "visible": true,
+            "x": 110,
+            "y": 9,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [
+        {
+            "id": "wgLG58a9+UrEw._Vj_W[-broadcast message-",
+            "mode": "default",
+            "opcode": "data_variable",
+            "params": {
+                "VARIABLE": "broadcast message"
+            },
+            "spriteName": null,
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 5,
+            "y": 5,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        },
+        {
+            "id": "wgLG58a9+UrEw._Vj_W[-add to band-",
+            "mode": "default",
+            "opcode": "data_variable",
+            "params": {
+                "VARIABLE": "add to band"
+            },
+            "spriteName": null,
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 5,
+            "y": 32,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        }
+    ],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "13.7.2",
+        "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:150.0) Gecko/20100101 Firefox/150.0"
+    }
+}

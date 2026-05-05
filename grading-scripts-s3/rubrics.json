@@ -56,9 +56,9 @@
         {"strand": "All", "required": true, "criteria":"Checks if the distance traveled (steps * loops) reaches the x position of the end point"},
 
         {"strand": "All", "required": false, "criteria":"Check if the fastest sprite has any block after the loop finishes"},
-        {"strand": "All", "required": false, "criteria":"4 Sprites are animated, includes a loop with costume change, wait, and motion"},
-        {"strand": "All", "required": false, "criteria":"5th sprite is added and is animated, includes a loop with costume change, wait, and motion"},
-        {"strand": "Gaming", "required": false, "criteria":"Checks if the bee while moving uses turn blocks in its script"}
+        {"strand": "All", "required": false, "criteria":"4 Sprites are \"animated\", a loop block with a costume change, wait block, and some blue motion block inside"},
+        {"strand": "All", "required": false, "criteria":"5th sprite is added and is \"animated\", a loop block with a costume change, wait block, and some blue motion block inside"},
+        {"strand": "Gaming", "required": false, "criteria":"Checks if the bee while moving uses turn blocks in its animation loop"}
     ],
     "animationL2_create": [
         {"strand": "Create", "required": true, "criteria": "Add a new backdrop"},

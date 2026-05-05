@@ -1,252 +1,287 @@
 /* One Way Sync L1 Autograder
- * Marco Anaya, Summer 2019
+ * Jonathan Li, Spring 2026
+ * Refactored to be able to handle conjuror
  */
- require('./scratch3');
+require('./grader');
+require('./scratch3');
 
- module.exports = class {
-
-	init(project) { //initialize all metrics to false
-
-
-		let strandTemplates = {
-			multicultural: require('./templates/one-way-sync-L1-multicultural'),
-			youthCulture:  require('./templates/one-way-sync-L1-youth-culture'),
-			gaming:        require('./templates/one-way-sync-L1-gaming')
-		};
-		this.strand = detectStrand(project, strandTemplates, 'youthCulture');
-
-		let source;
-		let target;
-		let broadcaster;
-		let sourceAction;
-		let targetAction;
-		this.extraSayRequirements = 1;
-
-		switch(this.strand) {
-			case "multicultural":
-			source = "Djembe";
-			target = "Mali child";
-			sourceAction = "plays music";
-			targetAction = "dances";
-			broadcaster = "Start button";
-			break;
-			case "gaming":
-			source = "Casey";
-			target = "yellow car";
-			sourceAction = "says something";
-			targetAction = "moves to pink ramp";
-			broadcaster = "Wizard";
-			this.extraSayRequirements = 2;
-			break;
-
-			case "youthCulture":
-			source = "Rectangle play button";
-			target = "cat video";
-			sourceAction = "changes costume";
-			targetAction = "changes costume";
-			broadcaster = "Start button";
-
-
-		}
-		this.requirements = {
-			oneToOne: {bool:false, str:`${source} passes unique message to ${target}`},
-			sourceAction: {bool: false, str: `When ${source} is clicked, ${source} ${sourceAction}`},
-			sourceSound: {bool: false, str: `When ${source} is clicked, ${source} plays a sound`},
-			targetAction: {bool: false, str: `When ${source} is clicked, ${target} ${targetAction}`},
-			startButton: {bool: false, str: 'Start button sprite created'},
-			oneToMany: {bool: false, str: `${broadcaster} passes the same message to all other sprites`},
-			broadcastToSprite1: {bool: false, str: `A sprite plays or dances when the ${broadcaster} is clicked`},
-			broadcastToSprite2:	{bool: false, str: `Another sprite plays or dances when the ${broadcaster} is clicked`},
-			broadcastToSprite3:	{bool: false, str: `A third sprite plays or dances when the ${broadcaster} is clicked`},
-			broadcastToSprite4:	{bool: false, str: `A fourth sprite plays or dances when the ${broadcaster} is clicked`}
-		};
-		this.extensions = {
-			changeWait: {bool: false, str: 'Changed the duration of a wait block'},
-			sayBlock:	{bool: false, str: 'Added a say block under another event'}
-		};
-		if(this.strand === 'gaming'){
-			delete this.requirements.startButton;
-		}
-		if(!(this.strand === 'youthCulture')){
-			delete this.requirements.sourceSound;
-		}
-	}
-
-
-	grade(fileObj, user) {
-		const project = new Project(fileObj)
-		this.init(project);
-
-		let rawReports = project.sprites.map(sprite => this.gradeSprite(sprite));
-		let nSays = rawReports.map(report => report.says).reduce((acc, val) => acc + val);
-		if (nSays >= this.extraSayRequirements) {
-			this.extensions.sayBlock.bool = true;
-		}
-		let messages = {};
-		
-		for (let report of rawReports) {
-			if (report.sent != []) {
-				for (let msg of report.sent) {
-					if (msg in messages) messages[msg].sent = true;
-					else messages[msg] = {sent: true, recipents: []};
-				}
-			}
-			if (report.received != []) {
-				for (let msg of report.received) {
-					if (msg in messages) messages[msg].recipents.push(report.name);
-					else messages[msg] = {sent: false, recipents: [report.name]};
-				}
-			}
-		}
-
-		
-
-		let reports = rawReports.reduce((acc, r) => {
-			acc.push({
-				name: r.name,
-				plays: r.plays,
-				sent: 
-				r.sent.length === 0 ? null : r.sent.reduce((acc, msg) => {
-					acc[msg] = messages[msg].recipents;
-					return acc;
-				}, {}),
-				received: r.received,
-				dances: r.dances,
-				movesTilPink: r.movesTilPink,
-
-			});
-			return acc;
-		}, []);
-
-		let sentCount;
-		if (this.strand === "multicultural" ) {
-			sentCount = (sender) => 
-			Object.values(sender.sent).reduce((acc, b) => acc + b.length, 0) + !(sender.name.includes('ali') || sender.name.includes('avajo'));
-		} else if (this.strand === "gaming") {
-			sentCount = (sender) => 
-			Object.values(sender.sent).reduce((acc, b) => acc + b.length, 0) + !(sender.name.toLowerCase().includes('go') || sender.name.toLowerCase().includes('truck'));
-		} else if (this.strand === "youthCulture"){
-			sentCount = (sender) => 
-			Object.values(sender.sent).reduce((acc, b) => acc + b.length, 0) + !(sender.name.toLowerCase().includes('play'));
-		}
-
-		let senders = reports.filter(r => r.sent).sort((a, b) => {
-			return sentCount(b) - sentCount(a);
-		})
-		if(this.requirements.startButton != null){
-			this.requirements.startButton.bool = reports.length >= 5;
-		} 
-        // Checks the sprite with the most broadcasts, assuming that it must be the start button
-        if (senders.length >= 3) {
-        	let startButton = senders[0];
-
-        	let totalRecipients = new Set([]);
-        	for (let recipients of Object.values(startButton.sent)) {
-        		let score = 0;
-        		for (let name of recipients) {
-        			let recipientReport = reports.find(r => r.name == name);
-        			if (recipientReport.plays.onClick || recipientReport.plays.onBroadcast || recipientReport.dances) {
-        				score++;
-        				totalRecipients.add(name);
-        			}
-        		}
-        		if (score >= 4) this.requirements.oneToMany.bool = true;
-        	}
-
-        	if (totalRecipients.size > 0) {
-        		for (let i = Math.min(totalRecipients.size, 4); i > 0; i--) 
-        			this.requirements[`broadcastToSprite${i}`].bool = true;
-				//remove this sprite
-				senders = senders.slice(1);
-			}
-		}
-        // Check if at least two of remaining sprites do what is expected from Djembe and Flute sprites
-        if (senders.length >= 2) {
-
-        	let visitedFlute = false;
-        	let probableDjembe = null;
-
-        	const sumScore = (score) => !score? 0 : Object.values(score).reduce((a, b) => a + b, 0)
-
-        	for (let sender of senders) {    
-        		for (let [msg, recipients] of Object.entries(sender.sent)) {
-        			let score = {
-        				uniqueMessage: msg.toLowerCase() != 'navajo',
-        				senderPlays: (sender.plays.onClick || sender.plays.onBroadcast),
-        				recipientDances: recipients.some(recipient => reports.find(r => r.name == recipient && r.dances))
-        			};
-
-        			if (score.recipientDances && score.senderPlays && !score.uniqueMessage && !visitedFlute) {
-        				visitedFlute = true;
-        			} else {
-        				probableDjembe = sumScore(score) > sumScore(probableDjembe) ? score : probableDjembe;
-        			}
-        		}
-        	}
-        	[this.requirements.oneToOne.bool, this.requirements.sourceAction.bool, this.requirements.targetAction.bool] = Object.values(probableDjembe);
-        }
-
-        if (this.strand === "gaming") {
-        	this.requirements.targetAction.bool = rawReports.filter(r => r.movesTilPink).length >= 1;
-        } else if (this.strand === "youthCulture"){
-        	this.requirements.targetAction.bool = rawReports.filter(r => r.soundOnClick).length >= 1;
-        }
+const STRAND_CONFIG = {
+    multicultural: {
+        source: "Djembe", target: "Mali child", sourceAction: "plays music", targetAction: "dances", broadcaster: "Start button",
+        extraSayReq: 1,
+        hasStartButton: true,
+        hasSourceSound: false,
+        onClickActions: ['sound_play', 'sound_playuntildone'],
+        ignoreSenders: ['ali', 'avajo'],
+        checkTargetAction: (rawReports, sourceStats) => sourceStats.targetAction
+    },
+    gaming: {
+        source: "Casey", target: "yellow car", sourceAction: "says something", targetAction: "moves to pink ramp", broadcaster: "Wizard",
+        extraSayReq: 2,
+        hasStartButton: false,
+        hasSourceSound: false,
+        onClickActions: ['looks_say', 'looks_sayforsecs'],
+        ignoreSenders: ['go', 'truck'],
+        checkTargetAction: (rawReports, sourceStats) => rawReports.some(r => r.movesTilPink)
+    },
+    youthCulture: {
+        source: "Rectangle play button", target: "cat video", sourceAction: "changes costume", targetAction: "changes costume", broadcaster: "Start button",
+        extraSayReq: 1,
+        hasStartButton: true,
+        hasSourceSound: true,
+        onClickActions: ['looks_switchcostumeto', 'looks_costume', 'looks_nextcostume', 'looks'],
+        ignoreSenders: ['play'],
+        checkTargetAction: (rawReports, sourceStats) => rawReports.some(r => r.soundOnClick)
+    },
+	stardew: {
+        source: "Flute box", 
+        target: "Abigael", 
+        sourceAction: "plays music", 
+        targetAction: "dances", 
+        broadcaster: "Start button",
+        extraSayReq: 2,
+        hasStartButton: true,
+        hasSourceSound: false,
+        onClickActions: ['sound_play', 'sound_playuntildone'], 
+        ignoreSenders: ['flute', 'box'],
+        checkTargetAction: (rawReports, sourceStats) => sourceStats.targetAction
     }
-    gradeSprite(sprite) {
-    	let reqs = {
-    		name: sprite.name,
-    		plays: {onClick: false, onBroadcast: false},
-    		sent: [],
-    		received: [],
-    		dances: {costume: false, wait: false},
-    		movesTilPink : false,
-    		says: 0,
-    		soundOnClick: false
-    	}
-    	let onClickActions;
-    	if (this.strand === "multicultural") {
-    		onClickActions = ['sound_play', 'sound_playuntildone'];
-    	} else if (this.strand === "gaming") {
-    		onClickActions = ['looks_say', 'looks_sayforsecs']
-    	} else if (this.strand === "youthCulture"){
-            onClickActions = ['looks_switchcostumeto', 'looks_costume', 'looks_nextcostume', 'looks']
+};
+
+module.exports = class GradeOneWaySyncL1 extends Grader {
+
+    init(project) {
+        let strandTemplates = {
+            multicultural: require('./templates/one-way-sync-L1-multicultural'),
+            youthCulture:  require('./templates/one-way-sync-L1-youth-culture'),
+            gaming:        require('./templates/one-way-sync-L1-gaming'),
+			stardew:       require('./templates/one-way-sync-L1-stardew.json')
+        };
+        
+        this.strand = detectStrand(project, strandTemplates, 'youthCulture');
+        this.config = STRAND_CONFIG[this.strand] || STRAND_CONFIG['youthCulture'];
+        this.template = strandTemplates[this.strand] || strandTemplates['youthCulture'];
+
+        this.evaluateProject(project);
+
+        let res = this.evalResults;
+        let c = this.config;
+
+        // Map standard requirements generically
+        this.requirements = [
+            new Requirement(`${c.source} passes unique message to ${c.target}`, res.oneToOne),
+            new Requirement(`When ${c.source} is clicked, ${c.source} ${c.sourceAction}`, res.sourceAction),
+            new Requirement(`When ${c.source} is clicked, ${c.target} ${c.targetAction}`, res.targetAction),
+            new Requirement(`${c.broadcaster} passes the same message to all other sprites`, res.oneToMany),
+            new Requirement(`A sprite plays or dances when the ${c.broadcaster} is clicked`, res.broadcastTo[0]),
+            new Requirement(`Another sprite plays or dances when the ${c.broadcaster} is clicked`, res.broadcastTo[1]),
+            new Requirement(`A third sprite plays or dances when the ${c.broadcaster} is clicked`, res.broadcastTo[2]),
+            new Requirement(`A fourth sprite plays or dances when the ${c.broadcaster} is clicked`, res.broadcastTo[3])
+        ];
+
+        // Map conditional requirements
+        if (c.hasStartButton) {
+            this.requirements.push(new Requirement('Start button sprite created', res.startButton));
         }
-    	for (let script of sprite.scripts.filter(s => s.blocks[0].opcode.includes('event_when'))) {
-    		if (script.blocks[0].opcode === 'event_whenthisspriteclicked')
-    			script.traverseBlocks((block, level) => {
-    				if (onClickActions.includes(block.opcode))
-    					reqs.plays.onClick = true;
-    				else if (['event_broadcast', 'event_broadcastandwait'].includes(block.opcode))
-    					reqs.sent.push( block.inputs.BROADCAST_INPUT[1][1])
-    				else if(['sound_play', 'sound_playuntildone'].includes(block.opcode)){
-    					reqs.soundOnClick = true
-    				}
-    			});
-    		else if (script.blocks[0].opcode === 'event_whenbroadcastreceived') {
-    			reqs.received.push(script.blocks[0].fields.BROADCAST_OPTION[0]);
-    			let stopsOnPink = false
-    			script.traverseBlocks((block, level) => { 
-    				if (['sound_play', 'sound_playuntildone'].includes(block.opcode))
-    					reqs.plays.onBroadcast = true;
-    				else if (['event_blooks_switchcostumeto', 'looks_nextcostume'].includes(block.opcode))
-    					reqs.dances.costume = true;
-    				else if (block.opcode === 'control_wait') {
-    					reqs.dances.wait = true;
-    					if (block.inputs.DURATION[1][1] != .5) this.extensions.changeWait.bool = true;
-    				} else if(block.opcode === "motion_movesteps" && block.within != null 
-    					&& block.within.opcode === "control_repeat_until" && 
-    					block.within.conditionBlock.opcode === "sensing_touchingcolor" &&
-    					block.within.conditionBlock.inputs['COLOR'][1][1] === "#ed75ec"){
-    						reqs.movesTilPink = true
-    				}
-    			});
-    		} 
-    		script.traverseBlocks((block, level) => {
-    			if (['looks_say', 'looks_sayforsecs'].includes(block.opcode))
-    				reqs.says += 1;
-    		});
-    	}
-    	reqs.dances = reqs.dances.costume && reqs.dances.costume;
-    	return reqs;
+        if (c.hasSourceSound) {
+            this.requirements.push(new Requirement(`When ${c.source} is clicked, ${c.source} plays a sound`, res.sourceSound));
+        }
+
+        // Map extensions
+        this.extensions = [
+            new Extension('Changed the duration of a wait block', res.changeWait),
+            new Extension('Added a say block under another event', res.sayBlock)
+        ];
+    }
+
+    evaluateProject(project) {
+        this.evalResults = {
+            sayBlock: false, changeWait: false, startButton: false, sourceSound: false,
+            oneToOne: false, sourceAction: false, targetAction: false,
+            oneToMany: false, broadcastTo: [false, false, false, false]
+        };
+
+        let rawReports = project.sprites.map(sprite => this.gradeSprite(sprite));
+        
+        // Extension: Say Blocks
+        let nSays = rawReports.reduce((acc, report) => acc + report.says, 0);
+        if (nSays >= this.config.extraSayReq) {
+            this.evalResults.sayBlock = true;
+        }
+
+        // Extension: Change Wait
+        if (rawReports.some(r => r.changedWait)) {
+            this.evalResults.changeWait = true;
+        }
+
+        // Evaluate graph of messages sent/received
+        let messages = {};
+        for (let report of rawReports) {
+            if (report.sent.length > 0) {
+                for (let msg of report.sent) {
+                    if (messages[msg]) messages[msg].sent = true;
+                    else messages[msg] = { sent: true, recipients: [] };
+                }
+            }
+            if (report.received.length > 0) {
+                for (let msg of report.received) {
+                    if (messages[msg]) messages[msg].recipients.push(report.name);
+                    else messages[msg] = { sent: false, recipients: [report.name] };
+                }
+            }
+        }
+
+        let reports = rawReports.map(r => ({
+            name: r.name,
+            plays: r.plays,
+            sent: r.sent.length === 0 ? null : r.sent.reduce((acc, msg) => {
+                acc[msg] = messages[msg] ? messages[msg].recipients : [];
+                return acc;
+            }, {}),
+            received: r.received,
+            dances: r.dances,
+            movesTilPink: r.movesTilPink
+        }));
+
+        let sentCount = (sender) => {
+            let numSent = Object.values(sender.sent).reduce((acc, b) => acc + b.length, 0);
+            
+            // Find the sprite to analyze its DNA
+            let actualSprite = project.sprites.find(s => s.name === sender.name);
+            let dnaName = actualSprite ? global.detectSprite(actualSprite, this.template).toLowerCase() : "";
+            
+            let isIgnored = this.config.ignoreSenders.some(ign => dnaName.includes(ign));
+            return numSent + (isIgnored ? 0 : 1);
+        };
+
+        let senders = reports.filter(r => r.sent).sort((a, b) => sentCount(b) - sentCount(a));
+
+        if (this.config.hasStartButton) {
+            this.evalResults.startButton = reports.length >= 5;
+        }
+
+        // Extract Start Button logic (largest broadcaster)
+        if (senders.length >= 3) {
+            let startButton = senders[0];
+            let totalRecipients = new Set([]);
+
+            for (let recipients of Object.values(startButton.sent)) {
+                let score = 0;
+                for (let name of recipients) {
+                    let recipientReport = reports.find(r => r.name === name);
+                    if (recipientReport && (recipientReport.plays.onClick || recipientReport.plays.onBroadcast || recipientReport.dances)) {
+                        score++;
+                        totalRecipients.add(name);
+                    }
+                }
+                if (score >= 4) this.evalResults.oneToMany = true;
+            }
+
+            if (totalRecipients.size > 0) {
+                let numBroadcasts = Math.min(totalRecipients.size, 4);
+                for (let i = 0; i < numBroadcasts; i++) {
+                    this.evalResults.broadcastTo[i] = true;
+                }
+                senders = senders.slice(1);
+            }
+        }
+
+        // Extract Source and Target logic
+        if (senders.length >= 2) {
+            let visitedFlute = false;
+            let probableSourceStats = { oneToOne: false, sourceAction: false, targetAction: false };
+
+            const sumScore = (scoreObj) => !scoreObj ? 0 : Object.values(scoreObj).filter(Boolean).length;
+
+            for (let sender of senders) {
+                for (let [msg, recipients] of Object.entries(sender.sent)) {
+                    let score = {
+                        oneToOne: msg.toLowerCase() !== 'navajo',
+                        sourceAction: (sender.plays.onClick || sender.plays.onBroadcast),
+                        targetAction: recipients.some(recipient => reports.find(r => r.name === recipient && r.dances))
+                    };
+
+                    if (score.targetAction && score.sourceAction && !score.oneToOne && !visitedFlute) {
+                        visitedFlute = true;
+                    } else {
+                        if (sumScore(score) > sumScore(probableSourceStats)) {
+                            probableSourceStats = score;
+                        }
+                    }
+                }
+            }
+
+            this.evalResults.oneToOne = probableSourceStats.oneToOne;
+            this.evalResults.sourceAction = probableSourceStats.sourceAction;
+            
+            // Delegate strand-specific target checks to the config helper
+            this.evalResults.targetAction = this.config.checkTargetAction(rawReports, probableSourceStats);
+        }
+
+        // Set the legacy youthCulture sound requirement safely
+        this.evalResults.sourceSound = rawReports.some(r => r.soundOnClick);
+    }
+
+    gradeSprite(sprite) {
+        let reqs = {
+            name: sprite.name,
+            plays: { onClick: false, onBroadcast: false },
+            sent: [],
+            received: [],
+            dances: false,
+            dancesData: { costume: false, wait: false },
+            movesTilPink: false,
+            says: 0,
+            soundOnClick: false,
+            changedWait: false // Extracted from global side-effects
+        };
+
+        let onClickActions = this.config.onClickActions;
+
+        for (let script of sprite.scripts.filter(s => s.blocks[0].opcode.includes('event_when'))) {
+            
+            if (script.blocks[0].opcode === 'event_whenthisspriteclicked') {
+                script.traverseBlocks((block, level) => {
+                    if (onClickActions.includes(block.opcode)) {
+                        reqs.plays.onClick = true;
+                    } else if (['event_broadcast', 'event_broadcastandwait'].includes(block.opcode)) {
+                        reqs.sent.push(block.inputs.BROADCAST_INPUT[1][1]);
+                    } else if (['sound_play', 'sound_playuntildone'].includes(block.opcode)) {
+                        reqs.soundOnClick = true;
+                    }
+                });
+            } 
+            else if (script.blocks[0].opcode === 'event_whenbroadcastreceived') {
+                reqs.received.push(script.blocks[0].fields.BROADCAST_OPTION[0]);
+                
+                script.traverseBlocks((block, level) => {
+                    if (['sound_play', 'sound_playuntildone'].includes(block.opcode)) {
+                        reqs.plays.onBroadcast = true;
+                    } else if (['looks_switchcostumeto', 'looks_nextcostume'].includes(block.opcode)) {
+                        reqs.dancesData.costume = true;
+                    } else if (block.opcode === 'control_wait') {
+                        reqs.dancesData.wait = true;
+                        if (block.inputs.DURATION[1][1] != 0.5) reqs.changedWait = true;
+                    } else if (
+                        block.opcode === "motion_movesteps" && block.within != null &&
+                        block.within.opcode === "control_repeat_until" &&
+                        block.within.conditionBlock.opcode === "sensing_touchingcolor" &&
+                        block.within.conditionBlock.inputs['COLOR'][1][1] === "#ed75ec"
+                    ) {
+                        reqs.movesTilPink = true;
+                    }
+                });
+            }
+
+            script.traverseBlocks((block, level) => {
+                if (['looks_say', 'looks_sayforsecs'].includes(block.opcode)) {
+                    reqs.says += 1;
+                }
+            });
+        }
+        
+        // Fixed original bug where it checked costume && costume
+        reqs.dances = reqs.dancesData.costume && reqs.dancesData.wait;
+        return reqs;
     }
 }

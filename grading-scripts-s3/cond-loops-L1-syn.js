@@ -7,8 +7,8 @@ const STRAND_CONFIG = {
         mainSprite: 'Butterfly',
         stopTargets: ['King Momo'],
         exceptionSprite: 'Toucan',
-        defaultSpeed: { steps: 2, duration: 1 },
-        exceptionSpeed: { steps: 1, duration: 1 },
+        defaultSpeed: { steps: 2, duration: .1 },
+        exceptionSpeed: { steps: 1, duration: .1 },
         requiredSpritesPassing: 1 
     },
     youthCulture: {
@@ -22,7 +22,7 @@ const STRAND_CONFIG = {
         requiresCostumeChange: false,          
         mainSprite: 'Ninja Cat', 
         stopTargets: ['Bee'],
-        defaultSpeed: { steps: 5, duration: 1 },
+        defaultSpeed: { steps: 5, duration: .1 },
         requiredSpritesPassing: 0
     },
     stardew: {
@@ -35,7 +35,6 @@ const STRAND_CONFIG = {
 };
 
 module.exports = class GradeCondLoopsL1 extends Grader {
-
     init(project) {
         let strandTemplates = {
             multicultural: require('./templates/conditional-loops-L1-multicultural.json'),
@@ -46,6 +45,9 @@ module.exports = class GradeCondLoopsL1 extends Grader {
         
         this.strand = detectStrand(project, strandTemplates, 'youthCulture');
         this.config = STRAND_CONFIG[this.strand] || STRAND_CONFIG['youthCulture'];
+        
+        // Save the template so we can use it to detect sprite DNA later
+        this.template = strandTemplates[this.strand] || strandTemplates['youthCulture'];
 
         this.requirements = [];
 
@@ -70,9 +72,11 @@ module.exports = class GradeCondLoopsL1 extends Grader {
 
     testCostumes(project) {
         for (let sprite of project.sprites) {
+            // Identify the sprite using its block DNA
+            let detectedIdentity = global.detectSprite(sprite, this.template);
             
-            // Look for the main sprite defined in our config (e.g., 'Bus')
-            if (sprite.name === this.config.mainSprite) {
+            // Look for the main sprite defined in our config
+            if (detectedIdentity === this.config.mainSprite) {
                 // If currentCostume > 0, they have switched to a different costume.
                 return sprite.currentCostume > 0;
             }
@@ -88,6 +92,9 @@ module.exports = class GradeCondLoopsL1 extends Grader {
         for (let sprite of project.sprites) {
             let scriptsPassing = 0;
             let scriptsPassingExtension = 0;
+            
+            // 1. Identify the ACTING sprite via DNA
+            let detectedIdentity = global.detectSprite(sprite, this.template);
             
             for (let script of sprite.validScripts) {
                 let blocksPassing = 0;
@@ -110,10 +117,24 @@ module.exports = class GradeCondLoopsL1 extends Grader {
                         if (block.conditionBlock) {
                             for (let menuBlock of block.conditionBlock.inputBlocks) {
                                 if (menuBlock.opcode === 'sensing_touchingobjectmenu') {
-                                    let touchingObject = menuBlock.fields.TOUCHINGOBJECTMENU[0];
+                                    let touchingObjectName = menuBlock.fields.TOUCHINGOBJECTMENU[0];
                                     
-                                    let isDefaultTarget = this.config.stopTargets.includes(touchingObject);
-                                    let isExceptionSprite = sprite.name === this.config.exceptionSprite;
+                                    // 2. Fetch the TARGET sprite object using the name from the dropdown
+                                    let targetSprite = project.sprites.find(s => s.name === touchingObjectName);
+                                    
+                                    let isDefaultTarget = false;
+                                    
+                                    // 3. Verify the target's identity via DNA
+                                    if (targetSprite) {
+                                        let targetIdentity = global.detectSprite(targetSprite, this.template);
+                                        isDefaultTarget = this.config.stopTargets.includes(targetIdentity);
+                                    } else {
+                                        // Fallback for "_mouse_" or "_edge_"
+                                        isDefaultTarget = this.config.stopTargets.includes(touchingObjectName);
+                                    }
+
+                                    // 4. Check if the acting sprite is the exception
+                                    let isExceptionSprite = detectedIdentity === this.config.exceptionSprite;
                                     
                                     if (!isDefaultTarget || isExceptionSprite) {
                                         stops = true;
@@ -163,6 +184,10 @@ module.exports = class GradeCondLoopsL1 extends Grader {
 
     testSpeed(project) {
         for (let sprite of project.sprites) {
+            
+            // Identify the sprite via DNA to check against the correct baseline speed
+            let detectedIdentity = global.detectSprite(sprite, this.template);
+            
             for (let script of sprite.validScripts) {
                 for (let block of script.blocks) {
                     let steps = 0;
@@ -177,9 +202,9 @@ module.exports = class GradeCondLoopsL1 extends Grader {
                         }
                     }
                     
-                    // 6. Generic Speed Check based on config
                     if (steps) {
-                        let expected = (sprite.name === this.config.exceptionSprite && this.config.exceptionSpeed) 
+                        // Look up expected speed using the detected DNA identity
+                        let expected = (detectedIdentity === this.config.exceptionSprite && this.config.exceptionSpeed) 
                             ? this.config.exceptionSpeed 
                             : this.config.defaultSpeed;
                             

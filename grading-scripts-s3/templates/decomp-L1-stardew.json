@@ -1,0 +1,573 @@
+{
+    "targets": [
+        {
+            "isStage": true,
+            "name": "Stage",
+            "variables": {
+                "9[N1%n{g*z~#XXcW(=Nm-set score-": [
+                    "set score",
+                    0
+                ],
+                "9[N1%n{g*z~#XXcW(=Nm-set-": [
+                    "set",
+                    0
+                ],
+                "9[N1%n{g*z~#XXcW(=Nm-score-": [
+                    "score",
+                    3
+                ]
+            },
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Background",
+                    "bitmapResolution": 2,
+                    "dataFormat": "png",
+                    "assetId": "d00f3bf37a111e4eb74526016920eb73",
+                    "md5ext": "d00f3bf37a111e4eb74526016920eb73.png",
+                    "rotationCenterX": 480,
+                    "rotationCenterY": 359.5
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "pop",
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 1124,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 0,
+            "tempo": 60,
+            "videoTransparency": 50,
+            "videoState": "off",
+            "textToSpeechLanguage": null
+        },
+        {
+            "isStage": false,
+            "name": "Kent",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "dil)YZ{H0})IuwHAwS%C": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "Y]fGiQ8AD$^y/M8XhLG@",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 33,
+                    "y": 59
+                },
+                "Y]fGiQ8AD$^y/M8XhLG@": {
+                    "opcode": "motion_gotoxy",
+                    "next": ".Pb?svcZ*[O+MYgWr;o7",
+                    "parent": "dil)YZ{H0})IuwHAwS%C",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "-221"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-139"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ".Pb?svcZ*[O+MYgWr;o7": {
+                    "opcode": "control_wait",
+                    "next": ".Zq(JvX}HC.8=5ft:^*q",
+                    "parent": "Y]fGiQ8AD$^y/M8XhLG@",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                ".01"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ".Zq(JvX}HC.8=5ft:^*q": {
+                    "opcode": "control_repeat_until",
+                    "next": null,
+                    "parent": ".Pb?svcZ*[O+MYgWr;o7",
+                    "inputs": {
+                        "CONDITION": [
+                            2,
+                            "+zU-{|-J4[4r7UlK9VXw"
+                        ],
+                        "SUBSTACK": [
+                            2,
+                            "StCkHU?Qav@|F1qz|tI="
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "+zU-{|-J4[4r7UlK9VXw": {
+                    "opcode": "sensing_touchingobject",
+                    "next": null,
+                    "parent": ".Zq(JvX}HC.8=5ft:^*q",
+                    "inputs": {
+                        "TOUCHINGOBJECTMENU": [
+                            1,
+                            "v##~/:2k9dWfa9nheMoQ"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "v##~/:2k9dWfa9nheMoQ": {
+                    "opcode": "sensing_touchingobjectmenu",
+                    "next": null,
+                    "parent": "+zU-{|-J4[4r7UlK9VXw",
+                    "inputs": {},
+                    "fields": {
+                        "TOUCHINGOBJECTMENU": [
+                            "Sunflower",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                },
+                "StCkHU?Qav@|F1qz|tI=": {
+                    "opcode": "motion_movesteps",
+                    "next": "FU[7kdff~OKc`r8OhLj+",
+                    "parent": ".Zq(JvX}HC.8=5ft:^*q",
+                    "inputs": {
+                        "STEPS": [
+                            1,
+                            [
+                                4,
+                                "5"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "FU[7kdff~OKc`r8OhLj+": {
+                    "opcode": "looks_nextcostume",
+                    "next": "2)Eff|agRmr-hLsnuXd`",
+                    "parent": "StCkHU?Qav@|F1qz|tI=",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "2)Eff|agRmr-hLsnuXd`": {
+                    "opcode": "control_wait",
+                    "next": null,
+                    "parent": "FU[7kdff~OKc`r8OhLj+",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                ".05"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                }
+            },
+            "comments": {
+                "z=ft#ukk{%ud|P~YyngQ_comment": {
+                    "blockId": "z=ft#ukk{%ud|P~YyngQ",
+                    "x": 426.6666666666667,
+                    "y": 164.4814814814815,
+                    "width": 298.5,
+                    "height": 574.2,
+                    "minimized": false,
+                    "text": "This short wait block is here to make sure Jaime and the Soccer Ball are both at the correct starting location before Jaime points in the direction of the ball. \r\rWithout this wait block, Jaime sometimes starts running to where the ball used to be. If that happens, they never touch and the ball never gets kicked to the goal! "
+                }
+            },
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "kent3",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "b3adcf7ba88e0a5f22093b5bd6174199",
+                    "md5ext": "b3adcf7ba88e0a5f22093b5bd6174199.svg",
+                    "rotationCenterX": 10.875810000000001,
+                    "rotationCenterY": 30.32043999999999
+                },
+                {
+                    "name": "kent4",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "af3d653804a55251dcdde6f233f7876a",
+                    "md5ext": "af3d653804a55251dcdde6f233f7876a.svg",
+                    "rotationCenterX": 13.250000000000028,
+                    "rotationCenterY": 30.75
+                },
+                {
+                    "name": "kent1",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "c2713a24161ffb16118226aef2096039",
+                    "md5ext": "c2713a24161ffb16118226aef2096039.svg",
+                    "rotationCenterX": 10.875666130942307,
+                    "rotationCenterY": 30.320038910505843
+                },
+                {
+                    "name": "kent2",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "f3ac0782de629498ec5c6e75d25f1a4c",
+                    "md5ext": "f3ac0782de629498ec5c6e75d25f1a4c.svg",
+                    "rotationCenterX": 14.123929961089488,
+                    "rotationCenterY": 30.265564202334616
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "pop",
+                    "assetId": "83a9787d4cb6f3b7632b4ddfebf74367",
+                    "dataFormat": "wav",
+                    "format": "",
+                    "rate": 48000,
+                    "sampleCount": 1124,
+                    "md5ext": "83a9787d4cb6f3b7632b4ddfebf74367.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 4,
+            "visible": true,
+            "x": -196.00001472050855,
+            "y": -139.0271297846048,
+            "size": 100,
+            "direction": 90.06217689848177,
+            "draggable": false,
+            "rotationStyle": "left-right"
+        },
+        {
+            "isStage": false,
+            "name": "Hot Air Balloon",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {
+                "W9IY!IPYXclx:rLq,5mA": {
+                    "opcode": "event_whenflagclicked",
+                    "next": "F,[mZXKyFmp9`JB-45R%",
+                    "parent": null,
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": true,
+                    "x": 38,
+                    "y": 110
+                },
+                "F,[mZXKyFmp9`JB-45R%": {
+                    "opcode": "motion_gotoxy",
+                    "next": ":YKUti-f_hdztd/oSD93",
+                    "parent": "W9IY!IPYXclx:rLq,5mA",
+                    "inputs": {
+                        "X": [
+                            1,
+                            [
+                                4,
+                                "19"
+                            ]
+                        ],
+                        "Y": [
+                            1,
+                            [
+                                4,
+                                "-105"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                ":YKUti-f_hdztd/oSD93": {
+                    "opcode": "control_wait",
+                    "next": "arz%}0!yQ3+83Sy`Xv(+",
+                    "parent": "F,[mZXKyFmp9`JB-45R%",
+                    "inputs": {
+                        "DURATION": [
+                            1,
+                            [
+                                5,
+                                ".01"
+                            ]
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "arz%}0!yQ3+83Sy`Xv(+": {
+                    "opcode": "control_wait_until",
+                    "next": "*vRU_`(9`K]kt1]qzeP|",
+                    "parent": ":YKUti-f_hdztd/oSD93",
+                    "inputs": {},
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "*vRU_`(9`K]kt1]qzeP|": {
+                    "opcode": "sound_playuntildone",
+                    "next": null,
+                    "parent": "arz%}0!yQ3+83Sy`Xv(+",
+                    "inputs": {
+                        "SOUND_MENU": [
+                            1,
+                            "(Gv.J(`cRFP;bI}nsU#^"
+                        ]
+                    },
+                    "fields": {},
+                    "shadow": false,
+                    "topLevel": false
+                },
+                "(Gv.J(`cRFP;bI}nsU#^": {
+                    "opcode": "sound_sounds_menu",
+                    "next": null,
+                    "parent": "*vRU_`(9`K]kt1]qzeP|",
+                    "inputs": {},
+                    "fields": {
+                        "SOUND_MENU": [
+                            "Space Noise",
+                            null
+                        ]
+                    },
+                    "shadow": true,
+                    "topLevel": false
+                }
+            },
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Hot air balloon1",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "a055e86eb91befea537fe1b74683ceb8",
+                    "md5ext": "a055e86eb91befea537fe1b74683ceb8.svg",
+                    "rotationCenterX": 50.70038902122889,
+                    "rotationCenterY": 133.98664987802852
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "Space Noise",
+                    "assetId": "a5cd5e83841aaaf34583d6ad53d551f5",
+                    "dataFormat": "wav",
+                    "rate": 22050,
+                    "sampleCount": 58929,
+                    "md5ext": "a5cd5e83841aaaf34583d6ad53d551f5.wav"
+                },
+                {
+                    "name": "Magic Spell",
+                    "assetId": "1cb60ecdb1075c8769cb346d5c2a22c7",
+                    "dataFormat": "wav",
+                    "rate": 22050,
+                    "sampleCount": 43689,
+                    "md5ext": "1cb60ecdb1075c8769cb346d5c2a22c7.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 3,
+            "visible": true,
+            "x": 19,
+            "y": -105,
+            "size": 100,
+            "direction": 0,
+            "draggable": false,
+            "rotationStyle": "don't rotate"
+        },
+        {
+            "isStage": false,
+            "name": "Cloud",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "cloud-d",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "52ccf7afc74a252d75d1fa581ab0f2a5",
+                    "md5ext": "52ccf7afc74a252d75d1fa581ab0f2a5.svg",
+                    "rotationCenterX": 91.17054748535156,
+                    "rotationCenterY": 17.901348114013672
+                },
+                {
+                    "name": "cloud-a",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "90b5fe294de0b806709ff01228bfe2b5",
+                    "md5ext": "90b5fe294de0b806709ff01228bfe2b5.svg",
+                    "rotationCenterX": 76.42151641845703,
+                    "rotationCenterY": 14.779377937316895
+                },
+                {
+                    "name": "cloud-b",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "4a34e7dadd9b8b800753d1e452fe26b8",
+                    "md5ext": "4a34e7dadd9b8b800753d1e452fe26b8.svg",
+                    "rotationCenterX": 105.25640869140625,
+                    "rotationCenterY": 16.610559463500977
+                },
+                {
+                    "name": "cloud-c",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "66878da61a78dc47b57ff88639fdd489",
+                    "md5ext": "66878da61a78dc47b57ff88639fdd489.svg",
+                    "rotationCenterX": 99.32097625732422,
+                    "rotationCenterY": 9.533393859863281
+                }
+            ],
+            "sounds": [
+                {
+                    "name": "Magic Spell",
+                    "assetId": "1cb60ecdb1075c8769cb346d5c2a22c7",
+                    "dataFormat": "wav",
+                    "rate": 22050,
+                    "sampleCount": 43689,
+                    "md5ext": "1cb60ecdb1075c8769cb346d5c2a22c7.wav"
+                }
+            ],
+            "volume": 100,
+            "layerOrder": 1,
+            "visible": true,
+            "x": 77,
+            "y": 161,
+            "size": 100,
+            "direction": -90,
+            "draggable": false,
+            "rotationStyle": "don't rotate"
+        },
+        {
+            "isStage": false,
+            "name": "Sunflower",
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [
+                {
+                    "name": "Sunflower",
+                    "bitmapResolution": 1,
+                    "dataFormat": "svg",
+                    "assetId": "a918eae7f89dd725c96491d9747ff6a7",
+                    "md5ext": "a918eae7f89dd725c96491d9747ff6a7.svg",
+                    "rotationCenterX": 16.99999999999997,
+                    "rotationCenterY": 16.25
+                }
+            ],
+            "sounds": [],
+            "volume": 100,
+            "layerOrder": 2,
+            "visible": true,
+            "x": 197,
+            "y": -138,
+            "size": 100,
+            "direction": 90,
+            "draggable": false,
+            "rotationStyle": "all around"
+        }
+    ],
+    "monitors": [
+        {
+            "id": "9[N1%n{g*z~#XXcW(=Nm-set score-",
+            "mode": "default",
+            "opcode": "data_variable",
+            "params": {
+                "VARIABLE": "set score"
+            },
+            "spriteName": null,
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 5,
+            "y": 5,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        },
+        {
+            "id": "9[N1%n{g*z~#XXcW(=Nm-set-",
+            "mode": "default",
+            "opcode": "data_variable",
+            "params": {
+                "VARIABLE": "set"
+            },
+            "spriteName": null,
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 5,
+            "y": 32,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        },
+        {
+            "id": "9[N1%n{g*z~#XXcW(=Nm-score-",
+            "mode": "default",
+            "opcode": "data_variable",
+            "params": {
+                "VARIABLE": "score"
+            },
+            "spriteName": null,
+            "value": "",
+            "width": 0,
+            "height": 0,
+            "x": 4,
+            "y": 9,
+            "visible": false,
+            "sliderMin": 0,
+            "sliderMax": 100,
+            "isDiscrete": true
+        }
+    ],
+    "extensions": [],
+    "meta": {
+        "semver": "3.0.0",
+        "vm": "13.7.2",
+        "agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:150.0) Gecko/20100101 Firefox/150.0"
+    }
+}
