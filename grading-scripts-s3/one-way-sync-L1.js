@@ -69,14 +69,14 @@ module.exports = class GradeOneWaySyncL1 extends Grader {
 
         // Map standard requirements generically
         this.requirements = [
-            new Requirement(`${c.source} passes unique message to ${c.target}`, res.oneToOne),
-            new Requirement(`When ${c.source} is clicked, ${c.source} ${c.sourceAction}`, res.sourceAction),
-            new Requirement(`When ${c.source} is clicked, ${c.target} ${c.targetAction}`, res.targetAction),
-            new Requirement(`${c.broadcaster} passes the same message to all other sprites`, res.oneToMany),
-            new Requirement(`A sprite plays or dances when the ${c.broadcaster} is clicked`, res.broadcastTo[0]),
-            new Requirement(`Another sprite plays or dances when the ${c.broadcaster} is clicked`, res.broadcastTo[1]),
-            new Requirement(`A third sprite plays or dances when the ${c.broadcaster} is clicked`, res.broadcastTo[2]),
-            new Requirement(`A fourth sprite plays or dances when the ${c.broadcaster} is clicked`, res.broadcastTo[3])
+            new Requirement(`Sprite passes unique message to target sprite`, res.oneToOne),
+            new Requirement(`When the sprite is clicked, the sprite does an action`, res.sourceAction),
+            new Requirement(`When the sprite is clicked, the target sprite does an action`, res.targetAction),
+            new Requirement(`Broadcaster passes the same message to all other sprites`, res.oneToMany),
+            new Requirement(`A sprite plays or dances when the broadcaster is clicked`, res.broadcastTo[0]),
+            new Requirement(`Another sprite plays or dances when the broadcaster is clicked`, res.broadcastTo[1]),
+            new Requirement(`A third sprite plays or dances when the broadcaster is clicked`, res.broadcastTo[2]),
+            new Requirement(`A fourth sprite plays or dances when the broadcaster is clicked`, res.broadcastTo[3])
         ];
 
         // Map conditional requirements

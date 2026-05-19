@@ -234,8 +234,7 @@ module.exports = class GradeCondLoopsL1 extends Grader {
                     if (block.opcode === 'control_repeat_until') hasLooped = true;
                     if (hasLooped) {
                         if (block.opcode === 'motion_movesteps' && block.floatInput('STEPS') < 0) return true;
-                        if (block.opcode.includes('motion_goto') || block.opcode.includes('motion_turn')) return true;
-                        if (block.opcode === 'motion_pointindirection') return true;
+                        if (block.opcode.includes('motion_goto')) return true;
                         for (let subscript of block.subscriptsRecursive) {
                             for (let subblock of subscript.blocks) {
                                 if (subblock.opcode === 'motion_movesteps' && subblock.floatInput('STEPS') < 0) return true;

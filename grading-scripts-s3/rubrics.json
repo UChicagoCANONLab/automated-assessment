@@ -69,10 +69,66 @@
         {"strand": "Create", "required": false, "criteria": "Another sprite is animated (loop with cosume change and wait), either in-place or with motion"},
         {"strand": "Create", "required": false, "criteria": "Multiple types of animation, usage of different motion e.g. glide versus move steps"}
     ],
-    "condLoopsL1": [],
-    "condLoopsL2_create": [],
-    "decompL1": [],      
-    "decompL2_create": [],   
-    "oneWaySyncL1": [], 
-    "oneWaySyncL2_create": []
+    "condLoopsL1": [
+        {"strand": "Multicultural/Youth Culture/Stardew", "required": true, "criteria": "Main sprite has a costume change from the default costume"},
+        {"strand": "All", "required": true, "criteria": "Check if the touching block matches the correct ending sprite"},
+        {"strand": "All", "required": true, "criteria": "Check if after the loop, there is a say block"},
+        {"strand": "All", "required": true, "criteria": "Check if the steps or the wait block have been modified from original values"},
+        
+        {"strand": "All", "required": false, "criteria": "Another sprite is added and contains a similar loop where there is a repeat loop until touching some other sprite"},
+        {"strand": "All", "required": false, "criteria": "Check if after the loop there is a play sound block"},
+        {"strand": "All", "required": false, "criteria": "After the loop there is some form of return, either a go to block or a move steps block with negative steps "}
+    ],
+    "condLoopsL2_create": [
+        {"strand": "Create", "required": true, "criteria": "Check if there is a loop with a touching check that has a object or color"},
+        {"strand": "Create", "required": true, "criteria": "After the loop there is some form of sound block, either a say or play sound"},
+        {"strand": "Create", "required": true, "criteria": "There is some blue motion block in the loop"},
+        
+        {"strand": "Create", "required": false, "criteria": "Another sprite has a loop"},
+        {"strand": "Create", "required": false, "criteria": "There are more than 2 sprites and there are different events starting and different touching checks in each loop"}
+    ],
+    "decompL1": [
+        {"strand": "All", "required": true, "criteria": "Main sprite has a move block"},
+        {"strand": "All", "required": true, "criteria": "Main sprite stops at correct touching target"},
+        {"strand": "All", "required": true, "criteria": "Second sprite moves after being touched"},
+        {"strand": "All", "required": true, "criteria": "Second sprite moves and has correct touching target"},
+        
+        {"strand": "All", "required": false, "criteria": "Sprite moves up and down with a change y block"},
+        {"strand": "All", "required": false, "criteria": "Added an extra sprite to the project"},
+        {"strand": "Gaming", "required": false, "criteria" : "A sound is played after the sprites touch"},
+        {"strand": "Stardew", "required": false, "criteria" : "The extra sprite must bounce off the secondary sprite"},
+        {"strand": "Gaming/Stardew/Youth Culture", "required": false, "criteria": "Secondary sprite implements another touching loop that when touching, have a negative steps block"}
+    ],      
+    "decompL2_create": [
+        {"strand": "Create", "required": true, "criteria": "Add a new backdrop"},
+        {"strand": "Create", "required": true, "criteria": "Add at least three sprites"},
+        {"strand": "Create", "required": true, "criteria": "Two sprites reset themselves with Go To blocks"},
+        {"strand": "Create", "required": true, "criteria": "Two sprites are properly animated, in a loop with a move, wait, and change costume block"},
+        {"strand": "Create", "required": true, "criteria": "Two sprites use conditional blocks. One uses wait until, the other uses repeat until, and they accurately target each other"},
+        
+        {"strand": "Create", "required": false, "criteria": "Add a sound block"},
+        {"strand": "Create", "required": false, "criteria": "Third or new sprite has different action blocks than just move and wait from the event block"}
+    ],   
+    "oneWaySyncL1": [
+        {"strand": "All", "required": true, "criteria": "There is an event broadcast that is not the original message"},
+        {"strand": "All", "required": true, "criteria": "After a click the sprite does some action"},
+        {"strand": "All", "required": true, "criteria": "After a click the target sprite acts"},
+        {"strand": "All", "required": true, "criteria": "The sprite sending the most messages, has 4 or more recipients"},
+        {"strand": "All", "required": true, "criteria": "The number of sprites reacting from the broadcaster is 4 or more"},
+        {"strand": "Multicultural/Youth Culture/Stardew", "required": true, "criteria": "Check if there are 5 or more sprites"},
+        {"strand": "Youth Culture", "required": true, "criteria": "From the sprite clicked, there is some form of sound playing"},
+
+        {"strand": "All", "required": false, "criteria": "The control wait block has been changed"},
+        {"strand": "All", "required": false, "criteria": "There is a new say block added somewhere to the project"}
+    ], 
+    "oneWaySyncL2_create": [
+        {"strand": "Create", "required": true, "criteria": "Add a new backdrop"},
+        {"strand": "Create", "required": true, "criteria": "Add at least five sprites"},
+        {"strand": "Create", "required": true, "criteria": "One sprite uses some broadcast block"},
+        {"strand": "Create", "required": true, "criteria": "A broadcast block with a message has 1/2/3/4 recipients"},
+        
+        {"strand": "Create", "required": false, "criteria": "There is animation, e.g. loops with wait and costume changes"},
+        {"strand": "Create", "required": false, "criteria": "Any say block is added"},
+        {"strand": "Create", "required": false, "criteria": "There is a second message with at least 4 recipients"}
+    ]
 }

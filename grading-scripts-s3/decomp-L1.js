@@ -92,7 +92,6 @@ const STRAND_CONFIG = {
             return ((numWaitsForA > 1 || res.B.bouncesTowards.includes(res.A.name)) && numBounces > 1);
         },
         checkExtra: (res) => {
-            // Checks if an extra sprite exists and if its logic bounces off the Balloon (B)
             return res.Extra.name && (res.Extra.bouncesTowards.includes(res.B.name) || res.Extra.movesTo.includes(res.B.name));
         }
     }
@@ -129,16 +128,20 @@ module.exports = class GradeDecompL1 extends Grader {
             new Requirement(this.config.req.bMoves, B.moves && B.movesTo.includes(C.name))
         ];
 
-
         // Map Standard Extensions
         let jumpConditionMet = this.config.jumpType === 'saySpeech' ? A.jumpsAfter.saySpeech : A.jumpsAfter.waitBlock;
         
+
         this.extensions = [
-            new Extension(this.config.ext.sound, A.sounds || B.sounds || C.sounds),
             new Extension(this.config.ext.aJumps, jumpConditionMet)
         ];
 
-        // Map Conditional Extensions via generic logic functions in the config
+        // Map Conditional Extensions
+
+        if (this.config.ext.sound) {
+            this.extensions.unshift(new Extension(this.config.ext.sound, A.sounds || B.sounds || C.sounds)); 
+        }
+
         if (this.config.ext.bounce) {
             this.extensions.push(new Extension(this.config.ext.bounce, this.config.checkBounce(this.evalResults)));
         }

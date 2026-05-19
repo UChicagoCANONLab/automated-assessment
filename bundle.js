@@ -5397,8 +5397,7 @@ module.exports = class GradeCondLoopsL1 extends Grader {
                     if (block.opcode === 'control_repeat_until') hasLooped = true;
                     if (hasLooped) {
                         if (block.opcode === 'motion_movesteps' && block.floatInput('STEPS') < 0) return true;
-                        if (block.opcode.includes('motion_goto') || block.opcode.includes('motion_turn')) return true;
-                        if (block.opcode === 'motion_pointindirection') return true;
+                        if (block.opcode.includes('motion_goto')) return true;
                         for (let subscript of block.subscriptsRecursive) {
                             for (let subblock of subscript.blocks) {
                                 if (subblock.opcode === 'motion_movesteps' && subblock.floatInput('STEPS') < 0) return true;
@@ -5433,13 +5432,14 @@ module.exports = class {
         this.requirements.moves = { bool: false, str: 'Sprite moves across the stage in a looping fashion' }; // done
         this.extensions.touchingNewSprite = { bool: false, str: 'The sprite stops when it touches a new sprite added from the sprite library' };
         this.extensions.repeatBlock = { bool: false, str: 'Repeat blocks added to animate another sprite' }; // done
+        this.extensions.multipleStops = { bool: false, str: 'Sprite stops in different places when triggered by different events' };
 
-/*
-//        this.extensions.addCostume = { bool: false, str: 'Another costume is added to the current mode of transportation' }; // done
-//       this.extensions.nextCostume = { bool: false, str: 'The sprite is animated with a "next costume" block' }; // done
-*/
+        /*
+        //        this.extensions.addCostume = { bool: false, str: 'Another costume is added to the current mode of transportation' }; // done
+        //       this.extensions.nextCostume = { bool: false, str: 'The sprite is animated with a "next costume" block' }; // done
+        */
 
-    
+
         this.info = {
             blocks: 0,
             sprites: 0,
@@ -5457,155 +5457,152 @@ module.exports = class {
         this.initReqs();
 
         let numRepeat = 0;
-         
         let allCostumes = 0;
         let sprites = [];
         let objectTouching = null;
         let touching = null;
         let moveOptions = ['motion_changexby', 'motion_changeyby', 'motion_movesteps', 'motion_glidesecstoxy', 'motion_glideto', 'motion_goto', 'motion_gotoxy']
         let soundOptions = ['sound_playuntildone', 'sound_play', 'looks_say', 'looks_sayforsecs']
-        
-        // static analysis variables
+
         var validScripts = 0;
         var events = [];
 
         for (let target of project.targets) {
-            if (target.isStage) {
-                continue;
-            }
-            else {
-                sprites.push(target.name);
-                for (let script of target.scripts) {
-                    // a script that starts with an event block
-                    if (script.blocks[0].opcode.includes('event_')) {
-                        for (let i = 0; i < script.blocks.length; i++) {
-                            // checking to see if a repeat block is used
-                            
-                            if (script.blocks[i].opcode.includes('control_repeat')) {
-                                //console.log(target.name)
-                                numRepeat++;
+            if (target.isStage) continue;
 
-                                //checks to see if a sound is is made once the loop is over
-                                let nextBlock = script.blocks[i].next;
-                               
-                                let condition = (script.blocks[i]).conditionBlock;
-                                if (condition != undefined) {
-                                        if (condition.opcode === 'sensing_touchingobject') {
-                                            touching = condition.inputs.TOUCHINGOBJECTMENU[1];
-                                            objectTouching = target.blocks[touching].fields.TOUCHINGOBJECTMENU[0];
-                        // Diana added this, which disables another check.
-                                            this.requirements.stop.bool = true;
-                                
-                                        }
-                                        // checks that it stops when touching a color
-                                        else if ((condition.opcode === 'sensing_touchingcolor') ||
-                                            (condition.opcode === 'sensing_coloristouchingcolor')) {
-                                            this.requirements.stop.bool = true;
-                                        }   
-                                }
-                                
-                                // if the next block is a sound block, set the requirement
-                                if (nextBlock != null && soundOptions.includes(target.blocks[nextBlock].opcode)) {
-                                    this.requirements.speak.bool = true;
-                                }
+            sprites.push(target.name);
 
-                                let substack = script.blocks[i].inputs.SUBSTACK[1];
-                                
-                                if (substack) {
-                                // there is only one block in the loop and that is a move block
-                                    if (moveOptions.includes(target.blocks[substack].opcode)) {
-                                    
-                                        this.requirements.moves.bool = true;
-                                    } else {
-                                        // there are multiple blocks in the loop, iterate through them to see 
-                                        while (target.blocks[substack].next !== null) {
-                                        
-                                            
-                                            if (moveOptions.includes(target.blocks[substack].opcode)) {
-                                                
-                                                this.requirements.moves.bool = true;
-                                            }
-/*
-                                            if ((target.blocks[substack].opcode === 'looks_switchcostumeto') || (target.blocks[substack].opcode === 'looks_nextcostume')) {
-                                                this.extensions.nextCostume.bool = true;
-                                            }
-*/
-                                            substack = target.blocks[substack].next;
-                                        }
-                                    }
-                                }
+            let eventStopTargets = [];
 
+            for (let script of target.scripts) {
+                if (script.blocks[0].opcode.includes('event_')) {
 
-                            }
-                     
-                        }
+                    let eventBlock = script.blocks[0];
+                    let eventId = eventBlock.opcode;
+                    if (eventBlock.fields) {
+                        eventId += JSON.stringify(eventBlock.fields);
                     }
-                }
-                allCostumes += target.costumes.length;
 
-                // Static analysis code
-                this.info.sprites++; 
-                //iterating through each of the sprite's scripts that start with an event block
-                for (var script of target.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) { 
-                    // search through each block and execute the given callback function
-                    // that determines what to look for and what to do (through side effects) for each block
-                    script.traverseBlocks((block, level) => {
-                        var opcode = block.opcode;
+                    let scriptStopTarget = null;
 
-                        if (opcode in this.info.blockTypes) {
-                            // do nothing
-                        } else {
-                            this.info.blockTypes.add(opcode);
-                            this.info.blocks++;
-                        }
+                    for (let i = 0; i < script.blocks.length; i++) {
+                        let block = script.blocks[i];
 
-                        if (opcode.includes('say')) {
-                            let string = block.inputs.MESSAGE[1][1].toLowerCase();
-                            this.info.strings.push(string);
-                            if (!this.info.guidingUser) {
-                                for (let keyword of ['press', 'click']) {
-                                    if (string.includes(keyword)) {
-                                        this.info.guidingUser = true;
-                                        break;
+                        if (block.opcode.includes('control_repeat')) {
+                            numRepeat++;
+                            let nextBlock = block.next;
+                            let condition = block.conditionBlock;
+
+                            if (condition != undefined) {
+                                if (condition.opcode === 'sensing_touchingobject') {
+                                    touching = condition.inputs.TOUCHINGOBJECTMENU[1];
+                                    objectTouching = target.blocks[touching].fields.TOUCHINGOBJECTMENU[0];
+
+                                    scriptStopTarget = objectTouching;
+                                    this.requirements.stop.bool = true;
+
+                                } else if (condition.opcode === 'sensing_touchingcolor' || condition.opcode === 'sensing_coloristouchingcolor') {
+                                    scriptStopTarget = 'color_' + JSON.stringify(condition.inputs.COLOR);
+                                    this.requirements.stop.bool = true;
+                                }
+                            }
+
+                            if (nextBlock != null && soundOptions.includes(target.blocks[nextBlock].opcode)) {
+                                this.requirements.speak.bool = true;
+                            }
+
+                            let substack = block.inputs.SUBSTACK[1];
+                            if (substack) {
+                                if (moveOptions.includes(target.blocks[substack].opcode)) {
+                                    this.requirements.moves.bool = true;
+                                } else {
+                                    while (target.blocks[substack].next !== null) {
+                                        if (moveOptions.includes(target.blocks[substack].opcode)) {
+                                            this.requirements.moves.bool = true;
+                                        }
+                                        substack = target.blocks[substack].next;
                                     }
                                 }
                             }
                         }
-                        
-                    });
-
-                    var event = script.blocks[0];
-                    // adds to list of unique events and scripts
-                    if (!events.includes(event.opcode)) {
-                        events.push(event.opcode);
-                        if (script.blocks.length > 1) {
-                            validScripts++;
-                        }
                     }
-                    if (validScripts >=2) {
-                        this.info.spritesWith2Scripts++;
-                    } else if (validScripts >= 1) {
-                        this.info.spritesWith1Script++;
+
+                    if (scriptStopTarget !== null) {
+                        eventStopTargets.push({ eventId: eventId, target: scriptStopTarget });
                     }
                 }
-
             }
-        }
 
-        if(sprites.includes(objectTouching)) {
-            this.requirements.stop.bool = true;
+            for (let i = 0; i < eventStopTargets.length; i++) {
+                for (let j = i + 1; j < eventStopTargets.length; j++) {
+                    let event1 = eventStopTargets[i];
+                    let event2 = eventStopTargets[j];
+
+                    if (event1.eventId !== event2.eventId && event1.target !== event2.target) {
+                        this.extensions.multipleStops.bool = true;
+                    }
+                }
+            }
+
+            allCostumes += target.costumes.length;
+
+            // Static analysis code
+            this.info.sprites++;
+            //iterating through each of the sprite's scripts that start with an event block
+            for (var script of target.scripts.filter(s => s.blocks[0].opcode.includes("event_when"))) {
+                // search through each block and execute the given callback function
+                // that determines what to look for and what to do (through side effects) for each block
+                script.traverseBlocks((block, level) => {
+                    var opcode = block.opcode;
+
+                    if (opcode in this.info.blockTypes) {
+                        // do nothing
+                    } else {
+                        this.info.blockTypes.add(opcode);
+                        this.info.blocks++;
+                    }
+
+                    if (opcode.includes('say')) {
+                        let string = block.inputs.MESSAGE[1][1].toLowerCase();
+                        this.info.strings.push(string);
+                        if (!this.info.guidingUser) {
+                            for (let keyword of ['press', 'click']) {
+                                if (string.includes(keyword)) {
+                                    this.info.guidingUser = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                });
+
+                var event = script.blocks[0];
+                // adds to list of unique events and scripts
+                if (!events.includes(event.opcode)) {
+                    events.push(event.opcode);
+                    if (script.blocks.length > 1) {
+                        validScripts++;
+                    }
+                }
+                if (validScripts >= 2) {
+                    this.info.spritesWith2Scripts++;
+                } else if (validScripts >= 1) {
+                    this.info.spritesWith1Script++;
+                }
+            }
+
         }
-       
-/*
-        if (allCostumes > 12) {
-            this.extensions.addCostume.bool = true;
-        }       
-*/
-        
+        /*
+                if (allCostumes > 12) {
+                    this.extensions.addCostume.bool = true;
+                }       
+        */
+
         if (numRepeat > 1) {
             this.extensions.repeatBlock.bool = true;
         }
-        
+
         if (project.sprites.length > 2) {
             if ((objectTouching !== 'Sign') || (objectTouching !== 'Stop')) {
                 this.extensions.touchingNewSprite.bool = true;
@@ -5614,7 +5611,7 @@ module.exports = class {
 
         // Static analysis code
         delete this.info.strings;
-        this.info.score = Object.values(this.requirements).reduce((sum, r) => sum + (r.bool? 1 : 0), 0);
+        this.info.score = Object.values(this.requirements).reduce((sum, r) => sum + (r.bool ? 1 : 0), 0);
     }
 }
 
@@ -5728,16 +5725,28 @@ const STRAND_CONFIG = {
     },
     stardew: {
         req: {
-            aMoves: 'Kent moves towards the hot air balloon.',
-            aStops: 'Kent stops when they touch the Hot air balloon.',
-            bWaits: 'The hot air balloon stays still until Kent touches it.',
-            bMoves: 'The hot air balloon rises until it touches the cloud.',
+            aMoves: 'Kent moves towards the Hot Air Balloon.',
+            aStops: 'Kent stops moving when Kent touches the Hot Air Balloon.',
+            bWaits: 'The Hot Air Balloon stays still until Kent touches it.',
+            bMoves: 'The Hot Air Balloon moves until it touches the Cloud.',
         },
         ext: {
-            sound: 'A sound is played when the Stairs touch the Cliff.',
-            bounce: 'The Stairs "bounce" off the Cliff back towards the Player (then when they touch the Player, they move back to the Cliff again).',
-            aJumps: 'The Player jumps up and down to celebrate when the Stairs touch the Cliff (use a "wait" block).',
-            extra: 'Added another sprite to the project on top of the Stairs. After the Stairs touch the Cliff, this sprite moves right and stops at the blue treasure chest.'
+            bounce: 'The Hot Air Balloon floats back down after touching the cloud.',
+            aJumps: 'Kent jumps up and down to celebrate (use a wait block).',
+            extra: 'Added a new sprite to your project. If it touches the Balloon, have it bounce off.'
+        },
+        jumpType: 'waitBlock',
+        checkBounce: (res) => {
+            // Checks if the Balloon (B) moves "backward" (down) after hitting the Cloud (C)
+            if (!res.B.movesLeft) return false; 
+            let numWaitsForA = res.B.waitsFor.filter(x => x === res.A.name).length;
+            let numBounces = res.B.movesTo.filter(x => x === res.C.name).length;
+            
+            return ((numWaitsForA > 1 || res.B.bouncesTowards.includes(res.A.name)) && numBounces > 1);
+        },
+        checkExtra: (res) => {
+            // Checks if an extra sprite exists and if its logic bounces off the Balloon (B)
+            return res.Extra.name && (res.Extra.bouncesTowards.includes(res.B.name) || res.Extra.movesTo.includes(res.B.name));
         }
     }
 };
@@ -5773,16 +5782,20 @@ module.exports = class GradeDecompL1 extends Grader {
             new Requirement(this.config.req.bMoves, B.moves && B.movesTo.includes(C.name))
         ];
 
-
         // Map Standard Extensions
         let jumpConditionMet = this.config.jumpType === 'saySpeech' ? A.jumpsAfter.saySpeech : A.jumpsAfter.waitBlock;
         
+
         this.extensions = [
-            new Extension(this.config.ext.sound, A.sounds || B.sounds || C.sounds),
             new Extension(this.config.ext.aJumps, jumpConditionMet)
         ];
 
-        // Map Conditional Extensions via generic logic functions in the config
+        // Map Conditional Extensions
+
+        if (this.config.ext.sound) {
+            this.extensions.unshift(new Extension(this.config.ext.sound, A.sounds || B.sounds || C.sounds)); 
+        }
+
         if (this.config.ext.bounce) {
             this.extensions.push(new Extension(this.config.ext.bounce, this.config.checkBounce(this.evalResults)));
         }
@@ -7393,8 +7406,24 @@ module.exports={
         {"strand": "Create", "required": false, "criteria": "Another sprite is animated (loop with cosume change and wait), either in-place or with motion"},
         {"strand": "Create", "required": false, "criteria": "Multiple types of animation, usage of different motion e.g. glide versus move steps"}
     ],
-    "condLoopsL1": [],
-    "condLoopsL2_create": [],
+    "condLoopsL1": [
+        {"strand": "Multicultural/Youth Culture/Stardew", "required": true, "criteria": "Main sprite has a costume change from the default costume"},
+        {"strand": "All", "required": true, "criteria": "Check if the touching block matches the correct ending sprite"},
+        {"strand": "All", "required": true, "criteria": "Check if after the loop, there is a say block"},
+        {"strand": "All", "required": true, "criteria": "Check if the steps or the wait block have been modified from original values"},
+        
+        {"strand": "All", "required": false, "criteria": "Another sprite is added and contains a similar loop where there is a repeat loop until touching some other sprite"},
+        {"strand": "All", "required": false, "criteria": "Check if after the loop there is a play sound block"},
+        {"strand": "All", "required": false, "criteria": "After the loop there is some form of return, either a go to block or a move steps block with negative steps "}
+    ],
+    "condLoopsL2_create": [
+        {"strand": "Create", "required": true, "criteria": "Check if there is a loop with a touching check that has a object or color"},
+        {"strand": "Create", "required": true, "criteria": "After the loop there is some form of sound block, either a say or play sound"},
+        {"strand": "Create", "required": true, "criteria": "There is some blue motion block in the loop"},
+        
+        {"strand": "Create", "required": false, "criteria": "Another sprite has a loop"},
+        {"strand": "Create", "required": false, "criteria": "There are more than 2 sprites and there are different events starting and different touching checks in each loop"}
+    ],
     "decompL1": [],      
     "decompL2_create": [],   
     "oneWaySyncL1": [], 

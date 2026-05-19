@@ -127,7 +127,7 @@ module.exports = class {
                         }
                     }
 
-                    // if sprite uses new action blocks
+                    // if sprite uses new action blocks and event blocks
                     if (!(knownBlocks.includes(opcode)) && (opcode.includes("motion_") || opcode.includes("looks_"))) {
                         diffActions = true;
                     }
